@@ -1,0 +1,276 @@
+.cl-page {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.cl-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-panel);
+}
+
+.cl-hero h2,
+.cl-panel__header strong {
+  margin: 2px 0 0;
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+.cl-hero p,
+.cl-panel p {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.cl-eyebrow {
+  display: inline-block;
+  color: var(--text-tertiary);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cl-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cl-summary-card,
+.cl-panel {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-panel);
+}
+
+.cl-summary-card {
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.cl-summary-card span {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.cl-summary-card strong {
+  font-size: 1rem;
+}
+
+.cl-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 10px;
+  min-height: 0;
+}
+
+.cl-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  border-radius: 8px 8px 0 0;
+  background: var(--bg-toolbar);
+}
+
+.cl-toolbar strong {
+  font-size: 0.82rem;
+}
+
+.cl-toolbar span {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  text-align: right;
+}
+
+.cl-table-shell {
+  border: 1px solid var(--border);
+  border-radius: 0 0 8px 8px;
+  background: var(--bg-panel);
+  overflow: auto;
+}
+
+.cl-table {
+  min-width: 980px;
+}
+
+.cl-head,
+.cl-row {
+  display: grid;
+  grid-template-columns: 110px 140px 110px 150px minmax(220px, 1fr) 110px 120px 130px;
+}
+
+.cl-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg-toolbar);
+  border-bottom: 1px solid var(--border);
+}
+
+.cl-head span {
+  padding: 10px 10px;
+  border-right: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.cl-head span:last-child,
+.cl-row span:last-child {
+  border-right: 0;
+}
+
+.cl-group__header {
+  padding: 9px 12px;
+  background: var(--bg-panel-alt);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+}
+
+.cl-row span {
+  padding: 9px 10px;
+  border-right: 1px solid rgba(46, 48, 53, 0.9);
+  border-bottom: 1px solid rgba(46, 48, 53, 0.9);
+  color: var(--text-main);
+  font-size: 0.8rem;
+}
+
+.cl-row:nth-child(even) {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.cl-circuit-name {
+  color: #d8e6ff;
+}
+
+.cl-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cl-panel__header {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-toolbar);
+}
+
+.cl-panel ul,
+.cl-panel p {
+  margin: 0;
+}
+
+.cl-panel ul {
+  padding: 12px 18px 14px 28px;
+  color: var(--text-secondary);
+}
+
+.cl-panel li {
+  margin-bottom: 8px;
+}
+
+.cl-panel p {
+  padding: 12px 12px 0;
+}
+
+.cl-panel p:last-child {
+  padding-bottom: 12px;
+}
+
+@media (max-width: 1320px) {
+  .cl-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .cl-hero,
+  .cl-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cl-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Avalonia parity: sheet 3 is a compact workspace with one data grid. */
+.cl-page {
+  height: 100%;
+  gap: 0;
+  overflow: hidden;
+  background: var(--app-background);
+}
+
+.cl-hero {
+  flex: 0 0 auto;
+  align-items: center;
+  padding: 10px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--panel-border);
+  border-radius: 0;
+  background: var(--toolbar-background);
+}
+
+.cl-hero h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.cl-hero p,
+.cl-summary,
+.cl-side {
+  display: none;
+}
+
+.cl-hero-actions button {
+  min-height: 30px;
+  padding: 6px 10px;
+  color: var(--text-main);
+  background: var(--panel-background-alt);
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+}
+
+.cl-grid {
+  display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.cl-table-area {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.cl-toolbar {
+  flex: 0 0 auto;
+  border: 0;
+  border-bottom: 1px solid var(--panel-border);
+  border-radius: 0;
+}
+
+.cl-table-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+}

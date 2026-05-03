@@ -1,0 +1,382 @@
+.pp-page {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.pp-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-panel);
+}
+
+.pp-hero h2,
+.pp-card__header h3 {
+  margin: 2px 0 0;
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+.pp-hero p {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  max-width: 640px;
+  line-height: 1.45;
+}
+
+.pp-hero-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.pp-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 10px;
+  min-height: 0;
+}
+
+.pp-form-area,
+.pp-preview-area {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pp-signature-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.pp-card,
+.pp-preview-sheet {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-panel);
+}
+
+.pp-card__header,
+.pp-preview-sheet__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-toolbar);
+}
+
+.pp-card__body {
+  padding: 12px;
+}
+
+.pp-eyebrow {
+  display: inline-block;
+  color: var(--text-tertiary);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pp-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.pp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pp-field span,
+.pp-toggle span {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.pp-field textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.pp-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: rgba(59, 130, 246, 0.07);
+}
+
+.pp-toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent-blue);
+}
+
+.pp-summary {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.pp-summary div {
+  display: grid;
+  gap: 3px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.pp-summary div:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.pp-summary dt {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.pp-summary dd {
+  margin: 0;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.pp-preview-sheet {
+  background: var(--app-background);
+}
+
+.pp-sheet {
+  margin: 12px;
+  padding: 20px;
+  border: 1px solid var(--sheet-border);
+  background: var(--white-sheet);
+  color: var(--sheet-text);
+}
+
+.pp-sheet__title {
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.pp-sheet__divider {
+  height: 2px;
+  margin: 14px 0 16px;
+  background: var(--sheet-text);
+}
+
+.pp-sheet__row {
+  display: grid;
+  grid-template-columns: 124px minmax(0, 1fr);
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #d8dce3;
+}
+
+.pp-sheet__row span,
+.pp-sheet__standards span,
+.pp-sheet__signatures span {
+  color: var(--sheet-muted);
+  font-size: 0.78rem;
+}
+
+.pp-sheet__row strong,
+.pp-sheet__standards strong,
+.pp-sheet__signatures strong {
+  color: var(--sheet-text);
+  font-size: 0.84rem;
+}
+
+.pp-sheet__standards {
+  display: grid;
+  gap: 6px;
+  padding-top: 12px;
+}
+
+.pp-sheet__signatures {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #d8dce3;
+}
+
+.pp-sheet__signatures div {
+  display: grid;
+  gap: 6px;
+}
+
+@media (max-width: 1320px) {
+  .pp-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .pp-fields,
+  .pp-signature-grid,
+  .pp-sheet__signatures {
+    grid-template-columns: 1fr;
+  }
+
+  .pp-sheet__row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .pp-hero {
+    flex-direction: column;
+  }
+}
+
+/* Avalonia parity: this view lives in the 280px left panel, not in a full page. */
+.pp-page {
+  height: 100%;
+  gap: 0;
+  overflow: hidden;
+  background: var(--panel-background);
+}
+
+.pp-hero {
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 14px 16px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--panel-border);
+  border-radius: 0;
+  background: var(--panel-background);
+}
+
+.pp-hero-icon {
+  flex: 0 0 auto;
+  color: var(--accent-orange);
+}
+
+.pp-hero h2 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.pp-hero .pp-eyebrow,
+.pp-hero p {
+  display: none;
+}
+
+.pp-grid {
+  display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.pp-form-area {
+  gap: 8px;
+}
+
+.pp-preview-area {
+  display: none;
+}
+
+.pp-card {
+  margin: 0 0 8px;
+  border-color: var(--panel-border);
+  border-radius: 8px;
+  background: var(--panel-background);
+}
+
+.pp-card__header {
+  padding: 10px 10px 0;
+  border-bottom: 0;
+  background: transparent;
+}
+
+.pp-card__header h3 {
+  margin: 0;
+  font-size: 12px;
+}
+
+.pp-card__body {
+  padding: 10px;
+}
+
+.pp-fields,
+.pp-signature-grid {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.pp-toggle {
+  margin-bottom: 8px;
+  padding: 8px;
+  border-radius: 4px;
+  background: var(--panel-background-alt);
+}
+
+.pp-field {
+  gap: 3px;
+}
+
+.pp-field span,
+.pp-toggle span {
+  font-size: 11px;
+}
+
+.pp-field-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pp-field-icon {
+  flex: 0 0 auto;
+  color: var(--accent-orange);
+}
+
+.pp-field textarea {
+  min-height: 54px;
+}
+
+.pp-footer {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 12px;
+  background: var(--panel-header-background);
+  border-top: 1px solid var(--panel-border);
+}
+
+.pp-secondary-action {
+  min-height: 34px;
+  padding: 7px 10px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+.pp-export-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 7px 12px;
+}
