@@ -7,6 +7,8 @@ interface CircuitCalculatorsProps {
   moduleType: "mcb" | "rcbo" | "socket" | "other";
 }
 
+const RHO_COPPER = 0.0175; // Rezystywność miedzi [Ω·mm²/m]
+
 export function CircuitCalculators({ values, moduleType }: CircuitCalculatorsProps) {
   if (moduleType !== "mcb" && moduleType !== "rcbo" && moduleType !== "socket") {
     return null;
@@ -28,13 +30,12 @@ export function CircuitCalculators({ values, moduleType }: CircuitCalculatorsPro
     let voltageDropPercent = 0;
     if (cableLength > 0 && cableCrossSection > 0 && currentA > 0) {
       const is3Phase = phase.includes("L1+L2+L3") || phase === "3F";
-      const rho = 0.0175;
       
       if (is3Phase) {
-        voltageDropV = (Math.sqrt(3) * currentA * cableLength * rho) / cableCrossSection;
+        voltageDropV = (Math.sqrt(3) * currentA * cableLength * RHO_COPPER) / cableCrossSection;
         voltageDropPercent = (voltageDropV / 400) * 100;
       } else {
-        voltageDropV = (2 * currentA * cableLength * rho) / cableCrossSection;
+        voltageDropV = (2 * currentA * cableLength * RHO_COPPER) / cableCrossSection;
         voltageDropPercent = (voltageDropV / 230) * 100;
       }
     }
@@ -57,7 +58,7 @@ export function CircuitCalculators({ values, moduleType }: CircuitCalculatorsPro
     }
 
     if (cableLength > 0 && cableCrossSection > 0) {
-      cableZ = (2 * cableLength * 0.0175) / cableCrossSection;
+      cableZ = (2 * cableLength * RHO_COPPER) / cableCrossSection;
     }
 
     return {

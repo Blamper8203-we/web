@@ -104,52 +104,25 @@ export function MeasurementProtocolsWorkspacePage({
     });
   };
 
-  const updateContinuityRow = (
+  const updateTableRow = <K extends keyof MeasurementProtocolsData>(
+    key: K,
     index: number,
-    field: keyof typeof protocols.continuityRows[0],
+    field: string,
     value: string,
   ) => {
-    const nextRows = protocols.continuityRows.map((row, i) =>
-      i === index ? { ...row, [field]: value } : row,
+    const rows = protocols[key] as any[];
+    const nextRows = rows.map((row, i) =>
+      i === index ? { ...row, [field]: value } : row
     );
-    updateProtocols({ continuityRows: nextRows });
-  };
-
-  const updateLoopRow = (
-    index: number,
-    field: keyof typeof protocols.loopImpedanceRows[0],
-    value: string,
-  ) => {
-    const nextRows = protocols.loopImpedanceRows.map((row, i) =>
-      i === index ? { ...row, [field]: value } : row,
-    );
-    updateProtocols({ loopImpedanceRows: nextRows });
-  };
-
-  const updateInsulationRow = (
-    index: number,
-    field: keyof typeof protocols.insulationRows[0],
-    value: string,
-  ) => {
-    const nextRows = protocols.insulationRows.map((row, i) =>
-      i === index ? { ...row, [field]: value } : row,
-    );
-    updateProtocols({ insulationRows: nextRows });
-  };
-
-  const updateRcdRow = (
-    index: number,
-    field: keyof typeof protocols.rcdRows[0],
-    value: string,
-  ) => {
-    const nextRows = protocols.rcdRows.map((row, i) =>
-      i === index ? { ...row, [field]: value } : row,
-    );
-    updateProtocols({ rcdRows: nextRows });
+    updateProtocols({ [key]: nextRows } as any);
   };
 
   return (
-    <div className="mp-page">
+    <div className="mp-page" style={{ 
+      fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+      color: '#1a1a1a',
+      lineHeight: 1.4
+    }}>
       <div className="mp-stage">
         <article className="mp-sheet">
           {activeTab === "title-page" ? (
@@ -180,7 +153,7 @@ export function MeasurementProtocolsWorkspacePage({
                   <span className="tp-info-label">Adres:</span>
                   <input 
                     className="tp-info-value" 
-                    value={metadata.address} 
+                    value={metadata.address || ""} 
                     placeholder="...................................................................................................."
                     onChange={(e) => updateMetadata({ address: e.target.value })}
                     style={{ border: 0, padding: 0, background: 'transparent', width: '100%' }}
@@ -189,7 +162,7 @@ export function MeasurementProtocolsWorkspacePage({
                   <span className="tp-info-label">Inwestor:</span>
                   <input 
                     className="tp-info-value" 
-                    value={metadata.investor} 
+                    value={metadata.investor || ""} 
                     placeholder="...................................................................................................."
                     onChange={(e) => updateMetadata({ investor: e.target.value })}
                     style={{ border: 0, padding: 0, background: 'transparent', width: '100%' }}
@@ -229,13 +202,13 @@ export function MeasurementProtocolsWorkspacePage({
               <div className="tp-grid-2">
                 <div className="tp-info-box">
                   <h3>Wykonawca / Instalator</h3>
-                  <div style={{ marginTop: '10px' }}>
+                  <div style={{ marginTop: '10px', fontFamily: 'inherit' }}>
                     <input 
                       className="tp-info-value" 
-                      value={metadata.contractor} 
+                      value={metadata.contractor || ""} 
                       placeholder="..................................................."
                       onChange={(e) => updateMetadata({ contractor: e.target.value })}
-                      style={{ border: 0, padding: 0, background: 'transparent', width: '100%', fontSize: '14px', marginBottom: '8px' }}
+                      style={{ border: 0, padding: 0, background: 'transparent', width: '100%', fontSize: '14px', marginBottom: '8px', fontWeight: 600 }}
                     />
                     <p style={{ fontSize: '10px', color: '#666', margin: 0 }}>Dokumentacja odbiorowa instalacji elektrycznej</p>
                   </div>
@@ -244,12 +217,12 @@ export function MeasurementProtocolsWorkspacePage({
                 <div className="tp-info-box">
                   <h3>Uprawnienia SEP</h3>
                   <div style={{ marginTop: '10px' }}>
-                    <p style={{ margin: '0 0 5px', color: 'blue', fontWeight: 700 }}>Kwalifikacje: E + D</p>
+                    <p style={{ margin: '0 0 5px', color: '#1e40af', fontWeight: 700 }}>Kwalifikacje: E + D</p>
                     <div style={{ display: 'flex', gap: '5px', alignItems: 'baseline' }}>
                       <span style={{ fontSize: '11px' }}>Nr:</span>
                       <input 
                         className="tp-info-value" 
-                        value={metadata.authorLicense} 
+                        value={metadata.authorLicense || ""} 
                         placeholder="................................"
                         onChange={(e) => updateMetadata({ authorLicense: e.target.value })}
                         style={{ border: 0, padding: 0, background: 'transparent', flex: 1 }}
@@ -259,7 +232,7 @@ export function MeasurementProtocolsWorkspacePage({
                       <span style={{ fontSize: '11px' }}>Ważne do:</span>
                       <input 
                         className="tp-info-value" 
-                        value={metadata.titlePageSepValidUntil} 
+                        value={metadata.titlePageSepValidUntil || ""} 
                         placeholder="........................"
                         onChange={(e) => updateMetadata({ titlePageSepValidUntil: e.target.value })}
                         style={{ border: 0, padding: 0, background: 'transparent', flex: 1 }}
@@ -331,35 +304,35 @@ export function MeasurementProtocolsWorkspacePage({
                         <input
                           className="mp-table-input"
                           value={row.circuitName}
-                          onChange={(e) => updateContinuityRow(idx, "circuitName", e.target.value)}
+                          onChange={(e) => updateTableRow("continuityRows", idx, "circuitName", e.target.value)}
                         />
                       </td>
                       <td>
                         <input
                           className="mp-table-input"
                           value={row.location}
-                          onChange={(e) => updateContinuityRow(idx, "location", e.target.value)}
+                          onChange={(e) => updateTableRow("continuityRows", idx, "location", e.target.value)}
                         />
                       </td>
                       <td>
                         <input
                           className="mp-table-input"
                           value={row.connectionType}
-                          onChange={(e) => updateContinuityRow(idx, "connectionType", e.target.value)}
+                          onChange={(e) => updateTableRow("continuityRows", idx, "connectionType", e.target.value)}
                         />
                       </td>
                       <td>
                         <input
                           className="mp-table-input mp-table-input--center"
                           value={row.measuredResistance}
-                          onChange={(e) => updateContinuityRow(idx, "measuredResistance", e.target.value)}
+                          onChange={(e) => updateTableRow("continuityRows", idx, "measuredResistance", e.target.value)}
                         />
                       </td>
                       <td>
                         <input
                           className="mp-table-input mp-table-input--center"
                           value={row.assessment}
-                          onChange={(e) => updateContinuityRow(idx, "assessment", e.target.value)}
+                          onChange={(e) => updateTableRow("continuityRows", idx, "assessment", e.target.value)}
                         />
                       </td>
                     </tr>
@@ -425,14 +398,14 @@ export function MeasurementProtocolsWorkspacePage({
                   {protocols.loopImpedanceRows.map((row, idx) => (
                     <tr key={idx}>
                       <td className="mp-index-cell">{row.index}</td>
-                      <td><input className="mp-table-input" value={row.circuitName} onChange={(e) => updateLoopRow(idx, "circuitName", e.target.value)} /></td>
-                      <td><input className="mp-table-input" value={row.location} onChange={(e) => updateLoopRow(idx, "location", e.target.value)} /></td>
-                      <td><input className="mp-table-input mp-table-input--center" value={row.protectionType} onChange={(e) => updateLoopRow(idx, "protectionType", e.target.value)} /></td>
-                      <td><input className="mp-table-input mp-table-input--center" value={row.ratedCurrent} onChange={(e) => updateLoopRow(idx, "ratedCurrent", e.target.value)} /></td>
-                      <td><input className="mp-table-input mp-table-input--center" value={row.tripCurrent} onChange={(e) => updateLoopRow(idx, "tripCurrent", e.target.value)} /></td>
-                      <td><input className="mp-table-input mp-table-input--center" value={row.measuredImpedance} onChange={(e) => updateLoopRow(idx, "measuredImpedance", e.target.value)} /></td>
-                      <td><input className="mp-table-input mp-table-input--center" value={row.allowedImpedance} onChange={(e) => updateLoopRow(idx, "allowedImpedance", e.target.value)} /></td>
-                      <td><input className="mp-table-input mp-table-input--center" value={row.assessment} onChange={(e) => updateLoopRow(idx, "assessment", e.target.value)} /></td>
+                      <td><input className="mp-table-input" value={row.circuitName} onChange={(e) => updateTableRow("loopImpedanceRows", idx, "circuitName", e.target.value)} /></td>
+                      <td><input className="mp-table-input" value={row.location} onChange={(e) => updateTableRow("loopImpedanceRows", idx, "location", e.target.value)} /></td>
+                      <td><input className="mp-table-input mp-table-input--center" value={row.protectionType} onChange={(e) => updateTableRow("loopImpedanceRows", idx, "protectionType", e.target.value)} /></td>
+                      <td><input className="mp-table-input mp-table-input--center" value={row.ratedCurrent} onChange={(e) => updateTableRow("loopImpedanceRows", idx, "ratedCurrent", e.target.value)} /></td>
+                      <td><input className="mp-table-input mp-table-input--center" value={row.tripCurrent} onChange={(e) => updateTableRow("loopImpedanceRows", idx, "tripCurrent", e.target.value)} /></td>
+                      <td><input className="mp-table-input mp-table-input--center" value={row.measuredImpedance} onChange={(e) => updateTableRow("loopImpedanceRows", idx, "measuredImpedance", e.target.value)} /></td>
+                      <td><input className="mp-table-input mp-table-input--center" value={row.allowedImpedance} onChange={(e) => updateTableRow("loopImpedanceRows", idx, "allowedImpedance", e.target.value)} /></td>
+                      <td><input className="mp-table-input mp-table-input--center" value={row.assessment} onChange={(e) => updateTableRow("loopImpedanceRows", idx, "assessment", e.target.value)} /></td>
                     </tr>
                   ))}
                 </tbody>
@@ -491,13 +464,13 @@ export function MeasurementProtocolsWorkspacePage({
                   {protocols.insulationRows.map((row, idx) => (
                     <tr key={idx}>
                       <td className="mp-index-cell">{row.index}</td>
-                      <td><input className="mp-table-input" value={row.circuitName} onChange={(e) => updateInsulationRow(idx, "circuitName", e.target.value)} /></td>
-                      <td><input className="mp-table-input" value={row.location} onChange={(e) => updateInsulationRow(idx, "location", e.target.value)} /></td>
-                      <td><input className="mp-table-input mp-table-input--center" value={row.lnResistance} onChange={(e) => updateInsulationRow(idx, "lnResistance", e.target.value)} /></td>
-                      <td><input className="mp-table-input mp-table-input--center" value={row.lpeResistance} onChange={(e) => updateInsulationRow(idx, "lpeResistance", e.target.value)} /></td>
-                      <td><input className="mp-table-input mp-table-input--center" value={row.npeResistance} onChange={(e) => updateInsulationRow(idx, "npeResistance", e.target.value)} /></td>
-                      <td><input className="mp-table-input mp-table-input--center" value={row.requiredResistance} onChange={(e) => updateInsulationRow(idx, "requiredResistance", e.target.value)} /></td>
-                      <td><input className="mp-table-input mp-table-input--center" value={row.assessment} onChange={(e) => updateInsulationRow(idx, "assessment", e.target.value)} /></td>
+                      <td><input className="mp-table-input" value={row.circuitName} onChange={(e) => updateTableRow("insulationRows", idx, "circuitName", e.target.value)} /></td>
+                      <td><input className="mp-table-input" value={row.location} onChange={(e) => updateTableRow("insulationRows", idx, "location", e.target.value)} /></td>
+                      <td><input className="mp-table-input mp-table-input--center" value={row.lnResistance} onChange={(e) => updateTableRow("insulationRows", idx, "lnResistance", e.target.value)} /></td>
+                      <td><input className="mp-table-input mp-table-input--center" value={row.lpeResistance} onChange={(e) => updateTableRow("insulationRows", idx, "lpeResistance", e.target.value)} /></td>
+                      <td><input className="mp-table-input mp-table-input--center" value={row.npeResistance} onChange={(e) => updateTableRow("insulationRows", idx, "npeResistance", e.target.value)} /></td>
+                      <td><input className="mp-table-input mp-table-input--center" value={row.requiredResistance} onChange={(e) => updateTableRow("insulationRows", idx, "requiredResistance", e.target.value)} /></td>
+                      <td><input className="mp-table-input mp-table-input--center" value={row.assessment} onChange={(e) => updateTableRow("insulationRows", idx, "assessment", e.target.value)} /></td>
                     </tr>
                   ))}
                 </tbody>
@@ -552,12 +525,12 @@ export function MeasurementProtocolsWorkspacePage({
                   {protocols.rcdRows.map((row, idx) => (
                     <tr key={idx}>
                       <td className="mp-index-cell">{row.index}</td>
-                      <td><input className="mp-table-input" value={row.deviceType} onChange={(e) => updateRcdRow(idx, "deviceType", e.target.value)} /></td>
-                      <td><input className="mp-table-input mp-table-input--center" value={row.residualCurrent} onChange={(e) => updateRcdRow(idx, "residualCurrent", e.target.value)} /></td>
-                      <td><input className="mp-table-input mp-table-input--center" value={row.tripCurrent} onChange={(e) => updateRcdRow(idx, "tripCurrent", e.target.value)} /></td>
-                      <td><input className="mp-table-input mp-table-input--center" value={row.tripTimeMs} onChange={(e) => updateRcdRow(idx, "tripTimeMs", e.target.value)} /></td>
-                      <td><input className="mp-table-input mp-table-input--center" value={row.testButtonResult} onChange={(e) => updateRcdRow(idx, "testButtonResult", e.target.value)} /></td>
-                      <td><input className="mp-table-input mp-table-input--center" value={row.assessment} onChange={(e) => updateRcdRow(idx, "assessment", e.target.value)} /></td>
+                      <td><input className="mp-table-input" value={row.deviceType} onChange={(e) => updateTableRow("rcdRows", idx, "deviceType", e.target.value)} /></td>
+                      <td><input className="mp-table-input mp-table-input--center" value={row.residualCurrent} onChange={(e) => updateTableRow("rcdRows", idx, "residualCurrent", e.target.value)} /></td>
+                      <td><input className="mp-table-input mp-table-input--center" value={row.tripCurrent} onChange={(e) => updateTableRow("rcdRows", idx, "tripCurrent", e.target.value)} /></td>
+                      <td><input className="mp-table-input mp-table-input--center" value={row.tripTimeMs} onChange={(e) => updateTableRow("rcdRows", idx, "tripTimeMs", e.target.value)} /></td>
+                      <td><input className="mp-table-input mp-table-input--center" value={row.testButtonResult} onChange={(e) => updateTableRow("rcdRows", idx, "testButtonResult", e.target.value)} /></td>
+                      <td><input className="mp-table-input mp-table-input--center" value={row.assessment} onChange={(e) => updateTableRow("rcdRows", idx, "assessment", e.target.value)} /></td>
                     </tr>
                   ))}
                 </tbody>
