@@ -1,0 +1,7 @@
+﻿# Cursor rules (skrót lokalny)
+
+- Pracuj małymi, bezpiecznymi zmianami.
+- Nie zmieniaj logiki domenowej bez wyraźnej potrzeby.
+- Traktuj walidację, fazy, zapis i PDF jako obszary krytyczne.
+- Każdą zmianę wysokiego ryzyka zabezpieczaj testem.
+- Zachowuj spójność semantyki danych między UI i eksportem.
