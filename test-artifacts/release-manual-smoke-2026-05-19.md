@@ -1,4 +1,4 @@
-# Release Manual Smoke - 2026-05-19
+﻿# Release Manual Smoke - 2026-05-19
 
 ## Cel
 
@@ -27,7 +27,7 @@ Domknąć ręczne punkty z `RELEASE_WEB_V1_CHECKLIST.md`:
 6. Odśwież aplikację i ponownie otwórz zapisany plik.
 7. Potwierdź, że zmiana z kroku 4 jest zachowana.
 
-Wynik: PASS/FAIL
+Wynik: PASS (2026-05-19)
 
 ## Scenariusz 2: Eksport PDF na realnym projekcie
 
@@ -41,8 +41,8 @@ Wynik: PASS/FAIL
    - czytelność treści i tabel,
    - brak artefaktów renderowania.
 
-Wynik: PASS/FAIL
+Wynik: PASS (2026-05-19)
 
 ## Notatka końcowa
 
-Po wykonaniu testów uzupełnij `RELEASE_WEB_V1_CHECKLIST.md` datą i statusem.
+Manualne testy release wykonane i potwierdzone jako PASS.

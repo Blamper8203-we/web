@@ -1,4 +1,4 @@
-# Release Web v1 Checklist
+﻿# Release Web v1 Checklist
 
 ## Status bazowy
 
@@ -11,13 +11,13 @@
 - [x] `npm run check` (2026-05-19)
 - [x] `npm run check:online` (2026-05-19)
 - [x] `npm run preview` and smoke test `/` + `/app` (2026-05-19)
-- [ ] Verify PDF export on a real project
-- [ ] Verify open/save `.dinboard` flow in browser
+- [x] Verify PDF export on a real project (2026-05-19)
+- [x] Verify open/save `.dinboard` flow in browser (2026-05-19)
 
 Uwagi walidacyjne (2026-05-19):
 - Test automatyczny zapisu/odczytu projektu: `src/lib/projectFile.test.ts` - PASS.
 - Test automatyczny warstwy dokumentu PDF: `src/lib/export/PdfProtocolDocument.test.ts` - PASS.
-- Dwa punkty powyżej nadal wymagają ręcznego testu end-to-end w UI na realnym projekcie.
+- Manualny test end-to-end w UI na realnym projekcie - PASS.
 - Scenariusz manualny: `test-artifacts/release-manual-smoke-2026-05-19.md`.
 
 ## 2) Device gate
@@ -35,7 +35,7 @@ Uwagi walidacyjne (2026-05-19):
 
 Uwagi deploy (2026-05-19):
 - Netlify rewrite potwierdzony w `public/_redirects` (`/* /index.html 200`).
-- Vercel rewrite potwierdzony w `vercel.json` (`\"source\": \"/(.*)\", \"destination\": \"/index.html\"`).
+- Vercel rewrite potwierdzony w `vercel.json` (`"source": "/(.*)", "destination": "/index.html"`).
 - Dwa pozostałe punkty wymagają dostępu do konkretnego środowiska produkcyjnego.
 
 ## 4) Sign-off
