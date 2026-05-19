@@ -1,41 +1,20 @@
-import { getPaletteTemplateDimensions } from './modules/moduleCatalog';
+import {
+  getModuleSnapAnchorRatioY,
+  getPaletteTemplateDimensions,
+  type PaletteTemplate,
+} from './modules/moduleCatalog';
 import { DinRailConfig } from './schematic/dinRailGenerator';
-import { SymbolItem, DeviceKind, CircuitTypeValue, PhaseAssignment } from '../types/symbolItem';
+import { SymbolItem } from '../types/symbolItem';
 import { AppIconName } from '../components/AppIcon';
-
-
 
 export type SheetType = "sheet1" | "sheet2" | "sheet3" | "sheet4";
 export type RightTab = "config" | "balance" | "validation" | "circuitEdit";
 
-export interface PaletteTemplate {
-  templateId: string;
-  code: string;
-  label: string;
-  type: string;
-  assetPath?: string;
-  category?: string;
-  deviceKind: DeviceKind;
-  phase: PhaseAssignment;
-  modules: number;
-  moduleRef?: string;
-  customWidth?: number;
-  customHeight?: number;
-  placeholderDefaults?: Record<string, string>;
-  protectionType?: string;
-  powerW?: number;
-  circuitType?: CircuitTypeValue;
-  rcdRatedCurrent?: number;
-  rcdResidualCurrent?: number;
-  rcdType?: string;
-  spdType?: string;
-  spdVoltage?: number;
-  spdDischargeCurrent?: number;
-  frRatedCurrent?: string;
-}
+export type { PaletteTemplate };
 
 export const DEFAULT_DIN_RAIL_CONFIG: DinRailConfig = { rows: 1, modulesPerRow: 24 };
 export const HIDDEN_PALETTE_TEMPLATE_IDS_STORAGE_KEY = "dinboard.hiddenPaletteTemplateIds";
+const MANUAL_REFERENCE_DESIGNATION_KEY = "ManualReferenceDesignation";
 
 export function buildPaletteTemplateMap(
   paletteGroups: Array<{ items: PaletteTemplate[] }>,
@@ -52,10 +31,7 @@ export function normalizePaletteAssetDimensions(
   let changed = false;
 
   const nextSymbols = symbols.map((symbol) => {
-    if (
-      (symbol.moduleSourceType !== "BuiltInAsset" && symbol.moduleSourceType !== "ImportedSvg")
-      || !symbol.moduleRef
-    ) {
+    if (!symbol.moduleRef) {
       return symbol;
     }
 
@@ -70,8 +46,23 @@ export function normalizePaletteAssetDimensions(
     const dimensions = getPaletteTemplateDimensions(template);
     const widthChanged = Math.abs(symbol.width - dimensions.width) > 0.01;
     const heightChanged = Math.abs(symbol.height - dimensions.height) > 0.01;
+    const isBuiltInLikeSource =
+      symbol.moduleSourceType === "BuiltInAsset" || symbol.moduleSourceType === "ImportedSvg";
+    const widthRatio = dimensions.width > 0 ? symbol.width / dimensions.width : 1;
+    const heightRatio = dimensions.height > 0 ? symbol.height / dimensions.height : 1;
+    const isSeverelyUnderscaled =
+      Number.isFinite(widthRatio)
+      && Number.isFinite(heightRatio)
+      && widthRatio > 0
+      && heightRatio > 0
+      && widthRatio < 0.55
+      && heightRatio < 0.55;
+    const shouldNormalize =
+      isBuiltInLikeSource
+      ? (widthChanged || heightChanged)
+      : isSeverelyUnderscaled;
 
-    if (!widthChanged && !heightChanged) {
+    if (!shouldNormalize) {
       return symbol;
     }
 
@@ -207,6 +198,7 @@ export const LEGACY_SYMBOLS_STORAGE_KEY = "dinboard-tauri.symbols.v1";
 export function getReferencePrefix(template: PaletteTemplate): string {
   switch (template.deviceKind) {
     case "fr":
+      return "QS";
     case "rcd":
       return "Q";
     case "spd":
@@ -249,7 +241,7 @@ export function isDistributionSymbol(symbol: SymbolItem): boolean {
 }
 
 export function shouldExcludeFromAutoGrouping(symbol: SymbolItem): boolean {
-  return symbol.deviceKind === "fr" || symbol.deviceKind === "spd" || symbol.deviceKind === "phaseIndicator";
+  return symbol.deviceKind === "fr" || symbol.deviceKind === "spd" || symbol.deviceKind === "phaseIndicator" || symbol.deviceKind === "rcd";
 }
 
 export function getNextGroupName(symbols: SymbolItem[]): string {
@@ -270,14 +262,17 @@ export function findDinRailSnapTarget(
   y: number,
   width: number,
   height: number,
+  moduleRef?: string,
 ): SymbolItem | null {
   const sameRailTolerance = 100;
   const snapThreshold = 30;
-  const centerY = y + height / 2;
+  const centerY = y + height * getModuleSnapAnchorRatioY(moduleRef);
   const candidates = symbols.filter(
     (symbol) =>
       symbol.isSnappedToRail &&
-      Math.abs(symbol.y + symbol.height / 2 - centerY) < sameRailTolerance,
+      Math.abs(
+        symbol.y + symbol.height * getModuleSnapAnchorRatioY(symbol.moduleRef) - centerY,
+      ) < sameRailTolerance,
   );
 
   let best: { symbol: SymbolItem; distance: number } | null = null;
@@ -296,8 +291,9 @@ export function findDinRailSnapTarget(
 }
 
 export function compareDinPosition(left: SymbolItem, right: SymbolItem): number {
-  if (left.y !== right.y) {
-    return left.y - right.y;
+  const yDiff = left.y - right.y;
+  if (Math.abs(yDiff) > 50) {
+    return yDiff;
   }
 
   return left.x - right.x;
@@ -305,7 +301,7 @@ export function compareDinPosition(left: SymbolItem, right: SymbolItem): number 
 
 export function canAutoJoinExistingGroup(symbol: SymbolItem, snapTarget: SymbolItem): boolean {
   void snapTarget;
-  return !(symbol.deviceKind === "fr" || symbol.deviceKind === "spd" || symbol.deviceKind === "phaseIndicator");
+  return !(symbol.deviceKind === "fr" || symbol.deviceKind === "spd" || symbol.deviceKind === "phaseIndicator" || symbol.deviceKind === "rcd");
 }
 
 export function resolveRcdSource(symbols: SymbolItem[], snapTarget: SymbolItem): SymbolItem | null {
@@ -363,7 +359,8 @@ export function snapDraggedGroupToNeighborModules(
   const gap = 0;
   const movedGroupLeft = Math.min(...movedSymbols.map((symbol) => symbol.x)) + initialDeltaX;
   const movedGroupRight = Math.max(...movedSymbols.map((symbol) => symbol.x + symbol.width)) + initialDeltaX;
-  const movedAnchorCenterY = targetTopY + anchorSymbol.height / 2;
+  const movedAnchorCenterY =
+    targetTopY + anchorSymbol.height * getModuleSnapAnchorRatioY(anchorSymbol.moduleRef);
   let bestSnapDeltaX = Number.POSITIVE_INFINITY;
 
   for (const existing of allSymbols) {
@@ -371,7 +368,8 @@ export function snapDraggedGroupToNeighborModules(
       continue;
     }
 
-    const existingCenterY = existing.y + existing.height / 2;
+    const existingCenterY =
+      existing.y + existing.height * getModuleSnapAnchorRatioY(existing.moduleRef);
     if (Math.abs(existingCenterY - movedAnchorCenterY) > sameRailTolerance) {
       continue;
     }
@@ -397,11 +395,36 @@ export function toDisplayModuleNumber(symbol: SymbolItem): string {
     return `LW${symbol.moduleNumber}`;
   }
 
-  if (symbol.deviceKind === "rcd") {
+  if (symbol.deviceKind === "rcd" || symbol.type.toLocaleUpperCase("pl-PL").includes("RCD")) {
     return "#0";
   }
 
   return `#${symbol.moduleNumber}`;
+}
+
+function hasManualReferenceDesignation(symbol: SymbolItem): boolean {
+  return symbol.parameters[MANUAL_REFERENCE_DESIGNATION_KEY] === "true"
+    && symbol.referenceDesignation.trim().length > 0;
+}
+
+function resolveGroupReferenceNumber(head: SymbolItem | undefined, fallbackNumber: number): string {
+  if (!head) {
+    return String(fallbackNumber);
+  }
+
+  const match = head.referenceDesignation.trim().match(/(\d+)\s*$/);
+  if (!match) {
+    return String(fallbackNumber);
+  }
+
+  const numeric = Number.parseInt(match[1], 10);
+  return Number.isFinite(numeric) && numeric > 0
+    ? String(numeric)
+    : String(fallbackNumber);
+}
+
+function shouldAutoAssignGroupCircuitDesignation(symbol: SymbolItem): boolean {
+  return symbol.deviceKind === "mcb" || symbol.deviceKind === "rcbo";
 }
 
 export function normalizeDinRailModuleOrdering(symbols: SymbolItem[]): SymbolItem[] {
@@ -433,9 +456,11 @@ export function normalizeDinRailModuleOrdering(symbols: SymbolItem[]): SymbolIte
 
   let terminalCounter = 1;
 
-  for (const group of orderedGroups) {
+  for (const [groupIndex, group] of orderedGroups.entries()) {
     const modules = group.symbols.slice().sort(compareDinPosition);
     const rcds = modules.filter((symbol) => symbol.deviceKind === "rcd");
+    const headRcd = rcds[0];
+    const groupReferenceNumber = resolveGroupReferenceNumber(headRcd, groupIndex + 1);
     const referenceX = rcds[0]?.x ?? 0;
     const others = modules
       .filter((symbol) => symbol.deviceKind !== "rcd")
@@ -451,12 +476,25 @@ export function normalizeDinRailModuleOrdering(symbols: SymbolItem[]): SymbolIte
     }
 
     let groupCounter = 1;
+    let groupedCircuitCounter = 1;
     for (const symbol of others) {
       if (symbol.isTerminalBlock) {
         symbol.moduleNumber = terminalCounter++;
       } else {
         symbol.moduleNumber = groupCounter++;
       }
+
+      if (
+        headRcd
+        && shouldAutoAssignGroupCircuitDesignation(symbol)
+        && !hasManualReferenceDesignation(symbol)
+      ) {
+        symbol.referenceDesignation = `F${groupReferenceNumber}.${groupedCircuitCounter}`;
+      }
+      if (shouldAutoAssignGroupCircuitDesignation(symbol)) {
+        groupedCircuitCounter++;
+      }
+
       symbol.displayModuleNumber = toDisplayModuleNumber(symbol);
     }
   }
@@ -472,6 +510,87 @@ export function normalizeDinRailModuleOrdering(symbols: SymbolItem[]): SymbolIte
       symbol.moduleNumber = 1;
     }
     symbol.displayModuleNumber = toDisplayModuleNumber(symbol);
+  }
+
+  return nextSymbols;
+}
+
+export function normalizeGroupConsistency(symbols: SymbolItem[]): SymbolItem[] {
+  const nextSymbols = symbols.map((symbol) => ({
+    ...symbol,
+    parameters: { ...symbol.parameters },
+  }));
+  const byId = new Map(nextSymbols.map((symbol) => [symbol.id, symbol] as const));
+
+  for (const symbol of nextSymbols) {
+    if (symbol.rcdSymbolId && !byId.has(symbol.rcdSymbolId)) {
+      symbol.rcdSymbolId = "";
+      if (symbol.deviceKind !== "rcd") {
+        symbol.rcdRatedCurrent = 0;
+        symbol.rcdResidualCurrent = 0;
+        symbol.rcdType = "";
+      }
+    }
+  }
+
+  const grouped = new Map<string, SymbolItem[]>();
+  for (const symbol of nextSymbols) {
+    if (!symbol.group) {
+      continue;
+    }
+
+    const bucket = grouped.get(symbol.group) ?? [];
+    bucket.push(symbol);
+    grouped.set(symbol.group, bucket);
+  }
+
+  for (const [, groupSymbols] of grouped.entries()) {
+    const groupLabel =
+      groupSymbols.find((symbol) => symbol.groupName.trim().length > 0)?.groupName ?? "";
+    const headRcd = groupSymbols.find((symbol) => symbol.deviceKind === "rcd") ?? null;
+
+    if (!headRcd) {
+      for (const symbol of groupSymbols) {
+        symbol.group = "";
+        symbol.groupName = "";
+        if (symbol.deviceKind !== "rcd") {
+          symbol.rcdSymbolId = "";
+          symbol.rcdRatedCurrent = 0;
+          symbol.rcdResidualCurrent = 0;
+          symbol.rcdType = "";
+        }
+      }
+      continue;
+    }
+
+    for (const symbol of groupSymbols) {
+      if (!symbol.groupName && groupLabel) {
+        symbol.groupName = groupLabel;
+      }
+
+      if (symbol.id === headRcd.id) {
+        if (symbol.rcdSymbolId === symbol.id) {
+          symbol.rcdSymbolId = "";
+        }
+        continue;
+      }
+
+      if (symbol.deviceKind === "rcd") {
+        if (!symbol.rcdSymbolId) {
+          symbol.rcdSymbolId = headRcd.id;
+          symbol.rcdRatedCurrent = headRcd.rcdRatedCurrent;
+          symbol.rcdResidualCurrent = headRcd.rcdResidualCurrent;
+          symbol.rcdType = headRcd.rcdType;
+        }
+        continue;
+      }
+
+      symbol.rcdSymbolId = headRcd.id;
+      symbol.rcdRatedCurrent = headRcd.rcdRatedCurrent;
+      symbol.rcdResidualCurrent = headRcd.rcdResidualCurrent;
+      symbol.rcdType = headRcd.rcdType;
+    }
+
   }
 
   return nextSymbols;
