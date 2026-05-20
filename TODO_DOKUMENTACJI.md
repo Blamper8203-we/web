@@ -19,6 +19,8 @@ Data przeglądu: 2026-05-19
 - [x] Ustalić standard kodowania tekstu i polskich znaków (UTF-8) dla plików `.md`, `.ts`, `.tsx`.
 - [x] Dodać sekcję „Jak uruchamiać testy celowane” dla subsystemów wysokiego ryzyka.
 - [x] Dodać changelog dokumentacyjny (co zostało zmienione i kiedy).
+- [ ] Opisać w `README.md`, jak konfiguracja zasilania (napięcie, liczba faz, WLZ, zabezpieczenie główne) wpływa na walidację i bilans.
+- [ ] Dodać krótką checklistę testów ręcznych dla konfiguracji WLZ (1F/3F, moc przyłączeniowa, zabezpieczenie główne).
 
 ## Notatka operacyjna
 

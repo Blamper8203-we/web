@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="DINBoard">
+  <rect width="96" height="96" rx="20" fill="#0e0f11"/>
+  <rect x="17" y="24" width="62" height="48" rx="6" fill="#17181c" stroke="#4a90f7" stroke-width="4"/>
+  <path d="M26 38h44M26 50h44M26 62h44" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/>
+  <path d="M36 28v40M48 28v40M60 28v40" stroke="#e8eaef" stroke-width="3" stroke-linecap="round" opacity=".72"/>
+</svg>

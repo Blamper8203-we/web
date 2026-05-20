@@ -4,6 +4,7 @@ const rawSvgCache = new Map<string, string>();
 const rawSvgPromiseCache = new Map<string, Promise<string>>();
 const preparedSvgMarkupCache = new Map<string, string>();
 const preparedSvgDataUriCache = new Map<string, string>();
+const PREPARED_SVG_CACHE_VERSION = "v2";
 
 function buildParametersKey(parameters: Record<string, string>): string {
   return Object.entries(parameters)
@@ -21,6 +22,24 @@ function applyParameters(svgContent: string, parameters: Record<string, string>)
 
 function isSvgDataUri(src: string): boolean {
   return src.startsWith("data:image/svg+xml");
+}
+
+function shouldNormalizeSvgSource(src: string): boolean {
+  return !isSvgDataUri(src);
+}
+
+function isImportedSvgSource(src: string): boolean {
+  const normalized = src.toLowerCase();
+  return normalized.includes("/imported/")
+    || normalized.includes("%2fimported%2f")
+    || normalized.includes("imported/");
+}
+
+function isRcdSvgSource(src: string): boolean {
+  const normalized = src.toLowerCase();
+  return normalized.includes("/rcd/")
+    || normalized.includes("%2frcd%2f")
+    || normalized.includes("rcd");
 }
 
 function decodeSvgDataUri(src: string): string {
@@ -74,7 +93,7 @@ export async function loadPreparedSvgDataUri(
   src: string,
   parameters: Record<string, string> = {},
 ): Promise<string> {
-  const cacheKey = `${src}::${buildParametersKey(parameters)}`;
+  const cacheKey = `${PREPARED_SVG_CACHE_VERSION}::${src}::${buildParametersKey(parameters)}`;
   const cached = preparedSvgDataUriCache.get(cacheKey);
   if (cached) {
     return cached;
@@ -90,7 +109,7 @@ export async function loadPreparedSvgMarkup(
   src: string,
   parameters: Record<string, string> = {},
 ): Promise<string> {
-  const cacheKey = `${src}::${buildParametersKey(parameters)}`;
+  const cacheKey = `${PREPARED_SVG_CACHE_VERSION}::${src}::${buildParametersKey(parameters)}`;
   const cached = preparedSvgMarkupCache.get(cacheKey);
   if (cached) {
     return cached;
@@ -100,9 +119,11 @@ export async function loadPreparedSvgMarkup(
     ? decodeSvgDataUri(src)
     : await loadRawSvg(src);
   const parameterizedSvg = applyParameters(rawSvg, parameters);
-  const preparedSvg = isSvgDataUri(src)
-    ? parameterizedSvg
-    : normalizeSvgMarkup(parameterizedSvg);
+  const preparedSvg = shouldNormalizeSvgSource(src)
+    ? normalizeSvgMarkup(parameterizedSvg, {
+        normalizeStrokeWidths: isImportedSvgSource(src) || isRcdSvgSource(src),
+      })
+    : parameterizedSvg;
   preparedSvgMarkupCache.set(cacheKey, preparedSvg);
   if (!preparedSvgDataUriCache.has(cacheKey)) {
     preparedSvgDataUriCache.set(

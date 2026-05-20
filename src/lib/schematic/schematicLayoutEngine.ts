@@ -48,24 +48,24 @@ export function buildSchematicLayout(symbols: SymbolItem[]): SchematicLayout {
   };
 }
 
-function compareDinOrder(left: SymbolItem, right: SymbolItem): number {
-  if (left.y !== right.y) {
-    return left.y - right.y;
-  }
-
-  return left.x - right.x;
-}
-
 function buildNodes(symbols: SymbolItem[]): BuildResult {
   const all = symbols.filter((symbol) => !isBusbarOrTerminal(symbol));
   if (all.length === 0) {
     return { fr: null, mainDevices: [], circuitDevices: [] };
   }
 
-  const grouped = groupSymbols(all.filter((symbol) => symbol.group.trim().length > 0));
+  const poleCountMap = new Map<string, ModulePoleCount>(
+    symbols.map((symbol) => [symbol.id, getPoleCount(symbol)])
+  );
+
+  const symbolIndices = new Map(symbols.map((s, idx) => [s.id, idx]));
+  const grouped = groupSymbols(all.filter((symbol) => symbol.group.trim().length > 0), symbolIndices);
   const standalone = all
     .filter((symbol) => symbol.group.trim().length === 0 && !isDistributionBlock(symbol))
-    .sort(compareDinOrder);
+    .sort((a, b) => {
+      if (a.x !== b.x) return a.x - b.x;
+      return (symbolIndices.get(a.id) ?? 0) - (symbolIndices.get(b.id) ?? 0);
+    });
 
   const frIndex = standalone.findIndex((symbol) => getModuleType(symbol) === "MainBreaker");
   const fr = frIndex >= 0 ? standalone.splice(frIndex, 1)[0] : null;
@@ -120,11 +120,14 @@ function buildNodes(symbols: SymbolItem[]): BuildResult {
           !isBusbarOrTerminal(symbol) &&
           getModuleType(symbol) !== "MainBreaker",
       )
-      .sort((a, b) =>
-        headDevice
-          ? Math.abs(a.x - headDevice.x) - Math.abs(b.x - headDevice.x) || compareDinOrder(a, b)
-          : compareDinOrder(a, b),
-      );
+      .sort((a, b) => {
+        const keyA = headDevice ? Math.abs(a.x - headDevice.x) : a.x;
+        const keyB = headDevice ? Math.abs(b.x - headDevice.x) : b.x;
+        if (keyA !== keyB) {
+          return keyA - keyB;
+        }
+        return (symbolIndices.get(a.id) ?? 0) - (symbolIndices.get(b.id) ?? 0);
+      });
 
     if (!headDevice) {
       for (const spd of groupSpds) {
@@ -139,20 +142,51 @@ function buildNodes(symbols: SymbolItem[]): BuildResult {
       continue;
     }
 
+    const isRcdHead = isRcd(headDevice);
     const headPoles = getPoleCount(headDevice);
     let isThreePhaseHead = detectPhases(headDevice) >= 3;
     if (headPoles === 3 || headPoles === 4) isThreePhaseHead = true;
     if (headPoles === 1 || headPoles === 2) isThreePhaseHead = false;
+
+    if (isRcdHead) {
+      // Reguły inżynieryjne dedykowane dla RCD:
+      const hasThreePhaseChild = mcbs.some(
+        (mcb) =>
+          detectPhases(mcb) >= 3 ||
+          getPoleCount(mcb) === 3 ||
+          getPoleCount(mcb) === 4
+      );
+
+      const hasInductionOvenScenario = mcbs.some(
+        (mcb) => getFixedInductionWithOvenScenarioPhase(mcb) === "Rcd4PWithMcb2PAnd1P"
+      );
+
+      // Sprawdź unikalne fazy dzieci
+      const childPhases = new Set<string>();
+      for (const mcb of mcbs) {
+        if (mcb.phase && !isPendingPhase(mcb.phase)) {
+          const parts = mcb.phase.split("+");
+          for (const p of parts) {
+            if (p.trim()) childPhases.add(p.trim());
+          }
+        }
+      }
+
+      const hasMultiplePhases = childPhases.size > 1;
+
+      if (hasThreePhaseChild || hasInductionOvenScenario || hasMultiplePhases) {
+        isThreePhaseHead = true;
+      }
+    }
 
     const assignedPhase = isPendingPhase(headDevice.phase)
       ? isThreePhaseHead
         ? "L1+L2+L3"
         : "L1"
       : headDevice.phase;
-    const isRcdHead = isRcd(headDevice);
     const autoHeadDesignation = isRcdHead ? `Q${q++}` : `QS${q++}`;
     const headDesignation = resolveDesignation(headDevice, autoHeadDesignation);
-    const qNumber = autoHeadDesignation.replace(/[QS]/g, "");
+    const qNumber = resolveHeadCircuitNumber(headDesignation, autoHeadDesignation);
     const limitedMcbs =
       isRcdHead && mcbs.length > MAX_MODULES_PER_CARD ? mcbs.slice(0, MAX_MODULES_PER_CARD) : mcbs;
 
@@ -162,14 +196,14 @@ function buildNodes(symbols: SymbolItem[]): BuildResult {
       ...limitedMcbs.map((mcb, index) => makeMcb(mcb, `F${qNumber}.${index + 1}`, w++)),
     ];
 
-    assignChildrenPhase(children, assignedPhase, isThreePhaseHead);
+    assignChildrenPhase(children, assignedPhase, isThreePhaseHead, poleCountMap);
 
     const headNode = createNode(headDevice, isRcdHead ? "RCD" : "MainBreaker", {
       designation: headDesignation,
       protection: createHeadProtection(headDevice, isRcdHead, isThreePhaseHead),
       distributionBlockLabel: resolveDistributionBlockLabel(distributionBlock),
       phase: assignedPhase,
-      phaseCount: detectPhases(headDevice),
+      phaseCount: isThreePhaseHead ? 3 : detectPhases(headDevice),
     });
 
     if (isRcdHead) {
@@ -467,7 +501,12 @@ function createHeadProtection(symbol: SymbolItem, isRcdHead: boolean, isThreePha
   return rcdInfo.trim().length > 0 ? `RCD ${poleLabel}\n${rcdInfo}` : `RCD ${poleLabel}`;
 }
 
-function assignChildrenPhase(children: SchematicNode[], assignedPhase: string, isThreePhaseHead: boolean): void {
+function assignChildrenPhase(
+  children: SchematicNode[],
+  assignedPhase: string,
+  isThreePhaseHead: boolean,
+  poleCountMap: Map<string, ModulePoleCount>
+): void {
   const phaseNames = ["L1", "L2", "L3"] as const;
   const phasePairs = [
     ["L1", "L2"],
@@ -485,7 +524,7 @@ function assignChildrenPhase(children: SchematicNode[], assignedPhase: string, i
 
   let childPhaseIdx = 0;
   for (const child of children) {
-    const childPoles = getPoleCountFromNode(child);
+    const childPoles = poleCountMap.get(child.id) ?? 1;
     let childPhase: string;
 
     const fixedScenarioPhase = getNodeFixedInductionWithOvenScenarioPhase(child, childPoles);
@@ -514,7 +553,7 @@ function assignChildrenPhase(children: SchematicNode[], assignedPhase: string, i
   }
 }
 
-function groupSymbols(symbols: SymbolItem[]): Array<{ key: string; symbols: SymbolItem[] }> {
+function groupSymbols(symbols: SymbolItem[], symbolIndices: Map<string, number>): Array<{ key: string; symbols: SymbolItem[] }> {
   const map = new Map<string, SymbolItem[]>();
   for (const symbol of symbols) {
     const key = symbol.group;
@@ -522,8 +561,17 @@ function groupSymbols(symbols: SymbolItem[]): Array<{ key: string; symbols: Symb
   }
 
   return Array.from(map.entries())
-    .map(([key, value]) => ({ key, symbols: value.sort(compareDinOrder) }))
-    .sort((a, b) => compareDinOrder(a.symbols[0], b.symbols[0]));
+    .map(([key, value]) => ({ key, symbols: value }))
+    .sort((a, b) => {
+      const minXA = Math.min(...a.symbols.map((s) => s.x));
+      const minXB = Math.min(...b.symbols.map((s) => s.x));
+      if (minXA !== minXB) {
+        return minXA - minXB;
+      }
+      const firstIdA = a.symbols[0]?.id;
+      const firstIdB = b.symbols[0]?.id;
+      return (symbolIndices.get(firstIdA) ?? 0) - (symbolIndices.get(firstIdB) ?? 0);
+    });
 }
 
 function flattenNodes(groups: SchematicNode[]): SchematicNode[] {
@@ -578,12 +626,26 @@ function getModuleType(symbol: SymbolItem): SchematicNode["nodeType"] {
   if (symbol.deviceKind === "fr") return "MainBreaker";
   if (symbol.deviceKind === "phaseIndicator") return "PhaseIndicator";
 
-  const value = `${symbol.type} ${symbol.label} ${symbol.visualPath}`.toLocaleLowerCase("pl-PL");
+  const value = `${symbol.type} ${symbol.label} ${symbol.visualPath} ${symbol.moduleRef}`.toLocaleLowerCase("pl-PL");
   if (value.includes("rcbo")) return "MCB";
   if (value.includes("rcd")) return "RCD";
   if (value.includes("spd")) return "SPD";
-  if (/\bfr\b/.test(value) || value.includes("switch") || value.includes("rozlacznik")) return "MainBreaker";
-  if (value.includes("kontrolk") || value.includes("indicator") || value.includes("lampka") || value.includes("sygnalizat")) {
+  if (
+    /\bfr\b/.test(value) ||
+    value.includes("switch") ||
+    value.includes("rozlacznik") ||
+    value.includes("rozłącznik") ||
+    value.includes("isolator")
+  ) {
+    return "MainBreaker";
+  }
+  if (
+    value.includes("kontrolk") ||
+    value.includes("indicator") ||
+    value.includes("lampka") ||
+    value.includes("sygnalizat") ||
+    value.includes("kontrolkifaz")
+  ) {
     return "PhaseIndicator";
   }
   return "MCB";
@@ -602,7 +664,7 @@ function isKf(symbol: SymbolItem): boolean {
 }
 
 function isDistributionBlock(symbol: SymbolItem): boolean {
-  const value = `${symbol.type} ${symbol.label} ${symbol.visualPath}`.toLocaleLowerCase("pl-PL");
+  const value = `${symbol.type} ${symbol.label} ${symbol.visualPath} ${symbol.moduleRef}`.toLocaleLowerCase("pl-PL");
   return value.includes("blok") || value.includes("block") || value.includes("rozdz");
 }
 
@@ -622,11 +684,12 @@ function resolveDistributionBlockLabel(symbol: SymbolItem | undefined): string {
 function isBusbarOrTerminal(symbol: SymbolItem): boolean {
   const type = symbol.type.toLocaleLowerCase("pl-PL");
   const visualPath = symbol.visualPath.toLocaleLowerCase("pl-PL");
-  return symbol.isTerminalBlock || type.includes("busbar") || visualPath.includes("busbar");
+  const moduleRef = symbol.moduleRef.toLocaleLowerCase("pl-PL");
+  return symbol.isTerminalBlock || type.includes("busbar") || visualPath.includes("busbar") || moduleRef.includes("busbar");
 }
 
 function getPoleCount(symbol: SymbolItem): ModulePoleCount {
-  const value = `${symbol.visualPath} ${symbol.type}`;
+  const value = `${symbol.visualPath} ${symbol.type} ${symbol.moduleRef}`;
   const poleMatch = value.match(/(\d)\s*-?\s*[Pp]/);
   if (poleMatch) {
     const poles = Number.parseInt(poleMatch[1], 10);
@@ -639,16 +702,25 @@ function getPoleCount(symbol: SymbolItem): ModulePoleCount {
     if (poles >= 1 && poles <= 4) return poles as ModulePoleCount;
   }
 
+  const combinedLower = value.toLowerCase();
+  if (combinedLower.includes("4p")) return 4;
+  if (combinedLower.includes("3p")) return 3;
+  if (combinedLower.includes("2p")) return 2;
+  if (combinedLower.includes("1p")) return 1;
+
+  if (symbol.height > 0) {
+    const ratio = symbol.width / symbol.height;
+    if (ratio < 0.30) return 1;
+    if (ratio < 0.55) return 2;
+    if (ratio < 0.75) return 3;
+    return 4;
+  }
+
   if (symbol.deviceKind === "fr" || symbol.deviceKind === "spd" || symbol.deviceKind === "phaseIndicator") return 4;
   if (symbol.deviceKind === "rcd" && detectPhaseText(symbol.phase) >= 3) return 4;
   return detectPhaseText(symbol.phase) >= 3 ? 4 : 1;
 }
 
-function getPoleCountFromNode(node: SchematicNode): ModulePoleCount {
-  if (node.phaseCount >= 3) return 4;
-  if (node.phase.includes("+")) return 2;
-  return 1;
-}
 
 function detectPhases(symbol: SymbolItem): number {
   const fromPhase = detectPhaseText(symbol.phase);
@@ -710,6 +782,20 @@ function resolveDesignation(symbol: SymbolItem, automaticDesignation: string): s
   }
 
   return automaticDesignation;
+}
+
+function resolveHeadCircuitNumber(resolvedDesignation: string, fallbackDesignation: string): string {
+  const resolvedMatch = resolvedDesignation.trim().match(/^[A-Z]+(\d+)$/i);
+  if (resolvedMatch) {
+    return resolvedMatch[1];
+  }
+
+  const fallbackMatch = fallbackDesignation.trim().match(/^[A-Z]+(\d+)$/i);
+  if (fallbackMatch) {
+    return fallbackMatch[1];
+  }
+
+  return "1";
 }
 
 function getParam(symbol: SymbolItem, key: string, defaultValue = ""): string {

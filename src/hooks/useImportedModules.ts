@@ -6,6 +6,7 @@ import {
   upsertImportedModules,
   type ImportedModuleDefinition,
 } from '../lib/modules/importedModuleCatalog';
+import { reportRuntimeError } from "../lib/runtimeDiagnostics";
 import {
   PALETTE_GROUPS as ASSET_PALETTE_GROUPS,
 } from '../lib/modules/moduleCatalog';
@@ -68,10 +69,16 @@ export function useImportedModules(showTemporaryStatus: (msg: string, ms?: numbe
   }, [importedModules]);
 
   useEffect(() => {
-    window.localStorage.setItem(
-      HIDDEN_PALETTE_TEMPLATE_IDS_STORAGE_KEY,
-      JSON.stringify(hiddenPaletteTemplateIds),
-    );
+    try {
+      window.localStorage.setItem(
+        HIDDEN_PALETTE_TEMPLATE_IDS_STORAGE_KEY,
+        JSON.stringify(hiddenPaletteTemplateIds),
+      );
+    } catch (error) {
+      reportRuntimeError(error, {
+        source: "unhandled-error",
+      });
+    }
   }, [hiddenPaletteTemplateIds]);
 
   const handleHidePaletteTemplate = useCallback((templateId: string) => {
@@ -81,14 +88,14 @@ export function useImportedModules(showTemporaryStatus: (msg: string, ms?: numbe
   const handleSvgImportCommit = useCallback(
     (modules: ImportedModuleDefinition[], preferredCategory: string) => {
       if (modules.length === 0) {
-        showTemporaryStatus('Nie wybrano zadnych modulow do importu.', 4000);
+        showTemporaryStatus('Nie wybrano żadnych modułów do importu.', 4000);
         return;
       }
       setImportedModules((prev) => upsertImportedModules(prev, modules));
       setActivePaletteGroupTitle(preferredCategory);
       setSvgImportDialogOpen(false);
       showTemporaryStatus(
-        `Zaimportowano ${modules.length} modul${modules.length === 1 ? '' : 'y'} SVG`,
+        `Zaimportowano ${modules.length} moduł${modules.length === 1 ? '' : 'y'} SVG`,
         4000,
       );
     },
@@ -104,7 +111,7 @@ export function useImportedModules(showTemporaryStatus: (msg: string, ms?: numbe
   const handleRemoveImportedModule = useCallback(
     (moduleId: string) => {
       setImportedModules((prev) => prev.filter((m) => m.id !== moduleId));
-      showTemporaryStatus('Usunieto importowany modul SVG', 3000);
+      showTemporaryStatus('Usunięto importowany moduł SVG', 3000);
     },
     [showTemporaryStatus],
   );

@@ -1,9 +1,21 @@
 import type { SymbolItem } from "../types/symbolItem";
 
+export const DIN_RAIL_GROUP_FRAME_PADDING = 8;
+export const DIN_RAIL_GROUP_BRACKET_OFFSET_Y = 134;
+export const DIN_RAIL_GROUP_BRACKET_BAR_HEIGHT = 3.5;
+export const DIN_RAIL_GROUP_BRACKET_LEG_HEIGHT = 34;
+export const DIN_RAIL_GROUP_BRACKET_LABEL_HEIGHT = 24;
+export const DIN_RAIL_GROUP_BRACKET_LABEL_GAP = 9;
+
 export interface DinRailGroupFrameData {
   anchorSymbolId: string;
+  distributionCount: number;
+  headReference: string;
   id: string;
   label: string;
+  memberCount: number;
+  rcdCount: number;
+  symbolIds: string[];
   x: number;
   y: number;
   width: number;
@@ -24,42 +36,149 @@ export interface SelectionRectLike {
   y: number;
 }
 
+function buildFrameFromSymbols(
+  groupId: string,
+  groupSymbols: SymbolItem[],
+  framePadding: number,
+): DinRailGroupFrameData | null {
+  const visibleSymbols = groupSymbols.filter((symbol) => symbol.deviceKind !== "terminalBlock");
+  if (visibleSymbols.length === 0) {
+    return null;
+  }
+
+  const minX = Math.min(...visibleSymbols.map((symbol) => symbol.x)) - framePadding;
+  const minY = Math.min(...visibleSymbols.map((symbol) => symbol.y)) - framePadding;
+  const maxX = Math.max(...visibleSymbols.map((symbol) => symbol.x + symbol.width)) + framePadding;
+  const maxY = Math.max(...visibleSymbols.map((symbol) => symbol.y + symbol.height)) + framePadding;
+  const headRcd = groupSymbols.find((symbol) => symbol.deviceKind === "rcd") ?? null;
+  const label =
+    headRcd?.groupName.trim()
+    || groupSymbols.find((symbol) => symbol.groupName.trim().length > 0)?.groupName
+    || headRcd?.referenceDesignation
+    || headRcd?.label
+    || groupId;
+  const distributionCount = groupSymbols.filter(
+    (symbol) => symbol.deviceKind === "mcb" || symbol.deviceKind === "rcbo",
+  ).length;
+  const rcdCount = groupSymbols.filter((symbol) => symbol.deviceKind === "rcd").length;
+
+  return {
+    anchorSymbolId: headRcd?.id ?? groupSymbols[0]!.id,
+    distributionCount,
+    headReference: headRcd?.referenceDesignation || headRcd?.label || "RCD",
+    id: groupId,
+    label,
+    memberCount: groupSymbols.length,
+    rcdCount,
+    symbolIds: groupSymbols.map((symbol) => symbol.id),
+    x: minX,
+    y: minY,
+    width: maxX - minX,
+    height: maxY - minY,
+  };
+}
+
+function getRcdGroupMembers(rcd: SymbolItem, snappedSymbols: SymbolItem[]): SymbolItem[] {
+  const memberIds = new Set<string>([rcd.id]);
+
+  for (const symbol of snappedSymbols) {
+    if (symbol.rcdSymbolId === rcd.id) {
+      memberIds.add(symbol.id);
+      continue;
+    }
+
+    if (
+      rcd.group
+      && symbol.group === rcd.group
+      && symbol.deviceKind !== "rcd"
+    ) {
+      memberIds.add(symbol.id);
+    }
+  }
+
+  return snappedSymbols.filter((symbol) => memberIds.has(symbol.id));
+}
+
+function getLogicalGroupIds(symbol: SymbolItem, snappedSymbols: SymbolItem[]): string[] {
+  const ids = new Set<string>();
+  const parentRcd = symbol.rcdSymbolId
+    ? snappedSymbols.find((item) => item.id === symbol.rcdSymbolId && item.deviceKind === "rcd")
+    : null;
+
+  if (parentRcd) {
+    getRcdGroupMembers(parentRcd, snappedSymbols).forEach((member) => ids.add(member.id));
+  }
+
+  if (symbol.deviceKind === "rcd") {
+    getRcdGroupMembers(symbol, snappedSymbols).forEach((member) => ids.add(member.id));
+  }
+
+  if (ids.size === 0 && symbol.group) {
+    for (const groupedSymbol of snappedSymbols) {
+      if (groupedSymbol.group === symbol.group) {
+        ids.add(groupedSymbol.id);
+      }
+    }
+  }
+
+  ids.add(symbol.id);
+  return Array.from(ids);
+}
+
 export function buildDinRailGroupFrames(
   snappedSymbols: SymbolItem[],
   framePadding: number,
 ): DinRailGroupFrameData[] {
-  const grouped = new Map<string, SymbolItem[]>();
+  const frames: DinRailGroupFrameData[] = [];
+  const assignedIds = new Set<string>();
 
+  for (const rcd of snappedSymbols.filter((symbol) => symbol.deviceKind === "rcd")) {
+    const members = getRcdGroupMembers(rcd, snappedSymbols);
+    if (members.length <= 1 && !rcd.group) {
+      continue;
+    }
+
+    members.forEach((member) => assignedIds.add(member.id));
+    const frame = buildFrameFromSymbols(`rcd:${rcd.id}`, members, framePadding);
+    if (frame) frames.push(frame);
+  }
+
+  const fallbackGroups = new Map<string, SymbolItem[]>();
   for (const symbol of snappedSymbols) {
+    if (assignedIds.has(symbol.id)) {
+      continue;
+    }
+
     if (!symbol.group) {
       continue;
     }
 
-    const bucket = grouped.get(symbol.group) ?? [];
+    const bucket = fallbackGroups.get(symbol.group) ?? [];
     bucket.push(symbol);
-    grouped.set(symbol.group, bucket);
+    fallbackGroups.set(symbol.group, bucket);
   }
 
-  return Array.from(grouped.entries()).map(([groupId, groupSymbols]) => {
-    const minX = Math.min(...groupSymbols.map((symbol) => symbol.x)) - framePadding;
-    const minY = Math.min(...groupSymbols.map((symbol) => symbol.y)) - framePadding;
-    const maxX = Math.max(...groupSymbols.map((symbol) => symbol.x + symbol.width)) + framePadding;
-    const maxY = Math.max(...groupSymbols.map((symbol) => symbol.y + symbol.height)) + framePadding;
-    const label =
-      groupSymbols.find((symbol) => symbol.groupName.trim().length > 0)?.groupName ?? groupId;
+  for (const [groupId, groupSymbols] of fallbackGroups.entries()) {
+    const frame = buildFrameFromSymbols(groupId, groupSymbols, framePadding);
+    if (frame) frames.push(frame);
+  }
 
-    return {
-      anchorSymbolId:
-        groupSymbols.find((symbol) => symbol.deviceKind === "rcd")?.id
-        ?? groupSymbols[0]!.id,
-      id: groupId,
-      label,
-      x: minX,
-      y: minY,
-      width: maxX - minX,
-      height: maxY - minY,
-    };
-  });
+  return frames.sort((left, right) => (
+    Math.abs(left.y - right.y) > 5
+      ? left.y - right.y
+      : left.x - right.x
+  ));
+}
+
+export function formatDinRailGroupLabel(label: string, fallbackId: string): string {
+  const source = (label.trim() || fallbackId.trim()).replace(/\s+/g, " ");
+  const numberedGroup = source.match(/^(?:grupa|group)[-\s]*(\d+)$/i);
+
+  if (numberedGroup) {
+    return `Grupa ${numberedGroup[1]}`;
+  }
+
+  return source || "Grupa";
 }
 
 export function buildSelectionBounds(
@@ -82,14 +201,6 @@ export function buildSelectionBounds(
   };
 }
 
-export function buildSelectionLabel(selectedSymbols: SymbolItem[]): string {
-  if (selectedSymbols.length > 1) {
-    return `${selectedSymbols.length} moduly`;
-  }
-
-  return selectedSymbols[0]?.referenceDesignation || selectedSymbols[0]?.label || "";
-}
-
 export function expandSelectionToGroupIds(
   selectedIds: string[],
   snappedSymbols: SymbolItem[],
@@ -98,15 +209,11 @@ export function expandSelectionToGroupIds(
 
   for (const symbolId of selectedIds) {
     const symbol = snappedSymbols.find((item) => item.id === symbolId);
-    if (!symbol?.group) {
+    if (!symbol) {
       continue;
     }
 
-    for (const groupedSymbol of snappedSymbols) {
-      if (groupedSymbol.group === symbol.group) {
-        expandedGroupIds.add(groupedSymbol.id);
-      }
-    }
+    getLogicalGroupIds(symbol, snappedSymbols).forEach((id) => expandedGroupIds.add(id));
   }
 
   return Array.from(expandedGroupIds);
@@ -119,10 +226,11 @@ export function getDragSelectionIds(
 ): string[] {
   const draggedSymbol = snappedSymbols.find((symbol) => symbol.id === symbolId);
 
-  if (draggedSymbol?.group) {
-    return snappedSymbols
-      .filter((symbol) => symbol.group === draggedSymbol.group)
-      .map((symbol) => symbol.id);
+  if (draggedSymbol) {
+    const logicalGroupIds = getLogicalGroupIds(draggedSymbol, snappedSymbols);
+    if (logicalGroupIds.length > 1) {
+      return logicalGroupIds;
+    }
   }
 
   if (selectedIds.has(symbolId)) {

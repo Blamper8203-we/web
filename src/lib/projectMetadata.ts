@@ -2,7 +2,11 @@ import {
   createDefaultMeasurementProtocols,
   normalizeMeasurementProtocolsData,
 } from "./measurementProtocols";
-import type { ProjectMetadata, TitlePageChecklistItem } from "../types/projectMetadata";
+import type {
+  MeasurementProtocolsData,
+  ProjectMetadata,
+  TitlePageChecklistItem,
+} from "../types/projectMetadata";
 
 export const PROJECT_METADATA_STORAGE_KEY = "dinboard-web.project-metadata.v1";
 const LEGACY_PROJECT_METADATA_STORAGE_KEY = "dinboard-tauri.project-metadata.v1";
@@ -31,6 +35,46 @@ function createChecklistItems(values: string[]): TitlePageChecklistItem[] {
     text,
     isChecked: true,
   }));
+}
+
+function createPlaceholderMeasurementProtocols(): MeasurementProtocolsData {
+  const base = createDefaultMeasurementProtocols("", "");
+
+  return {
+    ...base,
+    continuityHeader: {
+      headerTitle: "",
+      headerSubtitle: "",
+      measurementDate: "",
+      objectName: "",
+    },
+    loopHeader: {
+      headerTitle: "",
+      headerSubtitle: "",
+      measurementDate: "",
+      objectName: "",
+    },
+    insulationHeader: {
+      headerTitle: "",
+      headerSubtitle: "",
+      measurementDate: "",
+      objectName: "",
+    },
+    rcdGroundHeader: {
+      headerTitle: "",
+      headerSubtitle: "",
+      measurementDate: "",
+      objectName: "",
+    },
+    continuityMeasurementCurrent: "",
+    loopNetworkVoltage: "",
+    loopNetworkSystem: "",
+    insulationTestVoltage: "",
+    groundMeasurementMethod: "",
+    groundElectrodeType: "",
+    groundRequiredResistance: "",
+    groundConclusionText: "",
+  };
 }
 
 export function createDefaultProjectMetadata(): ProjectMetadata {
@@ -67,6 +111,44 @@ export function createDefaultProjectMetadata(): ProjectMetadata {
     titlePageCompanyLogoFileName: "",
     titlePageCompanyLogoDataUrl: "",
     measurementProtocols: createDefaultMeasurementProtocols(today, titlePageObjectType),
+    supplyVoltageV: 230,
+    supplyPhases: 3,
+    mainBreakerA: 63,
+    contractedPowerKw: 14,
+  };
+}
+
+export function createEmptyProjectMetadata(): ProjectMetadata {
+  return {
+    projectNumber: "",
+    author: "",
+    authorLicense: "",
+    company: "",
+    titlePageObjectType: "",
+    address: "",
+    investor: "",
+    contractor: "",
+    designerId: "",
+    revision: "",
+    drawingScale: "",
+    drawingDate: "",
+    sheetNumber: "",
+    designerSignature: "",
+    investorSignature: "",
+    contractorSignature: "",
+    isFormalDocumentationMode: true,
+    dateCreated: new Date().toISOString(),
+    dateModified: new Date().toISOString(),
+    notes: "",
+    standards: [...DEFAULT_STANDARDS],
+    documentationOptionalScope: "",
+    titlePageWorkScopeItems: [],
+    titlePageAttachmentItems: [],
+    titlePageSepValidUntil: "",
+    titlePageUseManualWorkScopeCheckboxes: true,
+    titlePageCompanyLogoFileName: "",
+    titlePageCompanyLogoDataUrl: "",
+    measurementProtocols: createPlaceholderMeasurementProtocols(),
     supplyVoltageV: 230,
     supplyPhases: 3,
     mainBreakerA: 63,
@@ -140,19 +222,17 @@ export function normalizeProjectMetadata(
         : defaults.standards,
     documentationOptionalScope:
       raw?.documentationOptionalScope ?? defaults.documentationOptionalScope,
-    titlePageWorkScopeItems:
-      Array.isArray(raw?.titlePageWorkScopeItems) && raw.titlePageWorkScopeItems.length > 0
-        ? raw.titlePageWorkScopeItems
-            .filter((item) => item.text.trim().length > 0)
-            .map((item) => ({
-              text: item.text.trim(),
-              isChecked: item.isChecked,
-            }))
-        : defaults.titlePageWorkScopeItems,
-    titlePageAttachmentItems:
-      Array.isArray(raw?.titlePageAttachmentItems) && raw.titlePageAttachmentItems.length > 0
-        ? raw.titlePageAttachmentItems.filter((item) => item.trim().length > 0)
-        : defaults.titlePageAttachmentItems,
+    titlePageWorkScopeItems: Array.isArray(raw?.titlePageWorkScopeItems)
+      ? raw.titlePageWorkScopeItems
+          .filter((item) => item.text.trim().length > 0)
+          .map((item) => ({
+            text: item.text.trim(),
+            isChecked: item.isChecked,
+          }))
+      : defaults.titlePageWorkScopeItems,
+    titlePageAttachmentItems: Array.isArray(raw?.titlePageAttachmentItems)
+      ? raw.titlePageAttachmentItems.filter((item) => item.trim().length > 0)
+      : defaults.titlePageAttachmentItems,
     titlePageSepValidUntil: raw?.titlePageSepValidUntil ?? defaults.titlePageSepValidUntil,
     titlePageUseManualWorkScopeCheckboxes:
       typeof raw?.titlePageUseManualWorkScopeCheckboxes === "boolean"
@@ -207,7 +287,7 @@ export function resetDocumentationFields(metadata: ProjectMetadata): ProjectMeta
 
 export function loadProjectMetadata(): ProjectMetadata {
   if (typeof window === "undefined") {
-    return createDefaultProjectMetadata();
+    return createEmptyProjectMetadata();
   }
 
   const raw =
@@ -215,12 +295,12 @@ export function loadProjectMetadata(): ProjectMetadata {
     window.localStorage.getItem(LEGACY_PROJECT_METADATA_STORAGE_KEY);
 
   if (!raw) {
-    return createDefaultProjectMetadata();
+    return createEmptyProjectMetadata();
   }
 
   try {
     return normalizeProjectMetadata(JSON.parse(raw) as Partial<ProjectMetadata>);
   } catch {
-    return createDefaultProjectMetadata();
+    return createEmptyProjectMetadata();
   }
 }

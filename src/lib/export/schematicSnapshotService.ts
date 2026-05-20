@@ -1,9 +1,10 @@
 import type { SymbolItem } from "../../types/symbolItem";
+import type { ProjectMetadata } from "../../types/projectMetadata";
 import { buildSchematicLayout } from "../schematic/schematicLayoutEngine";
 import { renderSchematic } from "../schematic/schematicRenderer";
 import { A4_WIDTH_PX, A4_HEIGHT_PX } from "../schematic/schematicLayout";
 
-export async function exportSchematicToDataURL(symbols: SymbolItem[]): Promise<string[]> {
+export async function exportSchematicToDataURL(symbols: SymbolItem[], metadata?: ProjectMetadata): Promise<string[]> {
   const layout = buildSchematicLayout(symbols);
   const dataUrls: string[] = [];
   
@@ -32,6 +33,7 @@ export async function exportSchematicToDataURL(symbols: SymbolItem[]): Promise<s
       panX: 0,
       panY: -(page.yOffset * scale),
       activePageIndex: page.pageIndex,
+      metadata,
     });
     
     dataUrls.push(canvas.toDataURL("image/png", 1.0));

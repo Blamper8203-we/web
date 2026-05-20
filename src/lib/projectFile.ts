@@ -1,14 +1,27 @@
 import type { ProjectMetadata } from "../types/projectMetadata";
 import { normalizeSymbolItems, type SymbolItem } from "../types/symbolItem";
+import { createEmptyProjectMetadata } from "./projectMetadata";
+import { getModuleAssetUrl } from "./modules/moduleCatalog";
+import { buildSchematicLayout } from "./schematic/schematicLayoutEngine";
 
 const DEFAULT_PROJECT_FILE_NAME = "projekt.dinboard";
 const PROJECT_FILE_ACCEPT = ".dinboard,.json,application/json";
+const WEB_PROJECT_SCHEMA_VERSION = 2;
+const MANUAL_REFERENCE_DESIGNATION_KEY = "ManualReferenceDesignation";
 
 export type ProjectFileData = {
   metadata: ProjectMetadata | null;
   symbols: SymbolItem[];
   version: string;
   path?: string;
+  rail?: {
+    svg: string;
+    width: number;
+    height: number;
+    rows: number;
+    modulesPerRow: number;
+    isVisible: boolean;
+  } | null;
 };
 
 type RawProjectFileData = {
@@ -16,34 +29,393 @@ type RawProjectFileData = {
   symbols?: Partial<SymbolItem>[];
   circuitRows?: Partial<SymbolItem>[];
   version?: string;
+  schemaVersion?: number;
+  name?: string | null;
+  description?: string | null;
+  powerConfig?: {
+    voltage?: number | null;
+    mainProtection?: number | null;
+    powerKw?: number | null;
+    phases?: number | null;
+  } | null;
+  dinRailSvgContent?: string;
+  dinRailWidth?: number;
+  dinRailHeight?: number;
+  dinRailAxes?: number[];
+  isDinRailVisible?: boolean;
+  rail?: {
+    svg?: string;
+    width?: number;
+    height?: number;
+    rows?: number;
+    modulesPerRow?: number;
+    isVisible?: boolean;
+  } | null;
 };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function validateWebProjectShape(raw: RawProjectFileData): void {
+  if (!("metadata" in raw) || !("symbols" in raw)) {
+    throw new Error("Brak wymaganych pól metadata/symbols");
+  }
+
+  if (raw.metadata !== undefined && raw.metadata !== null && !isRecord(raw.metadata)) {
+    throw new Error("Pole metadata ma nieprawidlowy typ");
+  }
+
+  if (!Array.isArray(raw.symbols)) {
+    throw new Error("Pole symbols musi byc tablica");
+  }
+
+  for (const item of raw.symbols) {
+    if (!isRecord(item)) {
+      throw new Error("Element symbols ma nieprawidlowy format");
+    }
+  }
+
+  if (raw.rail !== undefined && raw.rail !== null) {
+    if (!isRecord(raw.rail)) {
+      throw new Error("Pole rail ma nieprawidlowy typ");
+    }
+    const rail = raw.rail as Record<string, unknown>;
+    if ("svg" in rail && rail.svg !== undefined && typeof rail.svg !== "string") {
+      throw new Error("Pole rail.svg ma nieprawidlowy typ");
+    }
+    for (const key of ["width", "height", "rows", "modulesPerRow"] as const) {
+      if (key in rail && rail[key] !== undefined && typeof rail[key] !== "number") {
+        throw new Error(`Pole rail.${key} ma nieprawidlowy typ`);
+      }
+    }
+    if ("isVisible" in rail && rail.isVisible !== undefined && typeof rail.isVisible !== "boolean") {
+      throw new Error("Pole rail.isVisible ma nieprawidlowy typ");
+    }
+  }
+
+  if (raw.schemaVersion !== undefined) {
+    if (!Number.isInteger(raw.schemaVersion) || raw.schemaVersion <= 0) {
+      throw new Error("Nieprawidlowe schemaVersion");
+    }
+    if (raw.schemaVersion > WEB_PROJECT_SCHEMA_VERSION) {
+      throw new Error(`Nowsza wersja schematu (${raw.schemaVersion})`);
+    }
+  }
+}
+
+const MODULE_REF_ALIASES: Record<string, string> = {
+  "Złącza/ZŁĄCZE 3XPEN.svg": "zlacza/zlacze-3xpen.svg",
+  "Złącza/Listwa zaciskowa 5pin (3P+N+PE).svg": "zlacza/listwa-zaciskowa-5pin-3p-n-pe.svg",
+};
+
+function normalizeModuleRefForWeb(moduleRef: string): string {
+  const cleaned = moduleRef
+    .trim()
+    .replace(/\\/g, "/")
+    .replace(/^\/+/, "")
+    .replace(/^Avalonia\/Assets\/Modules\//i, "")
+    .replace(/^Assets\/Modules\//i, "")
+    .replace(/^assets\/modules\//i, "");
+
+  return MODULE_REF_ALIASES[cleaned] ?? cleaned;
+}
+
+function resolveVisualPath(rawVisualPath: unknown, rawModuleRef: unknown): string {
+  if (typeof rawVisualPath === "string" && rawVisualPath.trim().length > 0) {
+    return rawVisualPath;
+  }
+
+  if (typeof rawModuleRef !== "string" || rawModuleRef.trim().length === 0) {
+    return "";
+  }
+
+  return getModuleAssetUrl(normalizeModuleRefForWeb(rawModuleRef));
+}
+
+function resolveModuleSourceType(rawModuleSourceType: unknown, normalizedModuleRef: string): string {
+  if (typeof rawModuleSourceType === "string" && rawModuleSourceType.trim().length > 0) {
+    return rawModuleSourceType;
+  }
+
+  return normalizedModuleRef.length > 0 ? "ProjectRelativeFile" : "";
+}
+
+function normalizeNullableObject<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((item) => normalizeNullableObject(item)) as T;
+  }
+
+  if (value && typeof value === "object") {
+    const next: Record<string, unknown> = {};
+    for (const [key, nestedValue] of Object.entries(value as Record<string, unknown>)) {
+      if (nestedValue === null) {
+        continue;
+      }
+
+      next[key] = normalizeNullableObject(nestedValue);
+    }
+
+    return next as T;
+  }
+
+  return value;
+}
+
+function toProjectMetadataFromAvalonia(raw: RawProjectFileData): ProjectMetadata {
+  const defaults = createEmptyProjectMetadata();
+  const allowedMainBreakers = [25, 32, 40, 63, 80, 100, 125] as const;
+  const voltage = raw.powerConfig?.voltage === 400 ? 400 : 230;
+  const phases = raw.powerConfig?.phases === 1 ? 1 : 3;
+  const mainProtection = Number(raw.powerConfig?.mainProtection);
+  const powerKw = Number(raw.powerConfig?.powerKw);
+  const normalizedName = raw.name?.trim() || "";
+  const resolvedMainBreaker =
+    Number.isFinite(mainProtection) && mainProtection > 0
+      ? allowedMainBreakers.reduce((nearest, candidate) =>
+          Math.abs(candidate - mainProtection) < Math.abs(nearest - mainProtection)
+            ? candidate
+            : nearest,
+        allowedMainBreakers[0])
+      : defaults.mainBreakerA;
+
+  return {
+    ...defaults,
+    company: normalizedName,
+    notes: raw.description?.trim() || defaults.notes,
+    supplyVoltageV: voltage,
+    supplyPhases: phases,
+    mainBreakerA: resolvedMainBreaker,
+    contractedPowerKw: Number.isFinite(powerKw) && powerKw > 0 ? powerKw : defaults.contractedPowerKw,
+  };
+}
 
 function extractProjectSymbols(raw: RawProjectFileData): SymbolItem[] | null {
   if (Array.isArray(raw.symbols)) {
-    return normalizeSymbolItems(raw.symbols);
+    return normalizeSymbolItems(
+      normalizeNullableObject(raw.symbols).map((item) => {
+        const rawModuleRef = typeof item?.moduleRef === "string" ? item.moduleRef : "";
+        const normalizedModuleRef = normalizeModuleRefForWeb(rawModuleRef);
+
+        return {
+          ...item,
+          type: typeof item?.type === "string" ? item.type : "",
+          label: typeof item?.label === "string" ? item.label : "",
+          visualPath: resolveVisualPath(item?.visualPath, rawModuleRef),
+          moduleRef: normalizedModuleRef,
+          moduleSourceType: resolveModuleSourceType(item?.moduleSourceType, normalizedModuleRef),
+          phase: typeof item?.phase === "string" ? item.phase : "L1",
+        };
+      }),
+    );
   }
 
   if (Array.isArray(raw.circuitRows)) {
-    return normalizeSymbolItems(raw.circuitRows);
+    return normalizeSymbolItems(
+      normalizeNullableObject(raw.circuitRows).map((item) => {
+        const rawModuleRef = typeof item?.moduleRef === "string" ? item.moduleRef : "";
+        const normalizedModuleRef = normalizeModuleRefForWeb(rawModuleRef);
+
+        return {
+          ...item,
+          type: typeof item?.type === "string" ? item.type : "",
+          label: typeof item?.label === "string" ? item.label : "",
+          visualPath: resolveVisualPath(item?.visualPath, rawModuleRef),
+          moduleRef: normalizedModuleRef,
+          moduleSourceType: resolveModuleSourceType(item?.moduleSourceType, normalizedModuleRef),
+          phase: typeof item?.phase === "string" ? item.phase : "L1",
+        };
+      }),
+    );
   }
 
   return null;
 }
 
-function parseProjectFileContent(content: string, fileName?: string): ProjectFileData {
-  const parsed = JSON.parse(content) as RawProjectFileData;
-  const symbols = extractProjectSymbols(parsed);
+function normalizeAvaloniaCoordinates(
+  symbols: SymbolItem[],
+  raw: RawProjectFileData,
+): SymbolItem[] {
+  const railWidth = Number(raw.dinRailWidth);
+  const railHeight = Number(raw.dinRailHeight);
 
-  if (!parsed.metadata || symbols === null) {
-    throw new Error("Nieprawidlowy format pliku projektu");
+  if (!Number.isFinite(railWidth) || !Number.isFinite(railHeight) || railWidth <= 0 || railHeight <= 0) {
+    return symbols;
+  }
+
+  const offsetX = railWidth / 2;
+  const offsetY = railHeight / 2;
+
+  return symbols.map((symbol) => ({
+    ...symbol,
+    x: symbol.x + offsetX,
+    y: symbol.y + offsetY,
+  }));
+}
+
+function toRailFromAvalonia(raw: RawProjectFileData) {
+  const svg = typeof raw.dinRailSvgContent === "string" ? raw.dinRailSvgContent : "";
+  const width = Number(raw.dinRailWidth);
+  const height = Number(raw.dinRailHeight);
+  const rows = Array.isArray(raw.dinRailAxes) && raw.dinRailAxes.length > 0 ? raw.dinRailAxes.length : 1;
+  const modulesPerRow = Number.isFinite(width) && width > 0 ? Math.max(6, Math.min(48, Math.round((width - 120) / 17.5))) : 24;
+
+  if (!svg || !Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    return null;
   }
 
   return {
-    metadata: parsed.metadata,
-    symbols,
-    version: parsed.version ?? "1.0",
-    path: fileName,
+    svg,
+    width,
+    height,
+    rows: Math.max(1, Math.min(10, rows)),
+    modulesPerRow,
+    isVisible: raw.isDinRailVisible !== false,
   };
+}
+
+function toRailFromWeb(raw: RawProjectFileData): ProjectFileData["rail"] {
+  const rail = raw.rail;
+  if (!rail) {
+    return null;
+  }
+
+  const svg = typeof rail.svg === "string" ? rail.svg : "";
+  const width = Number(rail.width);
+  const height = Number(rail.height);
+  const rows = Number(rail.rows);
+  const modulesPerRow = Number(rail.modulesPerRow);
+  const isVisible = rail.isVisible === true;
+
+  if (!isVisible || !svg || !Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    return null;
+  }
+
+  return {
+    svg,
+    width,
+    height,
+    rows: Number.isFinite(rows) ? Math.max(1, Math.min(10, Math.round(rows))) : 1,
+    modulesPerRow: Number.isFinite(modulesPerRow) ? Math.max(6, Math.min(48, Math.round(modulesPerRow))) : 24,
+    isVisible: true,
+  };
+}
+
+function cloneForAutomaticDesignationAnalysis(symbol: SymbolItem): SymbolItem {
+  const parameters = { ...symbol.parameters };
+  delete parameters[MANUAL_REFERENCE_DESIGNATION_KEY];
+
+  return {
+    ...symbol,
+    referenceDesignation: "",
+    parameters,
+  };
+}
+
+function buildAutomaticDesignationMap(symbols: SymbolItem[]): Map<string, string> {
+  const layout = buildSchematicLayout(symbols);
+  const automaticDesignations = new Map<string, string>();
+
+  for (const node of layout.nodes) {
+    const designation = node.designation.trim();
+    if (designation.length > 0) {
+      automaticDesignations.set(node.id, designation);
+    }
+  }
+
+  return automaticDesignations;
+}
+
+function migrateLegacyManualReferenceDesignations(symbols: SymbolItem[]): SymbolItem[] {
+  if (symbols.length === 0) {
+    return symbols;
+  }
+
+  const automaticDesignations = buildAutomaticDesignationMap(
+    symbols.map(cloneForAutomaticDesignationAnalysis),
+  );
+  let changed = false;
+
+  const migratedSymbols = symbols.map((symbol) => {
+    const currentDesignation = symbol.referenceDesignation.trim();
+    const isManualDesignation =
+      symbol.parameters[MANUAL_REFERENCE_DESIGNATION_KEY]?.toLocaleLowerCase("pl-PL") === "true";
+
+    if (currentDesignation.length === 0 || isManualDesignation) {
+      return symbol;
+    }
+
+    const automaticDesignation = automaticDesignations.get(symbol.id);
+    if (!automaticDesignation) {
+      return symbol;
+    }
+
+    if (currentDesignation !== automaticDesignation) {
+      changed = true;
+      return {
+        ...symbol,
+        referenceDesignation: currentDesignation,
+        parameters: {
+          ...symbol.parameters,
+          [MANUAL_REFERENCE_DESIGNATION_KEY]: "true",
+        },
+      };
+    }
+
+    return symbol;
+  });
+
+  return changed ? migratedSymbols : symbols;
+}
+
+export function parseProjectFileContent(content: string, fileName?: string): ProjectFileData {
+  const parsed = normalizeNullableObject(JSON.parse(content) as RawProjectFileData);
+  const symbols = extractProjectSymbols(parsed);
+  const hasWebShape = "metadata" in parsed && "symbols" in parsed && "version" in parsed;
+  const hasAvaloniaSchema = typeof parsed.schemaVersion === "number" && parsed.schemaVersion > 0 && !hasWebShape;
+
+  if (symbols === null || (!hasWebShape && !hasAvaloniaSchema)) {
+    throw new Error("Nieprawidlowy format pliku projektu");
+  }
+
+  if (hasWebShape) {
+    validateWebProjectShape(parsed);
+  }
+
+  const normalizedSymbols = hasAvaloniaSchema
+    ? normalizeAvaloniaCoordinates(symbols, parsed)
+    : symbols;
+  const migratedSymbols = migrateLegacyManualReferenceDesignations(normalizedSymbols);
+
+  return {
+    metadata: hasWebShape ? parsed.metadata ?? null : toProjectMetadataFromAvalonia(parsed),
+    symbols: migratedSymbols,
+    version: parsed.version ?? String(parsed.schemaVersion ?? "1.0"),
+    path: fileName,
+    rail: hasAvaloniaSchema ? toRailFromAvalonia(parsed) : toRailFromWeb(parsed),
+  };
+}
+
+export function serializeProjectFileContent(
+  metadata: ProjectMetadata,
+  symbols: SymbolItem[],
+  rail: ProjectFileData["rail"],
+): string {
+  const data: ProjectFileData = {
+    metadata,
+    symbols,
+    version: "2.0",
+    rail: rail?.isVisible ? rail : null,
+  };
+
+  return JSON.stringify(
+    {
+      schemaVersion: WEB_PROJECT_SCHEMA_VERSION,
+      ...data,
+    },
+    null,
+    2,
+  );
 }
 
 function selectProjectFile(): Promise<File | null> {
@@ -93,6 +465,27 @@ function normalizeDownloadFileName(fileName: string | undefined): string {
   return /\.(dinboard|json)$/i.test(cleaned) ? cleaned : `${cleaned}.dinboard`;
 }
 
+type TauriInvokeFn = (command: string, args?: Record<string, unknown>) => Promise<unknown>;
+
+function getTauriInvoke(): TauriInvokeFn | null {
+  const w = window as unknown as {
+    __TAURI_INTERNALS__?: { invoke?: TauriInvokeFn };
+    __TAURI__?: { core?: { invoke?: TauriInvokeFn } };
+  };
+
+  const internalInvoke = w.__TAURI_INTERNALS__?.invoke;
+  if (typeof internalInvoke === "function") {
+    return internalInvoke;
+  }
+
+  const globalInvoke = w.__TAURI__?.core?.invoke;
+  if (typeof globalInvoke === "function") {
+    return globalInvoke;
+  }
+
+  return null;
+}
+
 function downloadTextFile(content: string, fileName: string): void {
   const blob = new Blob([content], { type: "application/json;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -108,7 +501,69 @@ function downloadTextFile(content: string, fileName: string): void {
   window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
+async function saveTextFileWithBrowserPicker(content: string, fileName: string): Promise<string | null> {
+  const picker = (window as unknown as {
+    showSaveFilePicker?: (options?: {
+      suggestedName?: string;
+      startIn?: "documents" | "downloads" | "desktop" | "music" | "pictures" | "videos";
+      types?: Array<{
+        description?: string;
+        accept: Record<string, string[]>;
+      }>;
+      excludeAcceptAllOption?: boolean;
+    }) => Promise<{
+      createWritable: () => Promise<{ write: (data: string) => Promise<void>; close: () => Promise<void> }>;
+      name?: string;
+    }>;
+  }).showSaveFilePicker;
+
+  if (typeof picker !== "function") {
+    return null;
+  }
+
+  const handle = await picker({
+    suggestedName: fileName,
+    startIn: "documents",
+    excludeAcceptAllOption: true,
+    types: [
+      {
+        description: "DINBoard Project",
+        accept: { "application/json": [".dinboard"] },
+      },
+    ],
+  });
+  const writable = await handle.createWritable();
+  await writable.write(content);
+  await writable.close();
+  return handle.name ?? fileName;
+}
+
+type TauriOpenedFilePayload = {
+  path?: unknown;
+  content?: unknown;
+};
+
 export async function openProjectFile(): Promise<ProjectFileData | null> {
+  const invoke = getTauriInvoke();
+  if (invoke) {
+    try {
+      const result = await invoke("open_project_file_with_dialog");
+      if (!result) {
+        return null;
+      }
+      const payload = result as TauriOpenedFilePayload;
+      const content = typeof payload.content === "string" ? payload.content : "";
+      const path = typeof payload.path === "string" ? payload.path : undefined;
+      if (!content) {
+        throw new Error("Pusty plik lub nieprawidlowy format odpowiedzi");
+      }
+      return parseProjectFileContent(content, path);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Nieznany błąd";
+      throw new Error(`Nie można otworzyć pliku: ${message}`);
+    }
+  }
+
   const file = await selectProjectFile();
 
   if (!file) {
@@ -118,32 +573,44 @@ export async function openProjectFile(): Promise<ProjectFileData | null> {
   try {
     return parseProjectFileContent(await file.text(), file.name);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Nieznany blad";
-    throw new Error(`Nie mozna otworzyc pliku: ${message}`);
+    const message = error instanceof Error ? error.message : "Nieznany błąd";
+    throw new Error(`Nie można otworzyć pliku: ${message}`);
   }
 }
 
 export async function saveProjectFile(
   metadata: ProjectMetadata,
   symbols: SymbolItem[],
+  rail: ProjectFileData["rail"],
   suggestedPath?: string,
 ): Promise<string | null> {
-  const data: ProjectFileData = {
-    metadata,
-    symbols,
-    version: "2.0",
-  };
-
-  const content = JSON.stringify(data, null, 2);
-  const fileName = normalizeDownloadFileName(suggestedPath);
+  const content = serializeProjectFileContent(metadata, symbols, rail);
+  const fileName = normalizeDownloadFileName(suggestedPath ?? DEFAULT_PROJECT_FILE_NAME);
 
   try {
+    const invoke = getTauriInvoke();
+    if (invoke) {
+      const result = await invoke("save_project_file_with_dialog", {
+        content,
+        suggestedFileName: fileName,
+      });
+      if (typeof result === "string" && result.trim().length > 0) {
+        return result;
+      }
+      return null;
+    }
+
+    const pickedName = await saveTextFileWithBrowserPicker(content, fileName);
+    if (pickedName) {
+      return normalizeDownloadFileName(pickedName);
+    }
+
     downloadTextFile(content, fileName);
 
     return fileName;
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Nieznany blad";
-    throw new Error(`Nie mozna zapisac pliku: ${message}`);
+    const message = error instanceof Error ? error.message : "Nieznany błąd";
+    throw new Error(`Nie można zapisać pliku: ${message}`);
   }
 }
 
@@ -156,7 +623,7 @@ export async function loadProjectFromPath(filePath: string): Promise<ProjectFile
 
     return parseProjectFileContent(await response.text(), filePath.split(/[\\/]/).pop());
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Nieznany blad";
-    throw new Error(`Nie mozna zaladowac pliku: ${message}`);
+    const message = error instanceof Error ? error.message : "Nieznany błąd";
+    throw new Error(`Nie można załadować pliku: ${message}`);
   }
 }

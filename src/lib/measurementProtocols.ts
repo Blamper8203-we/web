@@ -16,11 +16,11 @@ export const RCD_ROW_COUNT = 6;
 
 const CONTINUITY_DEFAULT_SUBTITLE =
   "Badanie ciągłości przewodów PE i połączeń wyrównawczych";
-const LOOP_DEFAULT_SUBTITLE = "Badanie skutecznosci ochrony przeciwporazeniowej";
+const LOOP_DEFAULT_SUBTITLE = "Badanie skuteczności ochrony przeciwporażeniowej";
 const INSULATION_DEFAULT_SUBTITLE = "Badanie rezystancji izolacji obwodów";
 const RCD_GROUND_DEFAULT_SUBTITLE = "Test wyłączników RCD i rezystancja uziemienia";
 const DEFAULT_GROUND_CONCLUSION =
-  "Instalacja w zakresie ochrony przeciwporazeniowej, stanu izolacji oraz skutecznosci uziemienia odpowiada wymogom normy PN-HD 60364 i nadaje sie do eksploatacji.";
+  "Instalacja w zakresie ochrony przeciwporażeniowej, stanu izolacji oraz skuteczności uziemienia odpowiada wymogom normy PN-HD 60364 i nadaje się do eksploatacji.";
 
 type CircuitSeed = {
   sourceCircuitId: string;
@@ -51,6 +51,14 @@ function firstNonEmpty(...values: Array<string | null | undefined>): string {
   return "";
 }
 
+function valueOrFallback(value: string | null | undefined, fallback: string): string {
+  if (value === null || value === undefined) {
+    return fallback;
+  }
+
+  return normalizeText(value);
+}
+
 function createDefaultProtocolHeader(
   protocolNumber: number,
   subtitle: string,
@@ -60,7 +68,7 @@ function createDefaultProtocolHeader(
   const year = measurementDate.slice(0, 4) || new Date().getFullYear().toString();
 
   return {
-    headerTitle: `Protokol Nr ${String(protocolNumber).padStart(2, "0")} / ${year}`,
+    headerTitle: `Protokół Nr ${String(protocolNumber).padStart(2, "0")} / ${year}`,
     headerSubtitle: subtitle,
     measurementDate,
     objectName,
@@ -72,10 +80,10 @@ function normalizeHeader(
   fallback: MeasurementProtocolHeaderSettings,
 ): MeasurementProtocolHeaderSettings {
   return {
-    headerTitle: firstNonEmpty(raw?.headerTitle, fallback.headerTitle),
-    headerSubtitle: firstNonEmpty(raw?.headerSubtitle, fallback.headerSubtitle),
-    measurementDate: firstNonEmpty(raw?.measurementDate, fallback.measurementDate),
-    objectName: firstNonEmpty(raw?.objectName, fallback.objectName),
+    headerTitle: valueOrFallback(raw?.headerTitle, fallback.headerTitle),
+    headerSubtitle: valueOrFallback(raw?.headerSubtitle, fallback.headerSubtitle),
+    measurementDate: valueOrFallback(raw?.measurementDate, fallback.measurementDate),
+    objectName: valueOrFallback(raw?.objectName, fallback.objectName),
   };
 }
 
@@ -141,7 +149,6 @@ function normalizeContinuityRows(
   rows: Partial<MeasurementContinuityProtocolRow>[] | undefined,
 ): MeasurementContinuityProtocolRow[] {
   const normalized = (rows ?? [])
-    .slice(0, CONTINUITY_ROW_COUNT)
     .map((row, index) => ({
       index: index + 1,
       sourceCircuitId: normalizeText(row.sourceCircuitId),
@@ -164,7 +171,6 @@ function normalizeLoopRows(
   rows: Partial<MeasurementLoopProtocolRow>[] | undefined,
 ): MeasurementLoopProtocolRow[] {
   const normalized = (rows ?? [])
-    .slice(0, LOOP_ROW_COUNT)
     .map((row, index) => ({
       index: index + 1,
       sourceCircuitId: normalizeText(row.sourceCircuitId),
@@ -190,7 +196,6 @@ function normalizeInsulationRows(
   rows: Partial<MeasurementInsulationProtocolRow>[] | undefined,
 ): MeasurementInsulationProtocolRow[] {
   const normalized = (rows ?? [])
-    .slice(0, INSULATION_ROW_COUNT)
     .map((row, index) => ({
       index: index + 1,
       sourceCircuitId: normalizeText(row.sourceCircuitId),
@@ -213,7 +218,6 @@ function normalizeInsulationRows(
 
 function normalizeRcdRows(rows: Partial<MeasurementRcdProtocolRow>[] | undefined): MeasurementRcdProtocolRow[] {
   const normalized = (rows ?? [])
-    .slice(0, RCD_ROW_COUNT)
     .map((row, index) => ({
       index: index + 1,
       sourceCircuitId: normalizeText(row.sourceCircuitId),
@@ -252,7 +256,7 @@ function buildCircuitSeedRows(circuitRows: CircuitRow[]): CircuitSeed[] {
     .map((row) => ({
       sourceCircuitId: row.id,
       referenceDesignation: normalizeText(row.referenceDesignation),
-      circuitName: firstNonEmpty(row.circuitName, row.label, row.displayLocation, "Obwod"),
+      circuitName: firstNonEmpty(row.circuitName, row.label, row.displayLocation, "Obwód"),
       location: firstNonEmpty(row.displayLocation, row.location),
       protectionType: firstNonEmpty(row.protectionType, row.displayProtection),
       ratedCurrent: extractRatedCurrent(firstNonEmpty(row.protectionType, row.displayProtection)),
@@ -261,7 +265,6 @@ function buildCircuitSeedRows(circuitRows: CircuitRow[]): CircuitSeed[] {
 
 function buildContinuitySeedRows(circuitRows: CircuitRow[]): MeasurementContinuityProtocolRow[] {
   return buildCircuitSeedRows(circuitRows)
-    .slice(0, CONTINUITY_ROW_COUNT)
     .map((row, index) => ({
       index: index + 1,
       sourceCircuitId: row.sourceCircuitId,
@@ -276,7 +279,6 @@ function buildContinuitySeedRows(circuitRows: CircuitRow[]): MeasurementContinui
 
 function buildLoopSeedRows(circuitRows: CircuitRow[]): MeasurementLoopProtocolRow[] {
   return buildCircuitSeedRows(circuitRows)
-    .slice(0, LOOP_ROW_COUNT)
     .map((row, index) => ({
       index: index + 1,
       sourceCircuitId: row.sourceCircuitId,
@@ -294,7 +296,6 @@ function buildLoopSeedRows(circuitRows: CircuitRow[]): MeasurementLoopProtocolRo
 
 function buildInsulationSeedRows(circuitRows: CircuitRow[]): MeasurementInsulationProtocolRow[] {
   return buildCircuitSeedRows(circuitRows)
-    .slice(0, INSULATION_ROW_COUNT)
     .map((row, index) => ({
       index: index + 1,
       sourceCircuitId: row.sourceCircuitId,
@@ -314,7 +315,6 @@ function buildRcdSeedRows(circuitRows: CircuitRow[]): MeasurementRcdProtocolRow[
     .filter((row) => row.deviceKind === "rcd")
     .slice()
     .sort((left, right) => left.x - right.x)
-    .slice(0, RCD_ROW_COUNT)
     .map((row, index) => ({
       index: index + 1,
       sourceCircuitId: row.id,
@@ -454,12 +454,8 @@ function matchRcdRow(candidate: MeasurementRcdProtocolRow, seeded: MeasurementRc
   return fullKey.length > 0 && fullKey === seededKey;
 }
 
-function appendRemainingRows<T>(target: T[], pool: T[], maxCount: number, predicate: (row: T) => boolean): void {
+function appendRemainingRows<T>(target: T[], pool: T[], predicate: (row: T) => boolean): void {
   for (const row of pool) {
-    if (target.length >= maxCount) {
-      break;
-    }
-
     if (predicate(row)) {
       target.push(row);
     }
@@ -488,7 +484,7 @@ function mergeContinuityRows(
     }
   }
 
-  appendRemainingRows(merged, storedPool, CONTINUITY_ROW_COUNT, hasContinuityContent);
+  appendRemainingRows(merged, storedPool, hasContinuityContent);
   return normalizeContinuityRows(merged);
 }
 
@@ -515,7 +511,7 @@ function mergeLoopRows(
     }
   }
 
-  appendRemainingRows(merged, storedPool, LOOP_ROW_COUNT, hasLoopContent);
+  appendRemainingRows(merged, storedPool, hasLoopContent);
   return normalizeLoopRows(merged);
 }
 
@@ -543,7 +539,7 @@ function mergeInsulationRows(
     }
   }
 
-  appendRemainingRows(merged, storedPool, INSULATION_ROW_COUNT, hasInsulationContent);
+  appendRemainingRows(merged, storedPool, hasInsulationContent);
   return normalizeInsulationRows(merged);
 }
 
@@ -570,7 +566,7 @@ function mergeRcdRows(
     }
   }
 
-  appendRemainingRows(merged, storedPool, RCD_ROW_COUNT, hasRcdContent);
+  appendRemainingRows(merged, storedPool, hasRcdContent);
   return normalizeRcdRows(merged);
 }
 
@@ -610,7 +606,7 @@ export function createDefaultMeasurementProtocols(
     insulationMeterSerialNumber: "",
     rcdGroundMeterName: "",
     rcdGroundMeterSerialNumber: "",
-    groundMeasurementMethod: "Trojbiegunowa / impedancja petli",
+    groundMeasurementMethod: "Trójbiegunowa / impedancja pętli",
     groundElectrodeType: "Fundamentowy / otokowy",
     groundMeasuredResistance: "",
     groundRequiredResistance: "< 10 Ohm",
@@ -637,30 +633,30 @@ export function normalizeMeasurementProtocolsData(
     rcdGroundHeader: normalizeHeader(raw?.rcdGroundHeader, defaults.rcdGroundHeader),
     continuityMeterName: normalizeText(raw?.continuityMeterName),
     continuityMeterSerialNumber: normalizeText(raw?.continuityMeterSerialNumber),
-    continuityMeasurementCurrent: firstNonEmpty(
+    continuityMeasurementCurrent: valueOrFallback(
       raw?.continuityMeasurementCurrent,
       defaults.continuityMeasurementCurrent,
     ),
     loopMeterName: normalizeText(raw?.loopMeterName),
     loopMeterSerialNumber: normalizeText(raw?.loopMeterSerialNumber),
-    loopNetworkVoltage: firstNonEmpty(raw?.loopNetworkVoltage, defaults.loopNetworkVoltage),
-    loopNetworkSystem: firstNonEmpty(raw?.loopNetworkSystem, defaults.loopNetworkSystem),
-    insulationTestVoltage: firstNonEmpty(raw?.insulationTestVoltage, defaults.insulationTestVoltage),
+    loopNetworkVoltage: valueOrFallback(raw?.loopNetworkVoltage, defaults.loopNetworkVoltage),
+    loopNetworkSystem: valueOrFallback(raw?.loopNetworkSystem, defaults.loopNetworkSystem),
+    insulationTestVoltage: valueOrFallback(raw?.insulationTestVoltage, defaults.insulationTestVoltage),
     insulationMeterName: normalizeText(raw?.insulationMeterName),
     insulationMeterSerialNumber: normalizeText(raw?.insulationMeterSerialNumber),
     rcdGroundMeterName: normalizeText(raw?.rcdGroundMeterName),
     rcdGroundMeterSerialNumber: normalizeText(raw?.rcdGroundMeterSerialNumber),
-    groundMeasurementMethod: firstNonEmpty(
+    groundMeasurementMethod: valueOrFallback(
       raw?.groundMeasurementMethod,
       defaults.groundMeasurementMethod,
     ),
-    groundElectrodeType: firstNonEmpty(raw?.groundElectrodeType, defaults.groundElectrodeType),
+    groundElectrodeType: valueOrFallback(raw?.groundElectrodeType, defaults.groundElectrodeType),
     groundMeasuredResistance: normalizeText(raw?.groundMeasuredResistance),
-    groundRequiredResistance: firstNonEmpty(
+    groundRequiredResistance: valueOrFallback(
       raw?.groundRequiredResistance,
       defaults.groundRequiredResistance,
     ),
-    groundConclusionText: firstNonEmpty(raw?.groundConclusionText, defaults.groundConclusionText),
+    groundConclusionText: valueOrFallback(raw?.groundConclusionText, defaults.groundConclusionText),
     recommendationsText: normalizeText(raw?.recommendationsText),
     continuityRows: normalizeContinuityRows(raw?.continuityRows),
     loopImpedanceRows: normalizeLoopRows(raw?.loopImpedanceRows),

@@ -1,0 +1,44 @@
+.help-dialog {
+  width: min(760px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(124, 135, 255, 0.35);
+  background: linear-gradient(180deg, #12161f 0%, #0f131b 100%);
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.42);
+  padding: 18px 20px 16px;
+}
+
+.help-dialog__content {
+  display: grid;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.help-dialog__section h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #d9def8;
+}
+
+.help-dialog__section ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  color: #b5bdd6;
+  font-size: 13px;
+}
+
+.help-dialog kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(124, 135, 255, 0.35);
+  background: rgba(124, 135, 255, 0.16);
+  color: #f3f6ff;
+  font-size: 12px;
+  font-weight: 700;
+}
+

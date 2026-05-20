@@ -66,10 +66,23 @@ const CABLE_CAPACITY_BY_CROSS_SECTION: Record<number, number> = {
   50: 133,
 };
 
+export interface ValidationConfig {
+  supplyVoltageV?: number;
+  mainBreakerA?: number;
+  imbalanceThresholdPercent?: number;
+}
+
 export function validateProject(
   symbols: SymbolItem[],
-  imbalanceThresholdPercent: number = IMBALANCE_THRESHOLD_PERCENT,
+  configOrImbalanceThreshold: ValidationConfig | number = IMBALANCE_THRESHOLD_PERCENT,
 ): ValidationResult {
+  const config: ValidationConfig =
+    typeof configOrImbalanceThreshold === "number"
+      ? { imbalanceThresholdPercent: configOrImbalanceThreshold }
+      : configOrImbalanceThreshold ?? {};
+  const phaseVoltage = config.supplyVoltageV ?? PHASE_VOLTAGE;
+  const imbalanceThresholdPercent = config.imbalanceThresholdPercent ?? IMBALANCE_THRESHOLD_PERCENT;
+
   const result: ValidationResult = {
     isValid: true,
     errors: [],
@@ -80,10 +93,10 @@ export function validateProject(
   const phaseLoads = calculateTotalDistribution(symbols);
 
   validatePhaseImbalance(phaseLoads, result, imbalanceThresholdPercent);
-  validateCableSafety(symbols, result);
+  validateCableSafety(symbols, result, phaseVoltage);
   validateProtectionMismatch(symbols, result);
   validateNoRcdProtection(symbols, result);
-  validateMainOverload(symbols, result);
+  validateMainOverload(symbols, result, phaseVoltage, config.mainBreakerA);
   validateRcdOverload(symbols, result);
   validateRcdHierarchy(symbols, result);
 
@@ -103,19 +116,23 @@ function validatePhaseImbalance(
   if (phaseLoads.imbalancePercent > threshold) {
     result.warnings.push({
       code: "VAL-001",
-      message: `Asymetria obciazenia faz: ${phaseLoads.imbalancePercent.toFixed(1)}%`,
+      message: `Asymetria obciążenia faz: ${phaseLoads.imbalancePercent.toFixed(1)}%`,
       details: `L1: ${phaseLoads.l1PowerW.toFixed(0)}W, L2: ${phaseLoads.l2PowerW.toFixed(0)}W, L3: ${phaseLoads.l3PowerW.toFixed(0)}W`,
       severity: "Warning",
     });
   }
 }
 
-function validateCableSafety(symbols: SymbolItem[], result: ValidationResult): void {
+function validateCableSafety(
+  symbols: SymbolItem[],
+  result: ValidationResult,
+  phaseVoltage: number,
+): void {
   for (const symbol of symbols) {
     if (symbol.powerW <= 0) continue;
     if (symbol.deviceKind !== "mcb" && symbol.deviceKind !== "rcbo") continue;
 
-    const current = calculateCurrent(symbol.powerW, symbol.phase, PHASE_VOLTAGE);
+    const current = calculateCurrent(symbol.powerW, symbol.phase, phaseVoltage);
     const protectionRating = parseProtectionRating(symbol.protectionType);
 
     if (protectionRating <= 0) continue;
@@ -145,14 +162,14 @@ function validateCableSafety(symbols: SymbolItem[], result: ValidationResult): v
 
     // Voltage drop check
     const voltageDrop = calculateVoltageDrop(current, symbol.cableCrossSection, symbol.cableLength);
-    const voltageDropPercent = (voltageDrop / PHASE_VOLTAGE) * 100;
+    const voltageDropPercent = (voltageDrop / phaseVoltage) * 100;
     const limit = symbol.circuitType === "Oswietlenie" ? VOLTAGE_DROP_LIMIT_LIGHTING : VOLTAGE_DROP_LIMIT_OTHER;
 
     if (voltageDropPercent > limit) {
       result.warnings.push({
         code: "VAL-004",
         message: `Zbyt duży spadek napięcia w obwodzie "${symbol.circuitName || symbol.label}"`,
-        details: `Spadek: ${voltageDropPercent.toFixed(1)}%, limit: ${limit}% (dlugosc: ${symbol.cableLength}m, przekroj: ${symbol.cableCrossSection}mm²)`,
+        details: `Spadek: ${voltageDropPercent.toFixed(1)}%, limit: ${limit}% (długość: ${symbol.cableLength}m, przekrój: ${symbol.cableCrossSection}mm²)`,
         severity: "Warning",
         symbolId: symbol.id,
       });
@@ -189,7 +206,7 @@ function validateNoRcdProtection(symbols: SymbolItem[], result: ValidationResult
 
     result.warnings.push({
       code: "VAL-006",
-      message: `Obwod "${symbol.circuitName || symbol.label}" bez ochrony RCD`,
+      message: `Obwód "${symbol.circuitName || symbol.label}" bez ochrony RCD`,
       details: "Różnica prądu różnicowego nie jest chroniona przez wyłącznik RCD",
       severity: "Warning",
       symbolId: symbol.id,
@@ -197,17 +214,32 @@ function validateNoRcdProtection(symbols: SymbolItem[], result: ValidationResult
   }
 }
 
-function validateMainOverload(symbols: SymbolItem[], result: ValidationResult): void {
+function validateMainOverload(
+  symbols: SymbolItem[],
+  result: ValidationResult,
+  phaseVoltage: number,
+  configuredMainBreakerA?: number,
+): void {
   const mainBreakers = symbols.filter(
     (s) => s.type.toUpperCase().includes("FR") || s.type.toUpperCase().includes("SWITCH"),
   );
 
-  if (mainBreakers.length === 0) return;
-
   const totalCurrent = symbols.reduce((sum, s) => {
     if (s.deviceKind !== "mcb" && s.deviceKind !== "rcbo") return sum;
-    return sum + calculateCurrent(s.powerW, s.phase, PHASE_VOLTAGE);
+    return sum + calculateCurrent(s.powerW, s.phase, phaseVoltage);
   }, 0);
+
+  if (mainBreakers.length === 0) {
+    if (configuredMainBreakerA && configuredMainBreakerA > 0 && totalCurrent > configuredMainBreakerA) {
+      result.errors.push({
+        code: "VAL-007",
+        message: "Przeciążenie wyłącznika głównego",
+        details: `Sumaryczny prąd obwodów: ${totalCurrent.toFixed(1)}A, znamionowy prąd główny (konfiguracja): ${configuredMainBreakerA}A`,
+        severity: "Error",
+      });
+    }
+    return;
+  }
 
   for (const mainBreaker of mainBreakers) {
     const mainRating = parseProtectionRating(mainBreaker.frRatedCurrent);
@@ -216,7 +248,7 @@ function validateMainOverload(symbols: SymbolItem[], result: ValidationResult): 
     if (totalCurrent > mainRating) {
       result.errors.push({
         code: "VAL-007",
-        message: `Przeciążenie wyłącznika głównego`,
+        message: "Przeciążenie wyłącznika głównego",
         details: `Sumaryczny prąd obwodów: ${totalCurrent.toFixed(1)}A, znamionowy prąd FR: ${mainRating}A`,
         severity: "Error",
         symbolId: mainBreaker.id,
@@ -242,7 +274,7 @@ function validateRcdOverload(symbols: SymbolItem[], result: ValidationResult): v
     if (rcd.rcdRatedCurrent > 0 && totalCurrent > rcd.rcdRatedCurrent) {
       result.warnings.push({
         code: "VAL-008",
-        message: `Przeciazenie RCD "${rcd.label || rcd.id}"`,
+        message: `Przeciążenie RCD "${rcd.label || rcd.id}"`,
         details: `Suma zabezpieczeń obwodów: ${totalCurrent}A, znamionowy prąd RCD: ${rcd.rcdRatedCurrent}A`,
         severity: "Warning",
         symbolId: rcd.id,
@@ -257,14 +289,14 @@ function validateRcdHierarchy(symbols: SymbolItem[], result: ValidationResult): 
 
   for (const rcd of rcds) {
     if (!rcd.rcdSymbolId) continue;
-    
+
     const parentRcd = rcdMap.get(rcd.rcdSymbolId);
     if (!parentRcd) continue;
 
     if (rcd.rcdResidualCurrent > parentRcd.rcdResidualCurrent) {
       result.errors.push({
         code: "VAL-009",
-        message: `Błąd hierarchii RCD`,
+        message: "Błąd hierarchii RCD",
         details: `Wyłącznik RCD "${rcd.label || rcd.id}" ma większy prąd różnicowy (${rcd.rcdResidualCurrent}mA) niż wyłącznik nadrzędny (${parentRcd.rcdResidualCurrent}mA).`,
         severity: "Error",
         symbolId: rcd.id,

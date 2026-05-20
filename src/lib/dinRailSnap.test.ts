@@ -15,7 +15,7 @@ describe("snapModulePlacementToDinRail", () => {
   const railWidth = 2000;
   const rowCenters = [500];
 
-  it("snapuje do najblizszego rzedu i siatki modulowej gdy nie ma sasiadow", () => {
+  it("snaps to nearest rail row and module grid when no neighbors exist", () => {
     const result = snapModulePlacementToDinRail(
       112,
       455,
@@ -31,7 +31,7 @@ describe("snapModulePlacementToDinRail", () => {
     expect(result.x).toBe(55);
   });
 
-  it("dosuwa modul idealnie do prawej krawedzi sasiada bez szczeliny", () => {
+  it("snaps to the right edge of a neighbor without gap", () => {
     const leftNeighbor = makeSymbol({ id: "left", x: 300, y: 460 });
 
     const result = snapModulePlacementToDinRail(
@@ -49,7 +49,7 @@ describe("snapModulePlacementToDinRail", () => {
     expect(result.y).toBe(460);
   });
 
-  it("utrzymuje snap przy wiekszym odchyleniu gdy modul byl juz przypiety do szyny", () => {
+  it("keeps vertical snap with larger offset when module was already snapped", () => {
     const result = snapModulePlacementToDinRail(
       112,
       530,
@@ -66,7 +66,7 @@ describe("snapModulePlacementToDinRail", () => {
     expect(result.y).toBe(460);
   });
 
-  it("nie snapuje pionowo gdy nowy modul jest za daleko od szyny", () => {
+  it("does not vertically snap when a new module is too far from the rail", () => {
     const result = snapModulePlacementToDinRail(
       112,
       541,
@@ -81,7 +81,7 @@ describe("snapModulePlacementToDinRail", () => {
     expect(result.y).toBe(541);
   });
 
-  it("wybiera wolna strone przy nachodzeniu na istniejacy modul", () => {
+  it("chooses a free side when candidate overlaps an existing module", () => {
     const blockedNeighbor = makeSymbol({ id: "blocked", x: 300, y: 460 });
 
     const result = snapModulePlacementToDinRail(
@@ -98,7 +98,7 @@ describe("snapModulePlacementToDinRail", () => {
     expect(result.x).toBe(400);
   });
 
-  it("ignoruje przeciagniety symbol przy liczeniu kolizji", () => {
+  it("ignores the currently dragged symbol when checking collisions", () => {
     const draggedSymbol = makeSymbol({ id: "dragged", x: 300, y: 460 });
 
     const result = snapModulePlacementToDinRail(
@@ -117,7 +117,29 @@ describe("snapModulePlacementToDinRail", () => {
     expect(result.x).toBeCloseTo(287.58, 2);
   });
 
-  it("clampuje pozycje do szerokosci szyny", () => {
+  it("ignores dragged group members when evaluating horizontal snap targets", () => {
+    const draggedPeer = makeSymbol({ id: "peer", x: 400, y: 460 });
+
+    const result = snapModulePlacementToDinRail(
+      487,
+      460,
+      100,
+      80,
+      railWidth,
+      rowCenters,
+      [draggedPeer],
+      "anchor",
+      {
+        ignoreSymbolIds: ["anchor", "peer"],
+        isCurrentlySnapped: true,
+      },
+    );
+
+    expect(result.shouldSnap).toBe(true);
+    expect(result.x).toBeCloseTo(520.16, 2);
+  });
+
+  it("clamps X to rail width bounds", () => {
     const result = snapModulePlacementToDinRail(
       5000,
       460,

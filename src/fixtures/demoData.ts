@@ -52,7 +52,7 @@ export function createDemoSymbols(): SymbolItem[] {
   );
 
   const circuits1 = [
-    { name: "Oswietlenie parter", loc: "Parter", p: 800, ph: "L1" as const, pr: "B10" },
+    { name: "Oświetlenie parter", loc: "Parter", p: 800, ph: "L1" as const, pr: "B10" },
     { name: "Gniazda salon", loc: "Salon", p: 2000, ph: "L2" as const, pr: "B16" },
     { name: "Gniazda kuchnia", loc: "Kuchnia", p: 2500, ph: "L3" as const, pr: "B20" },
   ];

@@ -15,28 +15,49 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (!id.includes("node_modules")) {
+          const normalizedId = id.replaceAll("\\", "/");
+          const nodeModulesMarker = "/node_modules/";
+          const markerIndex = normalizedId.indexOf(nodeModulesMarker);
+          if (markerIndex === -1) {
             return;
           }
 
-          if (id.includes("pixi.js") || id.includes("@pixi")) {
-            return "pixi";
+          const packagePath = normalizedId.slice(markerIndex + nodeModulesMarker.length);
+          const packageSegments = packagePath.split("/");
+          const packageName = packageSegments[0]?.startsWith("@")
+            ? `${packageSegments[0]}/${packageSegments[1]}`
+            : packageSegments[0];
+          if (!packageName) {
+            return;
           }
 
-          if (id.includes("dompurify")) {
-            return "svg-import";
+          const toChunkName = (prefix: string, name: string) =>
+            `${prefix}-${name.replace("@", "").replace("/", "-")}`;
+
+          if (packageName === "react" || packageName === "react-dom" || packageName === "scheduler") {
+            return "react-core";
           }
 
-          if (
-            id.includes("react")
-            || id.includes("scheduler")
-            || id.includes("react-reconciler")
-            || id.includes("its-fine")
-          ) {
-            return "react-vendor";
+          if (packageName === "pixi.js" || packageName.startsWith("@pixi/")) {
+            return toChunkName("pixi", packageName);
           }
 
-          return "vendor";
+          const pdfEnginePackages = [
+            "@react-pdf/pdfkit",
+            "fontkit",
+            "linebreak",
+            "png-js",
+            "jpeg-exif",
+            "brotli",
+            "unicode-properties",
+            "bidi-js",
+            "hyphen",
+          ];
+          if (packageName.startsWith("@react-pdf/") || pdfEnginePackages.includes(packageName)) {
+            return toChunkName("pdf", packageName);
+          }
+
+          return;
         },
       },
     },

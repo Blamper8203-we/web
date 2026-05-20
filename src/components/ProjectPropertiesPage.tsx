@@ -8,7 +8,6 @@ type ProjectPropertiesPageProps = {
   metadata: ProjectMetadata;
   onChange: (next: ProjectMetadata) => void;
   onExportPdf: () => void;
-  onResetDemo: () => void;
 };
 
 type FieldProps = {
@@ -48,7 +47,6 @@ export function ProjectPropertiesPage({
   metadata,
   onChange,
   onExportPdf,
-  onResetDemo,
 }: ProjectPropertiesPageProps) {
   const updateField = <K extends keyof ProjectMetadata>(field: K, value: ProjectMetadata[K]) => {
     onChange({
@@ -356,9 +354,6 @@ export function ProjectPropertiesPage({
       </div>
 
       <footer className="pp-footer">
-        <button type="button" className="pp-secondary-action" onClick={onResetDemo}>
-          Dane demo
-        </button>
         <button type="button" className="accent-btn pp-export-action" onClick={onExportPdf}>
           <AppIcon name="pdf" size={18} />
           <span>Eksportuj PDF</span>

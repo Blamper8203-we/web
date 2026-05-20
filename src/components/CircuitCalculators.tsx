@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { AppIcon } from "./AppIcon";
 import { calculateCurrent } from "../lib/phaseDistribution/phaseDistributionCalculator";
+import "./CircuitCalculators.css";
 
 interface CircuitCalculatorsProps {
   values: Record<string, string | number | boolean>;

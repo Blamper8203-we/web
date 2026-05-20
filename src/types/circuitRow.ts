@@ -28,4 +28,5 @@ export interface CircuitRow {
   circuitType: string;
   isTerminalBlock: boolean;
   visualPath: string;
+  rcdSymbolId?: string;
 }

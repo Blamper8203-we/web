@@ -479,6 +479,44 @@
   padding: 7px 12px;
 }
 
+@media (max-width: 1200px) {
+  .pd-editor {
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .pd-page {
+    min-height: 0;
+  }
+
+  .pd-hero {
+    grid-template-columns: 1fr;
+    padding: 12px 12px 10px;
+  }
+
+  .pd-editor-body {
+    padding: 10px;
+  }
+
+  .pd-card__header,
+  .pd-card__body {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .pd-footer {
+    flex-wrap: wrap;
+    justify-content: stretch;
+  }
+
+  .pd-secondary-action,
+  .pd-export-action {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 /* --- AVALONIA TITLE PAGE PREVIEW STYLES --- */
 .pd-preview-title-container {
   display: flex;
@@ -744,4 +782,91 @@
 .pd-table td input:hover, .pd-table td input:focus {
   border-color: var(--border);
   background: var(--bg-panel);
+}
+
+.pd-export-error {
+  margin: 8px 0 0;
+  color: #f87171;
+  font-size: 0.85rem;
+}
+
+.pd-hero--avalonia {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.pd-grid--single {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.pd-editor--avalonia {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.pd-stack {
+  display: grid;
+  gap: 8px;
+}
+
+.pd-card-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.pd-help-text {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--text-secondary);
+}
+
+.pd-textarea {
+  width: 100%;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.pd-textarea--large {
+  min-height: 110px;
+}
+
+.pd-footer--single {
+  justify-content: flex-end;
+}
+
+.pd-footer--single .pd-export-action {
+  margin-left: auto;
+}
+
+.pd-editor--avalonia .pd-editor-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
+}
+
+.pd-editor--avalonia .pd-editor-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pd-editor--avalonia .pd-editor-body::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+.pd-editor--avalonia .pd-editor-body::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+}
+
+.pd-editor--avalonia .pd-editor-body::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
 }

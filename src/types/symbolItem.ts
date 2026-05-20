@@ -158,15 +158,30 @@ export function createDefaultSymbolItem(overrides?: Partial<SymbolItem>): Symbol
     Object.assign(base, overrides);
   }
 
+  base.type = typeof base.type === "string" ? base.type : "";
+  base.label = typeof base.label === "string" ? base.label : "";
+  base.referenceDesignation = typeof base.referenceDesignation === "string" ? base.referenceDesignation : "";
+  base.visualPath = typeof base.visualPath === "string" ? base.visualPath : "";
+  base.moduleRef = typeof base.moduleRef === "string" ? base.moduleRef : "";
+  base.moduleSourceType = typeof base.moduleSourceType === "string" ? base.moduleSourceType : "";
+  base.location = typeof base.location === "string" ? base.location : "";
+  base.circuitName = typeof base.circuitName === "string" ? base.circuitName : "";
+  base.circuitDescription = typeof base.circuitDescription === "string" ? base.circuitDescription : "";
+  base.protectionType = typeof base.protectionType === "string" ? base.protectionType : "";
+  base.group = typeof base.group === "string" ? base.group : "";
+  base.groupName = typeof base.groupName === "string" ? base.groupName : "";
+  base.rcdSymbolId = typeof base.rcdSymbolId === "string" ? base.rcdSymbolId : "";
+  base.phase = typeof base.phase === "string" ? base.phase : "L1";
+
   base.parameters = { ...(overrides?.parameters ?? base.parameters) };
 
-  // Recompute derived fields
+  // Recompute derived fields (order matters to match Avalonia semantics).
+  base.isTerminalBlock = computeIsTerminalBlock(base);
+  base.rcdInfo = computeRcdInfo(base);
+  base.spdInfo = computeSpdInfo(base);
   base.displayProtection = computeDisplayProtection(base);
   base.displayLocation = computeDisplayLocation(base);
   base.displayModuleNumber = computeDisplayModuleNumber(base);
-  base.rcdInfo = computeRcdInfo(base);
-  base.spdInfo = computeSpdInfo(base);
-  base.isTerminalBlock = computeIsTerminalBlock(base);
 
   return base;
 }
@@ -179,7 +194,9 @@ function computeDisplayProtection(symbol: SymbolItem): string {
     return `${symbol.frRatedCurrent} (FR)`;
   }
   if (typeUpper.includes("KONTROLKI")) return symbol.phaseIndicatorFuseRating;
-  return symbol.protectionType;
+  return symbol.protectionType && symbol.protectionType.trim().length > 0
+    ? symbol.protectionType
+    : "Brak";
 }
 
 function computeDisplayLocation(symbol: SymbolItem): string {

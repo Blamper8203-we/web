@@ -1,11 +1,15 @@
-import { useCallback, useEffect, type MutableRefObject } from 'react';
+import { useCallback, useEffect, useRef, type MutableRefObject } from 'react';
 import {
   cloneSymbolsSnapshot,
   findDinRailSnapTarget,
   canAutoJoinExistingGroup,
   applyInheritedRcdInfo,
+  getNextGroupName,
+  isDistributionSymbol,
+  isGroupHeadSymbol,
   snapDraggedGroupToNeighborModules,
   normalizeDinRailModuleOrdering,
+  normalizeGroupConsistency,
   isEditableShortcutTarget,
   type SymbolHistorySnapshot,
   type RightTab,
@@ -36,6 +40,104 @@ interface UseSymbolActionsParams {
   draggedSymbolIdsRef: MutableRefObject<string[] | null>;
 }
 
+export interface ResolvedSelectionChange {
+  nextActiveId: string | null;
+  nextIds: string[];
+}
+
+export function resolveSelectionChange(
+  ids: string[],
+  activeId?: string | null,
+): ResolvedSelectionChange {
+  const nextIds = Array.from(new Set(ids));
+  const nextActiveId =
+    activeId && nextIds.includes(activeId)
+      ? activeId
+      : nextIds.length > 0
+        ? (nextIds[nextIds.length - 1] ?? null)
+        : null;
+
+  return {
+    nextActiveId,
+    nextIds,
+  };
+}
+
+export function resolveReleasedDinRailGrouping(
+  symbols: SymbolItem[],
+  releasedSymbolId: string,
+): SymbolItem[] {
+  let changed = false;
+  const nextSymbols = cloneSymbolsSnapshot(symbols);
+  const releasedSymbol = nextSymbols.find((s) => s.id === releasedSymbolId);
+
+  if (
+    !releasedSymbol
+    || !releasedSymbol.isSnappedToRail
+    || releasedSymbol.group
+    || shouldExcludeFromReleaseGrouping(releasedSymbol)
+  ) {
+    return nextSymbols;
+  }
+
+  const snapTarget = findDinRailSnapTarget(
+    nextSymbols.filter((s) => s.id !== releasedSymbol.id),
+    releasedSymbol.x,
+    releasedSymbol.y,
+    releasedSymbol.width,
+    releasedSymbol.height,
+    releasedSymbol.moduleRef,
+  );
+
+  if (!snapTarget || !canAutoJoinExistingGroup(releasedSymbol, snapTarget)) {
+    return nextSymbols;
+  }
+
+  if (snapTarget.group) {
+    releasedSymbol.group = snapTarget.group;
+    releasedSymbol.groupName = snapTarget.groupName;
+    applyInheritedRcdInfo(nextSymbols, releasedSymbol, snapTarget);
+    changed = true;
+  } else {
+    const targetIsHead = isGroupHeadSymbol(snapTarget);
+    const releasedIsHead = isGroupHeadSymbol(releasedSymbol);
+    const targetIsDistribution = isDistributionSymbol(snapTarget);
+    const releasedIsDistribution = isDistributionSymbol(releasedSymbol);
+
+    if ((targetIsHead || releasedIsHead) && (targetIsDistribution || releasedIsDistribution)) {
+      const groupId = crypto.randomUUID();
+      const groupName = getNextGroupName(nextSymbols);
+      const rcdSymbol = targetIsHead ? snapTarget : releasedSymbol;
+      const childSymbol = targetIsHead ? releasedSymbol : snapTarget;
+
+      snapTarget.group = groupId;
+      snapTarget.groupName = groupName;
+      releasedSymbol.group = groupId;
+      releasedSymbol.groupName = groupName;
+
+      if (childSymbol.id !== rcdSymbol.id) {
+        childSymbol.rcdSymbolId = rcdSymbol.id;
+        childSymbol.rcdRatedCurrent = rcdSymbol.rcdRatedCurrent;
+        childSymbol.rcdResidualCurrent = rcdSymbol.rcdResidualCurrent;
+        childSymbol.rcdType = rcdSymbol.rcdType;
+      }
+
+      changed = true;
+    }
+  }
+
+  return changed
+    ? normalizeDinRailModuleOrdering(normalizeGroupConsistency(nextSymbols))
+    : nextSymbols;
+}
+
+function shouldExcludeFromReleaseGrouping(symbol: SymbolItem): boolean {
+  return symbol.deviceKind === "fr"
+    || symbol.deviceKind === "spd"
+    || symbol.deviceKind === "phaseIndicator"
+    || symbol.deviceKind === "rcd";
+}
+
 export function useSymbolActions({
   symbols,
   setSymbols,
@@ -49,6 +151,12 @@ export function useSymbolActions({
   dragHistorySnapshotRef,
   draggedSymbolIdsRef,
 }: UseSymbolActionsParams) {
+  const symbolsRef = useRef(symbols);
+
+  useEffect(() => {
+    symbolsRef.current = symbols;
+  }, [symbols]);
+
   // ── Drag helpers ─────────────────────────────────────────────────────────────
 
   const handleSymbolMoveStart = useCallback(
@@ -108,15 +216,21 @@ export function useSymbolActions({
           );
         }
 
-        setSymbols((prev) =>
-          prev.map((s) => {
+        setSymbols((prev) => {
+          const next = prev.map((s) => {
             if (!draggedIds.includes(s.id)) return s;
             const original = before.symbols.find((item) => item.id === s.id);
             return original ? { ...s, x: original.x + deltaX, y: original.y + deltaY } : s;
-          }),
-        );
+          });
+          symbolsRef.current = next;
+          return next;
+        });
       } else {
-        setSymbols((prev) => prev.map((s) => (s.id === id ? { ...s, x, y } : s)));
+        setSymbols((prev) => {
+          const next = prev.map((s) => (s.id === id ? { ...s, x, y } : s));
+          symbolsRef.current = next;
+          return next;
+        });
       }
 
       setHasUnsavedChanges(true);
@@ -133,30 +247,10 @@ export function useSymbolActions({
 
       if (!before) return;
 
-      let nextSymbols = cloneSymbolsSnapshot(symbols);
-      const releasedSymbol = nextSymbols.find((s) => s.id === id);
-
-      if (
-        releasedSymbol &&
-        draggedIds.length === 1 &&
-        releasedSymbol.isSnappedToRail &&
-        !releasedSymbol.group
-      ) {
-        const snapTarget = findDinRailSnapTarget(
-          nextSymbols.filter((s) => s.id !== releasedSymbol.id),
-          releasedSymbol.x,
-          releasedSymbol.y,
-          releasedSymbol.width,
-          releasedSymbol.height,
-        );
-        if (snapTarget?.group && canAutoJoinExistingGroup(releasedSymbol, snapTarget)) {
-          releasedSymbol.group = snapTarget.group;
-          releasedSymbol.groupName = snapTarget.groupName;
-          applyInheritedRcdInfo(nextSymbols, releasedSymbol, snapTarget);
-        }
-      }
-
-      const normalizedSymbols = normalizeDinRailModuleOrdering(nextSymbols);
+      const latestSymbols = symbolsRef.current;
+      const normalizedSymbols = draggedIds.length === 1
+        ? resolveReleasedDinRailGrouping(latestSymbols, id)
+        : normalizeDinRailModuleOrdering(normalizeGroupConsistency(cloneSymbolsSnapshot(latestSymbols)));
       const movedSymbol = normalizedSymbols.find((s) => s.id === id);
       const label =
         movedSymbol?.referenceDesignation ||
@@ -165,10 +259,10 @@ export function useSymbolActions({
         'element';
 
       executeSymbolsCommand(
-        `Przesuniecie ${label}`,
+        `Przesunięcie ${label}`,
         before,
         { symbols: normalizedSymbols, selectedSymbolId, selectedSymbolIds },
-        `Przesunieto ${label}`,
+        `Przesunięto ${label}`,
       );
     },
     [
@@ -177,7 +271,6 @@ export function useSymbolActions({
       executeSymbolsCommand,
       selectedSymbolId,
       selectedSymbolIds,
-      symbols,
     ],
   );
 
@@ -191,10 +284,7 @@ export function useSymbolActions({
         return;
       }
 
-      const clickedSymbol = symbols.find((s) => s.id === id) ?? null;
-      const selectionUnitIds = clickedSymbol?.group
-        ? symbols.filter((s) => s.group === clickedSymbol.group).map((s) => s.id)
-        : [id];
+      const selectionUnitIds = [id];
 
       const nextSelection = options?.toggle
         ? selectionUnitIds.every((sid) => selectedSymbolIds.includes(sid))
@@ -217,13 +307,7 @@ export function useSymbolActions({
 
   const handleSymbolSelectionChange = useCallback(
     (ids: string[], activeId?: string | null) => {
-      const nextIds = Array.from(new Set(ids));
-      const nextActiveId =
-        activeId && nextIds.includes(activeId)
-          ? activeId
-          : nextIds.length > 0
-            ? (nextIds[nextIds.length - 1] ?? null)
-            : null;
+      const { nextIds, nextActiveId } = resolveSelectionChange(ids, activeId);
       setSelectedSymbolIds(nextIds);
       setSelectedSymbolId(nextActiveId);
       if (nextActiveId) setActiveRightTab('circuitEdit');
@@ -280,7 +364,7 @@ export function useSymbolActions({
           selectedSymbolId: symbolId,
           selectedSymbolIds: [symbolId],
         },
-        `Zapisano komorke tabeli: ${label}`,
+        `Zapisano komórkę tabeli: ${label}`,
       );
     },
     [executeSymbolsCommand, selectedSymbolId, selectedSymbolIds, symbols],
@@ -302,22 +386,36 @@ export function useSymbolActions({
     const primarySymbol = symbolsToDelete[symbolsToDelete.length - 1];
     const label =
       symbolsToDelete.length > 1
-        ? `${symbolsToDelete.length} elementow`
+        ? `${symbolsToDelete.length} elementów`
         : primarySymbol.referenceDesignation ||
           primarySymbol.circuitName ||
           primarySymbol.label ||
           primarySymbol.type ||
           'element';
 
-    const nextSymbols = symbols
+    const nextSymbols = normalizeDinRailModuleOrdering(
+      normalizeGroupConsistency(
+        symbols
       .filter((s) => !selectedSet.has(s.id))
-      .map((s) => (selectedSet.has(s.rcdSymbolId) ? { ...s, rcdSymbolId: '' } : s));
+      .map((s) =>
+        selectedSet.has(s.rcdSymbolId)
+          ? {
+              ...s,
+              rcdSymbolId: '',
+              rcdRatedCurrent: 0,
+              rcdResidualCurrent: 0,
+              rcdType: '',
+            }
+          : s,
+      ),
+      ),
+    );
 
     executeSymbolsCommand(
-      `Usuniecie ${label}`,
+      `Usunięcie ${label}`,
       { symbols, selectedSymbolId, selectedSymbolIds },
       { symbols: nextSymbols, selectedSymbolId: null, selectedSymbolIds: [] },
-      `Usunieto ${label}`,
+      `Usunięto ${label}`,
     );
   }, [executeSymbolsCommand, selectedSymbolId, selectedSymbolIds, symbols]);
 
@@ -338,7 +436,27 @@ export function useSymbolActions({
     const maxX = Math.max(...symbolsToDuplicate.map((s) => s.x + s.width));
     const groupOffset = Math.max(20, maxX - minX) + 20;
 
-    const clones = symbolsToDuplicate.map((symbol, index) => {
+    const groupIdsToClone = Array.from(
+      new Set(
+        symbolsToDuplicate
+          .map((symbol) => symbol.group)
+          .filter((groupId): groupId is string => Boolean(groupId)),
+      ),
+    );
+    const groupIdMap = new Map(groupIdsToClone.map((groupId) => [groupId, crypto.randomUUID()] as const));
+    const existingGroupOrders = symbols
+      .map((symbol) => {
+        const match = symbol.groupName.match(/^Grupa-(\d+)$/i);
+        return match ? Number.parseInt(match[1], 10) : 0;
+      })
+      .filter((value) => Number.isFinite(value) && value > 0);
+    let nextGroupOrder = existingGroupOrders.length > 0 ? Math.max(...existingGroupOrders) + 1 : 1;
+    const groupNameMap = new Map<string, string>();
+    for (const groupId of groupIdsToClone) {
+      groupNameMap.set(groupId, `Grupa-${nextGroupOrder++}`);
+    }
+
+    const clonedPairs = symbolsToDuplicate.map((symbol, index) => {
       const clone = cloneSymbol({
         ...symbol,
         x: symbol.x + groupOffset,
@@ -348,14 +466,36 @@ export function useSymbolActions({
         parameters: { ...symbol.parameters },
       });
       delete clone.parameters.ManualReferenceDesignation;
-      return clone;
+      return { source: symbol, clone };
+    });
+    const cloneIdBySourceId = new Map(clonedPairs.map(({ source, clone }) => [source.id, clone.id] as const));
+    const clones = clonedPairs.map(({ source, clone }) => {
+      const nextClone = { ...clone, parameters: { ...clone.parameters } };
+      if (source.group && groupIdMap.has(source.group)) {
+        nextClone.group = groupIdMap.get(source.group)!;
+        nextClone.groupName = groupNameMap.get(source.group) ?? source.groupName;
+      }
+
+      if (source.rcdSymbolId && cloneIdBySourceId.has(source.rcdSymbolId)) {
+        nextClone.rcdSymbolId = cloneIdBySourceId.get(source.rcdSymbolId)!;
+      } else if (nextClone.deviceKind !== 'rcd') {
+        nextClone.rcdSymbolId = '';
+        nextClone.rcdRatedCurrent = 0;
+        nextClone.rcdResidualCurrent = 0;
+        nextClone.rcdType = '';
+      }
+
+      return nextClone;
     });
     const cloneIds = clones.map((c) => c.id);
+    const normalizedNextSymbols = normalizeDinRailModuleOrdering(
+      normalizeGroupConsistency([...symbols.map((s) => ({ ...s, isSelected: false })), ...clones]),
+    );
 
     const primarySymbol = symbolsToDuplicate[symbolsToDuplicate.length - 1];
     const label =
       symbolsToDuplicate.length > 1
-        ? `${symbolsToDuplicate.length} elementow`
+        ? `${symbolsToDuplicate.length} elementów`
         : primarySymbol.referenceDesignation ||
           primarySymbol.circuitName ||
           primarySymbol.label ||
@@ -366,7 +506,7 @@ export function useSymbolActions({
       `Kopiowanie ${label}`,
       { symbols, selectedSymbolId, selectedSymbolIds },
       {
-        symbols: [...symbols.map((s) => ({ ...s, isSelected: false })), ...clones],
+        symbols: normalizedNextSymbols,
         selectedSymbolId: cloneIds[cloneIds.length - 1] ?? null,
         selectedSymbolIds: cloneIds,
       },

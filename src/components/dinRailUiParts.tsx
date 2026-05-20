@@ -18,7 +18,7 @@ export function DinRailViewportHud({
       <strong>Szyna DIN</strong>
       <span>
         {isVisible
-          ? `${rows} rzad / ${modulesPerRow} modulow`
+          ? `${rows} rząd / ${modulesPerRow} modułów`
           : "Wymaga wygenerowania"}
       </span>
     </div>
@@ -30,6 +30,8 @@ interface DinRailZoomToolbarProps {
   onFit: () => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
+  onToggleGroups?: () => void;
+  showGroups?: boolean;
 }
 
 export function DinRailZoomToolbar({
@@ -37,9 +39,26 @@ export function DinRailZoomToolbar({
   onFit,
   onZoomIn,
   onZoomOut,
+  onToggleGroups,
+  showGroups = true,
 }: DinRailZoomToolbarProps) {
   return (
     <div className="workspace-hud workspace-hud--top-right">
+      {onToggleGroups && (
+        <>
+          <button
+            type="button"
+            className={`workspace-tool-btn ${showGroups ? "is-active" : ""}`}
+            title={showGroups ? "Ukryj klamry grup" : "Pokaż klamry grup"}
+            aria-label={showGroups ? "Ukryj klamry grup" : "Pokaż klamry grup"}
+            onClick={onToggleGroups}
+            disabled={!canInteract}
+          >
+            <AppIcon name="module" size={17} />
+          </button>
+          <div style={{ width: '20px', height: '1px', background: 'rgba(255,255,255,0.15)', margin: '4px auto' }} />
+        </>
+      )}
       <button
         type="button"
         className="workspace-tool-btn"
@@ -63,8 +82,8 @@ export function DinRailZoomToolbar({
       <button
         type="button"
         className="workspace-tool-btn"
-        title="Powieksz"
-        aria-label="Powieksz"
+        title="Powiększ"
+        aria-label="Powiększ"
         onClick={onZoomIn}
         disabled={!canInteract}
       >
@@ -82,8 +101,8 @@ export function DinRailEmptyState({ onOpenGenerator }: DinRailEmptyStateProps) {
   return (
     <button type="button" className="din-rail-empty-action" onClick={onOpenGenerator}>
       <AppIcon name="module" size={48} />
-      <strong>Wygeneruj szyne DIN</strong>
-      <span>Kliknij tutaj lub uzyj ikony na pasku narzedzi</span>
+      <strong>Wygeneruj szynę DIN</strong>
+      <span>Kliknij tutaj lub użyj ikony na pasku narzędzi</span>
     </button>
   );
 }
@@ -121,16 +140,19 @@ export function DinRailGeneratorDialog({
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="din-rail-dialog-preview">
-          <div className="din-rail-dialog-preview-canvas">
+        <div className="din-rail-dialog-preview-canvas">
             <div
-              className="din-rail-dialog-preview-rail"
-              dangerouslySetInnerHTML={{ __html: previewSvg }}
-              style={{
-                width: previewWidth,
-                height: previewHeight,
-                transform: `translate(-50%, -50%) scale(${previewScale})`,
-              }}
-            />
+              className="din-rail-dialog-preview-rail-wrap"
+            >
+              <div
+                className="din-rail-dialog-preview-rail"
+                dangerouslySetInnerHTML={{ __html: previewSvg }}
+                style={{
+                  width: previewWidth * previewScale,
+                  height: previewHeight * previewScale,
+                }}
+              />
+            </div>
           </div>
         </div>
 
@@ -141,7 +163,7 @@ export function DinRailGeneratorDialog({
           </div>
 
           <label className="din-rail-dialog-field">
-            <span>Liczba rzedow</span>
+            <span>Liczba rzędów</span>
             <input
               type="number"
               min={1}
@@ -152,7 +174,7 @@ export function DinRailGeneratorDialog({
           </label>
 
           <label className="din-rail-dialog-field">
-            <span>Moduly na rzad</span>
+            <span>Moduły na rząd</span>
             <input
               type="number"
               min={6}
@@ -206,7 +228,7 @@ export function DinRailStatusBar({
           <span>{height.toFixed(1)} mm</span>
           <span>
             <AppIcon name="module" size={12} />
-            {totalModules} modulow
+            {totalModules} modułów
           </span>
           <span>
             <AppIcon name="zoomIn" size={12} />
@@ -216,7 +238,7 @@ export function DinRailStatusBar({
       ) : (
         <span>
           <AppIcon name="validation" size={12} />
-          Wygeneruj szyne DIN, aby wlaczyc ukladanie modulow
+          Wygeneruj szynę DIN, aby włączyć układanie modułów
         </span>
       )}
     </div>

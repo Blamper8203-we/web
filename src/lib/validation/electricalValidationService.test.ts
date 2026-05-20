@@ -137,4 +137,43 @@ describe('electricalValidationService', () => {
     const hasVal008 = result.warnings.some(w => w.code === 'VAL-008');
     expect(hasVal008).toBe(false);
   });
+
+  it('should detect overload against configured main breaker when FR is missing', () => {
+    const mcb: Partial<SymbolItem> = {
+      id: 'mcb-main-1',
+      type: 'MCB',
+      deviceKind: 'mcb',
+      phase: 'L1',
+      powerW: 12000,
+      protectionType: 'B32',
+      cableCrossSection: 10,
+      cableLength: 10,
+    };
+
+    const result = validateProject([mcb as SymbolItem], { mainBreakerA: 40 });
+    expect(result.errors).toContainEqual(
+      expect.objectContaining({
+        code: 'VAL-007',
+      }),
+    );
+  });
+
+  it('should use configured supply voltage in current-based cable validation', () => {
+    const mcb: Partial<SymbolItem> = {
+      id: 'mcb-voltage-1',
+      type: 'MCB',
+      deviceKind: 'mcb',
+      phase: 'L1',
+      powerW: 9200,
+      protectionType: 'B32',
+      cableCrossSection: 6,
+      cableLength: 10,
+    };
+
+    const lowVoltageResult = validateProject([mcb as SymbolItem], { supplyVoltageV: 230 });
+    const highVoltageResult = validateProject([mcb as SymbolItem], { supplyVoltageV: 400 });
+
+    expect(lowVoltageResult.errors.some((entry) => entry.code === 'VAL-002')).toBe(true);
+    expect(highVoltageResult.errors.some((entry) => entry.code === 'VAL-002')).toBe(false);
+  });
 });

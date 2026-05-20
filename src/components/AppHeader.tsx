@@ -10,6 +10,7 @@ interface AppHeaderProps {
   undoLabel: string | null;
   redoLabel: string | null;
   showRightPanel: boolean;
+  showDinRailGroups: boolean;
   activeSheet: SheetType;
   workspaceZoomPercent: number;
   hasSelectedSymbol: boolean;
@@ -17,13 +18,18 @@ interface AppHeaderProps {
   onOpenProject: () => void;
   onSaveProject: (asNew: boolean) => void;
   onExportPdf: () => void;
+  onExportBom: () => void;
+  onExportPng: (withAnnotations: boolean) => void;
+  onExportDinRailPngWithDescriptionsNoBrackets: () => void;
   onUndo: () => void;
   onRedo: () => void;
   onDeleteSelected: () => void;
   onOpenDinRailGenerator: () => void;
   onOpenSvgImport: () => void;
   onOpenImportedModulesManager: () => void;
+  onOpenHelp: () => void;
   onToggleRightPanel: () => void;
+  onToggleDinRailGroups: () => void;
   onChangeSheet: (sheet: SheetType) => void;
   showTemporaryStatus: (message: string) => void;
 }
@@ -36,6 +42,7 @@ export function AppHeader({
   undoLabel,
   redoLabel,
   showRightPanel,
+  showDinRailGroups,
   activeSheet,
   workspaceZoomPercent,
   hasSelectedSymbol,
@@ -43,13 +50,18 @@ export function AppHeader({
   onOpenProject,
   onSaveProject,
   onExportPdf,
+  onExportBom,
+  onExportPng,
+  onExportDinRailPngWithDescriptionsNoBrackets,
   onUndo,
   onRedo,
   onDeleteSelected,
   onOpenDinRailGenerator,
   onOpenSvgImport,
   onOpenImportedModulesManager,
+  onOpenHelp,
   onToggleRightPanel,
+  onToggleDinRailGroups,
   onChangeSheet,
   showTemporaryStatus,
 }: AppHeaderProps) {
@@ -86,7 +98,7 @@ export function AppHeader({
   }, []);
 
   return (
-    <header className="toolbar-shell">
+    <header className={`toolbar-shell ${activeSheet === "sheet4" ? "toolbar-shell--compact" : ""}`}>
       <div className="toolbar-left">
         <div style={{ position: "relative" }} ref={fileMenuRef}>
           <button
@@ -103,7 +115,11 @@ export function AppHeader({
             Plik
           </button>
           {fileMenuOpen && (
-            <div className="flyout-menu" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="flyout-menu"
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
               <span className="flyout-section">Projekt</span>
               <button className="flyout-item" onClick={() => { setFileMenuOpen(false); onNewProject(); }}>
                 <AppIcon className="flyout-icon" name="file" />
@@ -138,31 +154,31 @@ export function AppHeader({
               </button>
               <button
                 className="flyout-item"
-                onClick={() => showTemporaryStatus("Eksport PNG zostanie dopięty w kolejnym kroku")}
+                onClick={() => { setFileMenuOpen(false); onExportPng(false); }}
               >
                 <AppIcon className="flyout-icon" name="file" />
                 <span className="flyout-label">Eksport PNG (czysty)</span>
               </button>
               <button
                 className="flyout-item"
-                onClick={() => showTemporaryStatus("Eksport PNG z oznaczeniami zostanie dopięty w kolejnym kroku")}
+                onClick={() => { setFileMenuOpen(false); onExportPng(true); }}
               >
                 <AppIcon className="flyout-icon" name="fileEdit" />
                 <span className="flyout-label">Eksport PNG (z oznaczeniami)</span>
               </button>
               <button
                 className="flyout-item"
-                onClick={() => showTemporaryStatus("Eksport BOM zostanie dopięty w kolejnym kroku")}
+                onClick={() => { setFileMenuOpen(false); onExportDinRailPngWithDescriptionsNoBrackets(); }}
               >
-                <AppIcon className="flyout-icon" name="list" />
-                <span className="flyout-label">Eksport BOM (CSV)</span>
+                <AppIcon className="flyout-icon" name="fileEdit" />
+                <span className="flyout-label">Eksport PNG HQ (rozdzielnica: opis bez klamr)</span>
               </button>
               <button
                 className="flyout-item"
-                onClick={() => showTemporaryStatus("Eksport LaTeX zostanie dopięty w kolejnym kroku")}
+                onClick={() => { setFileMenuOpen(false); onExportBom(); }}
               >
-                <AppIcon className="flyout-icon" name="latex" />
-                <span className="flyout-label">Eksport LaTeX</span>
+                <AppIcon className="flyout-icon" name="list" />
+                <span className="flyout-label">Eksport BOM (CSV)</span>
               </button>
               <span className="flyout-divider" />
               <button
@@ -191,12 +207,21 @@ export function AppHeader({
             Widok
           </button>
           {viewMenuOpen && (
-            <div className="flyout-menu wide" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="flyout-menu wide"
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
               <span className="flyout-section">Wyświetlanie</span>
               <button className="flyout-item" onClick={() => { setViewMenuOpen(false); onToggleRightPanel(); }}>
                 <AppIcon className="flyout-icon" name="dockRight" />
                 <span className="flyout-label">Panel prawy</span>
                 {showRightPanel && <AppIcon className="flyout-check-icon" name="check" />}
+              </button>
+              <button className="flyout-item" onClick={() => { setViewMenuOpen(false); onToggleDinRailGroups(); }}>
+                <AppIcon className="flyout-icon" name="group" />
+                <span className="flyout-label">{showDinRailGroups ? "Ukryj grupy" : "Pokaż grupy"}</span>
+                {showDinRailGroups && <AppIcon className="flyout-check-icon" name="check" />}
               </button>
               <span className="flyout-divider" />
               <span className="flyout-section">Arkusze</span>
@@ -239,18 +264,15 @@ export function AppHeader({
             Narzędzia
           </button>
           {toolsMenuOpen && (
-            <div className="flyout-menu wide" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="flyout-menu wide"
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
               <span className="flyout-section">Narzędzia</span>
               <button className="flyout-item" onClick={() => { setToolsMenuOpen(false); onOpenDinRailGenerator(); }}>
                 <AppIcon className="flyout-icon accent-blue" name="module" />
                 <span className="flyout-label">Szyna DIN</span>
-              </button>
-              <button
-                className="flyout-item"
-                onClick={() => showTemporaryStatus("Generator szyny prądowej zostanie dopięty w kolejnym kroku")}
-              >
-                <AppIcon className="flyout-icon" name="busbar" />
-                <span className="flyout-label">Szyna prądowa</span>
               </button>
               <button
                 className="flyout-item"
@@ -264,7 +286,7 @@ export function AppHeader({
                 onClick={() => { setToolsMenuOpen(false); onOpenImportedModulesManager(); }}
               >
                 <AppIcon className="flyout-icon" name="list" />
-                <span className="flyout-label">Zarzadzaj importem SVG</span>
+                <span className="flyout-label">Zarządzaj importem SVG</span>
               </button>
             </div>
           )}
@@ -273,12 +295,13 @@ export function AppHeader({
         <button
           type="button"
           className="toolbar-menu-btn"
-          onClick={() => showTemporaryStatus("Pomoc zostanie przeniesiona z HelpDialog.axaml w kolejnym kroku")}
+          onClick={onOpenHelp}
         >
           Pomoc
         </button>
       </div>
 
+      {activeSheet !== "sheet4" ? (
       <div className="toolbar-center">
         <button
           type="button"
@@ -351,6 +374,7 @@ export function AppHeader({
           <AppIcon className="accent-blue" name="zoomFit" size={14} />
         </button>
       </div>
+      ) : null}
 
       <div className="toolbar-right">
         <span className="toolbar-project-name" title={projectFileName}>
@@ -373,7 +397,11 @@ export function AppHeader({
             <AppIcon name="cog" size={16} />
           </button>
           {settingsMenuOpen && (
-            <div className="flyout-menu settings-menu" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="flyout-menu settings-menu"
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
               <span className="flyout-section">Wygląd</span>
               <div className="flyout-card">
                 <div className="settings-row">

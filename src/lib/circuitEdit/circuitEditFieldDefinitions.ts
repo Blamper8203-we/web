@@ -161,9 +161,9 @@ export function getCircuitEditHeader(symbol: SymbolItem): {
     default:
       return {
         title: symbol.referenceDesignation
-          ? `${symbol.referenceDesignation} - ${symbol.circuitName || symbol.label || "Obwod"}`
-          : symbol.circuitName || symbol.label || "Obwod",
-        subtitle: "Wylacznik nadpradowy / odbior",
+          ? `${symbol.referenceDesignation} - ${symbol.circuitName || symbol.label || "Obwód"}`
+          : symbol.circuitName || symbol.label || "Obwód",
+        subtitle: "Wyłącznik nadprądowy / odbiór",
         tone: "blue",
       };
   }
@@ -320,24 +320,24 @@ function createSocketFields(
     textField("CircuitName", "Nazwa obwodu", symbol.circuitName, "np. Gniazdo serwisowe"),
     textField("Location", "Lokalizacja", symbol.location, "np. Rozdzielnica"),
     comboField("Phase", "Faza", getDisplayPhase(symbol.phase), getPhaseOptions(poleCount)),
-    numberField("CableCrossSection", "Przekroj (mm2)", symbol.cableCrossSection, "np. 2.5"),
+    numberField("CableCrossSection", "Przekrój (mm2)", symbol.cableCrossSection, "np. 2.5"),
   ];
 }
 
 function createMcbFields(symbol: SymbolItem, poleCount: ModulePoleCount): CircuitEditFieldDefinition[] {
   return [
     textField("ReferenceDesignation", "Oznaczenie", symbol.referenceDesignation),
-    textField("CircuitName", "Nazwa obwodu", symbol.circuitName, "np. Oswietlenie salon"),
-    textField("Location", "Lokalizacja", symbol.location, "np. Pietro 1, Kuchnia"),
+    textField("CircuitName", "Nazwa obwodu", symbol.circuitName, "np. Oświetlenie salon"),
+    textField("Location", "Lokalizacja", symbol.location, "np. Piętro 1, Kuchnia"),
     comboField("CircuitType", "Typ obwodu", symbol.circuitType || "Gniazdo", CIRCUIT_TYPE_PRESETS),
     comboField("ProtectionType", "Zabezpieczenie", symbol.protectionType || "B16", PROTECTION_PRESETS),
     numberField("PowerW", "Moc (W)", symbol.powerW, "np. 2000"),
     comboField("Phase", "Faza", getDisplayPhase(symbol.phase), getPhaseOptions(poleCount)),
-    checkboxField("IsPhaseLocked", "Zablokuj faze", symbol.isPhaseLocked),
+    checkboxField("IsPhaseLocked", "Zablokuj fazę", symbol.isPhaseLocked),
     textField("CableDesig", "Oznaczenie kabla", symbol.parameters.CableDesig ?? ""),
     textField("CableType", "Typ kabla", symbol.parameters.CableType ?? ""),
-    numberField("CableLength", "Dlugosc kabla (m)", symbol.cableLength, "np. 15"),
-    numberField("CableCrossSection", "Przekroj (mm2)", symbol.cableCrossSection, "np. 2.5"),
+    numberField("CableLength", "Długość kabla (m)", symbol.cableLength, "np. 15"),
+    numberField("CableCrossSection", "Przekrój (mm2)", symbol.cableCrossSection, "np. 2.5"),
   ];
 }
 

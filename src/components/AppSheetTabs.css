@@ -1,0 +1,97 @@
+/* ================================================================
+   SHEET TABS (bottom of workspace, like Avalonia sheet switching)
+   ================================================================ */
+
+.sheet-tabs-bar {
+  position: relative;
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  min-height: var(--workspace-tabs-height);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 8px 12px 8px 10px;
+  background: var(--toolbar-background);
+  border-top: 0;
+  border-bottom: 1px solid var(--panel-border);
+  z-index: 5;
+  pointer-events: auto;
+}
+
+.sheet-tab {
+  pointer-events: auto;
+  min-height: 40px;
+  padding: 10px 16px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sheet-tab-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  font-size: 15px;
+  line-height: 1;
+  color: inherit;
+}
+
+.sheet-tab:hover {
+  color: var(--text-main);
+  background: var(--panel-background-alt);
+}
+
+.sheet-tab.active {
+  color: var(--text-inverse);
+  border-color: var(--accent-orange);
+  background: var(--accent-orange);
+  box-shadow: 0 0 12px rgba(13, 121, 242, 0.25), 0 2px 6px rgba(13, 121, 242, 0.18);
+}
+
+.main-content.is-pdf-workspace .sheet-tabs-bar {
+  min-height: 46px;
+  gap: 4px;
+  padding: 5px 8px;
+}
+
+.main-content.is-pdf-workspace .sheet-tab {
+  min-height: 34px;
+  padding: 7px 12px;
+  border-radius: 6px;
+}
+
+.main-content.is-pdf-workspace .sheet-tab-icon {
+  width: 14px;
+  height: 14px;
+  font-size: 13px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sheet-tabs-bar {
+    grid-column: 1;
+    grid-row: 1;
+    gap: 6px;
+    padding: 6px;
+    overflow-x: auto;
+    pointer-events: auto;
+  }
+
+  .sheet-tab {
+    flex: 0 0 auto;
+    min-height: 32px;
+    padding: 7px 10px;
+  }
+}

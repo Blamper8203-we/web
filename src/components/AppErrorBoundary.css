@@ -1,0 +1,85 @@
+.app-error-boundary {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: #e8eaef;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(74, 144, 247, 0.16), transparent 32%),
+    #0e0f11;
+  font-family: Inter, "Segoe UI", system-ui, sans-serif;
+}
+
+.app-error-boundary__panel {
+  width: min(520px, 100%);
+  display: grid;
+  gap: 18px;
+  padding: 28px;
+  background: #17181c;
+  border: 1px solid #272a30;
+  border-radius: 10px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+}
+
+.app-error-boundary__mark {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 999px;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.app-error-boundary__copy {
+  display: grid;
+  gap: 8px;
+}
+
+.app-error-boundary__eyebrow {
+  color: #9a9faa;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.app-error-boundary h1 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.app-error-boundary p {
+  margin: 0;
+  color: #b5bac4;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.app-error-boundary__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.app-error-boundary__actions button {
+  min-height: 38px;
+  padding: 8px 14px;
+  color: #e8eaef;
+  background: #1f2126;
+  border: 1px solid #272a30;
+  border-radius: 7px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.app-error-boundary__actions .accent-btn {
+  color: #ffffff;
+  background: #0d79f2;
+  border-color: #0d79f2;
+}

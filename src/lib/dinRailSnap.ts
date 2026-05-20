@@ -1,4 +1,8 @@
-import { DIN_RAIL_PADDING_X, MODULE_UNIT_WIDTH } from "./modules/moduleCatalog";
+import {
+  DIN_RAIL_PADDING_X,
+  MODULE_UNIT_WIDTH,
+  getModuleSnapAnchorRatioY,
+} from "./modules/moduleCatalog";
 import type { SymbolItem } from "../types/symbolItem";
 
 const DRAG_SNAP_IN = 50;
@@ -10,7 +14,9 @@ const EDGE_GAP = 0;
 
 export interface SnapModulePlacementOptions {
   forceSnapToRail?: boolean;
+  ignoreSymbolIds?: string[];
   isCurrentlySnapped?: boolean;
+  moduleRef?: string;
 }
 
 export interface SnapModulePlacementResult {
@@ -44,8 +50,8 @@ export function snapModulePlacementToDinRail(
   dragSymbolId?: string,
   options?: SnapModulePlacementOptions,
 ): SnapModulePlacementResult {
-  const moduleHalfHeight = height / 2;
-  const moduleCenterY = y + moduleHalfHeight;
+  const anchorRatioY = getModuleSnapAnchorRatioY(options?.moduleRef);
+  const moduleCenterY = y + height * anchorRatioY;
   const closestRowCenter = findClosest(rowCenters, moduleCenterY) ?? moduleCenterY;
   const minDistance = Math.abs(moduleCenterY - closestRowCenter);
   const shouldSnap =
@@ -54,12 +60,19 @@ export function snapModulePlacementToDinRail(
       : options?.isCurrentlySnapped
         ? minDistance < DRAG_SNAP_OUT
         : minDistance < DRAG_SNAP_IN;
-  const targetY = shouldSnap ? closestRowCenter - moduleHalfHeight : y;
+  const targetY = shouldSnap ? closestRowCenter - height * anchorRatioY : y;
+
+  const ignoredIds = new Set(options?.ignoreSymbolIds ?? []);
+  if (dragSymbolId) {
+    ignoredIds.add(dragSymbolId);
+  }
 
   const rowSymbols = snappedSymbols.filter(
     (symbol) =>
-      symbol.id !== dragSymbolId
-      && Math.abs(symbol.y + symbol.height / 2 - closestRowCenter) < SAME_RAIL_TOLERANCE,
+      !ignoredIds.has(symbol.id)
+      && Math.abs(
+        symbol.y + symbol.height * getModuleSnapAnchorRatioY(symbol.moduleRef) - closestRowCenter,
+      ) < SAME_RAIL_TOLERANCE,
   );
 
   const isSpaceFree = (startX: number, nextWidth: number) => {
@@ -130,11 +143,16 @@ export function snapModulePlacementToDinRail(
         }
       }
     }
-  }
 
-  if (shouldSnap && !isHorizontallySnapped) {
-    const rawSlot = Math.round((x - DIN_RAIL_PADDING_X) / MODULE_UNIT_WIDTH);
-    finalX = DIN_RAIL_PADDING_X + rawSlot * MODULE_UNIT_WIDTH;
+    if (!isHorizontallySnapped) {
+      const gridX =
+        DIN_RAIL_PADDING_X
+        + Math.round((x - DIN_RAIL_PADDING_X) / MODULE_UNIT_WIDTH) * MODULE_UNIT_WIDTH;
+      if (isSpaceFree(gridX, width)) {
+        finalX = gridX;
+        isHorizontallySnapped = true;
+      }
+    }
   }
 
   const maxX = railWidth - width - DIN_RAIL_PADDING_X;

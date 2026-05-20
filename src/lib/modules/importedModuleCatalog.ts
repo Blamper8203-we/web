@@ -1,6 +1,7 @@
 import type { CircuitTypeValue, DeviceKind, PhaseAssignment } from "../../types/symbolItem";
 import type { PaletteGroup, PaletteTemplate } from "./moduleCatalog";
 import { MODULE_PX_PER_MM, MODULE_UNIT_MM_WIDTH } from "./moduleCatalog";
+import { reportRuntimeError } from "../runtimeDiagnostics";
 
 const IMPORTED_MODULES_STORAGE_KEY = "dinboard.importedModules";
 
@@ -281,14 +282,76 @@ function extractPlaceholderDefaults(svgMarkup: string, category: string): Record
   return defaults;
 }
 
+function parseSvgDocument(svgMarkup: string): Document | null {
+  if (typeof DOMParser === "undefined") {
+    return null;
+  }
+
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgMarkup, "image/svg+xml");
+    const root = doc.documentElement;
+    const hasParserError = doc.querySelector("parsererror") !== null;
+    if (hasParserError || !root || root.tagName.toLowerCase() !== "svg") {
+      return null;
+    }
+
+    return doc;
+  } catch {
+    return null;
+  }
+}
+
+function isLikelySvgMarkup(svgMarkup: string): boolean {
+  let remaining = svgMarkup.replace(/^\uFEFF/, "").trimStart();
+  remaining = remaining.replace(/^<\?xml[^>]*>\s*/i, "");
+
+  while (true) {
+    const trimmed = remaining.trimStart();
+    if (trimmed.startsWith("<!--")) {
+      const commentEnd = trimmed.indexOf("-->");
+      if (commentEnd < 0) {
+        return false;
+      }
+      remaining = trimmed.slice(commentEnd + 3);
+      continue;
+    }
+
+    if (/^<!doctype/i.test(trimmed)) {
+      const doctypeEnd = trimmed.indexOf(">");
+      if (doctypeEnd < 0) {
+        return false;
+      }
+      remaining = trimmed.slice(doctypeEnd + 1);
+      continue;
+    }
+
+    return /^<svg(?:\s|>)/i.test(trimmed);
+  }
+}
+
+function isValidSvgMarkup(svgMarkup: string): boolean {
+  if (!isLikelySvgMarkup(svgMarkup)) {
+    return false;
+  }
+
+  if (typeof DOMParser === "undefined") {
+    return true;
+  }
+
+  return parseSvgDocument(svgMarkup) !== null;
+}
+
 function sanitizeSvg(svgMarkup: string): string {
   if (typeof DOMParser === "undefined" || typeof XMLSerializer === "undefined") {
     return svgMarkup;
   }
 
   try {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(svgMarkup, "image/svg+xml");
+    const doc = parseSvgDocument(svgMarkup);
+    if (!doc) {
+      return "";
+    }
 
     for (const node of Array.from(doc.querySelectorAll("script, foreignObject"))) {
       node.remove();
@@ -501,6 +564,10 @@ export async function prepareSvgImportFiles(
     }
 
     const content = await file.text();
+    if (!isValidSvgMarkup(content)) {
+      continue;
+    }
+
     imported.push(buildPendingSvgImportItem({ content, name: file.name }, existingModules));
   }
 
@@ -513,7 +580,7 @@ export function finalizePendingSvgImports(items: PendingSvgImportItem[]): Import
 
 export async function savePendingSvgImportsToDirectory(
   items: PendingSvgImportItem[],
-  directoryHandle: any,
+  directoryHandle: FileSystemDirectoryHandle,
 ) {
   for (const item of items.filter((entry) => entry.selected)) {
     const categoryHandle = await directoryHandle.getDirectoryHandle(item.category, { create: true });
@@ -557,7 +624,13 @@ export function saveImportedModules(modules: ImportedModuleDefinition[]) {
     return;
   }
 
-  window.localStorage.setItem(IMPORTED_MODULES_STORAGE_KEY, JSON.stringify(modules));
+  try {
+    window.localStorage.setItem(IMPORTED_MODULES_STORAGE_KEY, JSON.stringify(modules));
+  } catch (error) {
+    reportRuntimeError(error, {
+      source: "unhandled-error",
+    });
+  }
 }
 
 export function upsertImportedModules(

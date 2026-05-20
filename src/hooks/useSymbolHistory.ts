@@ -89,7 +89,7 @@ export function useSymbolHistory({
     const label = undoRedoServiceRef.current.undoLabel;
     if (!undoRedoServiceRef.current.undo()) return;
     refreshHistoryState();
-    showTemporaryStatus(label ? `Cofnieto: ${label}` : 'Cofnieto');
+    showTemporaryStatus(label ? `Cofnięto: ${label}` : 'Cofnięto');
   }, [refreshHistoryState, showTemporaryStatus]);
 
   const handleRedo = useCallback(() => {

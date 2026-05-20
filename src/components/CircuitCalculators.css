@@ -1,0 +1,55 @@
+.circuit-calculators {
+  margin: 16px;
+  padding: 12px;
+  background-color: var(--panel-background-alt);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+}
+
+.circuit-calculators-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.circuit-calculators-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.calc-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 4px;
+  border-bottom: 1px dashed var(--panel-border);
+  font-size: 0.85rem;
+}
+
+.calc-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.calc-label {
+  color: var(--text-secondary);
+}
+
+.calc-value {
+  color: var(--text-main);
+  font-family: "JetBrains Mono", "Courier New", Courier, monospace;
+  font-weight: 600;
+}
+
+.calc-value.text-danger {
+  color: var(--accent-red);
+}
+
+.calc-value.text-warning {
+  color: var(--accent-orange);
+}

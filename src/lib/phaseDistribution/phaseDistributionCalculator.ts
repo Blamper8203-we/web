@@ -84,6 +84,14 @@ const MIN_REFINEMENT_DIFF = 0.01;
 const MAX_MOVE_REFINEMENT_STEPS = 50;
 const MAX_SWAP_REFINEMENT_STEPS = 30;
 const ZERO_POWER_UNIT_WEIGHT = 0.001;
+const TARGET_IMBALANCE_PERCENT = 3.0;
+const MIN_SWAP_IMPROVEMENT_PERCENT = 0.5;
+const INDUCTION_OVEN_ENABLED_KEY = "GroupScenario.InductionWithOven.Enabled";
+const INDUCTION_OVEN_PATTERN_KEY = "GroupScenario.InductionWithOven.Pattern";
+const INDUCTION_OVEN_PATTERN_VALUE = "Rcd4PWithMcb2PAnd1P";
+const MIN_TIE_EPSILON = 0.01;
+
+let minTieBreaker = 0;
 
 interface BalanceUnit {
   symbols: SymbolItem[];
@@ -191,6 +199,13 @@ export function autoBalancePhases(
     processedIds.add(rcdId);
 
     const mcbs = mcbsByRcd.get(rcdId) ?? [];
+    if (tryRegisterInductionWithOvenFixedScenario(rcd, mcbs, plan.loads, mode, voltage)) {
+      for (const mcb of mcbs) {
+        processedIds.add(mcb.id);
+      }
+      continue;
+    }
+
     for (const mcb of mcbs) {
       processedIds.add(mcb.id);
       if (!isSinglePhase(mcb)) {
@@ -281,10 +296,7 @@ export function applyBalancePlan(
 
 function assignUnitsToPhases(plan: BalancePlan): void {
   for (const unit of plan.units) {
-    // Find lightest phase
-    let minPhase = 0;
-    if (plan.loads[1] < plan.loads[minPhase]) minPhase = 1;
-    if (plan.loads[2] < plan.loads[minPhase]) minPhase = 2;
+    const minPhase = minIndex(plan.loads);
 
     const phase = PHASE_NAMES[minPhase];
     for (const symbol of unit.symbols) {
@@ -295,7 +307,7 @@ function assignUnitsToPhases(plan: BalancePlan): void {
 }
 
 function refineByMoves(plan: BalancePlan, _mode: BalanceMode, _voltage: number): void {
-  for (let step = 0; step < MAX_MOVE_REFINEMENT_STEPS; step++) {
+  for (let step = 0; step < MAX_MOVE_REFINEMENT_STEPS && needsRefinement(plan.loads); step++) {
     let improved = false;
 
     for (const unit of plan.units) {
@@ -335,7 +347,7 @@ function refineByMoves(plan: BalancePlan, _mode: BalanceMode, _voltage: number):
 }
 
 function refineBySwaps(plan: BalancePlan, _mode: BalanceMode, _voltage: number): void {
-  for (let step = 0; step < MAX_SWAP_REFINEMENT_STEPS; step++) {
+  for (let step = 0; step < MAX_SWAP_REFINEMENT_STEPS && needsRefinement(plan.loads); step++) {
     let bestSwap: { unitA: BalanceUnit; unitB: BalanceUnit; phaseA: number; phaseB: number } | null = null;
     let bestImbalance = calculateImbalancePercent(plan.loads[0], plan.loads[1], plan.loads[2]);
 
@@ -354,7 +366,7 @@ function refineBySwaps(plan: BalancePlan, _mode: BalanceMode, _voltage: number):
 
         const newImbalance = calculateImbalancePercent(newLoads[0], newLoads[1], newLoads[2]);
 
-        if (newImbalance < bestImbalance - MIN_REFINEMENT_DIFF) {
+        if (newImbalance < bestImbalance - MIN_SWAP_IMPROVEMENT_PERCENT) {
           bestImbalance = newImbalance;
           bestSwap = { unitA, unitB, phaseA, phaseB };
         }
@@ -375,19 +387,39 @@ function refineBySwaps(plan: BalancePlan, _mode: BalanceMode, _voltage: number):
   }
 }
 
+function needsRefinement(loads: [number, number, number]): boolean {
+  return calculateImbalancePercent(loads[0], loads[1], loads[2]) > TARGET_IMBALANCE_PERCENT;
+}
+
 // ================================================================
 // Helpers
 // ================================================================
 
 function isPhaseIndicator(symbol: SymbolItem): boolean {
-  return symbol.type.toUpperCase().includes("KONTROLKI") || symbol.type.toUpperCase().includes("PHASEINDICATOR");
+  const value = `${symbol.type} ${symbol.visualPath} ${symbol.label}`.toUpperCase();
+  return value.includes("KONTROLK")
+    || value.includes("PHASEINDICATOR")
+    || value.includes("LAMPKA")
+    || value.includes("SYGNALIZAT");
 }
 
 function isGroupHeadSymbol(symbol: SymbolItem): boolean {
-  return symbol.type.toUpperCase().includes("RCD") && !symbol.type.toUpperCase().includes("RCBO");
+  const value = `${symbol.type} ${symbol.visualPath}`.toUpperCase();
+  return (value.includes("RCD")
+    || value.includes("RÓŻNICOW")
+    || value.includes("ROZNICOW")
+    || value.includes("FR")
+    || value.includes("ROZŁĄCZNIK")
+    || value.includes("ROZLACZNIK")
+    || value.includes("ISOLATOR")
+    || value.includes("SWITCH"))
+    && !value.includes("RCBO");
 }
 
 function isRcdSinglePhase(rcd: SymbolItem): boolean {
+  const poleCount = detectPoleCount(rcd);
+  if (poleCount === 3 || poleCount === 4) return false;
+
   const value = `${rcd.type} ${rcd.label} ${rcd.visualPath}`.toUpperCase();
   if (value.includes("4P") || value.includes("4-P") || value.includes("3P") || value.includes("3-P")) return false;
   return true;
@@ -395,7 +427,13 @@ function isRcdSinglePhase(rcd: SymbolItem): boolean {
 
 function isSinglePhase(symbol: SymbolItem): boolean {
   const p = (symbol.phase || "").toUpperCase();
-  return p === "L1" || p === "L2" || p === "L3";
+  if (p === "L1" || p === "L2" || p === "L3") return true;
+
+  if (p.length === 0 || p === "PENDING") {
+    return detectPoleCount(symbol) === 1;
+  }
+
+  return false;
 }
 
 function getWeight(powerW: number, mode: BalanceMode, voltage: number = 230): number {
@@ -436,4 +474,89 @@ function computeResultFromPowers(l1: number, l2: number, l3: number): PhaseDistr
     l3CurrentA: calculateCurrent(l3, "L1", voltage),
     imbalancePercent: calculateImbalancePercent(l1, l2, l3),
   };
+}
+
+function minIndex(loads: [number, number, number]): number {
+  let minValue = loads[0];
+  for (let index = 1; index < loads.length; index++) {
+    if (loads[index] < minValue) {
+      minValue = loads[index];
+    }
+  }
+
+  const tied: number[] = [];
+  for (let index = 0; index < loads.length; index++) {
+    if (Math.abs(loads[index] - minValue) < MIN_TIE_EPSILON) {
+      tied.push(index);
+    }
+  }
+
+  if (tied.length <= 1) {
+    return tied[0] ?? 0;
+  }
+
+  const picked = tied[minTieBreaker % tied.length];
+  minTieBreaker += 1;
+  return picked;
+}
+
+function detectPoleCount(symbol: SymbolItem): 1 | 2 | 3 | 4 | 0 {
+  const value = `${symbol.type} ${symbol.label} ${symbol.visualPath}`.toUpperCase();
+  const poleMatch = value.match(/(\d)\s*-?\s*[Pp]/);
+  if (poleMatch) {
+    const poles = Number.parseInt(poleMatch[1], 10);
+    if (poles >= 1 && poles <= 4) return poles as 1 | 2 | 3 | 4;
+  }
+
+  if (symbol.height > 0) {
+    const ratio = symbol.width / symbol.height;
+    if (ratio < 0.30) return 1;
+    if (ratio < 0.55) return 2;
+    if (ratio < 0.75) return 3;
+    return 4;
+  }
+
+  const phase = (symbol.phase || "").toUpperCase();
+  if (phase === "L1+L2+L3" || phase === "3F") return 3;
+  if (phase === "L1+L2" || phase === "L1+L3" || phase === "L3+L1" || phase === "L2+L3") return 2;
+  if (phase === "L1" || phase === "L2" || phase === "L3") return 1;
+  return 0;
+}
+
+function getScenarioFlag(symbol: SymbolItem, key: string): boolean {
+  const rawValue = symbol.parameters?.[key];
+  if (!rawValue) return false;
+  return rawValue.toLowerCase() === "true";
+}
+
+function matchesScenarioPattern(symbol: SymbolItem, expectedPattern: string): boolean {
+  return symbol.parameters?.[INDUCTION_OVEN_PATTERN_KEY] === expectedPattern;
+}
+
+function tryRegisterInductionWithOvenFixedScenario(
+  rcd: SymbolItem,
+  mcbs: SymbolItem[],
+  loads: [number, number, number],
+  mode: BalanceMode,
+  voltage: number,
+): boolean {
+  if (!getScenarioFlag(rcd, INDUCTION_OVEN_ENABLED_KEY) || !matchesScenarioPattern(rcd, INDUCTION_OVEN_PATTERN_VALUE)) {
+    return false;
+  }
+
+  if (mcbs.length !== 2) {
+    return false;
+  }
+
+  const mcb2p = mcbs.find((symbol) => detectPoleCount(symbol) === 2);
+  const mcb1p = mcbs.find((symbol) => detectPoleCount(symbol) === 1);
+  if (!mcb2p || !mcb1p) {
+    return false;
+  }
+
+  mcb2p.phase = "L1+L2";
+  mcb1p.phase = "L3";
+  addDistributedWeightToPhaseLoads(loads, mcb2p.powerW, "L1+L2", mode, voltage);
+  addDistributedWeightToPhaseLoads(loads, mcb1p.powerW, "L3", mode, voltage);
+  return true;
 }

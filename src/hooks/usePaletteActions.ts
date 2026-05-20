@@ -8,6 +8,7 @@ import {
   getNextReferenceDesignation,
   getReferencePrefix,
   normalizeDinRailModuleOrdering,
+  normalizeGroupConsistency,
   type SymbolHistorySnapshot,
   type PaletteTemplate,
   type RightTab,
@@ -20,9 +21,12 @@ import {
   getPaletteTemplateDimensions,
   supportsDinRailPlacement,
 } from '../lib/modules/moduleCatalog';
+import { snapModulePlacementToDinRail } from '../lib/dinRailSnap';
 import { createDefaultSymbolItem } from '../types/symbolItem';
 import type { SymbolItem } from '../types/symbolItem';
 import type { DinRailCanvasRail } from '../components/DinRailCanvasPixi';
+
+const MANUAL_REFERENCE_DESIGNATION_KEY = 'ManualReferenceDesignation';
 
 interface UsePaletteActionsParams {
   symbols: SymbolItem[];
@@ -104,6 +108,8 @@ export function usePaletteActions({
 
       const referencePrefix = getReferencePrefix(template);
       const referenceDesignation = getNextReferenceDesignation(symbols, referencePrefix);
+      const shouldLockReferenceDesignation =
+        template.deviceKind === 'rcd' || template.deviceKind === 'fr';
       const moduleDimensions = getPaletteTemplateDimensions(template);
       const shouldPlaceOnDinRail =
         options?.snapToRail === true && supportsDinRailPlacement(template);
@@ -146,7 +152,12 @@ export function usePaletteActions({
             : 'palette',
         moduleRef: template.moduleRef ?? template.templateId,
         visualPath: template.assetPath ?? '',
-        parameters: { ...(template.placeholderDefaults ?? {}) },
+        parameters: {
+          ...(template.placeholderDefaults ?? {}),
+          ...(shouldLockReferenceDesignation
+            ? { [MANUAL_REFERENCE_DESIGNATION_KEY]: 'true' }
+            : {}),
+        },
       });
 
       let nextSymbols = [...symbols, nextSymbol];
@@ -155,12 +166,30 @@ export function usePaletteActions({
         : `Dodano ${template.code} do schematu.`;
 
       if (shouldPlaceOnDinRail) {
+        const railDims = getDinRailDimensions(dinRail.config.rows, dinRail.config.modulesPerRow);
+        const snappedSymbols = symbols.filter((s) => s.isSnappedToRail);
+        const snapResult = snapModulePlacementToDinRail(
+          nextSymbol.x,
+          nextSymbol.y,
+          nextSymbol.width,
+          nextSymbol.height,
+          railDims.width,
+          railDims.rowCenters,
+          snappedSymbols,
+          undefined,
+          { forceSnapToRail: true, moduleRef: nextSymbol.moduleRef }
+        );
+
+        nextSymbol.x = snapResult.x;
+        nextSymbol.y = snapResult.y;
+
         const snapTarget = findDinRailSnapTarget(
           symbols,
           nextSymbol.x,
           nextSymbol.y,
           nextSymbol.width,
           nextSymbol.height,
+          nextSymbol.moduleRef,
         );
         const excludeFromGrouping = shouldExcludeFromAutoGrouping(nextSymbol);
 
@@ -239,7 +268,7 @@ export function usePaletteActions({
           statusMessage = `Dodano ${template.code} jako aparat grupowy ${groupName}.`;
         }
 
-        nextSymbols = normalizeDinRailModuleOrdering(nextSymbols);
+        nextSymbols = normalizeDinRailModuleOrdering(normalizeGroupConsistency(nextSymbols));
       }
 
       setActiveRightTab('circuitEdit');
@@ -340,7 +369,7 @@ export function usePaletteActions({
   const handleConfirmPaletteRemoval = useCallback(() => {
     if (!pendingPaletteRemoval) return;
     handleHidePaletteTemplate(pendingPaletteRemoval.templateId);
-    showTemporaryStatus(`Usunieto ${pendingPaletteRemoval.label} z lewego panelu`, 3000);
+    showTemporaryStatus(`Usunięto ${pendingPaletteRemoval.label} z lewego panelu`, 3000);
     setPendingPaletteRemoval(null);
   }, [handleHidePaletteTemplate, pendingPaletteRemoval, showTemporaryStatus]);
 

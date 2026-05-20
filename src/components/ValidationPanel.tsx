@@ -1,14 +1,12 @@
-import type { SymbolItem } from "../types/symbolItem";
-import { validateProject } from "../lib/validation/electricalValidationService";
+import "./ValidationPanel.css";
+import type { ValidationResult } from "../lib/validation/electricalValidationService";
 import { AppIcon } from "./AppIcon";
 
 interface ValidationPanelProps {
-  symbols: SymbolItem[];
+  result: ValidationResult;
 }
 
-export function ValidationPanel({ symbols }: ValidationPanelProps) {
-  const result = validateProject(symbols);
-
+export function ValidationPanel({ result }: ValidationPanelProps) {
   const errorCount = result.errors.length;
   const warningCount = result.warnings.length;
   const infoCount = result.info.length;

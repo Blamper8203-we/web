@@ -232,6 +232,8 @@ const moduleEntries: ModuleEntry[] = [
     phase: "L1+L2+L3",
     modules: 1,
     moduleRef: "Listwy zaciskowe/LISTWA 12 PIN.svg",
+    customWidth: MODULE_UNIT_WIDTH,
+    customHeight: MODULE_UNIT_HEIGHT,
   },
   {
     templateId: "listwa-zaciskowa-5pin-svg",
@@ -296,6 +298,20 @@ export const PALETTE_TEMPLATE_MAP = new Map(
 
 export function getPaletteTemplateById(templateId: string): PaletteTemplate | undefined {
   return PALETTE_TEMPLATE_MAP.get(templateId);
+}
+
+export function getModuleSnapAnchorRatioY(moduleRef?: string): number {
+  if (!moduleRef) {
+    return 0.5;
+  }
+
+  const normalized = moduleRef.toLocaleLowerCase("pl-PL");
+  if (normalized.includes("listwa 12 pin") || normalized.includes("listwa zaciskowa 12 pin")) {
+    // This asset's DIN clamp axis is above the geometric center of its viewBox.
+    return 0.464;
+  }
+
+  return 0.5;
 }
 
 export function supportsDinRailPlacement(_template: {

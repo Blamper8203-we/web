@@ -1,6 +1,7 @@
 import type { ImportedModuleDefinition } from "../lib/modules/importedModuleCatalog";
 import { ModuleAssetPreview } from "./ModuleAssetPreview";
 import { AppIcon } from "./AppIcon";
+import "./ImportedModulesDialog.css";
 
 interface ImportedModulesDialogProps {
   categoryOptions: string[];
@@ -44,16 +45,24 @@ export function ImportedModulesDialog({
             modules.map((moduleDefinition) => (
               <div className="imported-modules-item" key={moduleDefinition.id}>
                 <span className="imported-modules-item__visual">
+                  {(() => {
+                    const isRcdPreview =
+                      moduleDefinition.deviceKind === "rcd"
+                      || moduleDefinition.type.toUpperCase().includes("RCD")
+                      || moduleDefinition.category.toUpperCase() === "RCD";
+                    return (
                   <ModuleAssetPreview
                     alt={moduleDefinition.label}
-                    className="palette-module-preview"
+                    className={`palette-module-preview${isRcdPreview ? " palette-module-preview--rcd" : ""}`}
                     parameters={moduleDefinition.parameters}
-                    rasterDprCap={3}
-                    renderHeight={40}
-                    renderMode="raster"
-                    renderWidth={44}
+                    rasterDprCap={4}
+                    renderHeight={44}
+                    renderMode={isRcdPreview ? "raster" : "svg"}
+                    renderWidth={48}
                     src={moduleDefinition.assetPath}
                   />
+                    );
+                  })()}
                 </span>
 
                 <div className="imported-modules-item__copy">

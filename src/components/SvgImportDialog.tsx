@@ -25,6 +25,10 @@ function getSelectionCount(items: PendingSvgImportItem[]) {
   return items.filter((item) => item.selected).length;
 }
 
+type WindowWithDirectoryPicker = Window & {
+  showDirectoryPicker?: () => Promise<FileSystemDirectoryHandle>;
+};
+
 export function SvgImportDialog({
   categoryOptions,
   existingModules,
@@ -35,7 +39,7 @@ export function SvgImportDialog({
   const [items, setItems] = useState<PendingSvgImportItem[]>([]);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [targetFolderName, setTargetFolderName] = useState("");
-  const [targetDirectoryHandle, setTargetDirectoryHandle] = useState<any>(null);
+  const [targetDirectoryHandle, setTargetDirectoryHandle] = useState<FileSystemDirectoryHandle | null>(null);
   const [isSavingToFolder, setIsSavingToFolder] = useState(false);
   const [status, setStatus] = useState("");
   const [isImporting, setIsImporting] = useState(false);
@@ -57,7 +61,7 @@ export function SvgImportDialog({
 
     const imported = await prepareSvgImportFiles(Array.from(fileList), existingModules);
     if (imported.length === 0) {
-      setStatus("Nie znaleziono poprawnych plikow SVG.");
+      setStatus("Nie znaleziono poprawnych plików SVG.");
       return;
     }
 
@@ -68,7 +72,11 @@ export function SvgImportDialog({
       }
       return nextItems;
     });
-    setStatus(`Dodano ${imported.length} plik${imported.length === 1 ? "" : "i"} do importu.`);
+    const skippedCount = fileList.length - imported.length;
+    setStatus(
+      `Dodano ${imported.length} plik${imported.length === 1 ? "" : "i"} do importu.`
+        + (skippedCount > 0 ? ` Pominięto: ${skippedCount}.` : ""),
+    );
   }, [existingModules, selectedItemId]);
 
   const updateItem = useCallback((itemId: string, updater: (item: PendingSvgImportItem) => PendingSvgImportItem) => {
@@ -81,12 +89,10 @@ export function SvgImportDialog({
   }, [existingModules]);
 
   const handlePickFolder = useCallback(async () => {
-    const picker = (window as Window & {
-      showDirectoryPicker?: () => Promise<any>;
-    }).showDirectoryPicker;
+    const picker = (window as WindowWithDirectoryPicker).showDirectoryPicker;
 
     if (!picker) {
-      setStatus("Twoja przegladarka nie obsluguje wyboru folderu zapisu.");
+      setStatus("Twoja przeglądarka nie obsługuje wyboru folderu zapisu.");
       return;
     }
 
@@ -97,13 +103,13 @@ export function SvgImportDialog({
       setIsSavingToFolder(true);
       setStatus("Wybrano folder zapisu dla importowanych SVG.");
     } catch {
-      setStatus("Anulowano wybor folderu.");
+      setStatus("Anulowano wybór folderu.");
     }
   }, []);
 
   const handleImport = useCallback(async () => {
     if (selectedCount === 0) {
-      setStatus("Zaznacz co najmniej jeden modul do importu.");
+      setStatus("Zaznacz co najmniej jeden moduł do importu.");
       return;
     }
 
@@ -122,7 +128,7 @@ export function SvgImportDialog({
 
       onImport(importedModules, preferredCategory);
     } catch (error) {
-      setStatus(`Blad importu: ${error instanceof Error ? error.message : "Nieznany"}`);
+      setStatus(`Błąd importu: ${error instanceof Error ? error.message : "Nieznany"}`);
       setIsImporting(false);
     }
   }, [categoryOptions, isSavingToFolder, items, onImport, selectedCount, selectedItem?.category, targetDirectoryHandle]);
@@ -152,10 +158,10 @@ export function SvgImportDialog({
           <div className="svg-import-dialog__heading">
             <div className="din-rail-dialog-title">
               <AppIcon name="import" size={18} />
-              <strong>Import modulow SVG</strong>
+              <strong>Import modułów SVG</strong>
             </div>
             <span className="svg-import-dialog__subtitle">
-              Podglad, kategoria, wymiary i zapis w jednym miejscu.
+              Podgląd, kategoria, wymiary i zapis w jednym miejscu.
             </span>
           </div>
           <button aria-label="Zamknij" className="toolbar-icon-btn" type="button" onClick={onClose}>
@@ -165,7 +171,7 @@ export function SvgImportDialog({
 
         <div className="svg-import-dialog__topbar">
           <div className="svg-import-dialog__source">
-            <span className="svg-import-dialog__label">Pliki zrodlowe</span>
+            <span className="svg-import-dialog__label">Pliki źródłowe</span>
             <div className="svg-import-dialog__controls">
               <button type="button" onClick={() => fileInputRef.current?.click()}>
                 <AppIcon name="folderOpen" size={14} />
@@ -194,7 +200,7 @@ export function SvgImportDialog({
                     }
                   }}
                 />
-                <span>Zapisz tez do folderu</span>
+                <span>Zapisz też do folderu</span>
               </label>
               <button type="button" onClick={() => void handlePickFolder()}>
                 <AppIcon name="folderOpen" size={14} />
@@ -217,8 +223,8 @@ export function SvgImportDialog({
 
             {items.length === 0 ? (
               <div className="svg-import-dialog__empty">
-                <strong>Brak plikow do importu</strong>
-                <span>Tutaj pojawi sie lista SVG wraz z podgladem i ustawieniami rozmiaru.</span>
+                <strong>Brak plików do importu</strong>
+                <span>Tutaj pojawi się lista SVG wraz z podglądem i ustawieniami rozmiaru.</span>
               </div>
             ) : (
               items.map((item) => (
@@ -237,16 +243,24 @@ export function SvgImportDialog({
                     }}
                   />
                   <span className="svg-import-dialog__row-preview">
+                    {(() => {
+                      const isRcdPreview =
+                        item.deviceKind === "rcd"
+                        || item.type.toUpperCase().includes("RCD")
+                        || item.category.toUpperCase() === "RCD";
+                      return (
                     <ModuleAssetPreview
                       alt={item.label}
-                      className="palette-module-preview"
+                      className={`palette-module-preview${isRcdPreview ? " palette-module-preview--rcd" : ""}`}
                       parameters={item.parameters}
-                      rasterDprCap={3}
-                      renderHeight={40}
-                      renderMode="raster"
-                      renderWidth={44}
+                      rasterDprCap={4}
+                      renderHeight={44}
+                      renderMode={isRcdPreview ? "raster" : "svg"}
+                      renderWidth={48}
                       src={item.assetPath}
                     />
+                      );
+                    })()}
                   </span>
                   <span className="svg-import-dialog__row-copy">
                     <strong>{item.label}</strong>
@@ -262,16 +276,24 @@ export function SvgImportDialog({
             {selectedItem ? (
               <>
                 <div className="svg-import-dialog__preview-card">
+                  {(() => {
+                    const isRcdPreview =
+                      selectedItem.deviceKind === "rcd"
+                      || selectedItem.type.toUpperCase().includes("RCD")
+                      || selectedItem.category.toUpperCase() === "RCD";
+                    return (
                   <ModuleAssetPreview
                     alt={selectedItem.label}
-                    className="svg-import-dialog__hero-preview"
+                    className={`svg-import-dialog__hero-preview${isRcdPreview ? " svg-import-dialog__hero-preview--rcd" : ""}`}
                     parameters={selectedItem.parameters}
-                    rasterDprCap={4}
+                    rasterDprCap={5}
                     renderHeight={220}
-                    renderMode="raster"
+                    renderMode={isRcdPreview ? "raster" : "svg"}
                     renderWidth={190}
                     src={selectedItem.assetPath}
                   />
+                    );
+                  })()}
                 </div>
 
                 <div className="svg-import-dialog__form">
@@ -315,7 +337,7 @@ export function SvgImportDialog({
 
                   <div className="svg-import-dialog__dimensions">
                     <label>
-                      <span>Szerokosc mm</span>
+                      <span>Szerokość mm</span>
                       <input
                         max={300}
                         min={5}
@@ -334,7 +356,7 @@ export function SvgImportDialog({
                     </label>
 
                     <label>
-                      <span>Moduly DIN</span>
+                      <span>Moduły DIN</span>
                       <input
                         max={12}
                         min={1}
@@ -349,7 +371,7 @@ export function SvgImportDialog({
                     </label>
 
                     <label>
-                      <span>Wysokosc mm</span>
+                      <span>Wysokość mm</span>
                       <input
                         max={140}
                         min={10}
@@ -375,7 +397,7 @@ export function SvgImportDialog({
                           ? "automatycznie z viewBox jako eksport 300 DPI"
                         : selectedItem.sizeDetection === "svg-ratio"
                           ? "automatycznie z jednostki i proporcji SVG"
-                          : "fallback z kategorii / liczby modulow"}
+                          : "fallback z kategorii / liczby modułów"}
                     </div>
                     <div><strong>Stan:</strong> {selectedItem.isDuplicate ? "Duplikat" : "Nowy"}</div>
                   </div>
@@ -384,7 +406,7 @@ export function SvgImportDialog({
             ) : (
               <div className="svg-import-dialog__empty">
                 <strong>Brak zaznaczenia</strong>
-                <span>Wybierz plik z listy po lewej, zeby ustawic kategorie i wymiary.</span>
+                <span>Wybierz plik z listy po lewej, żeby ustawić kategorię i wymiary.</span>
               </div>
             )}
           </div>

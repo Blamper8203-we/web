@@ -1,5 +1,11 @@
 ﻿# Changelog dokumentacji
 
+## 2026-05-20
+
+- Zamrożono stan aplikacji web v1 w commicie z tagiem `web-v1-freeze-2026-05-20`.
+- Zaktualizowano `RELEASE_WEB_V1_CHECKLIST.md` o datę walidacji technicznej i nowy tag freeze.
+- Dodano `.gitignore` dla lokalnych logów `vite-dev.*.log`.
+
 ## 2026-05-19
 
 - Dodano `TODO_DOKUMENTACJI.md`.

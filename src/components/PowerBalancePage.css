@@ -1,0 +1,384 @@
+/* ================================================================
+   Power Balance Page
+   ================================================================ */
+
+.power-balance-page {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pb-header h2 {
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.pb-subtitle {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.pb-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.pb-summary-card,
+.pb-phase-card,
+.pb-autobalance {
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: var(--panel-background);
+}
+
+.pb-summary-card {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+}
+
+.pb-summary-label,
+.pb-stat-label {
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+}
+
+.pb-summary-value,
+.pb-stat-value {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.pb-imbalance.warning {
+  border-color: rgba(13, 121, 242, 0.65);
+  background: rgba(13, 121, 242, 0.08);
+}
+
+.pb-imbalance.critical {
+  border-color: rgba(239, 68, 68, 0.65);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.pb-imbalance.ok {
+  border-color: rgba(16, 185, 129, 0.45);
+}
+
+.pb-phases {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.pb-phase-card {
+  padding: 10px;
+}
+
+.pb-phase-header {
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.pb-phase-label {
+  font-weight: 700;
+  color: var(--accent-blue);
+}
+
+.pb-phase-stats {
+  display: grid;
+  gap: 8px;
+}
+
+.pb-stat {
+  display: grid;
+  gap: 2px;
+}
+
+.pb-autobalance {
+  padding: 10px;
+}
+
+.pb-autobalance h3 {
+  margin: 0 0 8px;
+  font-size: 0.82rem;
+}
+
+.pb-autobalance-controls {
+  display: grid;
+  gap: 8px;
+}
+
+.pb-autobalance-controls label {
+  display: grid;
+  gap: 4px;
+}
+
+.pb-autobalance-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.pb-autobalance-actions > button {
+  min-height: 32px;
+  padding: 6px 10px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  border-radius: 6px;
+}
+
+.pb-autobalance-actions > button:not(.accent-btn) {
+  color: var(--text-main);
+  background: transparent;
+  border: 1px solid var(--panel-border);
+}
+
+.pb-autobalance-actions > button:not(.accent-btn):hover {
+  background: var(--panel-background-alt);
+}
+
+.pb-autobalance-result {
+  margin: 10px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  border-left: 3px solid var(--panel-border);
+  padding-left: 8px;
+}
+
+.pb-autobalance-result.is-improved {
+  color: #9fe8c9;
+  border-left-color: rgba(16, 185, 129, 0.95);
+}
+
+.pb-autobalance-result.is-neutral {
+  color: var(--text-secondary);
+  border-left-color: rgba(160, 164, 171, 0.7);
+}
+
+.pb-autobalance-result.is-worse {
+  color: #f5b0b0;
+  border-left-color: rgba(239, 68, 68, 0.95);
+}
+
+.pb-autobalance-details {
+  margin-top: 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.pb-autobalance-details-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 8px;
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.pb-autobalance-details.is-improved .pb-autobalance-details-row {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.pb-autobalance-details.is-neutral .pb-autobalance-details-row {
+  border-color: var(--panel-border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.pb-autobalance-details.is-worse .pb-autobalance-details-row {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.pb-autobalance-details-row strong {
+  color: var(--text-main);
+  font-size: 11px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pb-autobalance-details-row span {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.right-panel .power-balance-page {
+  gap: 8px;
+}
+
+.right-panel .pb-summary-card,
+.right-panel .pb-connection-card,
+.right-panel .pb-phases,
+.right-panel .pb-autobalance,
+.right-panel .pb-imbalance {
+  margin: 0;
+}
+
+.pb-summary-row,
+.pb-metric-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.pb-summary-row span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.pb-summary-row strong,
+.pb-metric-row strong {
+  color: var(--text-main);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.pb-divider {
+  height: 1px;
+  background: var(--panel-border);
+}
+
+.pb-connection-card {
+  display: grid;
+  gap: 8px;
+}
+
+.pb-connection-card .section-header {
+  margin-bottom: 0;
+}
+
+.pb-metric-row span {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.pb-status {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  gap: 6px;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid var(--panel-border);
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.pb-status.ok svg {
+  color: var(--accent-green);
+}
+
+.pb-status.critical svg {
+  color: var(--accent-red);
+}
+
+.right-panel .pb-phases {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  padding: 10px;
+}
+
+.pb-phase-card {
+  display: grid;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.pb-phase-line {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.pb-phase-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 25px;
+  height: 25px;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pb-phase-card.brown .pb-phase-label,
+.pb-phase-card.brown .pb-phase-fill {
+  background: #8b5a2b;
+}
+
+.pb-phase-card.black .pb-phase-label,
+.pb-phase-card.black .pb-phase-fill {
+  background: #111111;
+  border: 1px solid #3a3f47;
+}
+
+.pb-phase-card.gray .pb-phase-label,
+.pb-phase-card.gray .pb-phase-fill {
+  background: #8e939a;
+}
+
+.pb-phase-line strong {
+  justify-self: end;
+  color: var(--text-main);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.pb-phase-track {
+  height: 7px;
+  overflow: hidden;
+  border: 1px solid #3a3f47;
+  border-radius: 4px;
+  background: #2a2e36;
+}
+
+.pb-phase-fill {
+  height: 100%;
+  border-radius: 4px;
+}
+
+.pb-phase-power {
+  justify-self: center;
+  color: #6f7782;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.right-panel .pb-imbalance {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+}
+
+.right-panel .pb-imbalance span {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+/* Responsive */
+@media (max-width: 1280px) {
+  .pb-summary,
+  .pb-phases {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,4 +1,6 @@
+import "./PowerBalancePage.css";
 import { useState } from "react";
+import type { ProjectMetadata } from "../types/projectMetadata";
 import type { SymbolItem } from "../types/symbolItem";
 import {
   calculateTotalDistribution,
@@ -7,17 +9,30 @@ import {
 } from "../lib/phaseDistribution/phaseDistributionCalculator";
 import { AppIcon } from "./AppIcon";
 
+export type BalanceApplyResult = {
+  message: string;
+  details?: Array<{ id: string; label: string; fromPhase: string; toPhase: string }>;
+  severity?: "improved" | "neutral" | "worse";
+};
+
+export type BalanceApplyHandler = (
+  mode: BalanceMode,
+  scope: BalanceScope,
+  previewOnly?: boolean,
+) => BalanceApplyResult;
+
 interface PowerBalancePageProps {
   symbols: SymbolItem[];
-  onApplyBalance: (mode: BalanceMode, scope: BalanceScope) => { message: string };
+  onApplyBalance: BalanceApplyHandler;
+  metadata: ProjectMetadata;
 }
 
-export function PowerBalancePage({ symbols, onApplyBalance }: PowerBalancePageProps) {
+export function PowerBalancePage({ symbols, onApplyBalance, metadata }: PowerBalancePageProps) {
   const distribution = calculateTotalDistribution(symbols);
   const totalPower = distribution.l1PowerW + distribution.l2PowerW + distribution.l3PowerW;
   const totalCurrent = distribution.l1CurrentA + distribution.l2CurrentA + distribution.l3CurrentA;
   const calculatedPower = totalPower * 0.6;
-  const connectionPower = 14000;
+  const connectionPower = Math.max(0, metadata.contractedPowerKw) * 1000;
   const connectionUsage = connectionPower > 0 ? (calculatedPower / connectionPower) * 100 : 0;
   const reservePower = connectionPower - calculatedPower;
   const imbalance = distribution.imbalancePercent;
@@ -143,15 +158,26 @@ function AutoBalanceSection({
   onApplyBalance,
 }: {
   symbols: SymbolItem[];
-  onApplyBalance: (mode: BalanceMode, scope: BalanceScope) => { message: string };
+  onApplyBalance: BalanceApplyHandler;
 }) {
   const [mode, setMode] = useState<BalanceMode>("Current");
   const [scope, setScope] = useState<BalanceScope>("OnlyUnlocked");
   const [balanceMessage, setBalanceMessage] = useState("");
+  const [balanceDetails, setBalanceDetails] = useState<Array<{ id: string; label: string; fromPhase: string; toPhase: string }>>([]);
+  const [balanceSeverity, setBalanceSeverity] = useState<'improved' | 'neutral' | 'worse'>('neutral');
 
-  const handleBalance = () => {
-    const result = onApplyBalance(mode, scope);
+  const handlePreview = () => {
+    const result = onApplyBalance(mode, scope, true);
     setBalanceMessage(result.message);
+    setBalanceDetails(result.details ?? []);
+    setBalanceSeverity(result.severity ?? 'neutral');
+  };
+
+  const handleApply = () => {
+    const result = onApplyBalance(mode, scope, false);
+    setBalanceMessage(result.message);
+    setBalanceDetails(result.details ?? []);
+    setBalanceSeverity(result.severity ?? 'neutral');
   };
 
   return (
@@ -172,14 +198,31 @@ function AutoBalanceSection({
             <option value="AllSinglePhase">Wszystkie 1F</option>
           </select>
         </label>
-        <button type="button" onClick={handleBalance} disabled={symbols.length === 0}>
-          Bilansuj fazy
-        </button>
+        <div className="pb-autobalance-actions">
+          <button type="button" onClick={handlePreview} disabled={symbols.length === 0}>
+            Podgląd planu
+          </button>
+          <button type="button" onClick={handleApply} disabled={symbols.length === 0} className="accent-btn">
+            Zastosuj bilans
+          </button>
+        </div>
       </div>
       {balanceMessage.length > 0 && (
-        <p className="pb-autobalance-result">
-          {balanceMessage}
-        </p>
+        <>
+          <p className={`pb-autobalance-result is-${balanceSeverity}`}>
+            {balanceMessage}
+          </p>
+          {balanceDetails.length > 0 && (
+            <div className={`pb-autobalance-details is-${balanceSeverity}`}>
+              {balanceDetails.map((item) => (
+                <div className="pb-autobalance-details-row" key={item.id}>
+                  <strong>{item.label}</strong>
+                  <span>{item.fromPhase} -&gt; {item.toPhase}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

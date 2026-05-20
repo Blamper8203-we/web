@@ -1,9 +1,11 @@
 import type { PageInfo, SchematicLayout, SchematicNode } from "./schematicLayout";
+import type { ProjectMetadata } from "../../types/projectMetadata";
 import {
   A4_HEIGHT_PX,
   A4_WIDTH_PX,
   CELL_FONT_SIZE,
   DRAW_LEFT,
+  DRAW_RIGHT,
   DRAW_TOP,
   FRAME_MARGIN_BOTTOM,
   FRAME_MARGIN_LEFT,
@@ -14,6 +16,7 @@ import {
   ROW_HEIGHT,
   TITLEBLOCK_HEIGHT,
   TITLEBLOCK_VISUAL_WIDTH,
+  TITLEBLOCK_WIDTH,
   Y_GROUP_BUS,
   Y_LABEL_TOP,
   Y_MAIN_BUS,
@@ -44,6 +47,7 @@ export interface SchematicRenderOptions {
   selectedNodeId?: string;
   selectedNodeIds?: string[];
   highlightNodeId?: string;
+  metadata?: ProjectMetadata;
 }
 
 const COLORS = {
@@ -71,7 +75,7 @@ const COLORS = {
   tableHeader: "#f3f6fb",
   tableMuted: "#475569",
   tableDim: "#667085",
-  selected: "#ff8a00",
+  selected: "#0D79F2",
 };
 
 export function renderSchematic(
@@ -94,7 +98,7 @@ export function renderSchematic(
     drawPageTemplate(ctx, page, layout.pages.length);
     drawPageVectors(ctx, layout, page, rootNodes);
     drawCircuitTable(ctx, page, rootNodes);
-    drawTitleBlock(ctx, page, layout.pages.length);
+    drawTitleBlock(ctx, page, layout.pages.length, options.metadata);
   }
 
   const selection = new Set<string>(selectedNodeIds ?? []);
@@ -159,6 +163,8 @@ function drawPageVectors(
   if (page.pageIndex > 0) {
     drawContinuation(ctx, page, page.pageIndex, false);
   }
+
+  drawLegend(ctx, page, pageDevices);
 }
 
 function drawMainBus(ctx: CanvasRenderingContext2D, page: PageInfo): void {
@@ -428,12 +434,12 @@ function drawCircuitTable(ctx: CanvasRenderingContext2D, page: PageInfo, rootNod
   const rows: Array<[number, string]> = [
     [Y_ROW_DESIGNATION, "Oznaczenie"],
     [Y_ROW_PROTECTION, "Zabezp."],
-    [Y_ROW_CIRCUIT, "Obwod"],
+    [Y_ROW_CIRCUIT, "Obwód"],
     [Y_ROW_LOCATION, "Lokalizacja"],
     [Y_ROW_CABLE, "Kabel"],
     [Y_ROW_CABLE_TYPE, "Typ kabla"],
-    [Y_ROW_CABLE_SPEC, "Przekroj"],
-    [Y_ROW_CABLE_LENGTH, "Dlugosc"],
+    [Y_ROW_CABLE_SPEC, "Przekrój"],
+    [Y_ROW_CABLE_LENGTH, "Długość"],
     [Y_ROW_POWER, "Moc"],
   ];
 
@@ -479,7 +485,110 @@ function drawCircuitTable(ctx: CanvasRenderingContext2D, page: PageInfo, rootNod
   ctx.strokeRect(leftX, topY, rightX - leftX, bottomY - topY);
 }
 
-function drawTitleBlock(ctx: CanvasRenderingContext2D, page: PageInfo, totalPages: number): void {
+function getProjectObjectName(metadata?: ProjectMetadata): string {
+  if (metadata?.company?.trim()) {
+    return metadata.company.trim();
+  }
+  return "Rozdzielnica";
+}
+
+function getContractorName(metadata?: ProjectMetadata): string {
+  if (metadata?.contractor?.trim()) {
+    return metadata.contractor.trim();
+  }
+  return "---";
+}
+
+function getDesignerName(metadata?: ProjectMetadata): string {
+  if (metadata?.author?.trim()) {
+    return metadata.author.trim();
+  }
+  return "---";
+}
+
+function getDesignerLicense(metadata?: ProjectMetadata): string {
+  if (metadata?.designerId?.trim()) {
+    return metadata.designerId.trim();
+  }
+  if (metadata?.authorLicense?.trim()) {
+    return metadata.authorLicense.trim();
+  }
+  return "---";
+}
+
+function getDrawingScale(metadata?: ProjectMetadata): string {
+  if (metadata?.drawingScale?.trim()) {
+    return metadata.drawingScale.trim();
+  }
+  return "bez skali";
+}
+
+function getDrawingDate(metadata?: ProjectMetadata): string {
+  if (metadata?.drawingDate?.trim()) {
+    return metadata.drawingDate.trim();
+  }
+  if (metadata?.dateModified) {
+    return metadata.dateModified.slice(0, 10);
+  }
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getSheetLabel(metadata: ProjectMetadata | undefined, pageIndex: number, totalPages: number): string {
+  if (metadata?.sheetNumber?.trim()) {
+    return metadata.sheetNumber.trim();
+  }
+  return `${pageIndex + 1}/${totalPages}`;
+}
+
+function getStandardsText(metadata?: ProjectMetadata): string {
+  if (metadata?.standards) {
+    const values = metadata.standards
+      .filter((val) => val && val.trim().length > 0)
+      .map((val) => val.trim());
+    if (values.length > 0) {
+      return values.join("; ");
+    }
+  }
+  return "PN-HD 60364; PN-EN 60617";
+}
+
+function getDesignerSignature(metadata?: ProjectMetadata): string {
+  if (metadata && !metadata.isFormalDocumentationMode) {
+    return "nie dotyczy";
+  }
+  if (metadata?.designerSignature?.trim()) {
+    return metadata.designerSignature.trim();
+  }
+  return ".........................";
+}
+
+function getContractorSignature(metadata?: ProjectMetadata): string {
+  if (metadata && !metadata.isFormalDocumentationMode) {
+    return "nie dotyczy";
+  }
+  if (metadata?.contractorSignature?.trim()) {
+    return metadata.contractorSignature.trim();
+  }
+  return ".........................";
+}
+
+function truncateText(value: string | undefined, maxLen: number): string {
+  if (!value || !value.trim()) {
+    return "---";
+  }
+  const normalized = value.trim();
+  if (normalized.length <= maxLen) {
+    return normalized;
+  }
+  return normalized.slice(0, maxLen - 3) + "...";
+}
+
+function drawTitleBlock(
+  ctx: CanvasRenderingContext2D,
+  page: PageInfo,
+  totalPages: number,
+  metadata?: ProjectMetadata,
+): void {
   const width = TITLEBLOCK_VISUAL_WIDTH;
   const height = TITLEBLOCK_HEIGHT;
   const x = A4_WIDTH_PX - FRAME_MARGIN_RIGHT - width;
@@ -514,19 +623,35 @@ function drawTitleBlock(ctx: CanvasRenderingContext2D, page: PageInfo, totalPage
   }
 
   const colW = width * 0.5;
-  drawTitleCell(ctx, x, rowTops[0], width, rowHeights[0], "Nazwa projektu / inwestycja:", "DINBoard", 5.2, 7.4);
-  drawTitleCell(ctx, x, rowTops[1], width, rowHeights[1], "Inwestor:", "---", 5, 6.6);
-  drawTitleCell(ctx, x, rowTops[2], width, rowHeights[2], "Adres obiektu:", "---", 5, 6.6);
-  drawTitleCell(ctx, x, rowTops[3], colW, rowHeights[3], "Wykonawca:", "---", 4.8, 6.3);
-  drawTitleCell(ctx, splitX, rowTops[3], colW, rowHeights[3], "Projektant:", "---", 4.8, 6);
-  drawTitleCell(ctx, x, rowTops[4], colW, rowHeights[4], "Nr rysunku:", "E-SCH-001", 4.8, 6.8);
-  drawTitleCell(ctx, splitX, rowTops[4], colW, rowHeights[4], "Skala:", "1:1", 4.8, 6.8);
-  drawTitleCell(ctx, x, rowTops[5], colW, rowHeights[5], "Data:", new Date().toISOString().slice(0, 10), 4.8, 6.8);
-  drawTitleCell(ctx, splitX, rowTops[5], colW, rowHeights[5], "Arkusz:", `${page.pageIndex + 1}/${totalPages}`, 4.8, 6.8);
-  drawTitleCell(ctx, x, rowTops[6], width, rowHeights[6], "Rewizja / zmiana:", "Rev. 0", 5, 6.6);
-  drawTitleCell(ctx, x, rowTops[7], width, rowHeights[7], "Norma:", "PN-EN 60617 / IEC 61082", 5, 6.6);
-  drawTitleCell(ctx, x, rowTops[8], colW, rowHeights[8], "Podpis projektanta:", "---", 4.8, 6.2);
-  drawTitleCell(ctx, splitX, rowTops[8], colW, rowHeights[8], "Podpis wykonawcy:", "---", 4.8, 6.2);
+
+  const title = truncateText(getProjectObjectName(metadata), 60);
+  const investor = truncateText(metadata?.investor, 60);
+  const address = truncateText(metadata?.address, 60);
+  const contractor = truncateText(getContractorName(metadata), 30);
+  const designer = truncateText(getDesignerName(metadata), 30);
+  const designerLicense = truncateText(getDesignerLicense(metadata), 30);
+  const drawNum = truncateText(metadata?.projectNumber ?? "E-SCH-001", 28);
+  const scale = truncateText(getDrawingScale(metadata), 28);
+  const date = truncateText(getDrawingDate(metadata), 28);
+  const sheet = truncateText(getSheetLabel(metadata, page.pageIndex, totalPages), 28);
+  const revision = truncateText(metadata?.revision ?? "Rev. 0", 60);
+  const standards = truncateText(getStandardsText(metadata), 60);
+  const designerSig = truncateText(getDesignerSignature(metadata), 30);
+  const contractorSig = truncateText(getContractorSignature(metadata), 30);
+
+  drawTitleCell(ctx, x, rowTops[0], width, rowHeights[0], "Nazwa projektu / inwestycja:", title, 5.2, 7.4);
+  drawTitleCell(ctx, x, rowTops[1], width, rowHeights[1], "Inwestor:", investor, 5, 6.6);
+  drawTitleCell(ctx, x, rowTops[2], width, rowHeights[2], "Adres obiektu:", address, 5, 6.6);
+  drawTitleCell(ctx, x, rowTops[3], colW, rowHeights[3], "Wykonawca:", contractor, 4.8, 6.3);
+  drawTitleCell(ctx, splitX, rowTops[3], colW, rowHeights[3], "Projektant:", `${designer}\n${designerLicense}`, 4.8, 6);
+  drawTitleCell(ctx, x, rowTops[4], colW, rowHeights[4], "Nr rysunku:", drawNum, 4.8, 6.8);
+  drawTitleCell(ctx, splitX, rowTops[4], colW, rowHeights[4], "Skala:", scale, 4.8, 6.8);
+  drawTitleCell(ctx, x, rowTops[5], colW, rowHeights[5], "Data:", date, 4.8, 6.8);
+  drawTitleCell(ctx, splitX, rowTops[5], colW, rowHeights[5], "Arkusz:", sheet, 4.8, 6.8);
+  drawTitleCell(ctx, x, rowTops[6], width, rowHeights[6], "Rewizja / zmiana:", revision, 5, 6.6);
+  drawTitleCell(ctx, x, rowTops[7], width, rowHeights[7], "Norma:", standards, 5, 6.6);
+  drawTitleCell(ctx, x, rowTops[8], colW, rowHeights[8], "Podpis projektanta:", designerSig, 4.8, 6.2);
+  drawTitleCell(ctx, splitX, rowTops[8], colW, rowHeights[8], "Podpis wykonawcy:", contractorSig, 4.8, 6.2);
 }
 
 function drawPathNumbers(ctx: CanvasRenderingContext2D, pageDevices: SchematicNode[], page: PageInfo): void {
@@ -762,7 +887,7 @@ function phaseMarks(
   cy: number,
   count: number,
   phaseText?: string,
-  hasNeutral = false,
+  _hasNeutral = false,
 ): void {
   const totalMarks = Math.min(3, Math.max(1, count));
   const markHeight = 4;
@@ -776,10 +901,6 @@ function phaseMarks(
 
   if (phaseText && phaseText !== "PENDING" && phaseText !== "pending" && phaseText !== "3P") {
     text(ctx, phaseText, cx + 8, cy - 1, 6, COLORS.textDim);
-  }
-
-  if (hasNeutral) {
-    text(ctx, "N", cx + 8, cy + 6, 6, COLORS.n, true);
   }
 }
 
@@ -1026,6 +1147,72 @@ function phaseColorFor(phase: string): string {
   if (phase === "L2") return COLORS.l2;
   if (phase === "L3") return COLORS.l3;
   return COLORS.l1;
+}
+
+function drawLegend(
+  ctx: CanvasRenderingContext2D,
+  page: PageInfo,
+  pageDevices: SchematicNode[],
+): void {
+  const types = new Set<string>();
+  for (const d of pageDevices) {
+    types.add(d.nodeType);
+    if (d.children && d.children.length > 0) {
+      for (const ch of d.children) {
+        types.add(ch.nodeType);
+      }
+    }
+  }
+
+  const items: Array<{ sym: string; desc: string; clr: string }> = [];
+  if (types.has("MainBreaker")) {
+    items.push({ sym: "FR", desc: "Wyłącznik główny", clr: COLORS.fr });
+  }
+  if (types.has("RCD")) {
+    items.push({ sym: "RCD", desc: "Wyłącznik różnicowoprądowy", clr: COLORS.rcd });
+  }
+  if (types.has("MCB")) {
+    items.push({ sym: "MCB", desc: "Wyłącznik nadprądowy", clr: COLORS.wire });
+  }
+  if (types.has("SPD")) {
+    items.push({ sym: "SPD", desc: "Ogranicznik przepięć", clr: COLORS.spd });
+  }
+  if (types.has("PhaseIndicator")) {
+    items.push({ sym: "KF", desc: "Kontrolka fazy", clr: COLORS.kf });
+  }
+
+  if (items.length === 0) {
+    return;
+  }
+
+  const legX = DRAW_RIGHT;
+  const legW = TITLEBLOCK_WIDTH;
+  const tbBottom = (A4_HEIGHT_PX - FRAME_MARGIN_BOTTOM - TITLEBLOCK_HEIGHT) + page.yOffset;
+  const legY = tbBottom - (items.length * 16 + 20);
+  const rowHt = 16;
+  const legH = items.length * rowHt + 18;
+
+  ctx.fillStyle = COLORS.boxBg;
+  ctx.fillRect(legX, legY, legW, legH);
+
+  ctx.strokeStyle = COLORS.frame;
+  ctx.lineWidth = 0.5;
+  ctx.strokeRect(legX, legY, legW, legH);
+
+  text(ctx, "LEGENDA", legX + 3, legY + 2, 5.5, COLORS.textLabel, true);
+
+  for (let i = 0; i < items.length; i++) {
+    const { sym, desc, clr } = items[i];
+    const ry = legY + 14 + i * rowHt;
+
+    ctx.fillStyle = clr;
+    ctx.beginPath();
+    ctx.arc(legX + 8, ry + 5, 3, 0, 2 * Math.PI);
+    ctx.fill();
+
+    text(ctx, sym, legX + 14, ry, 5.5, COLORS.text, true);
+    text(ctx, desc, legX + 14, ry + 7, 4, COLORS.textDim);
+  }
 }
 
 function y(page: PageInfo, relativeY: number): number {

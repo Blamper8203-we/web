@@ -1,17 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Application, Container, Graphics, Text, TextStyle } from "pixi.js";
+import { Application, Container, Text, TextStyle } from "pixi.js";
 import type { SymbolItem } from "../types/symbolItem";
 import {
   generateDinRailSvg,
   getDinRailDimensions,
   type DinRailConfig,
 } from "../lib/schematic/dinRailGenerator";
+import { buildSchematicLayout } from "../lib/schematic/schematicLayoutEngine";
 import {
+  DIN_RAIL_GROUP_FRAME_PADDING,
+  DIN_RAIL_GROUP_BRACKET_BAR_HEIGHT,
+  DIN_RAIL_GROUP_BRACKET_LABEL_GAP,
+  DIN_RAIL_GROUP_BRACKET_LABEL_HEIGHT,
+  DIN_RAIL_GROUP_BRACKET_LEG_HEIGHT,
+  DIN_RAIL_GROUP_BRACKET_OFFSET_Y,
   buildDinRailGroupFrames,
   buildSelectionBounds,
-  buildSelectionLabel,
-  type DinRailGroupFrameData,
   expandSelectionToGroupIds,
+  formatDinRailGroupLabel,
   getDragSelectionIds,
   rectsIntersect,
 } from "../lib/dinRailSelection";
@@ -20,7 +26,8 @@ import {
   getPaletteTemplateDimensions,
   supportsDinRailPlacement,
 } from "../lib/modules/moduleCatalog";
-import { loadPreparedSvgMarkup } from "../lib/modules/svgAsset";
+import { useDinRailPreparedAssets } from "../hooks/useDinRailPreparedAssets";
+import { useElementSize } from "../hooks/useElementSize";
 import {
   DinRailEmptyState,
   DinRailGeneratorDialog,
@@ -28,6 +35,12 @@ import {
   DinRailViewportHud,
   DinRailZoomToolbar,
 } from "./dinRailUiParts";
+import { AppIcon } from "./AppIcon";
+
+const DIN_RAIL_PREVIEW_CANVAS_WIDTH = 360;
+const DIN_RAIL_PREVIEW_CANVAS_HEIGHT = 280;
+const DIN_RAIL_PREVIEW_MARGIN_X = 40;
+const DIN_RAIL_PREVIEW_MARGIN_Y = 28;
 
 export interface DinRailCanvasRail {
   config: DinRailConfig;
@@ -69,12 +82,10 @@ interface DinRailCanvasProps {
   onSymbolMoveEnd?: (symbolId: string) => void;
   onSymbolSelectionChange?: (symbolIds: string[], activeId?: string | null) => void;
   onSymbolSelect?: (symbolId: string | null, options?: { toggle?: boolean }) => void;
+  onDeleteSelected?: () => void;
   onZoomChange?: (zoomPercent: number) => void;
-}
-
-interface ViewportSize {
-  height: number;
-  width: number;
+  onToggleGroups?: () => void;
+  showGroups?: boolean;
 }
 
 interface WorldRect {
@@ -96,7 +107,6 @@ interface NormalizedRect {
   y: number;
 }
 
-
 type InteractionState =
   | { mode: "idle" }
   | { lastX: number; lastY: number; mode: "pan" }
@@ -115,72 +125,23 @@ type InteractionState =
 
 const DEFAULT_CONFIG: DinRailConfig = { rows: 1, modulesPerRow: 24 };
 const MAX_INITIAL_SCALE = 0.25;
-const GROUP_FRAME_PADDING = 6;
 const MIN_SCALE = 0.1;
 const MAX_SCALE = 5;
 const PIXI_MAX_RESOLUTION = 2;
+const PIXI_LABEL_SYMBOL_LIMIT = 64;
+const MANUAL_REFERENCE_DESIGNATION_KEY = "ManualReferenceDesignation";
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(value, Math.max(min, max)));
 }
 
-function useContainerSize(containerRef: React.RefObject<HTMLDivElement | null>): ViewportSize {
-  const [size, setSize] = useState<ViewportSize>({ width: 0, height: 0 });
-
-  useEffect(() => {
-    const node = containerRef.current;
-    if (!node) {
-      return;
-    }
-
-    const updateSize = () => {
-      setSize({
-        width: node.clientWidth,
-        height: node.clientHeight,
-      });
-    };
-
-    updateSize();
-    const observer = new ResizeObserver(updateSize);
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [containerRef]);
-
-  return size;
-}
-
-function worldToScreenRect(rect: WorldRect, pan: WorldPoint, scale: number): WorldRect {
-  return {
-    x: rect.x * scale + pan.x,
-    y: rect.y * scale + pan.y,
-    width: rect.width * scale,
-    height: rect.height * scale,
-  };
-}
-
-function buildSelectionStyle(rect: WorldRect | null, pan: WorldPoint, scale: number): React.CSSProperties | undefined {
-  if (!rect || rect.width <= 0 || rect.height <= 0) {
-    return undefined;
-  }
-
-  const screen = worldToScreenRect(rect, pan, scale);
+function buildWorldRectStyle(rect: WorldRect): React.CSSProperties {
   return {
     position: "absolute",
-    left: `${screen.x}px`,
-    top: `${screen.y}px`,
-    width: `${screen.width}px`,
-    height: `${screen.height}px`,
-  };
-}
-
-function buildOverlayStyle(rect: WorldRect, pan: WorldPoint, scale: number): React.CSSProperties {
-  const screen = worldToScreenRect(rect, pan, scale);
-  return {
-    position: "absolute",
-    left: `${screen.x}px`,
-    top: `${screen.y}px`,
-    width: `${screen.width}px`,
-    height: `${screen.height}px`,
+    left: `${rect.x}px`,
+    top: `${rect.y}px`,
+    width: `${rect.width}px`,
+    height: `${rect.height}px`,
   };
 }
 
@@ -243,98 +204,29 @@ function worldRectFromNormalizedRect(symbol: SymbolItem, normalized: NormalizedR
   };
 }
 
-
-
-function namespaceSvgMarkup(svgMarkup: string, prefix: string): string {
-  if (typeof DOMParser === "undefined") {
-    return svgMarkup;
-  }
-
-  try {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(svgMarkup, "image/svg+xml");
-    const root = doc.documentElement;
-    if (!root || root.tagName.toLowerCase() !== "svg") {
-      return svgMarkup;
-    }
-
-    const idMap = new Map<string, string>();
-    root.querySelectorAll("[id]").forEach((element) => {
-      const currentId = element.getAttribute("id");
-      if (!currentId) {
-        return;
-      }
-
-      const nextId = `${prefix}-${currentId}`;
-      idMap.set(currentId, nextId);
-      element.setAttribute("id", nextId);
-    });
-
-    const rewriteValue = (value: string) => {
-      let nextValue = value;
-      idMap.forEach((nextId, currentId) => {
-        nextValue = nextValue
-          .split(`url(#${currentId})`).join(`url(#${nextId})`)
-          .split(`href="#${currentId}"`).join(`href="#${nextId}"`)
-          .split(`xlink:href="#${currentId}"`).join(`xlink:href="#${nextId}"`)
-          .split(`="#${currentId}"`).join(`="#${nextId}"`);
-      });
-      return nextValue;
-    };
-
-    root.querySelectorAll("*").forEach((element) => {
-      for (const attributeName of element.getAttributeNames()) {
-        const value = element.getAttribute(attributeName);
-        if (!value || (!value.includes("url(#") && !value.includes("#"))) {
-          continue;
-        }
-
-        const rewritten = rewriteValue(value);
-        if (rewritten !== value) {
-          element.setAttribute(attributeName, rewritten);
-        }
-      }
-    });
-
-    return root.outerHTML;
-  } catch {
-    return svgMarkup;
-  }
+function sameNormalizedRect(left: NormalizedRect, right: NormalizedRect): boolean {
+  return left.x === right.x
+    && left.y === right.y
+    && left.width === right.width
+    && left.height === right.height;
 }
 
-function usePreparedAssetMap(symbols: SymbolItem[]) {
-  const [assetMap, setAssetMap] = useState<Map<string, string>>(new Map());
+function getSymbolDesignationLabel(
+  symbol: SymbolItem,
+  automaticDesignationBySymbolId: Map<string, string>,
+): string {
+  const manualDesignation = symbol.referenceDesignation.trim();
+  const isManualDesignation =
+    symbol.parameters[MANUAL_REFERENCE_DESIGNATION_KEY]?.toLocaleLowerCase("pl-PL") === "true";
 
-  useEffect(() => {
-    let cancelled = false;
-    const nextSymbols = symbols.filter((symbol) => symbol.visualPath);
+  if (isManualDesignation && manualDesignation.length > 0) {
+    return manualDesignation;
+  }
 
-    Promise.all(
-      nextSymbols.map(async (symbol) => [
-        symbol.id,
-        await loadPreparedSvgMarkup(symbol.visualPath, symbol.parameters),
-      ] as const),
-    )
-      .then((entries) => {
-        if (cancelled) {
-          return;
-        }
-
-        setAssetMap(new Map(entries));
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setAssetMap(new Map());
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [symbols]);
-
-  return assetMap;
+  return automaticDesignationBySymbolId.get(symbol.id) ?? "";
 }
+
+
 
 export function DinRailCanvas({
   getPaletteTemplate,
@@ -351,29 +243,34 @@ export function DinRailCanvas({
   onSymbolMoveEnd,
   onSymbolSelectionChange,
   onSymbolSelect,
+  onDeleteSelected,
   onZoomChange,
+  onToggleGroups,
+  showGroups = true,
 }: DinRailCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const pixiHostRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<Application | null>(null);
+  const pixiWorldRef = useRef<Container | null>(null);
+  const viewportFrameRef = useRef<number | null>(null);
   const interactionRef = useRef<InteractionState>({ mode: "idle" });
   const panRef = useRef<WorldPoint>({ x: 0, y: 0 });
   const scaleRef = useRef(1);
   const lastGeneratorRequest = useRef(generatorRequest);
   const measuredNodesRef = useRef(new Map<string, HTMLDivElement>());
 
-  const viewportSize = useContainerSize(containerRef);
+  const viewportSize = useElementSize(containerRef);
   const [scale, setScale] = useState(1);
   const [pan, setPan] = useState<WorldPoint>({ x: 0, y: 0 });
   const [isDropTarget, setIsDropTarget] = useState(false);
   const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
+  const [isPixiReady, setIsPixiReady] = useState(false);
   const [selectionRect, setSelectionRect] = useState<WorldRect | null>(null);
-  const [dragSelectionIds, setDragSelectionIds] = useState<string[]>([]);
 
   const [draftConfig, setDraftConfig] = useState<DinRailConfig>(
     rail.isVisible ? rail.config : DEFAULT_CONFIG,
   );
-  const [symbolVisualRects, setSymbolVisualRects] = useState<Map<string, WorldRect>>(new Map());
+  const [symbolNormalizedRects, setSymbolNormalizedRects] = useState<Map<string, NormalizedRect>>(new Map());
 
   const snappedSymbols = useMemo(
     () => symbols.filter((symbol) => symbol.isSnappedToRail),
@@ -384,26 +281,42 @@ export function DinRailCanvas({
     [rail.config.modulesPerRow, rail.config.rows],
   );
   const groupFrames = useMemo(
-    () => buildDinRailGroupFrames(snappedSymbols, GROUP_FRAME_PADDING),
+    () => buildDinRailGroupFrames(snappedSymbols, DIN_RAIL_GROUP_FRAME_PADDING),
     [snappedSymbols],
   );
-  const assetMap = usePreparedAssetMap(snappedSymbols);
+  const automaticDesignationBySymbolId = useMemo(() => {
+    const layout = buildSchematicLayout(symbols);
+    const map = new Map<string, string>();
+
+    for (const node of layout.nodes) {
+      const designation = node.designation.trim();
+      if (designation.length > 0) {
+        map.set(node.id, designation);
+      }
+    }
+
+    return map;
+  }, [symbols]);
+  const assetMap = useDinRailPreparedAssets(snappedSymbols);
   const interactiveRects = useMemo(() => {
     const nextMap = new Map<string, WorldRect>();
 
     for (const symbol of snappedSymbols) {
-      const measuredRect = symbolVisualRects.get(symbol.id);
+      const measuredRect = symbolNormalizedRects.get(symbol.id);
       const fallbackRect: WorldRect = {
         x: symbol.x,
         y: symbol.y,
         width: symbol.width,
         height: symbol.height,
       };
-      nextMap.set(symbol.id, expandRect(measuredRect ?? fallbackRect, 4));
+      const symbolRect = measuredRect
+        ? worldRectFromNormalizedRect(symbol, measuredRect)
+        : fallbackRect;
+      nextMap.set(symbol.id, expandRect(symbolRect, 4));
     }
 
     return nextMap;
-  }, [snappedSymbols, symbolVisualRects]);
+  }, [snappedSymbols, symbolNormalizedRects]);
   const selectedIds = useMemo(() => {
     const nextSelectedIds = new Set(selectedSymbolIds);
     if (selectedSymbolId) {
@@ -419,28 +332,58 @@ export function DinRailCanvas({
     () => buildSelectionBounds(selectedSnappedSymbols),
     [selectedSnappedSymbols],
   );
-  const selectionLabel = buildSelectionLabel(selectedSnappedSymbols);
-  const isDraggingSelection = dragSelectionIds.length > 0;
+  const shouldRenderPixiLabels = false && snappedSymbols.length <= PIXI_LABEL_SYMBOL_LIMIT;
 
   const previewSvg = useMemo(() => generateDinRailSvg(draftConfig), [draftConfig]);
   const previewDims = useMemo(
     () => getDinRailDimensions(draftConfig.rows, draftConfig.modulesPerRow),
     [draftConfig],
   );
-  const previewScale = Math.min(340 / previewDims.width, 260 / previewDims.height);
+  const previewScale = Math.min(
+    (DIN_RAIL_PREVIEW_CANVAS_WIDTH - DIN_RAIL_PREVIEW_MARGIN_X * 2) / previewDims.width,
+    (DIN_RAIL_PREVIEW_CANVAS_HEIGHT - DIN_RAIL_PREVIEW_MARGIN_Y * 2) / previewDims.height,
+    1,
+  );
   const totalModules = rail.isVisible
     ? rail.config.rows * rail.config.modulesPerRow
     : draftConfig.rows * draftConfig.modulesPerRow;
 
+  const flushViewportState = useCallback(() => {
+    setPan((currentPan) => (
+      currentPan.x === panRef.current.x && currentPan.y === panRef.current.y
+        ? currentPan
+        : panRef.current
+    ));
+    setScale((currentScale) => (
+      currentScale === scaleRef.current ? currentScale : scaleRef.current
+    ));
+  }, []);
+
+  const scheduleViewportState = useCallback(() => {
+    if (typeof window === "undefined") {
+      flushViewportState();
+      return;
+    }
+
+    if (viewportFrameRef.current !== null) {
+      return;
+    }
+
+    viewportFrameRef.current = window.requestAnimationFrame(() => {
+      viewportFrameRef.current = null;
+      flushViewportState();
+    });
+  }, [flushViewportState]);
+
   const setPanSafe = useCallback((nextPan: WorldPoint) => {
     panRef.current = nextPan;
-    setPan(nextPan);
-  }, []);
+    scheduleViewportState();
+  }, [scheduleViewportState]);
 
   const setScaleSafe = useCallback((nextScale: number) => {
     scaleRef.current = nextScale;
-    setScale(nextScale);
-  }, []);
+    scheduleViewportState();
+  }, [scheduleViewportState]);
 
   const fitToViewport = useCallback(() => {
     if (
@@ -518,7 +461,12 @@ export function DinRailCanvas({
       width: number,
       height: number,
       dragSymbolId?: string,
-      options?: { forceSnapToRail?: boolean; isCurrentlySnapped?: boolean },
+      options?: {
+        forceSnapToRail?: boolean;
+        ignoreSymbolIds?: string[];
+        isCurrentlySnapped?: boolean;
+        moduleRef?: string;
+      },
     ) => snapModulePlacementToDinRail(
       x,
       y,
@@ -568,7 +516,7 @@ export function DinRailCanvas({
 
     async function mountApp() {
       const host = pixiHostRef.current;
-      if (!host || appRef.current) {
+      if (!shouldRenderPixiLabels || !host || appRef.current) {
         return;
       }
 
@@ -589,6 +537,7 @@ export function DinRailCanvas({
 
       host.appendChild(app.canvas);
       appRef.current = app;
+      setIsPixiReady(true);
     }
 
     void mountApp();
@@ -596,27 +545,58 @@ export function DinRailCanvas({
     return () => {
       cancelled = true;
     };
-  }, [viewportSize.height, viewportSize.width]);
+  }, [shouldRenderPixiLabels, viewportSize.height, viewportSize.width]);
 
   useEffect(() => {
-    const nextRects = new Map<string, WorldRect>();
+    setSymbolNormalizedRects((previousRects) => {
+      let changed = previousRects.size !== assetMap.size;
+      const nextRects = new Map<string, NormalizedRect>();
 
-    for (const symbol of snappedSymbols) {
-      const node = measuredNodesRef.current.get(symbol.id);
-      if (!node) {
-        continue;
+      for (const [symbolId] of assetMap) {
+        const node = measuredNodesRef.current.get(symbolId);
+        if (!node) {
+          const previous = previousRects.get(symbolId);
+          if (previous) {
+            nextRects.set(symbolId, previous);
+          }
+          continue;
+        }
+
+        const normalized = measureSvgNormalizedRect(node) ?? previousRects.get(symbolId);
+        if (!normalized) {
+          continue;
+        }
+
+        const previous = previousRects.get(symbolId);
+        if (!previous || !sameNormalizedRect(previous, normalized)) {
+          changed = true;
+        }
+        nextRects.set(symbolId, normalized);
       }
 
-      const normalized = measureSvgNormalizedRect(node);
-      if (!normalized) {
-        continue;
+      if (!changed) {
+        return previousRects;
       }
 
-      nextRects.set(symbol.id, worldRectFromNormalizedRect(symbol, normalized));
+      return nextRects;
+    });
+  }, [assetMap]);
+
+  useEffect(() => {
+    if (shouldRenderPixiLabels) {
+      return;
     }
 
-    setSymbolVisualRects(nextRects);
-  }, [assetMap, scale, snappedSymbols]);
+    const app = appRef.current;
+    if (!app) {
+      return;
+    }
+
+    app.destroy(true, { children: true });
+    appRef.current = null;
+    pixiWorldRef.current = null;
+    setIsPixiReady(false);
+  }, [shouldRenderPixiLabels]);
 
   useEffect(() => {
     const app = appRef.current;
@@ -629,68 +609,78 @@ export function DinRailCanvas({
 
   useEffect(() => {
     const app = appRef.current;
-    if (!app) {
+    if (!app || !isPixiReady || !shouldRenderPixiLabels) {
       return;
     }
 
-    app.stage.removeChildren();
+    let world = pixiWorldRef.current;
+    if (!world) {
+      world = new Container();
+      pixiWorldRef.current = world;
+      app.stage.addChild(world);
+    }
 
-    const world = new Container();
     world.position.set(pan.x, pan.y);
     world.scale.set(scale, scale);
-    app.stage.addChild(world);
+  }, [isPixiReady, pan.x, pan.y, scale, shouldRenderPixiLabels]);
 
-    for (const group of groupFrames) {
-      const groupBox = new Graphics();
-      groupBox
-        .roundRect(group.x, group.y, group.width, group.height, 4)
-        .fill({ color: 0x3b82f6, alpha: 0.05 })
-        .stroke({ color: 0x3b82f6, alpha: 0.53, width: 1.5 });
-      world.addChild(groupBox);
-
-      const groupLabel = new Text({
-        text: group.label,
-        style: new TextStyle({
-          fill: "#ffffff",
-          fontFamily: "Segoe UI, Arial, sans-serif",
-          fontSize: 9,
-          fontWeight: "700",
-        }),
-      });
-      groupLabel.x = group.x + 4;
-      groupLabel.y = group.y - 10;
-      groupLabel.roundPixels = true;
-      world.addChild(groupLabel);
+  useEffect(() => {
+    const app = appRef.current;
+    if (!app || !isPixiReady || !shouldRenderPixiLabels) {
+      return;
     }
+
+    let world = pixiWorldRef.current;
+    if (!world) {
+      world = new Container();
+      pixiWorldRef.current = world;
+      app.stage.addChild(world);
+    }
+
+    world.removeChildren();
+    world.position.set(panRef.current.x, panRef.current.y);
+    world.scale.set(scaleRef.current, scaleRef.current);
 
     for (const symbol of snappedSymbols) {
 
 
-      if (symbol.referenceDesignation) {
+      const designationLabel = getSymbolDesignationLabel(
+        symbol,
+        automaticDesignationBySymbolId,
+      );
+      if (designationLabel) {
         const designation = new Text({
-          text: symbol.referenceDesignation,
+          text: designationLabel,
           style: new TextStyle({
-            fill: "#111827",
+            fill: "#f8fafc",
             fontFamily: "Segoe UI, Arial, sans-serif",
-            fontSize: 10,
+            fontSize: 11,
             fontWeight: "700",
             align: "center",
+            stroke: { color: "#111827", width: 2, join: "round" },
           }),
         });
         designation.x = symbol.x + Math.max(symbol.width, 48) / 2 - designation.width / 2;
-        designation.y = symbol.y + symbol.height + 4;
+        designation.y = symbol.y + symbol.height + 5;
         designation.roundPixels = true;
         world.addChild(designation);
       }
     }
-  }, [assetMap, groupFrames, pan.x, pan.y, scale, selectedIds, snappedSymbols]);
+  }, [automaticDesignationBySymbolId, isPixiReady, shouldRenderPixiLabels, snappedSymbols]);
 
   useEffect(() => {
     return () => {
+      if (viewportFrameRef.current !== null) {
+        window.cancelAnimationFrame(viewportFrameRef.current);
+        viewportFrameRef.current = null;
+      }
+
       const app = appRef.current;
       if (app) {
         app.destroy(true, { children: true });
         appRef.current = null;
+        pixiWorldRef.current = null;
+        setIsPixiReady(false);
       }
     };
   }, []);
@@ -713,9 +703,9 @@ export function DinRailCanvas({
       }
     }
 
-    const ids = Array.from(selectedSet);
-    const expandedIds = expandSelectionToGroupIds(ids, snappedSymbols);
-    onSymbolSelectionChange?.(expandedIds, ids[ids.length - 1] ?? null);
+  const ids = Array.from(selectedSet);
+  const expandedIds = expandSelectionToGroupIds(ids, snappedSymbols);
+  onSymbolSelectionChange?.(expandedIds, ids[ids.length - 1] ?? null);
   }, [interactiveRects, onSymbolSelectionChange, snappedSymbols]);
 
   const beginDragForSymbol = useCallback((
@@ -744,7 +734,7 @@ export function DinRailCanvas({
     }
 
     const worldPoint = screenToWorld(event.clientX, event.clientY);
-    const anchorRectStart = interactiveRects.get(draggedSymbol.id) ?? {
+    const anchorRectStart = {
       x: draggedSymbol.x,
       y: draggedSymbol.y,
       width: draggedSymbol.width,
@@ -766,25 +756,9 @@ export function DinRailCanvas({
       pointerWorldStart: worldPoint,
       startPositions,
     };
-    setDragSelectionIds(dragIds);
-
     onSymbolMoveStart?.(draggedSymbol.id);
     onSymbolSelect?.(draggedSymbol.id, { toggle: event.ctrlKey || event.metaKey });
-  }, [interactiveRects, onSymbolMoveStart, onSymbolSelect, rail.isVisible, screenToWorld, selectedIds, snappedSymbols]);
-
-  const handleGroupPointerDown = useCallback((
-    event: React.PointerEvent<HTMLDivElement>,
-    group: DinRailGroupFrameData,
-  ) => {
-    if (!rail.isVisible) {
-      return;
-    }
-
-    event.currentTarget.setPointerCapture(event.pointerId);
-    event.stopPropagation();
-    onSymbolSelect?.(group.anchorSymbolId, { toggle: event.ctrlKey || event.metaKey });
-    interactionRef.current = { mode: "idle" };
-  }, [onSymbolSelect, rail.isVisible]);
+  }, [onSymbolMoveStart, onSymbolSelect, rail.isVisible, screenToWorld, selectedIds, snappedSymbols]);
 
   const handleSurfacePointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     if (!rail.isVisible) {
@@ -866,7 +840,11 @@ export function DinRailCanvas({
       interaction.anchorRectStart.width,
       interaction.anchorRectStart.height,
       anchorSymbol.id,
-      { isCurrentlySnapped: anchorSymbol.isSnappedToRail },
+      {
+        isCurrentlySnapped: anchorSymbol.isSnappedToRail,
+        ignoreSymbolIds: interaction.dragIds.length > 1 ? interaction.dragIds : undefined,
+        moduleRef: anchorSymbol.moduleRef,
+      },
     );
     const deltaX = snappedAnchor.x - interaction.anchorRectStart.x;
     const deltaY = snappedAnchor.y - interaction.anchorRectStart.y;
@@ -886,11 +864,11 @@ export function DinRailCanvas({
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
+    flushViewportState();
     const interaction = interactionRef.current;
 
     if (interaction.mode === "drag") {
       onSymbolMoveEnd?.(interaction.anchorId);
-      setDragSelectionIds([]);
     }
 
 
@@ -909,7 +887,7 @@ export function DinRailCanvas({
 
     interactionRef.current = { mode: "idle" };
     setSelectionRect(null);
-  }, [commitSelectionRect, onSymbolMoveEnd, onSymbolSelect, rail.isVisible, selectionRect]);
+  }, [commitSelectionRect, flushViewportState, onSymbolMoveEnd, onSymbolSelect, rail.isVisible, selectionRect]);
 
   const handleWheel = useCallback((event: React.WheelEvent<HTMLDivElement>) => {
     if (!rail.isVisible) {
@@ -926,9 +904,15 @@ export function DinRailCanvas({
       x: event.clientX - rect.left,
       y: event.clientY - rect.top,
     };
-    const factor = event.deltaY < 0 ? 1.1 : 1 / 1.1;
+    const normalizedDelta =
+      event.deltaMode === 1
+        ? event.deltaY * 16
+        : event.deltaMode === 2
+          ? event.deltaY * Math.max(viewportSize.height, 1)
+          : event.deltaY;
+    const factor = clamp(Math.exp(-normalizedDelta * 0.0015), 0.82, 1.22);
     zoomAroundViewportPoint(viewportPoint, scaleRef.current * factor);
-  }, [rail.isVisible, zoomAroundViewportPoint]);
+  }, [rail.isVisible, viewportSize.height, zoomAroundViewportPoint]);
 
   const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     const types = Array.from(event.dataTransfer.types).map((type) => type.toLowerCase());
@@ -971,44 +955,88 @@ export function DinRailCanvas({
     const size = getPaletteTemplateDimensions(template);
     const snapped = snapModulePlacement(world.x, world.y, size.width, size.height, undefined, {
       forceSnapToRail: true,
+      moduleRef: template.moduleRef,
     });
     onPaletteDrop?.(templateId, snapped.x, snapped.y, { snapToRail: true });
     setIsDropTarget(false);
   }, [getPaletteTemplate, onPaletteDrop, onUnsupportedTemplateDrop, rail.isVisible, screenToWorld, snapModulePlacement]);
 
   const updateRows = (value: string) => {
+    if (value.trim() === "") {
+      return;
+    }
+    const parsed = parseInt(value, 10);
+    if (!Number.isFinite(parsed)) {
+      return;
+    }
     setDraftConfig((prev) => ({
       ...prev,
-      rows: Math.max(1, Math.min(10, parseInt(value, 10) || 1)),
+      rows: parsed,
     }));
   };
 
   const updateModulesPerRow = (value: string) => {
+    if (value.trim() === "") {
+      return;
+    }
+    const parsed = parseInt(value, 10);
+    if (!Number.isFinite(parsed)) {
+      return;
+    }
     setDraftConfig((prev) => ({
       ...prev,
-      modulesPerRow: Math.max(6, Math.min(48, parseInt(value, 10) || 6)),
+      modulesPerRow: parsed,
     }));
   };
 
   const generateRail = () => {
-    const svg = generateDinRailSvg(draftConfig);
-    const dims = getDinRailDimensions(draftConfig.rows, draftConfig.modulesPerRow);
-    onRailGenerated?.(draftConfig, svg, dims.width, dims.height);
+    const normalizedConfig: DinRailConfig = {
+      rows: Math.max(1, Math.min(10, Math.round(draftConfig.rows) || 1)),
+      modulesPerRow: Math.max(6, Math.min(48, Math.round(draftConfig.modulesPerRow) || 6)),
+    };
+    const svg = generateDinRailSvg(normalizedConfig);
+    const dims = getDinRailDimensions(normalizedConfig.rows, normalizedConfig.modulesPerRow);
+    onRailGenerated?.(normalizedConfig, svg, dims.width, dims.height);
     setIsGeneratorOpen(false);
   };
 
-  const selectionRectStyle = buildSelectionStyle(selectionRect, pan, scale);
-  const selectedBoundsStyle = buildSelectionStyle(selectedBounds, pan, scale);
+  const selectionRectStyle = selectionRect ? buildWorldRectStyle(selectionRect) : undefined;
+  const selectedBoundsStyle = selectedBounds ? buildWorldRectStyle(selectedBounds) : undefined;
+  const worldTransform = `translate(${pan.x}px, ${pan.y}px) scale(${scale})`;
   const railSvgStyle: React.CSSProperties = {
     position: "absolute",
     left: 0,
     top: 0,
     width: `${rail.width}px`,
     height: `${rail.height}px`,
-    transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
+    transform: worldTransform,
     transformOrigin: "top left",
     pointerEvents: "none",
     zIndex: 1,
+  };
+  const worldLayerBaseStyle: React.CSSProperties = {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    width: `${rail.width}px`,
+    height: `${rail.height}px`,
+    transform: worldTransform,
+    transformOrigin: "top left",
+    pointerEvents: "none",
+  };
+  const hitboxLayerStyle: React.CSSProperties = {
+    ...worldLayerBaseStyle,
+    zIndex: 6,
+  };
+  const overlayLayerStyle: React.CSSProperties = {
+    ...worldLayerBaseStyle,
+    zIndex: 7,
+  };
+  const labelOverlayStyle: React.CSSProperties = {
+    position: "absolute",
+    inset: 0,
+    pointerEvents: "none",
+    zIndex: 5,
   };
 
   return (
@@ -1023,7 +1051,24 @@ export function DinRailCanvas({
         onFit={fitToViewport}
         onZoomIn={zoomIn}
         onZoomOut={zoomOut}
+        onToggleGroups={onToggleGroups}
+        showGroups={showGroups}
       />
+
+      {rail.isVisible && selectedIds.size > 0 && onDeleteSelected && (
+        <div style={{ position: "absolute", bottom: 24, left: "50%", transform: "translateX(-50%)", zIndex: 100, display: "flex", background: "var(--bg-panel)", padding: "4px", borderRadius: "8px", boxShadow: "0 4px 12px rgba(0,0,0,0.5)", border: "1px solid var(--border-color)" }}>
+          <button
+            type="button"
+            className="workspace-tool-btn"
+            onClick={onDeleteSelected}
+            title="Usuń zaznaczone (Delete)"
+            style={{ width: "auto", padding: "0 16px", gap: "8px", fontWeight: 600, color: "var(--accent-red)" }}
+          >
+            <AppIcon name="delete" size={16} />
+            Usuń zaznaczone ({selectedIds.size})
+          </button>
+        </div>
+      )}
 
       <div
         className={`din-rail-svg-container ${isDropTarget ? "is-drop-target" : ""}`}
@@ -1039,18 +1084,108 @@ export function DinRailCanvas({
             dangerouslySetInnerHTML={{ __html: rail.svg }}
           />
         )}
+        {rail.isVisible && showGroups && (
+          <svg
+            className="din-rail-groups-layer"
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              inset: 0,
+              pointerEvents: "none",
+              overflow: "visible",
+              zIndex: 10,
+            }}
+          >
+            <defs>
+              <linearGradient id="svg-bracket-leg-default" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgba(82,148,255,0.95)" />
+                <stop offset="100%" stopColor="rgba(82,148,255,0)" />
+              </linearGradient>
+              <linearGradient id="svg-bracket-leg-selected" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgba(13,121,242,1)" />
+                <stop offset="100%" stopColor="rgba(13,121,242,0)" />
+              </linearGradient>
+              <filter id="svg-bracket-glow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="3" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+            </defs>
+
+            {groupFrames.map((group) => {
+                const isSelected = group.symbolIds.some((id) => selectedIds.has(id));
+                const isSingle = group.memberCount <= 1;
+                const screenX = group.x * scale + pan.x;
+                const screenY = group.y * scale + pan.y;
+                const screenWidth = Math.max(1, group.width * scale);
+                const barH = clamp(DIN_RAIL_GROUP_BRACKET_BAR_HEIGHT * scale, 4, 7);
+                const legH = clamp(DIN_RAIL_GROUP_BRACKET_LEG_HEIGHT * scale, 30, 44);
+                const labelH = clamp(DIN_RAIL_GROUP_BRACKET_LABEL_HEIGHT * scale, 24, 34);
+                const labelGap = clamp(DIN_RAIL_GROUP_BRACKET_LABEL_GAP * scale, 8, 14);
+                const labelPadX = clamp(10 * scale, 10, 16);
+                const labelFont = clamp(13 * scale, 12, 17);
+
+                const topY = Math.max(4, screenY - DIN_RAIL_GROUP_BRACKET_OFFSET_Y * scale);
+                const color = isSelected
+                  ? "rgba(13,121,242,1)"
+                  : isSingle
+                    ? "rgba(82,148,255,0.5)"
+                    : "rgba(82,148,255,0.9)";
+
+                const legGrad = isSelected ? "url(#svg-bracket-leg-selected)" : "url(#svg-bracket-leg-default)";
+                const label = formatDinRailGroupLabel(group.label, group.id);
+                const estLabelW = Math.min(label.length * labelFont * 0.65 + labelPadX * 2, 360);
+                const labelX = screenX + screenWidth / 2;
+                const labelY = Math.max(4, topY - labelGap - labelH);
+
+                return (
+                  <g key={`svg-group-${group.id}`} filter={isSelected ? "url(#svg-bracket-glow)" : undefined}>
+                    {/* Pozioma belka */}
+                    <rect x={screenX} y={topY} width={screenWidth} height={barH} fill={color} />
+                    {/* Lewa nóżka */}
+                    <rect x={screenX} y={topY} width={barH} height={legH} fill={legGrad} />
+                    {/* Prawa nóżka */}
+                    <rect x={screenX + screenWidth - barH} y={topY} width={barH} height={legH} fill={legGrad} />
+                    {/* Etykieta – tło (szkło/blur) */}
+                    <rect
+                      x={labelX - estLabelW / 2}
+                      y={labelY}
+                      width={estLabelW}
+                      height={labelH}
+                      rx={4} ry={4}
+                      fill={isSelected ? "rgba(13,121,242,0.95)" : "rgba(10, 15, 25, 0.9)"}
+                      stroke={isSelected ? "#fff" : "rgba(82,148,255,0.45)"}
+                      strokeWidth={1}
+                    />
+                    {/* Etykieta – tekst */}
+                    <text
+                      x={labelX}
+                      y={labelY + labelH / 2 + 1}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      fill="#fff"
+                      fontSize={labelFont}
+                      fontWeight={700}
+                      fontFamily="Inter, system-ui, sans-serif"
+                    >
+                      {label}
+                    </text>
+                  </g>
+                );
+            })}
+          </svg>
+        )}
+
         {rail.isVisible && snappedSymbols.map((symbol) => {
-          const markup = assetMap.get(symbol.id);
-          if (!markup) {
+          const asset = assetMap.get(symbol.id);
+          if (!asset) {
             return null;
           }
-
-          const namespacedMarkup = namespaceSvgMarkup(markup, `din-${symbol.id}`);
 
           return (
             <div
               key={symbol.id}
               ref={(node) => bindMeasuredNode(symbol.id, node)}
+              className="din-rail-symbol-preview"
               aria-hidden="true"
               style={{
                 position: "absolute",
@@ -1063,35 +1198,84 @@ export function DinRailCanvas({
                 pointerEvents: "none",
                 zIndex: 2,
               }}
-              dangerouslySetInnerHTML={{ __html: namespacedMarkup }}
+              dangerouslySetInnerHTML={{ __html: asset.namespacedMarkup }}
             />
           );
         })}
         <div
           ref={pixiHostRef}
-          style={{ position: "absolute", inset: 0, zIndex: 3, pointerEvents: "none" }}
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 3,
+            pointerEvents: "none",
+            display: shouldRenderPixiLabels ? "block" : "none",
+          }}
         />
-
-
-        {rail.isVisible && groupFrames.map((group) => (
+        {rail.isVisible && (
           <div
-            key={`group-hitbox-${group.id}`}
-            className="din-rail-group-hitbox"
-            style={{ ...buildOverlayStyle(group, pan, scale), zIndex: 5 }}
-            onPointerDown={(event) => handleGroupPointerDown(event, group)}
-          />
-        ))}
-        {rail.isVisible && snappedSymbols.map((symbol) => (
-          <button
-            key={`symbol-hitbox-${symbol.id}`}
-            type="button"
-            className={`din-rail-hitbox${selectedIds.has(symbol.id) ? " is-selected" : ""}`}
-            style={{ ...buildOverlayStyle(interactiveRects.get(symbol.id) ?? symbol, pan, scale), zIndex: 6 }}
-            onPointerDown={(event) => beginDragForSymbol(event, symbol.id)}
-            title={symbol.referenceDesignation || symbol.label}
-            aria-label={symbol.referenceDesignation || symbol.label || symbol.type}
-          />
-        ))}
+            aria-hidden="true"
+            style={labelOverlayStyle}
+          >
+            {snappedSymbols.map((symbol) => {
+              const designationLabel = getSymbolDesignationLabel(
+                symbol,
+                automaticDesignationBySymbolId,
+              );
+              if (!designationLabel) {
+                return null;
+              }
+
+              return (
+                <div
+                  key={`symbol-label-${symbol.id}`}
+                  style={{
+                    position: "absolute",
+                    left: symbol.x * scale + pan.x + Math.max(symbol.width * scale, 48 * scale) / 2,
+                    top: symbol.y * scale + pan.y + symbol.height * scale + 6,
+                    transform: "translateX(-50%)",
+                    color: "#f8fafc",
+                    fontFamily: "Segoe UI, Arial, sans-serif",
+                    fontSize: `${clamp(11 * scale, 11, 15)}px`,
+                    fontWeight: 700,
+                    lineHeight: 1.1,
+                    textShadow:
+                      "0 0 1px #111827, 0 0 3px #111827, 0 0 5px #111827",
+                    whiteSpace: "nowrap",
+                    pointerEvents: "none",
+                  }}
+                >
+                  {designationLabel}
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {rail.isVisible && (
+          <div style={hitboxLayerStyle}>
+            {snappedSymbols.map((symbol) => (
+              <button
+                key={`symbol-hitbox-${symbol.id}`}
+                type="button"
+                className={`din-rail-hitbox${selectedIds.has(symbol.id) ? " is-selected" : ""}`}
+                style={{
+                  ...buildWorldRectStyle(interactiveRects.get(symbol.id) ?? symbol),
+                  pointerEvents: "auto",
+                }}
+                onPointerDown={(event) => beginDragForSymbol(event, symbol.id)}
+                title={
+                  getSymbolDesignationLabel(symbol, automaticDesignationBySymbolId)
+                  || symbol.label
+                }
+                aria-label={
+                  getSymbolDesignationLabel(symbol, automaticDesignationBySymbolId)
+                  || symbol.label
+                  || symbol.type
+                }
+              />
+            ))}
+          </div>
+        )}
         <div
           className="din-rail-surface"
           onDragLeave={() => setIsDropTarget(false)}
@@ -1101,42 +1285,31 @@ export function DinRailCanvas({
           onWheel={handleWheel}
           style={{ position: "absolute", inset: 0, zIndex: 4 }}
         />
-        {selectedBoundsStyle && (
-          <div
-            style={{
-              ...selectedBoundsStyle,
-              zIndex: 6,
-              border: `1.5px dashed ${isDraggingSelection ? "rgba(249, 115, 22, 0.92)" : "rgba(249, 115, 22, 0.72)"}`,
-              background: isDraggingSelection ? "rgba(249, 115, 22, 0.05)" : "rgba(249, 115, 22, 0.04)",
-              borderRadius: "6px",
-              pointerEvents: "none",
-            }}
-          >
-            <div
-              style={{
-                position: "absolute",
-                left: "4px",
-                top: "-20px",
-                color: "#fff",
-                fontSize: "10px",
-                fontWeight: 700,
-                pointerEvents: "none",
-              }}
-            >
-              {selectionLabel}
-            </div>
+        {(selectedBoundsStyle || selectionRectStyle) && (
+          <div aria-hidden="true" style={overlayLayerStyle}>
+            {selectedBoundsStyle && (
+              <div
+                style={{
+                  ...selectedBoundsStyle,
+                  border: "none",
+                  background: "transparent",
+                  borderRadius: "6px",
+                  pointerEvents: "none",
+                }}
+              >
+              </div>
+            )}
+            {selectionRectStyle && (
+              <div
+                style={{
+                  ...selectionRectStyle,
+                  border: "none",
+                  background: "rgba(13, 121, 242, 0.12)",
+                  pointerEvents: "none",
+                }}
+              />
+            )}
           </div>
-        )}
-        {selectionRectStyle && (
-          <div
-            style={{
-              ...selectionRectStyle,
-              zIndex: 6,
-              border: "1.5px dashed rgba(249, 115, 22, 0.85)",
-              background: "rgba(249, 115, 22, 0.12)",
-              pointerEvents: "none",
-            }}
-          />
         )}
       </div>
 

@@ -1,37 +1,29 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
-import { CircuitListPage } from "./components/CircuitListPage";
-import { CircuitEditPanel } from "./components/CircuitEditPanel";
-import { AppIcon } from "./components/AppIcon";
-import { ImportedModulesDialog } from "./components/ImportedModulesDialog";
-
-import { pdfDocumentationTabs, type PdfDocumentationPreviewTab } from "./lib/pdfDocumentation";
-import { ModuleAssetPreview } from "./components/ModuleAssetPreview";
-import { PdfDocumentationPage } from "./components/PdfDocumentationPage";
-import { ProjectPropertiesPage } from "./components/ProjectPropertiesPage";
-import { SchematicCanvas } from "./components/SchematicCanvas";
-import { MeasurementProtocolsWorkspacePage } from "./components/MeasurementProtocolsWorkspacePage";
-import { SvgImportDialog } from "./components/SvgImportDialog";
-import { DinRailCanvas, type DinRailCanvasRail } from "./components/DinRailCanvasPixi";
-import { PowerBalancePage } from "./components/PowerBalancePage";
+import { useEffect, useState, useCallback, useMemo, useTransition } from "react";
+import type { PdfDocumentationPreviewTab } from "./lib/pdfDocumentation";
+import type { DinRailCanvasRail } from "./components/DinRailCanvasPixi";
 import { AppHeader } from "./components/AppHeader";
-import { ValidationPanel } from "./components/ValidationPanel";
+import { AppRightPanel } from "./components/AppRightPanel";
+import { AppLeftPanel } from "./components/AppLeftPanel";
+import { AppStatusBar } from "./components/AppStatusBar";
+import { AppSheetTabs } from "./components/AppSheetTabs";
+import { AppDialogsLayer } from "./components/AppDialogsLayer";
+import { AppWorkspaceCanvas } from "./components/AppWorkspaceCanvas";
+import { PdfWorkspaceShell } from "./components/PdfWorkspaceShell";
+import type { RcdManagerEntry } from "./components/RcdManagementDialog";
 import { buildCircuitRowsFromSymbols } from "./lib/circuitRows";
 import { PROJECT_METADATA_STORAGE_KEY, loadProjectMetadata } from "./lib/projectMetadata";
+import { handleGlobalAppShortcut } from "./lib/appShortcuts";
+import { reportRuntimeError } from "./lib/runtimeDiagnostics";
 import { validateProject } from "./lib/validation/electricalValidationService";
 import {
   normalizePaletteAssetDimensions,
-  getPaletteIconName,
-  getPaletteDescription,
-  createPaletteDragPreview,
   DEFAULT_DIN_RAIL_CONFIG,
   SYMBOLS_STORAGE_KEY,
   LEGACY_SYMBOLS_STORAGE_KEY,
   type SheetType,
   type RightTab,
 } from "./lib/appHelpers";
-import { getPaletteTemplateDimensions } from "./lib/modules/moduleCatalog";
-import { normalizeSymbolItems } from "./types/symbolItem";
-import { createDemoSymbols } from "./fixtures/demoData";
+import { createDefaultSymbolItem, normalizeSymbolItems } from "./types/symbolItem";
 import { useSymbolHistory } from "./hooks/useSymbolHistory";
 import { useSymbolActions } from "./hooks/useSymbolActions";
 import { useProjectActions } from "./hooks/useProjectActions";
@@ -39,9 +31,24 @@ import { usePaletteActions } from "./hooks/usePaletteActions";
 import { useImportedModules } from "./hooks/useImportedModules";
 import type { ProjectMetadata } from "./types/projectMetadata";
 import type { SymbolItem } from "./types/symbolItem";
+import { PublicLandingPage } from "./components/PublicLandingPage";
 import "./App.css";
 
-function App() {
+const APP_ROUTE_PATH = "/app";
+const LOCAL_STORAGE_WRITE_DEBOUNCE_MS = 250;
+const SHOW_DIN_RAIL_GROUPS_STORAGE_KEY = "dinboard.show_din_rail_groups";
+
+function normalizeRoutePath(pathname: string): "/" | "/app" {
+  if (pathname === APP_ROUTE_PATH || pathname === `${APP_ROUTE_PATH}/`) {
+    return APP_ROUTE_PATH;
+  }
+
+  return "/";
+}
+
+
+
+function AppWorkspace() {
   // ── Core state ───────────────────────────────────────────────────────────────
   const [metadata, setMetadata] = useState<ProjectMetadata>(() => loadProjectMetadata());
   const [symbols, setSymbols] = useState<SymbolItem[]>(() => {
@@ -54,7 +61,7 @@ function App() {
         if (normalized.length > 0) return normalized;
       }
     } catch { /* ignore */ }
-    return createDemoSymbols();
+    return [];
   });
   const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<string>("");
@@ -69,7 +76,23 @@ function App() {
   });
   const [activeRightTab, setActiveRightTab] = useState<RightTab>("balance");
   const [showRightPanel, setShowRightPanel] = useState(true);
+  const [isRcdManagerOpen, setIsRcdManagerOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [showDinRailGroups, setShowDinRailGroups] = useState<boolean>(() => {
+    try {
+      const raw = window.localStorage.getItem(SHOW_DIN_RAIL_GROUPS_STORAGE_KEY);
+      if (!raw) {
+        return true;
+      }
+
+      const parsed = JSON.parse(raw);
+      return typeof parsed === "boolean" ? parsed : true;
+    } catch {
+      return true;
+    }
+  });
   const [pdfPreviewTab, setPdfPreviewTab] = useState<PdfDocumentationPreviewTab>("title-page");
+  const [, startPdfTabTransition] = useTransition();
 
   const showTemporaryStatus = useCallback((message: string, timeoutMs = 3500) => {
     setSaveStatus(message);
@@ -114,7 +137,8 @@ function App() {
   });
 
   const {
-    handleNewProject, handleOpenProject, handleSaveProject, handleExportPdf,
+    handleNewProject, handleOpenProject, handleSaveProject, handleExportPdf, handleExportBom, handleExportPng,
+    handleExportDinRailPngWithDescriptionsNoBrackets,
     handleAutoBalance, handleOpenDinRailGenerator, handleRailGenerated,
     handleMetadataChange, handleResetDocumentation,
   } = useProjectActions({
@@ -123,7 +147,7 @@ function App() {
     hasUnsavedChanges, setHasUnsavedChanges,
     selectedSymbolId, selectedSymbolIds,
     setSelectedSymbolId, setSelectedSymbolIds,
-    setDinRail, setActiveSheet, setDinRailGeneratorRequest,
+    setDinRail, dinRail, setActiveSheet, setDinRailGeneratorRequest,
     undoRedoServiceRef: history.undoRedoServiceRef,
     dragHistorySnapshotRef: history.dragHistorySnapshotRef,
     refreshHistoryState: history.refreshHistoryState,
@@ -147,16 +171,68 @@ function App() {
 
   // ── Persistence ───────────────────────────────────────────────────────────────
   useEffect(() => {
-    window.localStorage.setItem(PROJECT_METADATA_STORAGE_KEY, JSON.stringify(metadata));
+    const timeoutId = window.setTimeout(() => {
+      try {
+        window.localStorage.setItem(PROJECT_METADATA_STORAGE_KEY, JSON.stringify(metadata));
+      } catch (error) {
+        reportRuntimeError(error, {
+          source: "unhandled-error",
+        });
+      }
+    }, LOCAL_STORAGE_WRITE_DEBOUNCE_MS);
+
+    return () => window.clearTimeout(timeoutId);
   }, [metadata]);
 
   useEffect(() => {
-    window.localStorage.setItem(SYMBOLS_STORAGE_KEY, JSON.stringify(symbols));
+    const timeoutId = window.setTimeout(() => {
+      try {
+        window.localStorage.setItem(SYMBOLS_STORAGE_KEY, JSON.stringify(symbols));
+      } catch (error) {
+        reportRuntimeError(error, {
+          source: "unhandled-error",
+        });
+      }
+    }, LOCAL_STORAGE_WRITE_DEBOUNCE_MS);
+
+    return () => window.clearTimeout(timeoutId);
   }, [symbols]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      try {
+        window.localStorage.setItem(
+          SHOW_DIN_RAIL_GROUPS_STORAGE_KEY,
+          JSON.stringify(showDinRailGroups),
+        );
+      } catch (error) {
+        reportRuntimeError(error, {
+          source: "unhandled-error",
+        });
+      }
+    }, LOCAL_STORAGE_WRITE_DEBOUNCE_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [showDinRailGroups]);
 
   useEffect(() => {
     if (activeSheet === "sheet3" || activeSheet === "sheet4") setWorkspaceZoomPercent(100);
   }, [activeSheet]);
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (event: KeyboardEvent) => {
+      handleGlobalAppShortcut(event, {
+        openHelp: () => setIsHelpOpen(true),
+        newProject: handleNewProject,
+        openProject: handleOpenProject,
+        saveProject: handleSaveProject,
+        print: () => window.print(),
+      });
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [handleNewProject, handleOpenProject, handleSaveProject]);
 
   useEffect(() => {
     setSymbols((prev) => normalizePaletteAssetDimensions(prev, paletteTemplateMap));
@@ -164,16 +240,102 @@ function App() {
 
   // ── Derived ───────────────────────────────────────────────────────────────────
   const circuitRows = useMemo(() => buildCircuitRowsFromSymbols(symbols), [symbols]);
+  const hasGeneratedDinRail = dinRail.isVisible;
+  const hasModules = symbols.length > 0;
+  const canShowSchematicAndCircuitList = hasGeneratedDinRail && hasModules;
   const totalPower = symbols.reduce((sum, s) => sum + s.powerW, 0);
   const groupCount = symbols.filter((s) => s.deviceKind === "rcd").length;
-  const validationResult = validateProject(symbols);
+  const validationResult = useMemo(
+    () =>
+      validateProject(symbols, {
+        supplyVoltageV: metadata.supplyVoltageV,
+        mainBreakerA: metadata.mainBreakerA,
+      }),
+    [symbols, metadata.supplyVoltageV, metadata.mainBreakerA],
+  );
   const errorCount = validationResult.errors.length;
   const warningCount = validationResult.warnings.length;
-  const projectFileName = currentFilePath ? currentFilePath.split(/[\\\/]/).pop() : "Nowy projekt";
-  const activePaletteGroup =
-    paletteGroups.find((g) => g.title === activePaletteGroupTitle) ??
-    paletteGroups[0] ??
-    { title: "", subtitle: "", items: [] };
+  const projectFileName = (currentFilePath ? currentFilePath.split(/[\\\/]/).pop() : "Nowy projekt") ?? "Nowy projekt";
+  const rcdManagerEntries = useMemo<RcdManagerEntry[]>(
+    () =>
+      symbols
+        .filter((symbol) => symbol.deviceKind === "rcd")
+        .map((symbol) => ({
+          id: symbol.id,
+          referenceDesignation: symbol.referenceDesignation,
+          label: symbol.label,
+          groupName: symbol.groupName,
+          rcdRatedCurrent: symbol.rcdRatedCurrent,
+          rcdResidualCurrent: symbol.rcdResidualCurrent,
+          rcdType: symbol.rcdType,
+        })),
+    [symbols],
+  );
+
+  const handleOpenRcdManager = useCallback(() => {
+    if (rcdManagerEntries.length === 0) {
+      showTemporaryStatus("Brak modułów RCD do konfiguracji", 3200);
+      return;
+    }
+
+    setIsRcdManagerOpen(true);
+  }, [rcdManagerEntries.length, showTemporaryStatus]);
+
+  const handleToggleDinRailGroups = useCallback(() => {
+    setShowDinRailGroups((previous) => !previous);
+  }, []);
+
+  const handleSaveRcdManager = useCallback(
+    (entries: RcdManagerEntry[]) => {
+      const rcdById = new Map(entries.map((entry) => [entry.id, entry] as const));
+
+      const nextSymbols = symbols.map((symbol) => {
+        if (symbol.deviceKind === "rcd") {
+          const nextRcd = rcdById.get(symbol.id);
+          if (!nextRcd) {
+            return symbol;
+          }
+
+          return createDefaultSymbolItem({
+            ...symbol,
+            rcdRatedCurrent: Math.max(1, Math.round(nextRcd.rcdRatedCurrent)),
+            rcdResidualCurrent: Math.max(1, Math.round(nextRcd.rcdResidualCurrent)),
+            rcdType: nextRcd.rcdType.trim().toUpperCase() || "A",
+          });
+        }
+
+        if (symbol.rcdSymbolId) {
+          const parentRcd = rcdById.get(symbol.rcdSymbolId);
+          if (!parentRcd) {
+            return symbol;
+          }
+
+          return createDefaultSymbolItem({
+            ...symbol,
+            rcdRatedCurrent: Math.max(1, Math.round(parentRcd.rcdRatedCurrent)),
+            rcdResidualCurrent: Math.max(1, Math.round(parentRcd.rcdResidualCurrent)),
+            rcdType: parentRcd.rcdType.trim().toUpperCase() || "A",
+          });
+        }
+
+        return symbol;
+      });
+
+      const changed = history.executeSymbolsCommand(
+        "Zarządzanie RCD",
+        { symbols, selectedSymbolId, selectedSymbolIds },
+        { symbols: nextSymbols, selectedSymbolId, selectedSymbolIds },
+        "Zapisano ustawienia RCD",
+      );
+
+      if (!changed) {
+        showTemporaryStatus("Brak zmian w ustawieniach RCD", 2600);
+      }
+
+      setIsRcdManagerOpen(false);
+    },
+    [history, selectedSymbolId, selectedSymbolIds, showTemporaryStatus, symbols],
+  );
 
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
@@ -193,470 +355,165 @@ function App() {
         onOpenProject={handleOpenProject}
         onSaveProject={handleSaveProject}
         onExportPdf={handleExportPdf}
+        onExportBom={handleExportBom}
+        onExportPng={handleExportPng}
+        onExportDinRailPngWithDescriptionsNoBrackets={handleExportDinRailPngWithDescriptionsNoBrackets}
         onUndo={history.handleUndo}
         onRedo={history.handleRedo}
         onDeleteSelected={handleDeleteSelected}
         onOpenDinRailGenerator={handleOpenDinRailGenerator}
         onOpenSvgImport={() => setSvgImportDialogOpen(true)}
         onOpenImportedModulesManager={() => setImportedModulesManagerOpen(true)}
+        onOpenHelp={() => setIsHelpOpen(true)}
         onToggleRightPanel={() => setShowRightPanel(!showRightPanel)}
+        showDinRailGroups={showDinRailGroups}
+        onToggleDinRailGroups={handleToggleDinRailGroups}
         onChangeSheet={setActiveSheet}
         showTemporaryStatus={showTemporaryStatus}
       />
 
       <div
         className={`main-content ${activeRightTab === "circuitEdit" ? "is-circuit-editing" : ""} ${
-          showRightPanel ? "" : "is-right-panel-hidden"
-        }`}
+          activeSheet === "sheet4" ? "is-pdf-workspace" : ""
+        } ${showRightPanel ? "" : "is-right-panel-hidden"}`}
       >
-        <aside className="left-panel">
-          <div className="panel-content">
-            {activeSheet === "sheet2" && (
-              <ProjectPropertiesPage
-                metadata={metadata}
-                onChange={handleMetadataChange}
-                onExportPdf={handleExportPdf}
-                onResetDemo={() => handleMetadataChange(loadProjectMetadata())}
-              />
-            )}
-            {activeSheet === "sheet4" && (
-              <PdfDocumentationPage
-                metadata={metadata}
-                symbols={symbols}
-                rail={dinRail}
-                onChange={handleMetadataChange}
-                onResetDocumentation={handleResetDocumentation}
-                selectedPreviewTab={pdfPreviewTab}
-              />
-            )}
-            {activeSheet === "sheet3" && (
-              <div className="left-panel-empty">
-                <span className="workspace-tag">Lista</span>
-                <strong>Lista obwodów</strong>
-              </div>
-            )}
-            {activeSheet === "sheet1" && (
-              <div className="palette-browser">
-                <div className="panel-title-strip">
-                  <AppIcon className="panel-title-icon" name="palette" size={18} />
-                  <strong>MODUŁY</strong>
-                </div>
-                <div className="panel-divider" />
-                <div className="palette-tabs" aria-label="Kategorie modułów">
-                  {paletteGroups.map((group) => (
-                    <button
-                      className={`palette-tab ${group.title === activePaletteGroup.title ? "active" : ""}`}
-                      key={group.title}
-                      type="button"
-                      onClick={() => setActivePaletteGroupTitle(group.title)}
-                    >
-                      {group.title}
-                    </button>
-                  ))}
-                </div>
-                <section className="palette-group" key={activePaletteGroup.title}>
-                  <div className="palette-group-header">
-                    <strong>{activePaletteGroup.title}</strong>
-                    <span>{activePaletteGroup.subtitle}</span>
-                  </div>
-                  <div className="palette-grid">
-                    {activePaletteGroup.items.map((item) => (
-                      <div
-                        className="palette-item"
-                        key={`${activePaletteGroup.title}-${item.code}`}
-                        draggable={true}
-                        role="listitem"
-                        onContextMenu={(event) => {
-                          event.preventDefault();
-                          setPaletteContextMenu({ templateId: item.templateId, label: item.label, x: event.clientX, y: event.clientY });
-                        }}
-                        onDragStart={(event) => {
-                          const moduleDimensions = getPaletteTemplateDimensions(item);
-                          const zoomScale = activeSheet === "sheet1" ? Math.max(0.1, workspaceZoomPercent / 100) : 1;
-                          const previewNode = event.currentTarget.querySelector(".palette-item-visual");
-                          const dragPreview = createPaletteDragPreview(
-                            previewNode instanceof HTMLElement ? previewNode : null,
-                            moduleDimensions.width * zoomScale,
-                            moduleDimensions.height * zoomScale,
-                          );
-                          event.dataTransfer.effectAllowed = "copy";
-                          event.dataTransfer.setData("application/x-dinboard-palette", item.templateId);
-                          event.dataTransfer.setData("text/plain", item.templateId);
-                          if (dragPreview) {
-                            event.dataTransfer.setDragImage(dragPreview, Math.round((moduleDimensions.width * zoomScale) / 2), Math.round((moduleDimensions.height * zoomScale) / 2));
-                            window.setTimeout(() => dragPreview.remove(), 0);
-                          }
-                        }}
-                      >
-                        <span className="palette-item-visual">
-                          {item.assetPath ? (
-                            <ModuleAssetPreview
-                              alt={item.label}
-                              className="palette-module-preview"
-                              parameters={item.placeholderDefaults}
-                              rasterDprCap={3}
-                              renderHeight={40}
-                              renderMode="raster"
-                              renderWidth={44}
-                              src={item.assetPath}
-                            />
-                          ) : (
-                            <AppIcon name={getPaletteIconName(item)} size={24} />
-                          )}
-                        </span>
-                        <span className="palette-item-copy">
-                          <span className="palette-item-label">{item.label}</span>
-                          <span className="palette-item-description">{getPaletteDescription(item)}</span>
-                        </span>
-                        <span className="palette-item-code">{item.code}</span>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-                {!dinRail.isVisible && (
-                  <button type="button" className="palette-blocker" onClick={handleOpenDinRailGenerator}>
-                    <AppIcon name="validation" size={24} />
-                    <strong>Najpierw wygeneruj szynę DIN</strong>
-                    <span>Moduły będą dostępne po utworzeniu rozdzielnicy.</span>
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        </aside>
+        {activeSheet === "sheet4" ? (
+          <PdfWorkspaceShell
+            metadata={metadata}
+            symbols={symbols}
+            dinRail={dinRail}
+            circuitRows={circuitRows}
+            pdfPreviewTab={pdfPreviewTab}
+            setPdfPreviewTab={setPdfPreviewTab}
+            startPdfTabTransition={startPdfTabTransition}
+            handleMetadataChange={handleMetadataChange}
+            handleResetDocumentation={handleResetDocumentation}
+            showRightPanel={showRightPanel}
+          />
+        ) : (
+          <>
+            <AppLeftPanel
+              activeSheet={activeSheet}
+              metadata={metadata}
+              handleMetadataChange={handleMetadataChange}
+              handleExportPdf={handleExportPdf}
+              dinRail={dinRail}
+              paletteGroups={paletteGroups}
+              activePaletteGroupTitle={activePaletteGroupTitle}
+              setActivePaletteGroupTitle={setActivePaletteGroupTitle}
+              setPaletteContextMenu={setPaletteContextMenu}
+              handleOpenDinRailGenerator={handleOpenDinRailGenerator}
+            />
 
-        <div className="canvas-area">
-          {activeSheet === "sheet1" && (
-            <DinRailCanvas
-              getPaletteTemplate={(templateId) => paletteTemplateMap.get(templateId)}
-              rail={dinRail}
+            <AppWorkspaceCanvas
+              activeSheet={activeSheet}
+              paletteTemplateMap={paletteTemplateMap}
+              dinRail={dinRail}
               symbols={symbols}
-              generatorRequest={dinRailGeneratorRequest}
-              onPaletteDrop={handlePaletteDrop}
-              onUnsupportedTemplateDrop={handleUnsupportedDinRailDrop}
-              onZoomChange={setWorkspaceZoomPercent}
-              onRailGenerated={handleRailGenerated}
-              onSymbolMoveStart={handleSymbolMoveStart}
-              onSymbolMove={handleSymbolMove}
-              onSymbolMoveEnd={handleSymbolMoveEnd}
-              onSymbolSelectionChange={handleSymbolSelectionChange}
-              onSymbolSelect={handleSymbolSelect}
+              dinRailGeneratorRequest={dinRailGeneratorRequest}
+              handlePaletteDrop={handlePaletteDrop}
+              handleUnsupportedDinRailDrop={handleUnsupportedDinRailDrop}
+              setWorkspaceZoomPercent={setWorkspaceZoomPercent}
+              handleRailGenerated={handleRailGenerated}
+              handleSymbolMoveStart={handleSymbolMoveStart}
+              handleSymbolMove={handleSymbolMove}
+              handleSymbolMoveEnd={handleSymbolMoveEnd}
+              handleSymbolSelectionChange={handleSymbolSelectionChange}
+              handleSymbolSelect={handleSymbolSelect}
+              handleDeleteSelected={handleDeleteSelected}
               selectedSymbolId={selectedSymbolId}
               selectedSymbolIds={selectedSymbolIds}
+              handleToggleDinRailGroups={handleToggleDinRailGroups}
+              showDinRailGroups={showDinRailGroups}
+              canShowSchematicAndCircuitList={canShowSchematicAndCircuitList}
+              handleSchematicCellEdit={handleSchematicCellEdit}
+              circuitRows={circuitRows}
+              metadata={metadata}
             />
-          )}
 
-          {activeSheet === "sheet2" && (
-            <div className="schematic-container">
-              <SchematicCanvas
-                symbols={symbols}
-                onSymbolMoveStart={handleSymbolMoveStart}
-                onSymbolMove={handleSymbolMove}
-                onSymbolMoveEnd={handleSymbolMoveEnd}
-                onSymbolSelect={handleSymbolSelect}
-                onPaletteDrop={handlePaletteDrop}
-                onCellEdit={handleSchematicCellEdit}
-                onZoomChange={setWorkspaceZoomPercent}
-                selectedSymbolId={selectedSymbolId}
-                selectedSymbolIds={selectedSymbolIds}
-              />
-            </div>
-          )}
-
-          {activeSheet === "sheet3" && (
-            <CircuitListPage
-              rows={circuitRows}
-              onResetDemo={() => {
-                history.executeSymbolsCommand(
-                  "Reset danych demo",
-                  { symbols, selectedSymbolId, selectedSymbolIds },
-                  { symbols: createDemoSymbols(), selectedSymbolId: null, selectedSymbolIds: [] },
-                  "Przywrócono dane demo",
-                );
-              }}
+            <AppRightPanel
+              showRightPanel={showRightPanel}
+              activeRightTab={activeRightTab}
+              setActiveRightTab={setActiveRightTab}
+              symbols={symbols}
+              handleAutoBalance={handleAutoBalance}
+              validationResult={validationResult}
+              selectedSymbol={selectedSymbol}
+              handleCircuitEditSave={handleCircuitEditSave}
+              handleSymbolSelectionChange={handleSymbolSelectionChange}
+              metadata={metadata}
+              handleMetadataChange={handleMetadataChange}
+              handleOpenRcdManager={handleOpenRcdManager}
             />
-          )}
-
-          {activeSheet === "sheet4" && (
-            <div style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              background: '#0B0B0D',
-              overflow: 'hidden',
-            }}>
-              {/* PDF Preview Tabs — like Avalonia's tab bar */}
-              <div style={{
-                display: 'flex',
-                gap: '4px',
-                padding: '8px 12px',
-                background: 'var(--panel-header-background)',
-                borderBottom: '1px solid var(--panel-border)',
-                flexShrink: 0,
-              }}>
-                {pdfDocumentationTabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setPdfPreviewTab(tab.id)}
-                    style={{
-                      padding: '5px 12px',
-                      minHeight: '30px',
-                      border: '1px solid',
-                      borderRadius: '5px',
-                      fontSize: '11px',
-                      cursor: 'pointer',
-                      fontWeight: pdfPreviewTab === tab.id ? '600' : '400',
-                      background: pdfPreviewTab === tab.id ? 'rgba(249,115,22,0.12)' : 'transparent',
-                      borderColor: pdfPreviewTab === tab.id ? 'var(--accent-orange)' : 'var(--panel-border)',
-                      color: pdfPreviewTab === tab.id ? 'var(--accent-orange)' : 'var(--text-secondary)',
-                    }}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-
-              <MeasurementProtocolsWorkspacePage
-                metadata={metadata}
-                circuitRows={circuitRows}
-                onChange={handleMetadataChange}
-                activeTab={pdfPreviewTab as any}
-              />
-            </div>
-          )}
-        </div>
-
-        {showRightPanel && (
-          <aside className="right-panel">
-            <div className="right-panel-header">
-              <strong>WŁAŚCIWOŚCI</strong>
-            </div>
-            <div className="right-tabs">
-              <button className={`right-tab-btn ${activeRightTab === "config" ? "active" : ""}`} type="button" onClick={() => setActiveRightTab("config")}>
-                <AppIcon name="cog" /><span>Konfiguracja</span>
-              </button>
-              <button className={`right-tab-btn ${activeRightTab === "balance" ? "active" : ""}`} type="button" onClick={() => setActiveRightTab("balance")}>
-                <AppIcon name="balance" /><span>Bilans</span>
-              </button>
-              <button className={`right-tab-btn ${activeRightTab === "validation" ? "active" : ""}`} type="button" onClick={() => setActiveRightTab("validation")}>
-                <AppIcon name="validation" /><span>Walidacja</span>
-              </button>
-              <button className={`right-tab-btn ${activeRightTab === "circuitEdit" ? "active" : ""}`} type="button" onClick={() => setActiveRightTab("circuitEdit")}>
-                <AppIcon name="pencil" /><span>Edycja</span>
-              </button>
-            </div>
-            <div className="right-panel-content">
-              {activeRightTab === "balance" && (
-                <PowerBalancePage symbols={symbols} onApplyBalance={handleAutoBalance} />
-              )}
-              {activeRightTab === "validation" && <ValidationPanel symbols={symbols} />}
-              {activeRightTab === "circuitEdit" && (
-                <CircuitEditPanel
-                  symbol={selectedSymbol}
-                  onSave={handleCircuitEditSave}
-                  onClearSelection={() => setSelectedSymbolId(null)}
-                />
-              )}
-              {activeRightTab === "config" && (
-                <div className="power-config-panel">
-                  <section className="power-config-section">
-                    <div className="section-header">KONFIGURACJA ZASILANIA</div>
-                    <div className="card power-config-card">
-                      <label className="power-config-field">
-                        <span><AppIcon className="accent-orange" name="validation" size={12} />Napięcie</span>
-                        <select
-                          value={metadata.supplyVoltageV}
-                          onChange={(e) => handleMetadataChange({ ...metadata, supplyVoltageV: Number(e.target.value) as 230 | 400 })}
-                        >
-                          <option value="230">230V</option>
-                          <option value="400">400V</option>
-                        </select>
-                      </label>
-                      <label className="power-config-field">
-                        <span><AppIcon className="accent-orange" name="busbar" size={12} />Liczba faz</span>
-                        <select
-                          value={metadata.supplyPhases}
-                          onChange={(e) => handleMetadataChange({ ...metadata, supplyPhases: Number(e.target.value) as 1 | 3 })}
-                        >
-                          <option value="1">1-fazowe</option>
-                          <option value="3">3-fazowe</option>
-                        </select>
-                      </label>
-                      <label className="power-config-field">
-                        <span><AppIcon className="accent-orange" name="delete" size={12} />Zabezpieczenie główne</span>
-                        <select
-                          value={metadata.mainBreakerA}
-                          onChange={(e) => handleMetadataChange({ ...metadata, mainBreakerA: Number(e.target.value) as any })}
-                        >
-                          <option value="25">25A</option>
-                          <option value="32">32A</option>
-                          <option value="40">40A</option>
-                          <option value="63">63A</option>
-                          <option value="80">80A</option>
-                          <option value="100">100A</option>
-                          <option value="125">125A</option>
-                        </select>
-                      </label>
-                      <label className="power-config-field">
-                        <span><AppIcon className="accent-orange" name="balance" size={12} />Moc przyłączeniowa</span>
-                        <div className="unit-input">
-                          <input
-                            value={metadata.contractedPowerKw}
-                            inputMode="decimal"
-                            type="number"
-                            step="0.1"
-                            onChange={(e) => handleMetadataChange({ ...metadata, contractedPowerKw: Number(e.target.value) || 0 })}
-                          />
-                          <span>kW</span>
-                        </div>
-                      </label>
-                    </div>
-                  </section>
-                  <section className="power-config-section">
-                    <div className="section-header">USTAWIENIA RCD</div>
-                    <button
-                      className="accent-btn power-config-action"
-                      type="button"
-                      onClick={() => showTemporaryStatus("Zarządzanie RCD zostanie dopięte w kolejnym kroku")}
-                    >
-                      <AppIcon name="cog" size={14} /><span>Zarządzaj RCD</span>
-                    </button>
-                  </section>
-                </div>
-              )}
-            </div>
-          </aside>
+          </>
         )}
 
-        <div className="sheet-tabs-bar">
-          <button className={`sheet-tab ${activeSheet === "sheet1" ? "active" : ""}`} type="button" onClick={() => setActiveSheet("sheet1")}>
-            <AppIcon className="sheet-tab-icon" name="grid" /><span>Rozdzielnica</span>
-          </button>
-          <button className={`sheet-tab ${activeSheet === "sheet2" ? "active" : ""}`} type="button" onClick={() => setActiveSheet("sheet2")}>
-            <AppIcon className="sheet-tab-icon" name="fileTree" /><span>Schemat obwodów</span>
-          </button>
-          <button className={`sheet-tab ${activeSheet === "sheet3" ? "active" : ""}`} type="button" onClick={() => setActiveSheet("sheet3")}>
-            <AppIcon className="sheet-tab-icon" name="list" /><span>Lista obwodów</span>
-          </button>
-          <button className={`sheet-tab ${activeSheet === "sheet4" ? "active" : ""}`} type="button" onClick={() => setActiveSheet("sheet4")}>
-            <AppIcon className="sheet-tab-icon" name="pdf" /><span>Podgląd PDF</span>
-          </button>
-        </div>
+        <AppSheetTabs activeSheet={activeSheet} onChangeSheet={setActiveSheet} />
       </div>
 
-      <footer className="statusbar">
-        <div className="statusbar-row">
-          <div className="statusbar-left">
-            <span className="statusbar-item statusbar-project" title={projectFileName}>
-              <AppIcon className="statusbar-icon statusbar-icon-muted" name="file" size={12} />
-              <strong>{projectFileName}</strong>
-              {hasUnsavedChanges && <span className="statusbar-unsaved-dot" title="Niezapisane zmiany" />}
-            </span>
-            <span className="statusbar-divider" />
-            <span className="statusbar-item statusbar-ok">
-              <AppIcon className="statusbar-icon" name="check" size={12} />
-              <span>{saveStatus || "Gotowy"}</span>
-            </span>
-          </div>
-          <div className="statusbar-right">
-            <span className="statusbar-item" title="Poziom zbliżenia">
-              <AppIcon className="statusbar-icon statusbar-icon-accent" name="zoomIn" size={12} />
-              <strong>{workspaceZoomPercent}%</strong>
-            </span>
-            <span className="statusbar-item" title="Moc całkowita">
-              <AppIcon className="statusbar-icon statusbar-icon-warn" name="power" size={12} />
-              {(totalPower / 1000).toFixed(1)} kW
-            </span>
-            <span className="statusbar-item" title="Liczba grup">
-              <AppIcon className="statusbar-icon statusbar-icon-accent" name="group" size={12} />
-              Grupy: {groupCount}
-            </span>
-            <span className="statusbar-item" title="Liczba modułów">
-              <AppIcon className="statusbar-icon statusbar-icon-muted" name="module" size={12} />
-              Moduły: {symbols.length}
-            </span>
-            {(errorCount > 0 || warningCount > 0) && <span className="statusbar-divider" />}
-            {errorCount > 0 && (
-              <span className="statusbar-item statusbar-alert danger">
-                <AppIcon className="statusbar-icon" name="validation" size={12} />
-                {errorCount} błędów
-              </span>
-            )}
-            {warningCount > 0 && (
-              <span className="statusbar-item statusbar-alert warning">
-                <AppIcon className="statusbar-icon" name="validation" size={12} />
-                {warningCount} ostrzeżeń
-              </span>
-            )}
-          </div>
-        </div>
-      </footer>
+      <AppStatusBar
+        projectFileName={projectFileName}
+        hasUnsavedChanges={hasUnsavedChanges}
+        saveStatus={saveStatus}
+        workspaceZoomPercent={workspaceZoomPercent}
+        totalPower={totalPower}
+        groupCount={groupCount}
+        symbolCount={symbols.length}
+        errorCount={errorCount}
+        warningCount={warningCount}
+      />
 
-      {svgImportDialogOpen && (
-        <SvgImportDialog
-          categoryOptions={importedModuleCategoryOptions}
-          existingModules={importedModules}
-          onClose={() => setSvgImportDialogOpen(false)}
-          onImport={handleSvgImportCommit}
-        />
-      )}
-
-      {paletteContextMenu && (
-        <div
-          className="palette-context-menu"
-          style={{ left: paletteContextMenu.x, top: paletteContextMenu.y }}
-          onMouseDown={(event) => event.stopPropagation()}
-        >
-          <button
-            type="button"
-            className="palette-context-menu__item danger"
-            onClick={() => {
-              setPendingPaletteRemoval({ templateId: paletteContextMenu.templateId, label: paletteContextMenu.label });
-              setPaletteContextMenu(null);
-            }}
-          >
-            <AppIcon name="delete" size={12} /><span>Usun</span>
-          </button>
-        </div>
-      )}
-
-      {pendingPaletteRemoval && (
-        <div className="din-rail-dialog-backdrop" onMouseDown={() => setPendingPaletteRemoval(null)}>
-          <div
-            className="palette-confirm-dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Potwierdzenie usuniecia modulu"
-            onMouseDown={(event) => event.stopPropagation()}
-          >
-            <div className="din-rail-dialog-title">
-              <AppIcon name="delete" size={18} />
-              <strong>Usun modul z lewego panelu?</strong>
-            </div>
-            <p className="palette-confirm-dialog__copy">
-              Moduł <strong>{pendingPaletteRemoval.label}</strong> zniknie z palety po lewej stronie.
-            </p>
-            <div className="din-rail-dialog-actions">
-              <button type="button" onClick={() => setPendingPaletteRemoval(null)}>Anuluj</button>
-              <button type="button" className="accent-btn danger" onClick={handleConfirmPaletteRemoval}>Usun</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {importedModulesManagerOpen && (
-        <ImportedModulesDialog
-          categoryOptions={importedModuleCategoryOptions}
-          modules={importedModules}
-          onCategoryChange={handleImportedModuleCategoryChange}
-          onClose={() => setImportedModulesManagerOpen(false)}
-          onRemove={handleRemoveImportedModule}
-        />
-      )}
+      <AppDialogsLayer
+        importedModuleCategoryOptions={importedModuleCategoryOptions}
+        importedModules={importedModules}
+        importedModulesManagerOpen={importedModulesManagerOpen}
+        isHelpOpen={isHelpOpen}
+        isRcdManagerOpen={isRcdManagerOpen}
+        paletteContextMenu={paletteContextMenu}
+        pendingPaletteRemoval={pendingPaletteRemoval}
+        rcdManagerEntries={rcdManagerEntries}
+        svgImportDialogOpen={svgImportDialogOpen}
+        onCancelPaletteRemoval={() => setPendingPaletteRemoval(null)}
+        onCloseHelp={() => setIsHelpOpen(false)}
+        onCloseImportedModulesManager={() => setImportedModulesManagerOpen(false)}
+        onClosePaletteContextMenu={() => setPaletteContextMenu(null)}
+        onCloseRcdManager={() => setIsRcdManagerOpen(false)}
+        onCloseSvgImport={() => setSvgImportDialogOpen(false)}
+        onConfirmPaletteRemoval={handleConfirmPaletteRemoval}
+        onImportedModuleCategoryChange={handleImportedModuleCategoryChange}
+        onRemoveImportedModule={handleRemoveImportedModule}
+        onRequestPaletteRemoval={setPendingPaletteRemoval}
+        onSaveRcdManager={handleSaveRcdManager}
+        onSvgImportCommit={handleSvgImportCommit}
+      />
     </main>
   );
+}
+
+function App() {
+  const [routePath, setRoutePath] = useState<"/" | "/app">(() => normalizeRoutePath(window.location.pathname));
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setRoutePath(normalizeRoutePath(window.location.pathname));
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const handleOpenWorkspace = useCallback(() => {
+    if (routePath !== APP_ROUTE_PATH) {
+      window.history.pushState({}, "", APP_ROUTE_PATH);
+      setRoutePath(APP_ROUTE_PATH);
+    }
+  }, [routePath]);
+
+  if (routePath !== APP_ROUTE_PATH) {
+    return <PublicLandingPage onOpenWorkspace={handleOpenWorkspace} />;
+  }
+
+  return <AppWorkspace />;
 }
 
 export default App;

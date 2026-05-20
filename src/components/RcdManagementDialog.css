@@ -1,0 +1,77 @@
+.rcd-dialog {
+  width: min(860px, calc(100vw - 24px));
+  max-height: min(660px, calc(100vh - 24px));
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  background: var(--panel-background);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+}
+
+.rcd-dialog__summary {
+  margin-left: auto;
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.rcd-dialog__empty {
+  display: grid;
+  gap: 8px;
+  padding: 18px;
+  color: var(--text-secondary);
+}
+
+.rcd-dialog__empty strong {
+  color: var(--text-main);
+  font-size: var(--font-size-md);
+}
+
+.rcd-dialog__table-wrap {
+  min-height: 0;
+  overflow: auto;
+  padding: 10px 12px 12px;
+}
+
+.rcd-dialog__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rcd-dialog__table th,
+.rcd-dialog__table td {
+  border-bottom: 1px solid var(--panel-border);
+  padding: 8px;
+  text-align: left;
+  font-size: var(--font-size-sm);
+}
+
+.rcd-dialog__table th {
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rcd-dialog__table td {
+  color: var(--text-main);
+}
+
+.rcd-dialog__table td input {
+  width: 100%;
+  min-height: 30px;
+  padding: 6px 8px;
+  background: var(--panel-background-alt);
+  border: 1px solid var(--panel-border);
+  color: var(--text-main);
+  font: inherit;
+}
+
+.rcd-dialog__table td input:focus {
+  outline: none;
+  border-color: rgba(13, 121, 242, 0.6);
+  box-shadow: 0 0 0 2px rgba(13, 121, 242, 0.16);
+}

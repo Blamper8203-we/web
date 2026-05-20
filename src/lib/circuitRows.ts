@@ -4,9 +4,15 @@ import type { SymbolItem } from "../types/symbolItem";
 export const CIRCUIT_ROWS_STORAGE_KEY = "dinboard-web.circuit-rows.v1";
 const LEGACY_CIRCUIT_ROWS_STORAGE_KEY = "dinboard-tauri.circuit-rows.v1";
 
-type CircuitGroup = {
-  location: string;
+export type CircuitRcdGroup = {
+  id: string;
+  rcd: CircuitRow | null;
   rows: CircuitRow[];
+};
+
+export type CircuitGroup = {
+  location: string;
+  rcdGroups: CircuitRcdGroup[];
 };
 
 export function createDemoCircuitRows(): CircuitRow[] {
@@ -284,6 +290,7 @@ export function buildCircuitRowsFromSymbols(symbols: SymbolItem[]): CircuitRow[]
     circuitType: symbol.circuitType,
     isTerminalBlock: symbol.isTerminalBlock,
     visualPath: symbol.visualPath,
+    rcdSymbolId: symbol.rcdSymbolId,
   }));
 }
 
@@ -321,6 +328,7 @@ export function normalizeCircuitRows(raw: Partial<CircuitRow>[] | null | undefin
       circuitType: item.circuitType ?? source.circuitType,
       isTerminalBlock: item.isTerminalBlock ?? source.isTerminalBlock,
       visualPath: item.visualPath ?? source.visualPath,
+      rcdSymbolId: item.rcdSymbolId ?? source.rcdSymbolId,
     };
   });
 }
@@ -384,29 +392,58 @@ export function isTerminalBlockOrAux(item: CircuitRow): boolean {
   );
 }
 
-export function buildVisibleCircuitGroups(rows: CircuitRow[]): CircuitGroup[] {
-  const visibleRows = rows
+export function buildVisibleCircuitGroups(allRows: CircuitRow[]): CircuitGroup[] {
+  const visibleRows = allRows
     .filter(isCircuitElement)
     .slice()
     .sort(compareCircuitRowPosition);
 
-  const groups = new Map<string, CircuitRow[]>();
+  const locationMap = new Map<string, Map<string, CircuitRow[]>>();
 
   for (const row of visibleRows) {
-    const key = row.displayLocation || "Brak lokalizacji";
-    const bucket = groups.get(key);
+    const loc = row.displayLocation || "Brak lokalizacji";
+    const rcdId = row.rcdSymbolId || "direct";
 
-    if (bucket) {
-      bucket.push(row);
-    } else {
-      groups.set(key, [row]);
+    let rcdMap = locationMap.get(loc);
+    if (!rcdMap) {
+      rcdMap = new Map<string, CircuitRow[]>();
+      locationMap.set(loc, rcdMap);
     }
+
+    let bucket = rcdMap.get(rcdId);
+    if (!bucket) {
+      bucket = [];
+      rcdMap.set(rcdId, bucket);
+    }
+    bucket.push(row);
   }
 
-  return Array.from(groups.entries()).map(([location, groupedRows]) => ({
-    location,
-    rows: groupedRows.sort(compareCircuitRowPosition),
-  }));
+  return Array.from(locationMap.entries()).map(([location, rcdMap]) => {
+    const rcdGroups: CircuitRcdGroup[] = [];
+
+    for (const [rcdId, groupedRows] of rcdMap.entries()) {
+      const rcdRow = rcdId === "direct" ? null : allRows.find(r => r.id === rcdId) || null;
+      rcdGroups.push({
+        id: rcdId,
+        rcd: rcdRow,
+        rows: groupedRows.sort(compareCircuitRowPosition),
+      });
+    }
+
+    rcdGroups.sort((a, b) => {
+      const aFirst = a.rcd || a.rows[0];
+      const bFirst = b.rcd || b.rows[0];
+      if (!aFirst && !bFirst) return 0;
+      if (!aFirst) return 1;
+      if (!bFirst) return -1;
+      return compareCircuitRowPosition(aFirst, bFirst);
+    });
+
+    return {
+      location,
+      rcdGroups,
+    };
+  });
 }
 
 export function countHiddenCircuitRows(rows: CircuitRow[]): number {

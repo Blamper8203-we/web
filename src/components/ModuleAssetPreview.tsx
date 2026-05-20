@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  downsampleCanvas,
   drawContainedImage,
   getRasterSupersample,
+  shouldUseProgressiveDownsample,
 } from "../lib/modules/rasterPreview";
 import { loadPreparedSvgDataUri } from "../lib/modules/svgAsset";
 
@@ -19,6 +21,7 @@ interface ModuleAssetPreviewProps {
 const svgCache = new Map<string, string>();
 const rasterCanvasCache = new Map<string, HTMLCanvasElement>();
 const svgImageCache = new Map<string, Promise<HTMLImageElement>>();
+const PREVIEW_CACHE_VERSION = "v2";
 
 function buildCacheKey(src: string, parameters: Record<string, string>): string {
   const serializedParameters = Object.entries(parameters)
@@ -26,7 +29,7 @@ function buildCacheKey(src: string, parameters: Record<string, string>): string 
     .map(([key, value]) => `${key}=${value}`)
     .join("&");
 
-  return `${src}::${serializedParameters}`;
+  return `${PREVIEW_CACHE_VERSION}::${src}::${serializedParameters}`;
 }
 
 function getSvgImage(dataUri: string): Promise<HTMLImageElement> {
@@ -165,8 +168,14 @@ export function ModuleAssetPreview({
           sourcePixelWidth,
           sourcePixelHeight,
         );
-        rasterCanvasCache.set(rasterKey, offscreenCanvas);
-        paintToVisibleCanvas(offscreenCanvas);
+
+        const normalizedCanvas =
+          supersample > 1 && shouldUseProgressiveDownsample(src)
+            ? downsampleCanvas(offscreenCanvas, visiblePixelWidth, visiblePixelHeight)
+            : offscreenCanvas;
+
+        rasterCanvasCache.set(rasterKey, normalizedCanvas);
+        paintToVisibleCanvas(normalizedCanvas);
       })
       .catch(() => {
         if (!cancelled) {

@@ -4,12 +4,27 @@ export function isRcdAsset(src: string): boolean {
   return src.includes("/RCD/");
 }
 
+export function isImportedAsset(src: string): boolean {
+  const normalized = src.toLowerCase();
+  return normalized.includes("/imported/")
+    || normalized.includes("%2fimported%2f")
+    || normalized.includes("imported/");
+}
+
 export function getRasterSupersample(src: string): number {
-  return isRcdAsset(src) ? 4 : 1;
+  if (isRcdAsset(src)) {
+    return 6;
+  }
+
+  if (isImportedAsset(src)) {
+    return 3;
+  }
+
+  return 2;
 }
 
 export function shouldUseProgressiveDownsample(src: string): boolean {
-  return isRcdAsset(src);
+  return isRcdAsset(src) || isImportedAsset(src);
 }
 
 export function serializeParameters(parameters: Record<string, string>): string {

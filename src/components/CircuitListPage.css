@@ -141,6 +141,66 @@
   font-weight: 600;
 }
 
+.cl-rcd-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.cl-rcd-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: rgba(43, 108, 176, 0.15); /* Subtly distinct background for RCD groups */
+  border-bottom: 1px solid var(--border);
+}
+
+.cl-rcd-badge {
+  background: #2b6cb0;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.cl-rcd-label {
+  font-weight: 600;
+  color: var(--text-main);
+  font-size: 0.85rem;
+}
+
+.cl-rcd-phase {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.cl-rcd-children {
+  display: flex;
+  flex-direction: column;
+}
+
+.cl-row--nested span:first-child {
+  padding-left: 24px;
+  position: relative;
+}
+
+.cl-row--nested span:first-child::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-left: 1px solid var(--text-secondary);
+  border-bottom: 1px solid var(--text-secondary);
+  transform: translateY(-50%);
+}
+
 .cl-row span {
   padding: 9px 10px;
   border-right: 1px solid rgba(46, 48, 53, 0.9);

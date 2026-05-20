@@ -2,11 +2,12 @@
 
 Webowa wersja aplikacji DINBoard do projektowania rozdzielnic elektrycznych.
 
-## Stan na dziś (2026-05-19)
+## Stan na dziś (2026-05-20)
 
 - `npm ci` - PASS
-- `npm run check` - PASS
+- `npm run check` - PASS (73 testy jednostkowe)
 - `npm run check:online` - PASS
+- Freeze release: tag `web-v1-freeze-2026-05-20`
 - Device smoke (`desktop/tablet/mobile`) - PASS w raporcie z `2026-05-09`
 - Brak domknięcia bramy deploy (sekcja 3 w `RELEASE_WEB_V1_CHECKLIST.md`)
 

@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import type { SymbolItem } from "../types/symbolItem";
+import type { ProjectMetadata } from "../types/projectMetadata";
 import type { SchematicLayout, SchematicNode } from "../lib/schematic/schematicLayout";
 import { buildSchematicLayout } from "../lib/schematic/schematicLayoutEngine";
 import { renderSchematic } from "../lib/schematic/schematicRenderer";
@@ -32,6 +33,7 @@ interface SchematicCanvasProps {
   selectedSymbolIds?: string[];
   snapEnabled?: boolean;
   onZoomChange?: (zoomPercent: number) => void;
+  metadata?: ProjectMetadata;
 }
 
 interface EditingCell {
@@ -54,6 +56,7 @@ export function SchematicCanvas({
   selectedSymbolIds = selectedSymbolId ? [selectedSymbolId] : [],
   snapEnabled = true,
   onZoomChange,
+  metadata,
 }: SchematicCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const editorRef = useRef<HTMLInputElement>(null);
@@ -116,8 +119,9 @@ export function SchematicCanvas({
       activePageIndex: 0,
       selectedNodeId: selectedSymbolId ?? undefined,
       selectedNodeIds: selectedSymbolIds,
+      metadata,
     });
-  }, [layout, viewport, selectedSymbolId, selectedSymbolIds]);
+  }, [layout, viewport, selectedSymbolId, selectedSymbolIds, metadata]);
 
   const handleResize = useCallback(() => {
     const canvas = canvasRef.current;
@@ -229,10 +233,10 @@ export function SchematicCanvas({
         e.currentTarget.setPointerCapture(e.pointerId);
       }
 
-      const clickedNode = layout ? findNodeAtPosition(layout.nodes, worldPos[0], worldPos[1]) : null;
+      const clickedNode = layout ? findNodeAtPosition(layout, worldPos[0], worldPos[1]) : null;
       const clickedSymbol = clickedNode
         ? symbols.find((symbol) => symbol.id === clickedNode.id) ?? null
-        : findSymbolAtPosition(symbols, worldPos[0], worldPos[1]);
+        : null;
 
       if (clickedSymbol) {
         const shouldToggle = e.ctrlKey || e.metaKey;
@@ -285,9 +289,16 @@ export function SchematicCanvas({
         const worldPos = screenToWorld(viewport, canvasX, canvasY);
         let newX = worldPos[0];
         let newY = worldPos[1];
+        const draggedSymbol = symbols.find((symbol) => symbol.id === draggingSymbolId) ?? null;
 
         if (snapEnabled) {
-          const snap = snapToRail(newX, newY, layout);
+          const snap = snapToRail(newX, newY, layout, {
+            ignoreSymbolIds: [draggingSymbolId],
+            moduleRef: draggedSymbol?.moduleRef,
+            symbolHeight: draggedSymbol?.height,
+            symbolWidth: draggedSymbol?.width,
+            symbols,
+          });
           if (snap.snappedToRail) {
             newX = snap.snappedX;
             newY = snap.snappedY;
@@ -297,7 +308,7 @@ export function SchematicCanvas({
         onSymbolMove?.(draggingSymbolId, newX, newY);
       }
     },
-    [isPanning, isDragging, draggingSymbolId, viewport, layout, snapEnabled, onSymbolMove],
+    [isPanning, isDragging, draggingSymbolId, viewport, layout, snapEnabled, onSymbolMove, symbols],
   );
 
   const handlePointerUp = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -524,40 +535,45 @@ function getCanvasPoint(
 }
 
 function findNodeAtPosition(
-  nodes: SchematicNode[],
+  layout: SchematicLayout,
   worldX: number,
   worldY: number,
 ): SchematicNode | null {
-  for (let i = nodes.length - 1; i >= 0; i--) {
-    const node = nodes[i];
-    if (
-      worldX >= node.x &&
-      worldX <= node.x + node.width &&
-      worldY >= node.y &&
-      worldY <= node.y + node.height
-    ) {
-      return node;
+  for (const node of getRootNodes(layout.nodes)) {
+    const hit = hitNode(node, worldX, worldY);
+    if (hit) {
+      return hit;
     }
   }
 
   return null;
 }
 
-function findSymbolAtPosition(
-  symbols: SymbolItem[],
+function hitNode(
+  node: SchematicNode,
   worldX: number,
   worldY: number,
-): SymbolItem | null {
-  for (const symbol of symbols) {
-    if (
-      worldX >= symbol.x &&
-      worldX <= symbol.x + symbol.width &&
-      worldY >= symbol.y &&
-      worldY <= symbol.y + symbol.height
-    ) {
-      return symbol;
+): SchematicNode | null {
+  if (
+    worldX >= node.x - 4 &&
+    worldX <= node.x + node.width + 4 &&
+    worldY >= node.y - 4 &&
+    worldY <= node.y + node.height + 4
+  ) {
+    return node;
+  }
+
+  for (const child of node.children) {
+    const hit = hitNode(child, worldX, worldY);
+    if (hit) {
+      return hit;
     }
   }
 
   return null;
+}
+
+function getRootNodes(nodes: SchematicNode[]): SchematicNode[] {
+  const childIds = new Set(nodes.flatMap((node) => node.children.map((child) => child.id)));
+  return nodes.filter((node) => !childIds.has(node.id));
 }

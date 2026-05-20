@@ -1,0 +1,19 @@
+{
+  "name": "DINBoard Web",
+  "short_name": "DINBoard",
+  "description": "Webowa aplikacja do projektowania rozdzielnic elektrycznych i dokumentacji PDF.",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0e0f11",
+  "theme_color": "#0e0f11",
+  "lang": "pl",
+  "icons": [
+    {
+      "src": "/dinboard.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

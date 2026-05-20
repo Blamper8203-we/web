@@ -3,7 +3,7 @@
 ## Status bazowy
 
 - Ostatnia walidacja QA: `2026-05-09` (`QA_FUNCTIONAL_REPORT_2026-05-09.md`).
-- Ostatnia walidacja techniczna lokalnie: `2026-05-19`.
+- Ostatnia walidacja techniczna lokalnie: `2026-05-20`.
 
 ## 1) Technical gate
 
@@ -41,5 +41,5 @@ Uwagi deploy (2026-05-19):
 ## 4) Sign-off
 
 - [x] Update `MIGRATION_PLAN.md` status if scope changed (2026-05-19: brak zmiany scope funkcjonalnego)
-- [x] Freeze release commit/tag (2026-05-19, tag: `web-v1-freeze-2026-05-19`)
+- [x] Freeze release commit/tag (2026-05-20, tag: `web-v1-freeze-2026-05-20`)
 - [x] Publish short release note (scope + known limitations) - `RELEASE_NOTE_WEB_V1_2026-05-19.md`

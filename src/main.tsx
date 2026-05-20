@@ -1,72 +1,44 @@
 import { Buffer } from "buffer";
-// @ts-ignore
-import process from "process";
-(globalThis as any).Buffer = Buffer;
-(globalThis as any).process = process;
+
+type ProcessShim = {
+  env: Record<string, string | undefined>;
+};
+
+type RuntimeGlobals = typeof globalThis & {
+  Buffer?: typeof Buffer;
+  process?: ProcessShim;
+};
+
+const runtimeGlobals = globalThis as RuntimeGlobals;
+runtimeGlobals.Buffer = Buffer;
+runtimeGlobals.process ??= { env: {} };
 
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
+import { AppErrorBoundary } from "./components/AppErrorBoundary";
+import { registerGlobalRuntimeDiagnostics, reportRuntimeError } from "./lib/runtimeDiagnostics";
 
-interface RootErrorBoundaryState {
-  error: Error | null;
+function registerVitePreloadErrorRecovery() {
+  window.addEventListener("vite:preloadError", (event: Event) => {
+    const preloadEvent = event as Event & { payload?: unknown; preventDefault: () => void };
+    reportRuntimeError(preloadEvent.payload ?? "vite:preloadError", {
+      source: "unhandled-error",
+    });
+    preloadEvent.preventDefault();
+
+    // Recover from stale chunk references after deploy by forcing a full reload.
+    window.location.reload();
+  });
 }
 
-class RootErrorBoundary extends React.Component<
-  React.PropsWithChildren,
-  RootErrorBoundaryState
-> {
-  public constructor(props: React.PropsWithChildren) {
-    super(props);
-    this.state = { error: null };
-  }
-
-  public static getDerivedStateFromError(error: Error): RootErrorBoundaryState {
-    return { error };
-  }
-
-  public componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("RootErrorBoundary", error, errorInfo);
-  }
-
-  public render() {
-    if (!this.state.error) {
-      return this.props.children;
-    }
-
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          padding: "24px",
-          color: "#e5e7eb",
-          background: "#111214",
-          fontFamily: "Segoe UI, sans-serif",
-        }}
-      >
-        <h1 style={{ margin: "0 0 12px", fontSize: "20px" }}>
-          Aplikacja zatrzymała się na błędzie runtime
-        </h1>
-        <pre
-          style={{
-            padding: "16px",
-            whiteSpace: "pre-wrap",
-            background: "#1a1b1e",
-            border: "1px solid #2e3035",
-            overflow: "auto",
-          }}
-        >
-          {String(this.state.error?.stack || this.state.error?.message || this.state.error)}
-        </pre>
-      </div>
-    );
-  }
-}
+registerGlobalRuntimeDiagnostics();
+registerVitePreloadErrorRecovery();
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <RootErrorBoundary>
+    <AppErrorBoundary>
       <App />
-    </RootErrorBoundary>
+    </AppErrorBoundary>
   </React.StrictMode>,
 );
