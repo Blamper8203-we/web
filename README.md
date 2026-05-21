@@ -57,8 +57,7 @@ Automatyczny pipeline znajduje się w:
 Na `push` do `main`/`master` i na `pull_request` uruchamia:
 
 - `npm ci`
-- `npm run build`
-- `npm run test`
+- `npm run check:online` (build + testy + smoke tras SPA)
 
 ## Hosting SPA (odświeżanie na /app)
 

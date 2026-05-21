@@ -220,6 +220,20 @@ function AppWorkspace() {
   }, [activeSheet]);
 
   useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!hasUnsavedChanges) {
+        return;
+      }
+
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  useEffect(() => {
     const handleGlobalKeyDown = (event: KeyboardEvent) => {
       handleGlobalAppShortcut(event, {
         openHelp: () => setIsHelpOpen(true),

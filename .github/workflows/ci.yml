@@ -24,8 +24,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
-        run: npm run build
-
-      - name: Unit tests
-        run: npm run test
+      - name: Build, unit tests, and SPA smoke
+        run: npm run check:online

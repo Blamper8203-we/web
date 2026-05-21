@@ -50,11 +50,27 @@ export function HelpDialog({ onClose }: HelpDialogProps) {
           </section>
 
           <section className="help-dialog__section">
+            <h3>Zapis projektu</h3>
+            <ul>
+              <li>Przeglądarka trzyma roboczą kopię lokalnie; pełny zapis wykonaj przez <strong>Plik → Zapisz</strong> do pliku <code>.dinboard</code>.</li>
+              <li>Przed zamknięciem karty lub odświeżeniem strony zapisz projekt, jeśli widzisz status niezapisanych zmian.</li>
+            </ul>
+          </section>
+
+          <section className="help-dialog__section">
             <h3>Wskazówki</h3>
             <ul>
               <li>W widoku szyny DIN dodawaj moduły metodą przeciągnij i upuść z lewego panelu.</li>
               <li>W widoku PDF możesz przełączać zakładki dokumentów w prawym panelu.</li>
               <li>Przy zmianach RCD użyj przycisku „Zarządzaj RCD” w panelu konfiguracji.</li>
+            </ul>
+          </section>
+
+          <section className="help-dialog__section">
+            <h3>Zakres Web v1</h3>
+            <ul>
+              <li>Brak eksportu LaTeX, generatora szyny prądowej i kalkulatora indukcji.</li>
+              <li>Walidacje i obliczenia wspierają projekt — dokumentację sprawdź przed wydaniem na budowę.</li>
             </ul>
           </section>
         </div>

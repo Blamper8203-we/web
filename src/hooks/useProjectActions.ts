@@ -4,7 +4,7 @@ import {
   normalizeProjectMetadata,
   resetDocumentationFields,
 } from '../lib/projectMetadata';
-import { loadProjectFromPath, openProjectFile, saveProjectFile } from '../lib/projectFile';
+import { openProjectFile, saveProjectFile } from '../lib/projectFile';
 import { exportToPdf } from '../lib/export/pdfExportService';
 import { exportDinRailToBlobWithOptions } from '../lib/export/dinRailSnapshotService';
 import {
@@ -37,7 +37,6 @@ type BalanceChangeDetail = {
 };
 
 type BalanceSeverity = 'improved' | 'neutral' | 'worse';
-const DESKTOP_DEFAULT_PROJECT_PATH = "C:/Users/blamp/Desktop/nowyprojekt.dinboard";
 
 function escapeCsv(value: string | number): string {
   const normalized = String(value ?? "");
@@ -195,59 +194,6 @@ export function useProjectActions({
       showTemporaryStatus('Otwarto projekt', 3000);
     } catch (e) {
       showTemporaryStatus(`Błąd: ${e instanceof Error ? e.message : 'Nieznany'}`, 5000);
-    }
-  }, [
-    applyRailFromSymbols,
-    hasUnsavedChanges,
-    paletteTemplateMap,
-    resetProjectState,
-    setCurrentFilePath,
-    setMetadata,
-    setSymbols,
-    showTemporaryStatus,
-  ]);
-
-  const handleOpenDesktopDefaultProject = useCallback(async () => {
-    if (
-      hasUnsavedChanges &&
-      !window.confirm(
-        'Masz niezapisane zmiany. Czy na pewno chcesz otworzyć nowyprojekt.dinboard bez ich zapisywania?',
-      )
-    ) {
-      return;
-    }
-
-    try {
-      const data = await loadProjectFromPath(DESKTOP_DEFAULT_PROJECT_PATH);
-      if (!data) {
-        showTemporaryStatus('Nie znaleziono pliku nowyprojekt.dinboard', 5000);
-        return;
-      }
-
-      const normalizedSymbols = normalizeDinRailModuleOrdering(
-        normalizeGroupConsistency(
-          normalizePaletteAssetDimensions(data.symbols, paletteTemplateMap),
-        ),
-      );
-      setMetadata(normalizeProjectMetadata(data.metadata));
-      setSymbols(normalizedSymbols);
-      setCurrentFilePath(data.path ?? DESKTOP_DEFAULT_PROJECT_PATH);
-      resetProjectState();
-      if (data.rail?.isVisible) {
-        setDinRail({
-          config: { rows: data.rail.rows, modulesPerRow: data.rail.modulesPerRow },
-          svg: data.rail.svg,
-          width: data.rail.width,
-          height: data.rail.height,
-          isVisible: true,
-        });
-      } else {
-        applyRailFromSymbols(normalizedSymbols);
-      }
-      showTemporaryStatus('Otwarto nowyprojekt.dinboard', 3000);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Nieznany błąd';
-      showTemporaryStatus(`Nie można otworzyć ścieżki lokalnej (${message}). Użyj Plik > Otwórz.`, 6500);
     }
   }, [
     applyRailFromSymbols,
@@ -502,7 +448,6 @@ export function useProjectActions({
   return {
     handleNewProject,
     handleOpenProject,
-    handleOpenDesktopDefaultProject,
     handleSaveProject,
     handleExportPdf,
     handleExportBom,
