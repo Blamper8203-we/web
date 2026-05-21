@@ -1,5 +1,11 @@
 ﻿# Changelog dokumentacji
 
+## 2026-05-21
+
+- Rozszerzono `scripts/online-smoke.mjs` o tryb produkcyjny (`DINBOARD_SMOKE_BASE_URL`) i raport JSON.
+- Dodano `npm run smoke:production` oraz artefakty `test-artifacts/pre-deploy-smoke/` i `test-artifacts/post-deploy-smoke/`.
+- Zaktualizowano `RELEASE_WEB_V1_CHECKLIST.md` o pre-deploy smoke PASS (2026-05-21).
+
 ## 2026-05-20
 
 - Zamrożono stan aplikacji web v1 w commicie z tagiem `web-v1-freeze-2026-05-20`.

@@ -30,13 +30,17 @@ Uwagi walidacyjne (2026-05-19):
 ## 3) Deploy gate
 
 - [x] Hosting rewrite active for SPA routes (2026-05-19)
-- [ ] Environment/domain config updated
-- [ ] Post-deploy smoke on production URL (`/`, `/app`, fallback route)
+- [ ] Environment/domain config updated (publiczny URL produkcji)
+- [x] Pre-deploy SPA smoke on local `dist` (2026-05-21)
+- [ ] Post-deploy smoke on production URL (`/`, `/app`, `/app/`, fallback route)
 
-Uwagi deploy (2026-05-19):
+Uwagi deploy (2026-05-21):
 - Netlify rewrite potwierdzony w `public/_redirects` (`/* /index.html 200`).
 - Vercel rewrite potwierdzony w `vercel.json` (`"source": "/(.*)", "destination": "/index.html"`).
-- Dwa pozostałe punkty wymagają dostępu do konkretnego środowiska produkcyjnego.
+- Pre-deploy PASS: `npm run check:online` (73 testy + 4 trasy SPA + manifest).
+- Raport: `test-artifacts/pre-deploy-smoke/route-smoke.json`.
+- Post-deploy: uruchom `npm run smoke:production` z `DINBOARD_SMOKE_BASE_URL=https://<twoja-domena>` (instrukcja: `test-artifacts/post-deploy-smoke/README.md`).
+- Przy weryfikacji 2026-05-21 brak działającego URL produkcji (GitHub Pages / Vercel probe: 404).
 
 ## 4) Sign-off
 

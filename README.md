@@ -67,6 +67,25 @@ Projekt zawiera gotowe reguły przepisywania:
 - `public/_redirects` dla Netlify
 - `vercel.json` dla Vercel
 
+### Smoke przed i po deploy
+
+Przed wdrożeniem (lokalny build + symulacja SPA):
+
+```powershell
+npm run check:online
+```
+
+Raport: `test-artifacts/pre-deploy-smoke/route-smoke.json`
+
+Po wdrożeniu na docelową domenę:
+
+```powershell
+$env:DINBOARD_SMOKE_BASE_URL = "https://twoja-domena.pl"
+npm run smoke:production
+```
+
+Raport: `test-artifacts/post-deploy-smoke/route-smoke.json`
+
 ## Pliki projektu
 
 Wersja webowa nie zapisuje bezpośrednio na dysku jak desktop.

@@ -1,0 +1,42 @@
+{
+  "checkedAt": "2026-05-21T16:38:36.141Z",
+  "baseUrl": "http://127.0.0.1:4173",
+  "mode": "local-dist",
+  "results": [
+    {
+      "route": "http://127.0.0.1:4173/",
+      "path": "/",
+      "status": 200,
+      "containsRoot": true,
+      "ok": true
+    },
+    {
+      "route": "http://127.0.0.1:4173/app",
+      "path": "/app",
+      "status": 200,
+      "containsRoot": true,
+      "ok": true
+    },
+    {
+      "route": "http://127.0.0.1:4173/app/",
+      "path": "/app/",
+      "status": 200,
+      "containsRoot": true,
+      "ok": true
+    },
+    {
+      "route": "http://127.0.0.1:4173/non-existing-route",
+      "path": "/non-existing-route",
+      "status": 200,
+      "containsRoot": true,
+      "ok": true
+    },
+    {
+      "route": "http://127.0.0.1:4173/manifest.webmanifest",
+      "path": "/manifest.webmanifest",
+      "status": 200,
+      "containsRoot": false,
+      "ok": true
+    }
+  ]
+}

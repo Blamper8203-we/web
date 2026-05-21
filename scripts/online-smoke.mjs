@@ -1,13 +1,28 @@
 import { createServer } from "node:http";
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { extname, join, normalize } from "node:path";
 
 const HOST = "127.0.0.1";
 const PORT = Number(process.env.DINBOARD_SMOKE_PORT || 4173);
-const BASE_URL = `http://${HOST}:${PORT}`;
 const DIST_DIR = join(process.cwd(), "dist");
 const REQUEST_TIMEOUT_MS = 5_000;
+const REMOTE_BASE_URL = process.env.DINBOARD_SMOKE_BASE_URL?.replace(/\/$/, "");
+const IS_REMOTE = Boolean(REMOTE_BASE_URL);
+const BASE_URL = IS_REMOTE ? REMOTE_BASE_URL : `http://${HOST}:${PORT}`;
+const REPORT_PATH = join(
+  process.cwd(),
+  "test-artifacts",
+  IS_REMOTE ? "post-deploy-smoke" : "pre-deploy-smoke",
+  "route-smoke.json",
+);
+
+const SPA_ROUTES = [
+  "/",
+  "/app",
+  "/app/",
+  "/non-existing-route",
+];
 
 const CONTENT_TYPES = new Map([
   [".css", "text/css; charset=utf-8"],
@@ -67,16 +82,18 @@ async function fetchWithTimeout(path) {
   }
 }
 
-async function expectHtmlRoute(path) {
+async function probeHtmlRoute(path) {
   const response = await fetchWithTimeout(path);
-  if (!response.ok) {
-    throw new Error(`${path} returned HTTP ${response.status}`);
-  }
-
   const text = await response.text();
-  if (!text.includes('<div id="root"></div>')) {
-    throw new Error(`${path} did not return the SPA shell`);
-  }
+  const containsRoot = text.includes('<div id="root"></div>');
+
+  return {
+    route: `${BASE_URL}${path}`,
+    path,
+    status: response.status,
+    containsRoot,
+    ok: response.ok && containsRoot,
+  };
 }
 
 async function expectManifest() {
@@ -91,23 +108,71 @@ async function expectManifest() {
   }
 }
 
-if (!existsSync(join(DIST_DIR, "index.html"))) {
+async function runSpaRouteSmoke() {
+  const results = [];
+
+  for (const path of SPA_ROUTES) {
+    const result = await probeHtmlRoute(path);
+    results.push(result);
+
+    if (!result.ok) {
+      throw new Error(
+        `${result.route} failed (status=${result.status}, containsRoot=${result.containsRoot})`,
+      );
+    }
+  }
+
+  await expectManifest();
+  results.push({
+    route: `${BASE_URL}/manifest.webmanifest`,
+    path: "/manifest.webmanifest",
+    status: 200,
+    containsRoot: false,
+    ok: true,
+  });
+
+  await mkdir(join(process.cwd(), "test-artifacts", IS_REMOTE ? "post-deploy-smoke" : "pre-deploy-smoke"), {
+    recursive: true,
+  });
+  await writeFile(
+    REPORT_PATH,
+    `${JSON.stringify(
+      {
+        checkedAt: new Date().toISOString(),
+        baseUrl: BASE_URL,
+        mode: IS_REMOTE ? "production" : "local-dist",
+        results,
+      },
+      null,
+      2,
+    )}\n`,
+    "utf8",
+  );
+
+  return results;
+}
+
+if (!IS_REMOTE && !existsSync(join(DIST_DIR, "index.html"))) {
   throw new Error("Missing dist/index.html. Run npm run build before smoke:online.");
 }
 
-const server = createStaticSpaServer();
+let server;
 
 try {
-  await new Promise((resolve, reject) => {
-    server.once("error", reject);
-    server.listen(PORT, HOST, resolve);
-  });
+  if (!IS_REMOTE) {
+    server = createStaticSpaServer();
+    await new Promise((resolve, reject) => {
+      server.once("error", reject);
+      server.listen(PORT, HOST, resolve);
+    });
+  }
 
-  await expectHtmlRoute("/");
-  await expectHtmlRoute("/app");
-  await expectHtmlRoute("/app/deep-link-smoke");
-  await expectManifest();
-  console.log("Online smoke passed");
+  const results = await runSpaRouteSmoke();
+  console.log(`Online smoke passed (${IS_REMOTE ? "production" : "local-dist"})`);
+  console.log(`Report: ${REPORT_PATH}`);
+  console.log(`Routes checked: ${results.filter((entry) => entry.path !== "/manifest.webmanifest").length}`);
 } finally {
-  await new Promise((resolve) => server.close(resolve));
+  if (server) {
+    await new Promise((resolve) => server.close(resolve));
+  }
 }
