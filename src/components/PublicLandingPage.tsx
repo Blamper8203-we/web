@@ -38,7 +38,7 @@ export function PublicLandingPage({ onOpenWorkspace }: PublicLandingPageProps) {
         </article>
         <article className="landing__card">
           <h2>Dokumentacja PDF</h2>
-          <p>Podgląd i eksport PDF oparty o wspólną usługę `react-pdf` dla całej aplikacji.</p>
+          <p>Podgląd i eksport dokumentacji projektowej PDF bezpośrednio z aplikacji.</p>
         </article>
         <article className="landing__card">
           <h2>Dane projektu</h2>

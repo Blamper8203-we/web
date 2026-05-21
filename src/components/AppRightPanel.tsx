@@ -83,7 +83,7 @@ export function AppRightPanel({
                 <div className="section-header">KONFIGURACJA ZASILANIA</div>
                 <div className="card power-config-card">
                   <label className="power-config-field">
-                    <span><AppIcon className="accent-orange" name="validation" size={12} />Napięcie</span>
+                    <span><AppIcon className="accent-primary" name="validation" size={12} />Napięcie</span>
                     <select
                       value={metadata.supplyVoltageV}
                       onChange={(e) => handleMetadataChange({ ...metadata, supplyVoltageV: Number(e.target.value) as 230 | 400 })}
@@ -93,7 +93,7 @@ export function AppRightPanel({
                     </select>
                   </label>
                   <label className="power-config-field">
-                    <span><AppIcon className="accent-orange" name="busbar" size={12} />Liczba faz</span>
+                    <span><AppIcon className="accent-primary" name="busbar" size={12} />Liczba faz</span>
                     <select
                       value={metadata.supplyPhases}
                       onChange={(e) => handleMetadataChange({ ...metadata, supplyPhases: Number(e.target.value) as 1 | 3 })}
@@ -103,7 +103,7 @@ export function AppRightPanel({
                     </select>
                   </label>
                   <label className="power-config-field">
-                    <span><AppIcon className="accent-orange" name="delete" size={12} />Zabezpieczenie główne</span>
+                    <span><AppIcon className="accent-primary" name="delete" size={12} />Zabezpieczenie główne</span>
                     <select
                       value={metadata.mainBreakerA}
                       onChange={(e) => {
@@ -124,7 +124,7 @@ export function AppRightPanel({
                     </select>
                   </label>
                   <label className="power-config-field">
-                    <span><AppIcon className="accent-orange" name="balance" size={12} />Moc przyłączeniowa</span>
+                    <span><AppIcon className="accent-primary" name="balance" size={12} />Moc przyłączeniowa</span>
                     <div className="unit-input">
                       <input
                         value={metadata.contractedPowerKw}

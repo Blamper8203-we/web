@@ -45,7 +45,7 @@ export function PowerBalancePage({ symbols, onApplyBalance, metadata }: PowerBal
       <div className="card pb-summary-card">
         <div className="pb-summary-row">
           <span>
-            <AppIcon className="accent-orange" name="validation" size={14} />
+            <AppIcon className="accent-primary" name="validation" size={14} />
             Moc zainstalowana
           </span>
           <strong>{(totalPower / 1000).toFixed(2)} kW</strong>
@@ -61,7 +61,7 @@ export function PowerBalancePage({ symbols, onApplyBalance, metadata }: PowerBal
         <div className="pb-divider" />
         <div className="pb-summary-row">
           <span>
-            <AppIcon className="accent-orange" name="balance" size={14} />
+            <AppIcon className="accent-primary" name="balance" size={14} />
             Współczynnik jednoczesności
           </span>
           <strong>0.60</strong>

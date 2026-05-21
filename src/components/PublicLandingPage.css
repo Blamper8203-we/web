@@ -32,7 +32,7 @@
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--accent-orange, #0D79F2);
+  color: var(--accent-primary, #0d79f2);
 }
 
 .landing__hero h1 {

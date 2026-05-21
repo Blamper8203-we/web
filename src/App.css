@@ -26,7 +26,8 @@
   --accent-blue: #4a90f7;
   --accent-red: #f04d4d;
   --accent-green: #22c993;
-  --accent-orange: #0D79F2;
+  --accent-primary: #0d79f2;
+  --accent-orange: var(--accent-primary);
   --accent-yellow: #fcd535;
   --scrollbar-track: rgba(10, 11, 13, 0.36);
   --scrollbar-thumb: rgba(120, 128, 145, 0.42);
@@ -44,11 +45,11 @@
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.48), 0 2px 8px rgba(0, 0, 0, 0.24);
 
   --font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-  --font-size-xs: 0.625rem;
-  --font-size-sm: 0.6875rem;
-  --font-size-md: 0.75rem;
-  --font-size-base: 0.75rem;
-  --font-size-lg: 0.875rem;
+  --font-size-xs: 0.6875rem;
+  --font-size-sm: 0.75rem;
+  --font-size-md: 0.8125rem;
+  --font-size-base: 0.875rem;
+  --font-size-lg: 1rem;
 
   --radius-sm: 5px;
   --radius-md: 7px;
@@ -477,7 +478,8 @@ body {
 
 .accent-blue { color: var(--accent-blue) !important; }
 .accent-red { color: var(--accent-red) !important; }
-.accent-orange { color: var(--accent-orange) !important; }
+.accent-primary,
+.accent-orange { color: var(--accent-primary) !important; }
 .accent-green { color: var(--accent-green) !important; }
 
 /* ================================================================
