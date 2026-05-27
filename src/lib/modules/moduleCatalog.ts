@@ -432,7 +432,7 @@ export function getModuleAssetUrl(moduleRef: string): string {
     : `${import.meta.env.BASE_URL}/`;
   const encodedRef = moduleRef
     .split("/")
-    .map((part) => encodeURIComponent(part).replace(/%2B/gi, "+"))
+    .map((part) => encodeURIComponent(part))
     .join("/");
 
   return `${baseUrl}assets/modules/${encodedRef}`;
