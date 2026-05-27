@@ -65,11 +65,6 @@ const FALLBACK_MODULE_ASSETS: DiscoveredModuleAsset[] = [
   },
   {
     category: "MCB",
-    fileName: "MCB 3P.svg",
-    moduleRef: "MCB/MCB 3P.svg",
-  },
-  {
-    category: "MCB",
     fileName: "rozłacznik nadprądowy MCB 1P.svg",
     moduleRef: "MCB/rozłacznik nadprądowy MCB 1P.svg",
   },

@@ -31,7 +31,7 @@ describe("discoverModuleAssets", () => {
       .filter((moduleDefinition) => moduleDefinition.category === "RCD")
       .map((moduleDefinition) => moduleDefinition.label);
 
-    expect(modules).toHaveLength(26);
+    expect(modules).toHaveLength(25);
     expect(rcdLabels).toEqual([
       "Rozłącznik różnicowoprądowy 1P+N",
       "Rozłącznik różnicowoprądowy 3P+N",
