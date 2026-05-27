@@ -14,6 +14,7 @@ describe("project file round-trip", () => {
       company: "Dom jednorodzinny",
       projectNumber: "DB-42",
       address: "Krakow, ul. Testowa 1",
+      simultaneityFactor: 0.75,
     };
     const symbols = [
       createDefaultSymbolItem({
@@ -63,6 +64,7 @@ describe("project file round-trip", () => {
       company: "Dom jednorodzinny",
       projectNumber: "DB-42",
       address: "Krakow, ul. Testowa 1",
+      simultaneityFactor: 0.75,
     });
     expect(parsed.rail).toEqual(rail);
     expect(parsed.symbols).toHaveLength(2);

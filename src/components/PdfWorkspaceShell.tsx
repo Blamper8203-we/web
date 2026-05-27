@@ -1,5 +1,5 @@
 import { Suspense, lazy, useMemo, type TransitionStartFunction } from "react";
-import { pdfDocumentationTabs, type PdfDocumentationPreviewTab } from "../lib/pdfDocumentation";
+import { getPdfDocumentationTabs, type PdfDocumentationPreviewTab } from "../lib/pdfDocumentation";
 import { buildEditableMeasurementProtocols } from "../lib/measurementProtocols";
 import type { ProjectMetadata } from "../types/projectMetadata";
 import type { SymbolItem } from "../types/symbolItem";
@@ -79,6 +79,8 @@ export function PdfWorkspaceShell({
             <Suspense fallback={<div className="pdf-preview-workspace__empty"><strong>Ładowanie arkusza A4...</strong></div>}>
               <MeasurementProtocolsWorkspacePage
                 metadata={effectiveMetadata}
+                symbols={symbols}
+                rail={dinRail}
                 circuitRows={circuitRows}
                 onChange={handleMetadataChange}
                 activeTab={pdfPreviewTab}
@@ -93,7 +95,7 @@ export function PdfWorkspaceShell({
           <div className="panel-content">
             <div className="right-panel-content">
               <div className="pdf-right-panel-nav">
-                {pdfDocumentationTabs.map((tab) => (
+                {getPdfDocumentationTabs(effectiveMetadata.measurementProtocolStyle).map((tab) => (
                   <button
                     key={tab.id}
                     type="button"

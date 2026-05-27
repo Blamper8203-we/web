@@ -9,6 +9,11 @@ import type { MeasurementProtocolHeaderSettings, ProjectMetadata, TitlePageCheck
 import type { SymbolItem } from "../types/symbolItem";
 import { AppIcon } from "./AppIcon";
 import { exportToPdf } from "../lib/export/pdfExportService";
+import {
+  DEFAULT_ATTACHMENT_ITEMS,
+  DEFAULT_WORK_SCOPE_ITEMS,
+  normalizeAttachmentItems,
+} from "../lib/projectMetadata";
 import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
 import "./PdfDocumentationPage.css";
 
@@ -27,18 +32,6 @@ type FieldProps = {
   placeholder: string;
   onChange: (value: string) => void;
 };
-
-const DEFAULT_WORK_SCOPE_ITEMS = [
-  "Montaż rozdzielnicy głównej",
-  "Układanie przewodów i osprzętu",
-  "Pomiary ochrony przeciwporażeniowej",
-];
-
-const DEFAULT_ATTACHMENT_ITEMS = [
-  "Protokoły z pomiarów",
-  "Schemat rozdzielnicy",
-  "Uprawnienia wykonawcy",
-];
 
 function Field({ label, value, placeholder, onChange }: FieldProps) {
   return (
@@ -60,6 +53,22 @@ function pickProtocolHeading(selectedPreviewTab: PdfDocumentationPreviewTab) {
       title: "Pierwsza strona dokumentacji",
       description:
         "Po lewej edytujesz stronę tytułową. Szablony pomiarowe uzupełniasz z poziomu odpowiednich zakładek dokumentacji.",
+    };
+  }
+
+  if (selectedPreviewTab === "circuit-list") {
+    return {
+      title: "Lista obwodów",
+      description:
+        "Ta zakładka pokazuje obwody bezpośrednio z aktualnej rozdzielnicy. Edycja nazw, faz, zabezpieczeń i przewodów odbywa się w danych obwodu.",
+    };
+  }
+
+  if (selectedPreviewTab === "din-rail") {
+    return {
+      title: "Rozdzielnica elektryczna",
+      description:
+        "Ta zakładka pokazuje widok rozdzielnicy z aktualnej szyny DIN i synchronizuje się po zmianach w modułach.",
     };
   }
 
@@ -95,18 +104,18 @@ function parseChecklistItems(value: string): TitlePageChecklistItem[] {
 }
 
 function serializeLineItems(items: string[]) {
-  return items
+  return normalizeAttachmentItems(items)
     .map((item) => item.trim())
     .filter((item) => item.length > 0)
     .join("\n");
 }
 
 function parseLineItems(value: string) {
-  return value
-    .replace(/\r/g, "")
-    .split("\n")
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0);
+  return normalizeAttachmentItems(
+    value
+      .replace(/\r/g, "")
+      .split("\n"),
+  );
 }
 
 export function PdfDocumentationPage({
@@ -227,6 +236,17 @@ export function PdfDocumentationPage({
                 <div className="pd-card__body">
                   <h3 className="pd-card-title">Nagłówek dokumentu</h3>
                   <div className="pd-stack">
+                    <label className="pd-field">
+                      <span>Styl raportu pomiarowego</span>
+                      <select
+                        value={metadata.measurementProtocolStyle}
+                        onChange={(e) => updateMetadata({ measurementProtocolStyle: e.target.value as "separate" | "unified" })}
+                        style={{ padding: "8px", borderRadius: "4px", background: "#1B1D21", color: "white", border: "1px solid #3c3c3c" }}
+                      >
+                        <option value="unified">Tabela zbiorcza wyników</option>
+                        <option value="separate">Protokoły rozdzielone (klasyczne)</option>
+                      </select>
+                    </label>
                     <Field
                       label="Nr protokołu"
                       value={metadata.projectNumber ?? ""}
@@ -310,7 +330,7 @@ export function PdfDocumentationPage({
                 <div className="pd-card__body">
                   <h3 className="pd-card-title">Logo firmy elektrycznej</h3>
                   <p className="pd-help-text">
-                    Dodane logo zostanie zapisane w projekcie i pokazane na pierwszej stronie dokumentacji PDF.
+                    Dodane logo zostanie zapisane w zleceniu i pokazane na pierwszej stronie dokumentacji PDF.
                   </p>
                   <p className="pd-logo-info">
                     {metadata.titlePageCompanyLogoFileName
@@ -421,6 +441,34 @@ export function PdfDocumentationPage({
                 </div>
               </article>
             </div>
+          ) : selectedPreviewTab === "circuit-list" ? (
+            <div className="pd-editor-body">
+              <article className="pd-card">
+                <div className="pd-card__body">
+                  <h3 className="pd-card-title">Źródło danych listy</h3>
+                  <p className="pd-help-text">
+                    Lista obwodów jest generowana z aktualnych symboli rozdzielnicy i synchronizuje się po zmianach w modułach.
+                  </p>
+                  <p className="pd-help-text">
+                    RCD, kontrolki faz, listwy, złącza i bloki rozdzielcze nie są pokazywane jako osobne obwody.
+                  </p>
+                </div>
+              </article>
+            </div>
+          ) : selectedPreviewTab === "din-rail" ? (
+            <div className="pd-editor-body">
+              <article className="pd-card">
+                <div className="pd-card__body">
+                  <h3 className="pd-card-title">Źródło widoku rozdzielnicy</h3>
+                  <p className="pd-help-text">
+                    Widok jest generowany z aktualnej szyny DIN, modułów i oznaczeń widocznych w projekcie.
+                  </p>
+                  <p className="pd-help-text">
+                    Po dodaniu, usunięciu albo przesunięciu modułu podgląd odświeża się z tych samych danych, które trafiają do eksportu PDF.
+                  </p>
+                </div>
+              </article>
+            </div>
           ) : (
             <div className="pd-editor-body">
               <article className="pd-card">
@@ -457,7 +505,7 @@ export function PdfDocumentationPage({
                     <Field
                       label="Obiekt"
                       value={selectedHeader?.objectName ?? ""}
-                      placeholder="Nowy projekt"
+                      placeholder="Nowe zlecenie"
                       onChange={(value) => updateHeader("objectName", value)}
                     />
                   </div>

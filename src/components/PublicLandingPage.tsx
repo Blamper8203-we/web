@@ -15,10 +15,10 @@ export function PublicLandingPage({ onOpenWorkspace }: PublicLandingPageProps) {
     <main className="landing">
       <section className="landing__hero">
         <p className="landing__eyebrow">DINBoard Web</p>
-        <h1>Projektowanie rozdzielnic w przeglądarce</h1>
+        <h1>Dokumentacja powykonawcza instalacji elektrycznej</h1>
         <p>
-          Wersja webowa aplikacji DINBoard do pracy nad schematem, listą obwodów, walidacją
-          elektryczną i dokumentacją PDF.
+          DINBoard wspiera elektryka przy wykonaniu rozdzielnicy, opisaniu obwodów,
+          sprawdzeniu instalacji i przygotowaniu dokumentacji odbiorczej PDF.
         </p>
         <div className="landing__actions">
           <a className="landing__button" href="/app" onClick={handleOpenWorkspace}>
@@ -29,8 +29,8 @@ export function PublicLandingPage({ onOpenWorkspace }: PublicLandingPageProps) {
 
       <section className="landing__grid" aria-label="Kluczowe funkcje">
         <article className="landing__card">
-          <h2>Edytor projektu</h2>
-          <p>Konfiguracja danych projektu, bilans mocy oraz walidacja reguł zgodnych z wersją desktop.</p>
+          <h2>Dane wykonania</h2>
+          <p>Dane obiektu, wykonawcy, elektryka z uprawnieniami SEP oraz dokumentacji odbiorczej.</p>
         </article>
         <article className="landing__card">
           <h2>Schemat i rozdzielnica</h2>
@@ -38,20 +38,20 @@ export function PublicLandingPage({ onOpenWorkspace }: PublicLandingPageProps) {
         </article>
         <article className="landing__card">
           <h2>Dokumentacja PDF</h2>
-          <p>Podgląd i eksport dokumentacji projektowej PDF bezpośrednio z aplikacji.</p>
+          <p>Podgląd i eksport dokumentacji powykonawczej PDF bezpośrednio z aplikacji.</p>
         </article>
         <article className="landing__card">
-          <h2>Dane projektu</h2>
+          <h2>Dane zlecenia</h2>
           <p>
-            Projekty są edytowane lokalnie w przeglądarce i zapisywane jako pliki `.dinboard`.
+            Zlecenia są edytowane lokalnie w przeglądarce i zapisywane jako pliki `.dinboard`.
             Nie wysyłaj dokumentacji na serwer bez świadomej decyzji użytkownika.
           </p>
         </article>
         <article className="landing__card">
           <h2>Weryfikacja</h2>
           <p>
-            Walidacje i obliczenia wspierają projektowanie, ale wynik dokumentacji powinien
-            zostać sprawdzony przez osobę z właściwymi uprawnieniami.
+            Walidacje i obliczenia wspierają wykonanie i odbiór instalacji, ale wynik dokumentacji
+            powinien zostać sprawdzony przez osobę z właściwymi uprawnieniami.
           </p>
         </article>
       </section>

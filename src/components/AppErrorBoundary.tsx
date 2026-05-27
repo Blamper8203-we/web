@@ -49,7 +49,7 @@ export class AppErrorBoundary extends React.Component<
             <h1>Nie udało się wyświetlić aplikacji</h1>
             <p>
               Dane robocze zapisane w tej przeglądarce powinny pozostać dostępne.
-              Odśwież aplikację i sprawdź ostatni zapis projektu.
+              Odśwież aplikację i sprawdź ostatni zapis zlecenia.
             </p>
           </div>
           <div className="app-error-boundary__actions">

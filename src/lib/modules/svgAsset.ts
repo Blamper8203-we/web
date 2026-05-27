@@ -4,7 +4,7 @@ const rawSvgCache = new Map<string, string>();
 const rawSvgPromiseCache = new Map<string, Promise<string>>();
 const preparedSvgMarkupCache = new Map<string, string>();
 const preparedSvgDataUriCache = new Map<string, string>();
-const PREPARED_SVG_CACHE_VERSION = "v2";
+const PREPARED_SVG_CACHE_VERSION = "v4";
 
 function buildParametersKey(parameters: Record<string, string>): string {
   return Object.entries(parameters)
@@ -25,21 +25,19 @@ function isSvgDataUri(src: string): boolean {
 }
 
 function shouldNormalizeSvgSource(src: string): boolean {
-  return !isSvgDataUri(src);
+  return !isSvgDataUri(src) && !isImportedSvgSource(src);
 }
 
 function isImportedSvgSource(src: string): boolean {
   const normalized = src.toLowerCase();
   return normalized.includes("/imported/")
     || normalized.includes("%2fimported%2f")
-    || normalized.includes("imported/");
+    || normalized.includes("imported/")
+    || normalized.includes("dinboardsource=importedsvg");
 }
 
-function isRcdSvgSource(src: string): boolean {
-  const normalized = src.toLowerCase();
-  return normalized.includes("/rcd/")
-    || normalized.includes("%2frcd%2f")
-    || normalized.includes("rcd");
+export function shouldRenderRawModuleAsset(src: string): boolean {
+  return src.toLowerCase().includes("dinboardsource=importedsvg");
 }
 
 function decodeSvgDataUri(src: string): string {
@@ -121,7 +119,7 @@ export async function loadPreparedSvgMarkup(
   const parameterizedSvg = applyParameters(rawSvg, parameters);
   const preparedSvg = shouldNormalizeSvgSource(src)
     ? normalizeSvgMarkup(parameterizedSvg, {
-        normalizeStrokeWidths: isImportedSvgSource(src) || isRcdSvgSource(src),
+        normalizeStrokeWidths: false,
       })
     : parameterizedSvg;
   preparedSvgMarkupCache.set(cacheKey, preparedSvg);

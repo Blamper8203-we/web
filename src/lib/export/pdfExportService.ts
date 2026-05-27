@@ -45,7 +45,7 @@ export async function exportToPdf(
   const blobUrl = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = blobUrl;
-  link.download = `dokumentacja_${effectiveMetadata.projectNumber || "projekt"}.pdf`;
+  link.download = `dokumentacja_${effectiveMetadata.projectNumber || "zlecenie"}.pdf`;
   document.body.appendChild(link);
   link.click();
   link.remove();

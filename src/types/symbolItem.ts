@@ -204,7 +204,7 @@ function computeDisplayLocation(symbol: SymbolItem): string {
 }
 
 function computeDisplayModuleNumber(symbol: SymbolItem): string {
-  if (symbol.isTerminalBlock) return `LW${symbol.moduleNumber}`;
+  if (isTerminalOrConnectorSymbol(symbol)) return `X${symbol.moduleNumber}`;
   if (symbol.type.toUpperCase().includes("RCD")) return "#0";
   return `#${symbol.moduleNumber}`;
 }
@@ -224,11 +224,102 @@ function computeSpdInfo(symbol: SymbolItem): string {
 }
 
 function computeIsTerminalBlock(symbol: SymbolItem): boolean {
-  const type = symbol.type.toLowerCase();
+  return isTerminalOrConnectorSymbol(symbol);
+}
+
+function normalizeSymbolIdentityText(...values: Array<string | undefined>): string {
+  return values
+    .join(" ")
+    .toLocaleLowerCase("pl-PL")
+    .replace(/ł/g, "l")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function isKnownCircuitDeviceKind(symbol: Partial<SymbolItem>): boolean {
   return (
-    type.includes("terminalblock") ||
-    type.includes("listwy") ||
-    symbol.visualPath.toUpperCase().includes("LISTWA")
+    symbol.deviceKind === "mcb" ||
+    symbol.deviceKind === "rcd" ||
+    symbol.deviceKind === "rcbo" ||
+    symbol.deviceKind === "spd" ||
+    symbol.deviceKind === "fr" ||
+    symbol.deviceKind === "phaseIndicator"
+  );
+}
+
+function hasKnownCircuitDeviceIdentity(value: string): boolean {
+  return (
+    value.includes("rcd") ||
+    value.includes("rccb") ||
+    value.includes("roznic") ||
+    value.includes("rcbo") ||
+    value.includes("mcb") ||
+    value.includes("spd") ||
+    value.includes("kontrolk") ||
+    value.includes("indicator") ||
+    value.includes("lampka") ||
+    value.includes("sygnalizat") ||
+    value.includes("rozlacznik") ||
+    value.includes("switch") ||
+    value.includes("isolator") ||
+    /(^|[^a-z0-9])fr([^a-z0-9]|$)/.test(value)
+  );
+}
+
+export function isTerminalOrConnectorSymbol(symbol: Partial<SymbolItem>): boolean {
+  const value = normalizeSymbolIdentityText(
+    symbol.type,
+    symbol.label,
+    symbol.visualPath,
+    symbol.moduleRef,
+  );
+
+  return (
+    symbol.deviceKind === "terminalBlock" ||
+    symbol.isTerminalBlock === true ||
+    value.includes("terminalblock") ||
+    value.includes("terminal") ||
+    value.includes("listwa") ||
+    value.includes("listwy") ||
+    (value.includes("zlacz") && !value.includes("rozlacznik")) ||
+    value.includes("zacisk")
+  );
+}
+
+export function isDistributionBlockSymbol(symbol: Partial<SymbolItem>): boolean {
+  const value = normalizeSymbolIdentityText(
+    symbol.type,
+    symbol.label,
+    symbol.visualPath,
+    symbol.moduleRef,
+  );
+
+  return (
+    value.includes("blok") ||
+    value.includes("block") ||
+    value.includes("rozdzielcz") ||
+    value.includes("distribution")
+  );
+}
+
+export function isAuxiliaryNonCircuitSymbol(symbol: Partial<SymbolItem>): boolean {
+  const value = normalizeSymbolIdentityText(
+    symbol.type,
+    symbol.label,
+    symbol.visualPath,
+    symbol.moduleRef,
+  );
+
+  if (isKnownCircuitDeviceKind(symbol) || hasKnownCircuitDeviceIdentity(value)) {
+    return false;
+  }
+
+  return (
+    isTerminalOrConnectorSymbol(symbol) ||
+    isDistributionBlockSymbol(symbol) ||
+    value.includes("busbar") ||
+    value.includes("szyna laczeniowa") ||
+    value.includes("szyna zbiorcza")
   );
 }
 

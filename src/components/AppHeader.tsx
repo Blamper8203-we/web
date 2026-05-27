@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AppIcon } from "./AppIcon";
 import type { SheetType } from "../lib/appHelpers";
+import type { AppUiTheme } from "../App";
 
 interface AppHeaderProps {
   projectFileName: string;
@@ -11,6 +12,7 @@ interface AppHeaderProps {
   redoLabel: string | null;
   showRightPanel: boolean;
   showDinRailGroups: boolean;
+  uiTheme: AppUiTheme;
   activeSheet: SheetType;
   workspaceZoomPercent: number;
   hasSelectedSymbol: boolean;
@@ -30,6 +32,7 @@ interface AppHeaderProps {
   onOpenHelp: () => void;
   onToggleRightPanel: () => void;
   onToggleDinRailGroups: () => void;
+  onChangeUiTheme: (theme: AppUiTheme) => void;
   onChangeSheet: (sheet: SheetType) => void;
   showTemporaryStatus: (message: string) => void;
 }
@@ -43,6 +46,7 @@ export function AppHeader({
   redoLabel,
   showRightPanel,
   showDinRailGroups,
+  uiTheme,
   activeSheet,
   workspaceZoomPercent,
   hasSelectedSymbol,
@@ -62,6 +66,7 @@ export function AppHeader({
   onOpenHelp,
   onToggleRightPanel,
   onToggleDinRailGroups,
+  onChangeUiTheme,
   onChangeSheet,
   showTemporaryStatus,
 }: AppHeaderProps) {
@@ -120,10 +125,10 @@ export function AppHeader({
               onClick={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
             >
-              <span className="flyout-section">Projekt</span>
+              <span className="flyout-section">Zlecenie</span>
               <button className="flyout-item" onClick={() => { setFileMenuOpen(false); onNewProject(); }}>
                 <AppIcon className="flyout-icon" name="file" />
-                <span className="flyout-label">Nowy projekt</span>
+                <span className="flyout-label">Nowe zlecenie</span>
                 {hasUnsavedChanges && <span className="flyout-alert-dot" />}
                 <span className="flyout-shortcut">Ctrl+N</span>
               </button>
@@ -406,8 +411,24 @@ export function AppHeader({
               <div className="flyout-card">
                 <div className="settings-row">
                   <AppIcon name="theme" />
-                  <span>Motyw projektu</span>
+                  <span>Motyw aplikacji</span>
                   <strong>Ciemny</strong>
+                </div>
+                <div className="settings-segmented" role="group" aria-label="Styl UI">
+                  <button
+                    type="button"
+                    className={uiTheme === "modern" ? "active" : ""}
+                    onClick={() => onChangeUiTheme("modern")}
+                  >
+                    Z cieniami
+                  </button>
+                  <button
+                    type="button"
+                    className={uiTheme === "classic" ? "active" : ""}
+                    onClick={() => onChangeUiTheme("classic")}
+                  >
+                    Klasyczny
+                  </button>
                 </div>
               </div>
 

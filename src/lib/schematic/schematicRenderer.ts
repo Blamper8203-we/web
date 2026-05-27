@@ -5,7 +5,6 @@ import {
   A4_WIDTH_PX,
   CELL_FONT_SIZE,
   DRAW_LEFT,
-  DRAW_RIGHT,
   DRAW_TOP,
   FRAME_MARGIN_BOTTOM,
   FRAME_MARGIN_LEFT,
@@ -16,24 +15,13 @@ import {
   ROW_HEIGHT,
   TITLEBLOCK_HEIGHT,
   TITLEBLOCK_VISUAL_WIDTH,
-  TITLEBLOCK_WIDTH,
   Y_GROUP_BUS,
   Y_LABEL_TOP,
   Y_MAIN_BUS,
   Y_N,
   Y_PE,
-  Y_ROW_CABLE,
-  Y_ROW_CABLE_LENGTH,
-  Y_ROW_CABLE_SPEC,
-  Y_ROW_CABLE_TYPE,
-  Y_ROW_CIRCUIT,
   Y_ROW_DESIGNATION,
-  Y_ROW_LOCATION,
-  Y_ROW_POWER,
-  Y_ROW_PROTECTION,
-  Y_ROW_SEPARATOR,
   Y_SUPPLY,
-  Y_TABLE_END,
   Y_WIRE_END,
 } from "./schematicLayout";
 
@@ -63,9 +51,9 @@ const COLORS = {
   boxBg: "#fafbfe",
   bus: "#181c24",
   wire: "#4a505c",
-  fr: "#783cdc",
+  fr: "#5b3fd6",
   spd: "#d28200",
-  rcd: "#8c32d2",
+  rcd: "#007c89",
   kf: "#aa8214",
   l1: "#8b4513",
   l2: "#1e1e1e",
@@ -77,6 +65,22 @@ const COLORS = {
   tableDim: "#667085",
   selected: "#0D79F2",
 };
+
+const Y_ROW_CIRCUIT = Y_ROW_DESIGNATION + ROW_HEIGHT;
+const Y_ROW_LOCATION = Y_ROW_DESIGNATION + ROW_HEIGHT * 2;
+const Y_ROW_CABLE = Y_ROW_DESIGNATION + ROW_HEIGHT * 3;
+const Y_ROW_CABLE_TYPE = Y_ROW_DESIGNATION + ROW_HEIGHT * 4;
+const Y_ROW_CABLE_SPEC = Y_ROW_DESIGNATION + ROW_HEIGHT * 5;
+const Y_ROW_CABLE_LENGTH = Y_ROW_DESIGNATION + ROW_HEIGHT * 6;
+const Y_ROW_POWER = Y_ROW_DESIGNATION + ROW_HEIGHT * 7;
+const Y_ROW_SEPARATOR = Y_ROW_CABLE;
+const SYMBOL_TOP_LINE_START = 30;
+const SYMBOL_BOTTOM_LINE_END = 300;
+const FR_SYMBOL_Y_OFFSET = 0;
+const PATH_NUMBER_LABEL_Y = 10;
+const FR_SUPPLY_CONNECTION_Y_OFFSET = 12;
+export const SCHEMATIC_BODY_Y_OFFSET = 12;
+const EMPTY_SCHEMATIC_TABLE_VALUE = "Brak";
 
 export function renderSchematic(
   ctx: CanvasRenderingContext2D,
@@ -147,8 +151,12 @@ function drawPageVectors(
     return;
   }
 
+  drawPathGuides(ctx, pageDevices, page);
+
+  ctx.save();
+  ctx.translate(0, SCHEMATIC_BODY_Y_OFFSET);
+
   drawMainBus(ctx, page);
-  drawPathNumbers(ctx, pageDevices, page);
 
   for (const device of pageDevices) {
     drawDevice(ctx, device, page);
@@ -164,6 +172,9 @@ function drawPageVectors(
     drawContinuation(ctx, page, page.pageIndex, false);
   }
 
+  ctx.restore();
+
+  drawPathNumberLabels(ctx, pageDevices, page);
   drawLegend(ctx, page, pageDevices);
 }
 
@@ -193,30 +204,27 @@ function drawDevice(ctx: CanvasRenderingContext2D, node: SchematicNode, page: Pa
         return;
       }
 
-      drawWireLine(ctx, cx, y(page, Y_SUPPLY), node.y, COLORS.fr, 1.8);
-      phaseMarks(ctx, cx, y(page, Y_SUPPLY) + (node.y - y(page, Y_SUPPLY)) / 2, node.phaseCount, node.phase, true);
-      text(ctx, supplyLabel(node.phaseCount), cx - 38, y(page, Y_SUPPLY) + (node.y - y(page, Y_SUPPLY)) / 2 - 2, 8, COLORS.textDim);
+      drawFrSupplyConnection(ctx, page, cx, symbolTopY(node.y), node.phaseCount, node.phase);
       symFr(ctx, cx, node.y + MODULE_HEIGHT / 2, COLORS.fr);
       text(ctx, node.designation, cx + 12, node.y + 25, 9, COLORS.textDes, true);
-      drawWireLine(ctx, cx, node.y + MODULE_HEIGHT, mainBusY, COLORS.wire, 1.2);
-      phaseMarks(ctx, cx, node.y + MODULE_HEIGHT + (mainBusY - (node.y + MODULE_HEIGHT)) / 2, node.phaseCount, node.phase, true);
+      drawWireLine(ctx, cx, symbolBottomY(node.y), mainBusY, COLORS.wire, 1.2);
+      phaseMarks(ctx, cx, symbolBottomY(node.y) + (mainBusY - symbolBottomY(node.y)) / 2, node.phaseCount, node.phase, true);
       drawDot(ctx, cx, mainBusY, COLORS.wire, 2.5);
       return;
 
     case "PhaseIndicator":
-      wireDot(ctx, cx, mainBusY, node.y);
-      phaseMarks(ctx, cx, mainBusY + (node.y - mainBusY) / 2, node.phaseCount, node.phase);
+      wireDot(ctx, cx, mainBusY, symbolTopY(node.y));
+      phaseMarks(ctx, cx, mainBusY + (symbolTopY(node.y) - mainBusY) / 2, node.phaseCount, node.phase);
       symKf(ctx, cx, node.y + MODULE_HEIGHT / 2);
       text(ctx, node.designation, cx + 12, node.y + 25, 8.5, COLORS.textDes, true);
       textRight(ctx, node.protection, cx - 12, node.y + MODULE_HEIGHT / 2 + 5, 7.5, COLORS.textDim);
       return;
 
     case "SPD":
-      wireDot(ctx, cx, mainBusY, node.y);
-      phaseMarks(ctx, cx, mainBusY + (node.y - mainBusY) / 2, node.phaseCount, node.phase, true);
+      wireDot(ctx, cx, mainBusY, symbolTopY(node.y));
+      phaseMarks(ctx, cx, mainBusY + (symbolTopY(node.y) - mainBusY) / 2, node.phaseCount, node.phase, true);
       symSpd(ctx, cx, node.y + MODULE_HEIGHT / 2);
       text(ctx, node.designation, cx + 12, node.y + 25, 8.5, COLORS.textDes, true);
-      symGround(ctx, cx, node.y + MODULE_HEIGHT + 3);
       textCenteredBox(ctx, node.protection, cx - 35, node.y + MODULE_HEIGHT + 24, 70, 7, COLORS.textDim);
       return;
 
@@ -225,8 +233,8 @@ function drawDevice(ctx: CanvasRenderingContext2D, node: SchematicNode, page: Pa
       return;
 
     case "MCB":
-      wireDot(ctx, cx, mainBusY, node.y);
-      phaseMarks(ctx, cx, mainBusY + (node.y - mainBusY) / 2, node.phaseCount, node.phase);
+      wireDot(ctx, cx, mainBusY, symbolTopY(node.y));
+      phaseMarks(ctx, cx, mainBusY + (symbolTopY(node.y) - mainBusY) / 2, node.phaseCount, node.phase);
       drawMcb(ctx, node, node.y, page);
       return;
 
@@ -237,11 +245,8 @@ function drawDevice(ctx: CanvasRenderingContext2D, node: SchematicNode, page: Pa
 
 function drawGroupedMainBreaker(ctx: CanvasRenderingContext2D, breaker: SchematicNode, page: PageInfo): void {
   const cx = breaker.x + MODULE_WIDTH / 2;
-  const supplyY = y(page, Y_SUPPLY);
 
-  drawWireLine(ctx, cx, supplyY, breaker.y, COLORS.fr, 1.8);
-  phaseMarks(ctx, cx, supplyY + (breaker.y - supplyY) / 2, breaker.phaseCount, breaker.phase, true);
-  text(ctx, supplyLabel(breaker.phaseCount), cx - 38, supplyY + (breaker.y - supplyY) / 2 - 2, 8, COLORS.textDim);
+  drawFrSupplyConnection(ctx, page, cx, symbolTopY(breaker.y), breaker.phaseCount, breaker.phase);
   symFr(ctx, cx, breaker.y + MODULE_HEIGHT / 2, COLORS.fr);
   text(ctx, breaker.designation, cx + 12, breaker.y + 25, 9, COLORS.textDes, true);
   textRight(ctx, breaker.protection, cx - 18, breaker.y + MODULE_HEIGHT / 2 + 5, 7.5, COLORS.textDim);
@@ -262,8 +267,8 @@ function drawGroupedMainBreaker(ctx: CanvasRenderingContext2D, breaker: Schemati
   const lastX = breaker.children[breaker.children.length - 1].x + MODULE_WIDTH / 2;
 
   if (useMainBusAsDistribution) {
-    drawWireLine(ctx, cx, breaker.y + MODULE_HEIGHT, mainBusY, COLORS.wire, 1.2);
-    phaseMarks(ctx, cx, breaker.y + MODULE_HEIGHT + (mainBusY - (breaker.y + MODULE_HEIGHT)) / 2, breaker.phaseCount, breaker.phase);
+    drawWireLine(ctx, cx, symbolBottomY(breaker.y), mainBusY, COLORS.wire, 1.2);
+    phaseMarks(ctx, cx, symbolBottomY(breaker.y) + (mainBusY - symbolBottomY(breaker.y)) / 2, breaker.phaseCount, breaker.phase);
     drawDot(ctx, cx, mainBusY, COLORS.wire, 2.5);
     drawDistributionBlockLabel(ctx, breaker.distributionBlockLabel, firstX - MODULE_WIDTH / 2 + 4, mainBusY - 10);
   } else if (hasDistributionBlock) {
@@ -272,13 +277,13 @@ function drawGroupedMainBreaker(ctx: CanvasRenderingContext2D, breaker: Schemati
     const blockTop = groupY - blockHeight - 18;
     const blockLeft = cx - blockWidth / 2;
 
-    drawWireLine(ctx, cx, breaker.y + MODULE_HEIGHT, blockTop, COLORS.wire, 1.2);
-    phaseMarks(ctx, cx, breaker.y + MODULE_HEIGHT + (blockTop - (breaker.y + MODULE_HEIGHT)) / 2, breaker.phaseCount, breaker.phase);
+    drawWireLine(ctx, cx, symbolBottomY(breaker.y), blockTop, COLORS.wire, 1.2);
+    phaseMarks(ctx, cx, symbolBottomY(breaker.y) + (blockTop - symbolBottomY(breaker.y)) / 2, breaker.phaseCount, breaker.phase);
     drawDistributionBlock(ctx, breaker.distributionBlockLabel, blockLeft, blockTop, blockWidth, blockHeight);
     wireDot(ctx, cx, blockTop + blockHeight, groupY);
   } else {
-    wireDot(ctx, cx, breaker.y + MODULE_HEIGHT, groupY);
-    phaseMarks(ctx, cx, breaker.y + MODULE_HEIGHT + (groupY - (breaker.y + MODULE_HEIGHT)) / 2, breaker.phaseCount, breaker.phase);
+    wireDot(ctx, cx, symbolBottomY(breaker.y), groupY);
+    phaseMarks(ctx, cx, symbolBottomY(breaker.y) + (groupY - symbolBottomY(breaker.y)) / 2, breaker.phaseCount, breaker.phase);
   }
 
   if (!useMainBusAsDistribution) {
@@ -290,14 +295,30 @@ function drawGroupedMainBreaker(ctx: CanvasRenderingContext2D, breaker: Schemati
   }
 }
 
+function drawFrSupplyConnection(
+  ctx: CanvasRenderingContext2D,
+  page: PageInfo,
+  cx: number,
+  targetY: number,
+  phaseCount: number,
+  phase: string,
+): void {
+  const supplyY = y(page, Y_SUPPLY + FR_SUPPLY_CONNECTION_Y_OFFSET);
+  const labelY = supplyY + (targetY - supplyY) / 2;
+
+  drawWireLine(ctx, cx, supplyY, targetY, COLORS.fr, 1.8);
+  phaseMarks(ctx, cx, labelY, phaseCount, phase, true);
+  text(ctx, supplyLabel(phaseCount), cx - 38, labelY - 2, 8, COLORS.textDim);
+}
+
 function drawRcd(ctx: CanvasRenderingContext2D, rcd: SchematicNode, page: PageInfo): void {
   const cx = rcd.x + MODULE_WIDTH / 2;
   const mainBusY = y(page, Y_MAIN_BUS);
-  wireDot(ctx, cx, mainBusY, rcd.y);
-  phaseMarks(ctx, cx, mainBusY + (rcd.y - mainBusY) / 2, rcd.phaseCount, rcd.phase, true);
+  wireDot(ctx, cx, mainBusY, symbolTopY(rcd.y));
+  phaseMarks(ctx, cx, mainBusY + (symbolTopY(rcd.y) - mainBusY) / 2, rcd.phaseCount, rcd.phase, true);
   symRcd(ctx, cx, rcd.y + MODULE_HEIGHT / 2);
   text(ctx, rcd.designation, cx + 12, rcd.y + 25, 9, COLORS.textDes, true);
-  textRight(ctx, rcd.protection, cx - 22, rcd.y + MODULE_HEIGHT / 2 + 5, 7.5, COLORS.rcd);
+  textRight(ctx, rcd.protection, cx - 18, rcd.y + MODULE_HEIGHT / 2 + 6, 8.4, COLORS.rcd, 110);
 
   if (rcd.children.length === 0) {
     return;
@@ -306,8 +327,8 @@ function drawRcd(ctx: CanvasRenderingContext2D, rcd: SchematicNode, page: PageIn
   const groupY = y(page, Y_GROUP_BUS);
   const firstX = rcd.children[0].x + MODULE_WIDTH / 2;
   const lastX = rcd.children[rcd.children.length - 1].x + MODULE_WIDTH / 2;
-  wireDot(ctx, cx, rcd.y + MODULE_HEIGHT, groupY);
-  phaseMarks(ctx, cx, rcd.y + MODULE_HEIGHT + (groupY - (rcd.y + MODULE_HEIGHT)) / 2, rcd.phaseCount, rcd.phase, true);
+  wireDot(ctx, cx, symbolBottomY(rcd.y), groupY);
+  phaseMarks(ctx, cx, symbolBottomY(rcd.y) + (groupY - symbolBottomY(rcd.y)) / 2, rcd.phaseCount, rcd.phase, true);
   strokeLine(ctx, firstX - 8, groupY, lastX + 8, groupY, COLORS.wire, 2.2);
 
   for (const child of rcd.children) {
@@ -317,11 +338,11 @@ function drawRcd(ctx: CanvasRenderingContext2D, rcd: SchematicNode, page: PageIn
 
 function drawChildFromGroupBus(ctx: CanvasRenderingContext2D, child: SchematicNode, page: PageInfo, groupY: number): void {
   const childCx = child.x + MODULE_WIDTH / 2;
-  wireDot(ctx, childCx, groupY, child.y);
+  wireDot(ctx, childCx, groupY, symbolTopY(child.y));
   phaseMarks(
     ctx,
     childCx,
-    groupY + (child.y - groupY) / 2,
+    groupY + (symbolTopY(child.y) - groupY) / 2,
     child.phaseCount,
     child.phase,
     child.nodeType === "SPD",
@@ -334,7 +355,6 @@ function drawChildFromGroupBus(ctx: CanvasRenderingContext2D, child: SchematicNo
     case "SPD":
       symSpd(ctx, childCx, child.y + MODULE_HEIGHT / 2);
       text(ctx, child.designation, childCx + 12, child.y + 25, 8, COLORS.textDes, true);
-      symGround(ctx, childCx, child.y + MODULE_HEIGHT + 3);
       textCenteredBox(ctx, child.protection, childCx - 35, child.y + MODULE_HEIGHT + 22, 70, 6.5, COLORS.textDim);
       return;
     case "PhaseIndicator":
@@ -400,7 +420,7 @@ function drawMcb(ctx: CanvasRenderingContext2D, node: SchematicNode, nodeY: numb
 function drawCircuitTable(ctx: CanvasRenderingContext2D, page: PageInfo, rootNodes: SchematicNode[]): void {
   const nodes = rootNodes
     .filter((node) => node.pageIndex === page.pageIndex)
-    .flatMap((node) => displayNodes(node));
+    .flatMap((node) => displayTableNodes(node));
 
   if (nodes.length === 0) {
     return;
@@ -408,23 +428,13 @@ function drawCircuitTable(ctx: CanvasRenderingContext2D, page: PageInfo, rootNod
 
   const tableLeft = DRAW_LEFT;
   const tableTop = y(page, Y_ROW_DESIGNATION);
-  const tableBottom = y(page, Y_TABLE_END);
-  let tableRight = tableLeft;
-  let firstDataLeft = Number.POSITIVE_INFINITY;
-
-  for (const node of nodes) {
-    const cx = node.x + MODULE_WIDTH / 2;
-    const cellLeft = cx - node.cellWidth / 2;
-    const cellRight = cx + node.cellWidth / 2;
-    firstDataLeft = Math.min(firstDataLeft, cellLeft);
-    tableRight = Math.max(tableRight, cellRight);
-  }
-
+  const tableBottom = y(page, Y_ROW_DESIGNATION + 8 * ROW_HEIGHT);
   const leftX = Math.round(tableLeft);
-  const rightX = Math.round(tableRight);
+  const rightX = Math.round(A4_WIDTH_PX - FRAME_MARGIN_RIGHT - TITLEBLOCK_VISUAL_WIDTH - 22);
   const topY = Math.round(tableTop);
   const bottomY = Math.round(tableBottom);
-  const headerRx = Math.max(leftX, Math.min(rightX, Math.round(Math.min(tableLeft + 170, firstDataLeft))));
+  const headerRx = Math.min(leftX + 150, rightX - 60);
+  const columns = buildTableColumns(nodes, headerRx, rightX);
 
   ctx.fillStyle = COLORS.page;
   ctx.fillRect(leftX, topY, rightX - leftX, bottomY - topY);
@@ -433,34 +443,31 @@ function drawCircuitTable(ctx: CanvasRenderingContext2D, page: PageInfo, rootNod
 
   const rows: Array<[number, string]> = [
     [Y_ROW_DESIGNATION, "Oznaczenie"],
-    [Y_ROW_PROTECTION, "Zabezp."],
     [Y_ROW_CIRCUIT, "Obwód"],
-    [Y_ROW_LOCATION, "Lokalizacja"],
-    [Y_ROW_CABLE, "Kabel"],
-    [Y_ROW_CABLE_TYPE, "Typ kabla"],
+    [Y_ROW_DESIGNATION + ROW_HEIGHT * 2, "Lokalizacja"],
+    [Y_ROW_DESIGNATION + ROW_HEIGHT * 3, "Kabel"],
+    [Y_ROW_DESIGNATION + ROW_HEIGHT * 4, "Typ kabla"],
     [Y_ROW_CABLE_SPEC, "Przekrój"],
     [Y_ROW_CABLE_LENGTH, "Długość"],
-    [Y_ROW_POWER, "Moc"],
+    [Y_ROW_DESIGNATION + ROW_HEIGHT * 7, "Moc"],
   ];
 
   for (const [rowY, label] of rows) {
     text(ctx, label, leftX + 12, y(page, rowY) + 5, 12.5, COLORS.tableMuted);
   }
 
-  for (const node of nodes) {
-    const cx = node.x + MODULE_WIDTH / 2;
-    const cellLeft = cx - node.cellWidth / 2;
+  for (const column of columns) {
+    const node = column.node;
     const values = getTableValues(node);
 
-    tableCell(ctx, values.designation, cellLeft, y(page, Y_ROW_DESIGNATION), node.cellWidth, COLORS.textDes, true);
-    tableCell(ctx, values.protection, cellLeft, y(page, Y_ROW_PROTECTION), node.cellWidth, COLORS.text, true);
-    tableCell(ctx, values.circuitName || "-", cellLeft, y(page, Y_ROW_CIRCUIT), node.cellWidth, COLORS.tableDim);
-    tableCell(ctx, values.location || "-", cellLeft, y(page, Y_ROW_LOCATION), node.cellWidth, COLORS.tableDim);
-    tableCell(ctx, values.cableDesig, cellLeft, y(page, Y_ROW_CABLE), node.cellWidth, cableDesignationColor(node), true);
-    tableCell(ctx, values.cableType, cellLeft, y(page, Y_ROW_CABLE_TYPE), node.cellWidth, COLORS.tableDim);
-    tableCell(ctx, values.cableSpec, cellLeft, y(page, Y_ROW_CABLE_SPEC), node.cellWidth, COLORS.text);
-    tableCell(ctx, values.cableLength, cellLeft, y(page, Y_ROW_CABLE_LENGTH), node.cellWidth, COLORS.tableDim);
-    tableCell(ctx, values.powerInfo, cellLeft, y(page, Y_ROW_POWER), node.cellWidth, COLORS.tableDim);
+    tableCell(ctx, values.designation, column.x, y(page, Y_ROW_DESIGNATION), column.wrapWidth, COLORS.textDes, true, column.centerX);
+    tableCell(ctx, values.circuitName || EMPTY_SCHEMATIC_TABLE_VALUE, column.x, y(page, Y_ROW_CIRCUIT), column.wrapWidth, COLORS.tableDim, false, column.centerX);
+    tableCell(ctx, values.location || EMPTY_SCHEMATIC_TABLE_VALUE, column.x, y(page, Y_ROW_LOCATION), column.wrapWidth, COLORS.tableDim, false, column.centerX);
+    tableCell(ctx, values.cableDesig || EMPTY_SCHEMATIC_TABLE_VALUE, column.x, y(page, Y_ROW_CABLE), column.wrapWidth, cableDesignationColor(node), true, column.centerX);
+    tableCell(ctx, values.cableType || EMPTY_SCHEMATIC_TABLE_VALUE, column.x, y(page, Y_ROW_CABLE_TYPE), column.wrapWidth, COLORS.tableDim, false, column.centerX);
+    tableCell(ctx, values.cableSpec, column.x, y(page, Y_ROW_CABLE_SPEC), column.wrapWidth, COLORS.text, false, column.centerX);
+    tableCell(ctx, values.cableLength, column.x, y(page, Y_ROW_CABLE_LENGTH), column.wrapWidth, COLORS.tableDim, false, column.centerX);
+    tableCell(ctx, values.powerInfo, column.x, y(page, Y_ROW_POWER), column.wrapWidth, COLORS.tableDim, false, column.centerX);
   }
 
   for (const [rowY] of rows) {
@@ -470,9 +477,8 @@ function drawCircuitTable(ctx: CanvasRenderingContext2D, page: PageInfo, rootNod
     }
   }
 
-  for (const node of nodes) {
-    const cx = node.x + MODULE_WIDTH / 2;
-    const cellLeft = Math.round(cx - node.cellWidth / 2);
+  for (const column of columns) {
+    const cellLeft = Math.round(column.x);
     if (cellLeft > headerRx + 1) {
       strokeLine(ctx, cellLeft, topY, cellLeft, bottomY, COLORS.grid, 1);
     }
@@ -485,11 +491,38 @@ function drawCircuitTable(ctx: CanvasRenderingContext2D, page: PageInfo, rootNod
   ctx.strokeRect(leftX, topY, rightX - leftX, bottomY - topY);
 }
 
+interface TableColumn {
+  node: SchematicNode;
+  width: number;
+  x: number;
+  centerX: number;
+  wrapWidth: number;
+}
+
+function buildTableColumns(nodes: SchematicNode[], startX: number, rightX: number): TableColumn[] {
+  const centers = nodes.map((node) => node.x + MODULE_WIDTH / 2);
+
+  return nodes.map((node, index) => {
+    const center = centers[index];
+    const x = index === 0
+      ? startX
+      : (centers[index - 1] + center) / 2;
+    const nextX = index === nodes.length - 1
+      ? rightX
+      : (center + centers[index + 1]) / 2;
+    const width = Math.max(0, nextX - x);
+    const wrapWidth = Math.max(36, Math.min(width, 2 * Math.min(center - x, nextX - center)));
+
+    return { node, width, x, centerX: center, wrapWidth };
+  });
+}
+
+
 function getProjectObjectName(metadata?: ProjectMetadata): string {
   if (metadata?.company?.trim()) {
     return metadata.company.trim();
   }
-  return "Rozdzielnica";
+  return "Dokumentacja powykonawcza instalacji elektrycznej";
 }
 
 function getContractorName(metadata?: ProjectMetadata): string {
@@ -630,54 +663,61 @@ function drawTitleBlock(
   const contractor = truncateText(getContractorName(metadata), 30);
   const designer = truncateText(getDesignerName(metadata), 30);
   const designerLicense = truncateText(getDesignerLicense(metadata), 30);
-  const drawNum = truncateText(metadata?.projectNumber ?? "E-SCH-001", 28);
+  const drawNum = truncateText(metadata?.projectNumber ?? "PW-01/2026", 28);
   const scale = truncateText(getDrawingScale(metadata), 28);
   const date = truncateText(getDrawingDate(metadata), 28);
   const sheet = truncateText(getSheetLabel(metadata, page.pageIndex, totalPages), 28);
-  const revision = truncateText(metadata?.revision ?? "Rev. 0", 60);
+  const revision = truncateText(metadata?.revision ?? "wyd. 1", 60);
   const standards = truncateText(getStandardsText(metadata), 60);
   const designerSig = truncateText(getDesignerSignature(metadata), 30);
   const contractorSig = truncateText(getContractorSignature(metadata), 30);
 
-  drawTitleCell(ctx, x, rowTops[0], width, rowHeights[0], "Nazwa projektu / inwestycja:", title, 5.2, 7.4);
+  drawTitleCell(ctx, x, rowTops[0], width, rowHeights[0], "Zakres / dokumentacja:", title, 5.2, 7.4);
   drawTitleCell(ctx, x, rowTops[1], width, rowHeights[1], "Inwestor:", investor, 5, 6.6);
   drawTitleCell(ctx, x, rowTops[2], width, rowHeights[2], "Adres obiektu:", address, 5, 6.6);
   drawTitleCell(ctx, x, rowTops[3], colW, rowHeights[3], "Wykonawca:", contractor, 4.8, 6.3);
-  drawTitleCell(ctx, splitX, rowTops[3], colW, rowHeights[3], "Projektant:", `${designer}\n${designerLicense}`, 4.8, 6);
-  drawTitleCell(ctx, x, rowTops[4], colW, rowHeights[4], "Nr rysunku:", drawNum, 4.8, 6.8);
+  drawTitleCell(ctx, splitX, rowTops[3], colW, rowHeights[3], "Elektryk / SEP:", `${designer}\n${designerLicense}`, 4.8, 6);
+  drawTitleCell(ctx, x, rowTops[4], colW, rowHeights[4], "Nr dokumentacji:", drawNum, 4.8, 6.8);
   drawTitleCell(ctx, splitX, rowTops[4], colW, rowHeights[4], "Skala:", scale, 4.8, 6.8);
-  drawTitleCell(ctx, x, rowTops[5], colW, rowHeights[5], "Data:", date, 4.8, 6.8);
+  drawTitleCell(ctx, x, rowTops[5], colW, rowHeights[5], "Data wykonania:", date, 4.8, 6.8);
   drawTitleCell(ctx, splitX, rowTops[5], colW, rowHeights[5], "Arkusz:", sheet, 4.8, 6.8);
   drawTitleCell(ctx, x, rowTops[6], width, rowHeights[6], "Rewizja / zmiana:", revision, 5, 6.6);
-  drawTitleCell(ctx, x, rowTops[7], width, rowHeights[7], "Norma:", standards, 5, 6.6);
-  drawTitleCell(ctx, x, rowTops[8], colW, rowHeights[8], "Podpis projektanta:", designerSig, 4.8, 6.2);
+  drawTitleCell(ctx, x, rowTops[7], width, rowHeights[7], "Normy:", standards, 5, 6.6);
+  drawTitleCell(ctx, x, rowTops[8], colW, rowHeights[8], "Podpis elektryka:", designerSig, 4.8, 6.2);
   drawTitleCell(ctx, splitX, rowTops[8], colW, rowHeights[8], "Podpis wykonawcy:", contractorSig, 4.8, 6.2);
 }
 
-function drawPathNumbers(ctx: CanvasRenderingContext2D, pageDevices: SchematicNode[], page: PageInfo): void {
+function drawPathGuides(ctx: CanvasRenderingContext2D, pageDevices: SchematicNode[], page: PageInfo): void {
+  const display = pageDevices.flatMap((node) => displayNodes(node));
+  for (const node of display) {
+    const cx = node.x + MODULE_WIDTH / 2;
+    ctx.save();
+    ctx.strokeStyle = COLORS.gridText;
+    ctx.lineWidth = 0.4;
+    ctx.setLineDash([2, 2]);
+    strokeLine(ctx, cx, y(page, 18), cx, y(page, Y_LABEL_TOP + SCHEMATIC_BODY_Y_OFFSET), COLORS.grid, 0.4);
+    ctx.restore();
+  }
+}
+
+function drawPathNumberLabels(ctx: CanvasRenderingContext2D, pageDevices: SchematicNode[], page: PageInfo): void {
   const display = pageDevices.flatMap((node) => displayNodes(node));
   display.forEach((node, index) => {
     const cx = node.x + MODULE_WIDTH / 2;
+    const labelY = PATH_NUMBER_LABEL_Y;
     const label = String(index + 1);
+    ctx.font = "700 9.5px Segoe UI, sans-serif";
     const textWidth = ctx.measureText(label).width;
     const rectWidth = textWidth + 8;
     const rectHeight = 13;
     const rectX = cx - rectWidth / 2;
-    const rectY = y(page, 10) - 1.5;
+    const rectY = y(page, labelY) - 1.5;
 
     ctx.fillStyle = COLORS.page;
     ctx.strokeStyle = COLORS.gridText;
     ctx.lineWidth = 0.6;
     roundRect(ctx, rectX, rectY, rectWidth, rectHeight, 2, true, true);
-
-    ctx.save();
-    ctx.strokeStyle = COLORS.gridText;
-    ctx.lineWidth = 0.4;
-    ctx.setLineDash([2, 2]);
-    strokeLine(ctx, cx, y(page, 18), cx, y(page, Y_LABEL_TOP), COLORS.grid, 0.4);
-    ctx.restore();
-
-    textCentered(ctx, label, cx, y(page, 10), 9.5, COLORS.textDes, true);
+    textCentered(ctx, label, cx, y(page, labelY), 9.5, COLORS.textDes, true);
   });
 }
 
@@ -708,6 +748,19 @@ function drawContinuation(ctx: CanvasRenderingContext2D, page: PageInfo, target:
   }
 }
 
+function displayTableNodes(device: SchematicNode): SchematicNode[] {
+  if (device.nodeType === "RCD") {
+    return device.children;
+  }
+
+  if (shouldReserveHeadSlot(device)) {
+    return [{ ...device, cellWidth: getHeadCellWidth(device), children: [] }, ...device.children]
+      .filter((node) => node.nodeType !== "RCD");
+  }
+
+  return displayNodes(device).filter((node) => node.nodeType !== "RCD");
+}
+
 function displayNodes(device: SchematicNode): SchematicNode[] {
   if (shouldReserveHeadSlot(device)) {
     return [{ ...device, cellWidth: getHeadCellWidth(device), children: [] }, ...device.children];
@@ -720,6 +773,7 @@ function displayNodes(device: SchematicNode): SchematicNode[] {
   return [device];
 }
 
+
 function getTableValues(node: SchematicNode): {
   designation: string;
   protection: string;
@@ -731,10 +785,14 @@ function getTableValues(node: SchematicNode): {
   cableLength: string;
   powerInfo: string;
 } {
+  const circuitName =
+    node.nodeType === "MCB" && isDeviceLabelCircuitName(node)
+      ? ""
+      : node.circuitName;
   const values = {
     designation: node.designation,
     protection: node.protection,
-    circuitName: node.circuitName,
+    circuitName,
     location: node.location,
     cableDesig: node.cableDesig,
     cableType: node.cableType,
@@ -759,6 +817,30 @@ function getTableValues(node: SchematicNode): {
   return values;
 }
 
+function normalizeSchematicTableText(value: string): string {
+  return value
+    .trim()
+    .toLocaleLowerCase("pl-PL")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ł/g, "l")
+    .replace(/\s+/g, " ");
+}
+
+function isDeviceLabelCircuitName(node: SchematicNode): boolean {
+  const circuitName = normalizeSchematicTableText(node.circuitName);
+  if (!circuitName) {
+    return false;
+  }
+
+  const deviceNames = [
+    node.label,
+    node.protection,
+  ].map(normalizeSchematicTableText);
+
+  return deviceNames.includes(circuitName);
+}
+
 function tableCell(
   ctx: CanvasRenderingContext2D,
   value: string,
@@ -767,24 +849,34 @@ function tableCell(
   width: number,
   color: string,
   bold = false,
+  centerX?: number,
 ): void {
   if (!value) {
     return;
   }
 
-  const size = CELL_FONT_SIZE;
-  ctx.font = `${bold ? "700 " : ""}${size}px Segoe UI, sans-serif`;
+  const baseSize = CELL_FONT_SIZE;
+  ctx.font = `${bold ? "700 " : ""}${baseSize}px Segoe UI, sans-serif`;
   ctx.fillStyle = color;
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
 
-  const lines = wrapText(ctx, value, width - 4);
+  const textX = centerX !== undefined ? centerX : x + width / 2;
+  const wrappedLines = wrapText(ctx, value, width - 4);
   const lineGap = 1;
+  const size = wrappedLines.length > 2 ? 7.4 : wrappedLines.length > 1 ? 8.8 : baseSize;
+  const maxLines = Math.max(1, Math.floor((ROW_HEIGHT - 4 + lineGap) / (size + lineGap)));
+  const lines = wrappedLines.slice(0, maxLines);
+  if (wrappedLines.length > maxLines) {
+    lines[lines.length - 1] = truncateToWidth(ctx, `${lines[lines.length - 1]}...`, width - 4);
+  }
+
+  ctx.font = `${bold ? "700 " : ""}${size}px Segoe UI, sans-serif`;
   const totalHeight = lines.length * size + (lines.length - 1) * lineGap;
   const startY = cellY + (ROW_HEIGHT - totalHeight) / 2 + size - size * 0.1;
 
   lines.forEach((line, index) => {
-    ctx.fillText(line, x + width / 2, startY + index * (size + lineGap));
+    ctx.fillText(line, textX, startY + index * (size + lineGap));
   });
 }
 
@@ -819,22 +911,23 @@ function drawTitleCell(
 function symFr(ctx: CanvasRenderingContext2D, cx: number, cy: number, color: string): void {
   const x = sx(cx);
   const yy = sy(cy);
-  drawP(ctx, color, 0.85, x(150), yy(0), x(150), yy(120), x(144), yy(119), x(156), yy(119), x(150), yy(180), x(125), yy(125), x(150), yy(180), x(150), yy(350));
-  circle(ctx, x(150), yy(126), px(6), color, false);
-  circle(ctx, x(150), yy(180), px(3), color, true);
+  const symbolY = (value: number) => yy(value) + FR_SYMBOL_Y_OFFSET;
+  drawP(ctx, color, 0.85, x(150), yy(SYMBOL_TOP_LINE_START), x(150), symbolY(120), x(144), symbolY(119), x(156), symbolY(119), x(150), symbolY(180), x(125), symbolY(125), x(150), symbolY(180), x(150), yy(SYMBOL_BOTTOM_LINE_END));
+  circle(ctx, x(150), symbolY(126), px(6), color, false);
+  circle(ctx, x(150), symbolY(180), px(3), color, true);
 }
 
 function symMcb(ctx: CanvasRenderingContext2D, cx: number, cy: number, color: string): void {
   const x = sx(cx);
   const yy = sy(cy);
-  drawP(ctx, color, 0.85, x(150), yy(0), x(150), yy(120), x(144), yy(120), x(156), yy(120), x(150), yy(180), x(125), yy(125), x(144), yy(102), x(156), yy(114), x(144), yy(114), x(156), yy(102), x(150), yy(180), x(150), yy(350));
+  drawP(ctx, color, 0.85, x(150), yy(SYMBOL_TOP_LINE_START), x(150), yy(120), x(144), yy(120), x(156), yy(120), x(150), yy(180), x(125), yy(125), x(144), yy(102), x(156), yy(114), x(144), yy(114), x(156), yy(102), x(150), yy(180), x(150), yy(SYMBOL_BOTTOM_LINE_END));
   circle(ctx, x(150), yy(180), px(3), color, true);
 }
 
 function symRcd(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
   const x = sx(cx);
   const yy = sy(cy);
-  drawP(ctx, COLORS.rcd, 0.85, x(150), yy(0), x(150), yy(120), x(150), yy(180), x(125), yy(120), x(150), yy(180), x(150), yy(350));
+  drawP(ctx, COLORS.rcd, 0.85, x(150), yy(SYMBOL_TOP_LINE_START), x(150), yy(120), x(150), yy(180), x(125), yy(120), x(150), yy(180), x(150), yy(SYMBOL_BOTTOM_LINE_END));
   ctx.strokeStyle = COLORS.rcd;
   ctx.lineWidth = 0.85;
   ctx.beginPath();
@@ -852,7 +945,7 @@ function symRcd(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
 function symSpd(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
   const x = sx(cx);
   const yy = sy(cy);
-  drawP(ctx, COLORS.spd, 0.85, x(150), yy(0), x(150), yy(130), x(150), yy(130), x(150), yy(155), x(143), yy(148), x(150), yy(155), x(150), yy(155), x(157), yy(148), x(150), yy(190), x(150), yy(165), x(143), yy(172), x(150), yy(165), x(150), yy(165), x(157), yy(172), x(150), yy(190), x(150), yy(250), x(125), yy(250), x(175), yy(250), x(135), yy(260), x(165), yy(260), x(145), yy(270), x(155), yy(270));
+  drawP(ctx, COLORS.spd, 0.85, x(150), yy(SYMBOL_TOP_LINE_START), x(150), yy(130), x(150), yy(130), x(150), yy(155), x(143), yy(148), x(150), yy(155), x(150), yy(155), x(157), yy(148), x(150), yy(190), x(150), yy(165), x(143), yy(172), x(150), yy(165), x(150), yy(165), x(157), yy(172), x(150), yy(190), x(150), yy(250), x(125), yy(250), x(175), yy(250), x(135), yy(260), x(165), yy(260), x(145), yy(270), x(155), yy(270));
   ctx.strokeStyle = COLORS.spd;
   ctx.lineWidth = 0.85;
   ctx.strokeRect(x(130), yy(130), px(40), py(60));
@@ -862,7 +955,7 @@ function symSpd(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
 function symKf(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
   const x = sx(cx);
   const yy = sy(cy);
-  drawP(ctx, COLORS.kf, 0.85, x(150), yy(0), x(150), yy(130), x(144), yy(154), x(156), yy(166), x(144), yy(166), x(156), yy(154), x(150), yy(190), x(150), yy(350));
+  drawP(ctx, COLORS.kf, 0.85, x(150), yy(SYMBOL_TOP_LINE_START), x(150), yy(130), x(144), yy(154), x(156), yy(166), x(144), yy(166), x(156), yy(154), x(150), yy(190), x(150), yy(SYMBOL_BOTTOM_LINE_END));
   ctx.strokeStyle = COLORS.kf;
   ctx.lineWidth = 0.85;
   ctx.strokeRect(x(130), yy(130), px(40), py(60));
@@ -870,15 +963,6 @@ function symKf(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
   circle(ctx, x(150), yy(60), px(3), COLORS.kf, true);
   circle(ctx, x(150), yy(250), px(3), COLORS.kf, true);
   text(ctx, "N", x(165), yy(350), 5, COLORS.kf, true);
-}
-
-function symGround(ctx: CanvasRenderingContext2D, cx: number, startY: number): void {
-  const groundY = startY + 5;
-  const width = MODULE_WIDTH * 0.3;
-  strokeLine(ctx, cx, startY, cx, groundY, COLORS.pe, 1.1);
-  strokeLine(ctx, cx - width / 2, groundY, cx + width / 2, groundY, COLORS.pe, 1.35);
-  strokeLine(ctx, cx - width / 3, groundY + 3, cx + width / 3, groundY + 3, COLORS.pe, 0.95);
-  strokeLine(ctx, cx - width / 6, groundY + 6, cx + width / 6, groundY + 6, COLORS.pe, 0.65);
 }
 
 function phaseMarks(
@@ -899,7 +983,7 @@ function phaseMarks(
     strokeLine(ctx, cx - markHeight + delta, cy + markHeight, cx + markHeight + delta, cy - markHeight, COLORS.text, 1.15);
   }
 
-  if (phaseText && phaseText !== "PENDING" && phaseText !== "pending" && phaseText !== "3P") {
+  if (_hasNeutral && phaseText && phaseText !== "PENDING" && phaseText !== "pending" && phaseText !== "3P") {
     text(ctx, phaseText, cx + 8, cy - 1, 6, COLORS.textDim);
   }
 }
@@ -908,6 +992,14 @@ function drawP(ctx: CanvasRenderingContext2D, color: string, width: number, ...p
   for (let index = 0; index < points.length; index += 4) {
     strokeLine(ctx, points[index], points[index + 1], points[index + 2], points[index + 3], color, width);
   }
+}
+
+function symbolTopY(nodeY: number): number {
+  return nodeY + py(SYMBOL_TOP_LINE_START);
+}
+
+function symbolBottomY(nodeY: number): number {
+  return nodeY + py(SYMBOL_BOTTOM_LINE_END);
 }
 
 function wireDot(ctx: CanvasRenderingContext2D, x: number, y1: number, y2: number): void {
@@ -972,7 +1064,7 @@ function drawSelection(ctx: CanvasRenderingContext2D, node: SchematicNode): void
   ctx.strokeStyle = COLORS.selected;
   ctx.lineWidth = 2;
   ctx.setLineDash([5, 4]);
-  ctx.strokeRect(node.x - 6, node.y - 6, MODULE_WIDTH + 12, MODULE_HEIGHT + 12);
+  ctx.strokeRect(node.x - 6, node.y + SCHEMATIC_BODY_Y_OFFSET - 6, MODULE_WIDTH + 12, MODULE_HEIGHT + 12);
   ctx.restore();
 }
 
@@ -1026,6 +1118,7 @@ function textRight(
   centerY: number,
   size: number,
   color: string,
+  maxWidth = 88,
 ): void {
   if (!value) {
     return;
@@ -1035,7 +1128,7 @@ function textRight(
   ctx.fillStyle = color;
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
-  const lines = value.split("\n").map((line) => truncateToWidth(ctx, line, 88));
+  const lines = value.split("\n").map((line) => truncateToWidth(ctx, line, maxWidth));
   const lineGap = 1.5;
   const totalHeight = lines.length * size + (lines.length - 1) * lineGap;
   const firstY = centerY - totalHeight / 2 + size / 2;
@@ -1185,12 +1278,12 @@ function drawLegend(
     return;
   }
 
-  const legX = DRAW_RIGHT;
-  const legW = TITLEBLOCK_WIDTH;
+  const legW = TITLEBLOCK_VISUAL_WIDTH;
+  const legX = A4_WIDTH_PX - FRAME_MARGIN_RIGHT - legW;
   const tbBottom = (A4_HEIGHT_PX - FRAME_MARGIN_BOTTOM - TITLEBLOCK_HEIGHT) + page.yOffset;
-  const legY = tbBottom - (items.length * 16 + 20);
-  const rowHt = 16;
-  const legH = items.length * rowHt + 18;
+  const rowHt = 17;
+  const legH = items.length * rowHt + 20;
+  const legY = tbBottom - legH - 6;
 
   ctx.fillStyle = COLORS.boxBg;
   ctx.fillRect(legX, legY, legW, legH);
@@ -1199,19 +1292,19 @@ function drawLegend(
   ctx.lineWidth = 0.5;
   ctx.strokeRect(legX, legY, legW, legH);
 
-  text(ctx, "LEGENDA", legX + 3, legY + 2, 5.5, COLORS.textLabel, true);
+  text(ctx, "LEGENDA", legX + 8, legY + 3, 6.2, COLORS.textLabel, true);
 
   for (let i = 0; i < items.length; i++) {
     const { sym, desc, clr } = items[i];
-    const ry = legY + 14 + i * rowHt;
+    const ry = legY + 16 + i * rowHt;
 
     ctx.fillStyle = clr;
     ctx.beginPath();
-    ctx.arc(legX + 8, ry + 5, 3, 0, 2 * Math.PI);
+    ctx.arc(legX + 10, ry + 5, 3, 0, 2 * Math.PI);
     ctx.fill();
 
-    text(ctx, sym, legX + 14, ry, 5.5, COLORS.text, true);
-    text(ctx, desc, legX + 14, ry + 7, 4, COLORS.textDim);
+    text(ctx, sym, legX + 18, ry - 1, 6, COLORS.text, true);
+    text(ctx, desc, legX + 48, ry - 1, 6, COLORS.textDim, false, legW - 56);
   }
 }
 

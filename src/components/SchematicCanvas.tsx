@@ -3,7 +3,7 @@ import type { SymbolItem } from "../types/symbolItem";
 import type { ProjectMetadata } from "../types/projectMetadata";
 import type { SchematicLayout, SchematicNode } from "../lib/schematic/schematicLayout";
 import { buildSchematicLayout } from "../lib/schematic/schematicLayoutEngine";
-import { renderSchematic } from "../lib/schematic/schematicRenderer";
+import { renderSchematic, SCHEMATIC_BODY_Y_OFFSET } from "../lib/schematic/schematicRenderer";
 import {
   createDefaultViewport,
   zoomAtPoint,
@@ -288,7 +288,7 @@ export function SchematicCanvas({
         const [canvasX, canvasY] = getCanvasPoint(canvas, e.clientX, e.clientY);
         const worldPos = screenToWorld(viewport, canvasX, canvasY);
         let newX = worldPos[0];
-        let newY = worldPos[1];
+        let newY = worldPos[1] - SCHEMATIC_BODY_Y_OFFSET;
         const draggedSymbol = symbols.find((symbol) => symbol.id === draggingSymbolId) ?? null;
 
         if (snapEnabled) {
@@ -386,7 +386,7 @@ export function SchematicCanvas({
         const [canvasX, canvasY] = getCanvasPoint(canvas, e.clientX, e.clientY);
         const worldPos = screenToWorld(viewport, canvasX, canvasY);
         let nextX = worldPos[0];
-        let nextY = worldPos[1];
+        let nextY = worldPos[1] - SCHEMATIC_BODY_Y_OFFSET;
 
         if (snapEnabled && layout) {
           const snap = snapToRail(nextX, nextY, layout);
@@ -557,8 +557,8 @@ function hitNode(
   if (
     worldX >= node.x - 4 &&
     worldX <= node.x + node.width + 4 &&
-    worldY >= node.y - 4 &&
-    worldY <= node.y + node.height + 4
+    worldY >= node.y + SCHEMATIC_BODY_Y_OFFSET - 4 &&
+    worldY <= node.y + SCHEMATIC_BODY_Y_OFFSET + node.height + 4
   ) {
     return node;
   }

@@ -14,9 +14,14 @@ import { buildCircuitRowsFromSymbols } from "./lib/circuitRows";
 import { PROJECT_METADATA_STORAGE_KEY, loadProjectMetadata } from "./lib/projectMetadata";
 import { handleGlobalAppShortcut } from "./lib/appShortcuts";
 import { reportRuntimeError } from "./lib/runtimeDiagnostics";
-import { validateProject } from "./lib/validation/electricalValidationService";
+import { validateProject, type ValidationResult } from "./lib/validation/electricalValidationService";
+import {
+  applyValidationQuickFix,
+  type ValidationQuickFixId,
+} from "./lib/validation/validationQuickFixes";
 import {
   normalizePaletteAssetDimensions,
+  normalizeGroupConsistency,
   DEFAULT_DIN_RAIL_CONFIG,
   SYMBOLS_STORAGE_KEY,
   LEGACY_SYMBOLS_STORAGE_KEY,
@@ -37,6 +42,14 @@ import "./App.css";
 const APP_ROUTE_PATH = "/app";
 const LOCAL_STORAGE_WRITE_DEBOUNCE_MS = 250;
 const SHOW_DIN_RAIL_GROUPS_STORAGE_KEY = "dinboard.show_din_rail_groups";
+const UI_THEME_STORAGE_KEY = "dinboard.ui_theme";
+const EMPTY_VALIDATION_RESULT: ValidationResult = {
+  isValid: true,
+  errors: [],
+  warnings: [],
+  info: [],
+};
+export type AppUiTheme = "modern" | "classic";
 
 function normalizeRoutePath(pathname: string): "/" | "/app" {
   if (pathname === APP_ROUTE_PATH || pathname === `${APP_ROUTE_PATH}/`) {
@@ -44,6 +57,14 @@ function normalizeRoutePath(pathname: string): "/" | "/app" {
   }
 
   return "/";
+}
+
+function loadUiTheme(): AppUiTheme {
+  try {
+    return window.localStorage.getItem(UI_THEME_STORAGE_KEY) === "classic" ? "classic" : "modern";
+  } catch {
+    return "modern";
+  }
 }
 
 
@@ -70,12 +91,17 @@ function AppWorkspace() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [activeSheet, setActiveSheet] = useState<SheetType>("sheet1");
   const [workspaceZoomPercent, setWorkspaceZoomPercent] = useState(100);
+  const [uiTheme, setUiTheme] = useState<AppUiTheme>(() => loadUiTheme());
   const [dinRailGeneratorRequest, setDinRailGeneratorRequest] = useState(0);
   const [dinRail, setDinRail] = useState<DinRailCanvasRail>({
     config: DEFAULT_DIN_RAIL_CONFIG, svg: "", width: 0, height: 0, isVisible: false,
   });
   const [activeRightTab, setActiveRightTab] = useState<RightTab>("balance");
   const [showRightPanel, setShowRightPanel] = useState(true);
+  const [highlightedCircuitEditTarget, setHighlightedCircuitEditTarget] = useState<{
+    symbolId: string;
+    fieldKey: string;
+  } | null>(null);
   const [isRcdManagerOpen, setIsRcdManagerOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [showDinRailGroups, setShowDinRailGroups] = useState<boolean>(() => {
@@ -139,7 +165,7 @@ function AppWorkspace() {
   const {
     handleNewProject, handleOpenProject, handleSaveProject, handleExportPdf, handleExportBom, handleExportPng,
     handleExportDinRailPngWithDescriptionsNoBrackets,
-    handleAutoBalance, handleOpenDinRailGenerator, handleRailGenerated,
+    handleAutoBalance, handleApplyPhaseMoveSuggestion, handleOpenDinRailGenerator, handleRailGenerated,
     handleMetadataChange, handleResetDocumentation,
   } = useProjectActions({
     metadata, setMetadata, symbols, setSymbols,
@@ -216,6 +242,16 @@ function AppWorkspace() {
   }, [showDinRailGroups]);
 
   useEffect(() => {
+    try {
+      window.localStorage.setItem(UI_THEME_STORAGE_KEY, uiTheme);
+    } catch (error) {
+      reportRuntimeError(error, {
+        source: "unhandled-error",
+      });
+    }
+  }, [uiTheme]);
+
+  useEffect(() => {
     if (activeSheet === "sheet3" || activeSheet === "sheet4") setWorkspaceZoomPercent(100);
   }, [activeSheet]);
 
@@ -249,7 +285,7 @@ function AppWorkspace() {
   }, [handleNewProject, handleOpenProject, handleSaveProject]);
 
   useEffect(() => {
-    setSymbols((prev) => normalizePaletteAssetDimensions(prev, paletteTemplateMap));
+    setSymbols((prev) => normalizeGroupConsistency(normalizePaletteAssetDimensions(prev, paletteTemplateMap)));
   }, [paletteTemplateMap]);
 
   // ── Derived ───────────────────────────────────────────────────────────────────
@@ -260,16 +296,21 @@ function AppWorkspace() {
   const totalPower = symbols.reduce((sum, s) => sum + s.powerW, 0);
   const groupCount = symbols.filter((s) => s.deviceKind === "rcd").length;
   const validationResult = useMemo(
-    () =>
-      validateProject(symbols, {
+    () => {
+      if (!hasGeneratedDinRail) {
+        return EMPTY_VALIDATION_RESULT;
+      }
+
+      return validateProject(symbols, {
         supplyVoltageV: metadata.supplyVoltageV,
         mainBreakerA: metadata.mainBreakerA,
-      }),
-    [symbols, metadata.supplyVoltageV, metadata.mainBreakerA],
+      });
+    },
+    [hasGeneratedDinRail, symbols, metadata.supplyVoltageV, metadata.mainBreakerA],
   );
   const errorCount = validationResult.errors.length;
   const warningCount = validationResult.warnings.length;
-  const projectFileName = (currentFilePath ? currentFilePath.split(/[\\\/]/).pop() : "Nowy projekt") ?? "Nowy projekt";
+  const projectFileName = (currentFilePath ? currentFilePath.split(/[\\\/]/).pop() : "Nowe zlecenie") ?? "Nowe zlecenie";
   const rcdManagerEntries = useMemo<RcdManagerEntry[]>(
     () =>
       symbols
@@ -351,11 +392,45 @@ function AppWorkspace() {
     [history, selectedSymbolId, selectedSymbolIds, showTemporaryStatus, symbols],
   );
 
+  const handleValidationSymbolSelect = useCallback(
+    (symbolId: string) => {
+      setHighlightedCircuitEditTarget(null);
+      setActiveSheet("sheet1");
+      handleSymbolSelectionChange([symbolId], symbolId);
+    },
+    [handleSymbolSelectionChange],
+  );
+
+  const handleValidationFieldEdit = useCallback(
+    (symbolId: string, fieldKey: string) => {
+      setHighlightedCircuitEditTarget({ symbolId, fieldKey });
+      setActiveSheet("sheet1");
+      handleSymbolSelectionChange([symbolId], symbolId);
+    },
+    [handleSymbolSelectionChange],
+  );
+
+  const handleValidationQuickFix = useCallback(
+    (symbolId: string, fixId: ValidationQuickFixId) => {
+      const symbol = symbols.find((item) => item.id === symbolId);
+      if (!symbol) {
+        return;
+      }
+
+      const nextSymbol = applyValidationQuickFix(symbol, fixId);
+      setHighlightedCircuitEditTarget(null);
+      handleCircuitEditSave(nextSymbol);
+      setActiveSheet("sheet1");
+      handleSymbolSelectionChange([symbolId], symbolId);
+    },
+    [handleCircuitEditSave, handleSymbolSelectionChange, symbols],
+  );
+
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
-    <main className="app-shell">
+    <main className={`app-shell ui-theme-${uiTheme}`}>
       <AppHeader
-        projectFileName={currentFilePath ? currentFilePath.split(/[\/\\]/).pop() || "Nowy projekt" : "Nowy projekt"}
+        projectFileName={currentFilePath ? currentFilePath.split(/[\/\\]/).pop() || "Nowe zlecenie" : "Nowe zlecenie"}
         hasUnsavedChanges={hasUnsavedChanges}
         canUndo={history.canUndo}
         canRedo={history.canRedo}
@@ -381,6 +456,8 @@ function AppWorkspace() {
         onOpenHelp={() => setIsHelpOpen(true)}
         onToggleRightPanel={() => setShowRightPanel(!showRightPanel)}
         showDinRailGroups={showDinRailGroups}
+        uiTheme={uiTheme}
+        onChangeUiTheme={setUiTheme}
         onToggleDinRailGroups={handleToggleDinRailGroups}
         onChangeSheet={setActiveSheet}
         showTemporaryStatus={showTemporaryStatus}
@@ -451,10 +528,20 @@ function AppWorkspace() {
               setActiveRightTab={setActiveRightTab}
               symbols={symbols}
               handleAutoBalance={handleAutoBalance}
+              handleApplyPhaseMoveSuggestion={handleApplyPhaseMoveSuggestion}
               validationResult={validationResult}
+              isDinRailGenerated={hasGeneratedDinRail}
               selectedSymbol={selectedSymbol}
               handleCircuitEditSave={handleCircuitEditSave}
               handleSymbolSelectionChange={handleSymbolSelectionChange}
+              handleValidationSymbolSelect={handleValidationSymbolSelect}
+              handleValidationFieldEdit={handleValidationFieldEdit}
+              handleValidationQuickFix={handleValidationQuickFix}
+              highlightedCircuitEditFieldKey={
+                highlightedCircuitEditTarget?.symbolId === selectedSymbolId
+                  ? highlightedCircuitEditTarget.fieldKey
+                  : null
+              }
               metadata={metadata}
               handleMetadataChange={handleMetadataChange}
               handleOpenRcdManager={handleOpenRcdManager}

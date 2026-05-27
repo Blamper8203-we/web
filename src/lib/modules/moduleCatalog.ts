@@ -1,4 +1,4 @@
-﻿import type { CircuitTypeValue, DeviceKind, PhaseAssignment } from "../../types/symbolItem";
+import type { CircuitTypeValue, DeviceKind, PhaseAssignment } from "../../types/symbolItem";
 
 export interface PaletteTemplate {
   templateId: string;
@@ -34,12 +34,18 @@ export interface PaletteGroup {
 
 type ModuleEntry = Omit<PaletteTemplate, "assetPath">;
 
+const INCLUDE_LEGACY_BUILT_IN_MODULES = false;
+
 export const DIN_RAIL_UNIT_PER_MODULE = 250;
 export const DIN_RAIL_PADDING_X = 55;
 export const MODULE_UNIT_WIDTH = 232.58;
 export const MODULE_UNIT_MM_WIDTH = 17.5;
 export const MODULE_PX_PER_MM = MODULE_UNIT_WIDTH / MODULE_UNIT_MM_WIDTH;
 export const MODULE_UNIT_HEIGHT = Math.round(83 * MODULE_PX_PER_MM);
+
+function svg300DpiPx(svgPixels: number): number {
+  return Math.round(svgPixels * (25.4 / 300) * MODULE_PX_PER_MM * 100) / 100;
+}
 
 const MODULE_HEIGHT_MM_BY_REF: Record<string, number> = {
   "FR/fr 1P.svg": 80,
@@ -122,7 +128,7 @@ const moduleEntries: ModuleEntry[] = [
     type: "RCD",
     category: "RCD",
     deviceKind: "rcd",
-    phase: "L1+L2",
+    phase: "L1",
     modules: 2,
     moduleRef: "RCD/RCD 2P.svg",
     placeholderDefaults: { CURRENT: "40A" },
@@ -259,6 +265,41 @@ const moduleEntries: ModuleEntry[] = [
   },
 ];
 
+const currentModuleEntries: ModuleEntry[] = [
+  {
+    templateId: "rcd-1p-n-new-svg",
+    code: "Rozłącznik różnicowoprądowy 1P+N",
+    label: "Rozłącznik różnicowoprądowy 1P+N",
+    type: "RCD",
+    category: "RCD",
+    deviceKind: "rcd",
+    phase: "L1",
+    modules: 2,
+    moduleRef: "RCD/Rozłącznik różnicowoprądowy 1P+N.svg",
+    customWidth: svg300DpiPx(416),
+    customHeight: svg300DpiPx(983),
+    rcdRatedCurrent: 40,
+    rcdResidualCurrent: 30,
+    rcdType: "A",
+  },
+  {
+    templateId: "rcd-3p-n-new-svg",
+    code: "Rozłącznik różnicowoprądowy 3P+N",
+    label: "Rozłącznik różnicowoprądowy 3P+N",
+    type: "RCD",
+    category: "RCD",
+    deviceKind: "rcd",
+    phase: "L1+L2+L3",
+    modules: 4,
+    moduleRef: "RCD/Rozłącznik różnicowoprądowy 3P+N.svg",
+    customWidth: svg300DpiPx(853),
+    customHeight: svg300DpiPx(983),
+    rcdRatedCurrent: 40,
+    rcdResidualCurrent: 30,
+    rcdType: "A",
+  },
+];
+
 const groupOrder = [
   "FR",
   "SPD",
@@ -275,22 +316,34 @@ const groupDisplayNames: Record<string, string> = {
   Controls: "Kontrolki faz",
 };
 
+function getPaletteEntryAssetPath(item: ModuleEntry): string {
+  const assetUrl = getModuleAssetUrl(item.moduleRef);
+  return currentModuleEntries.includes(item)
+    ? `${assetUrl}?dinboardSource=importedSvg`
+    : assetUrl;
+}
+
 export const PALETTE_GROUPS: PaletteGroup[] = groupOrder
   .map((category) => {
-    const items = moduleEntries
-      .filter((item) => item.category === category)
-      .map((item) => ({
-        ...item,
-        assetPath: getModuleAssetUrl(item.moduleRef),
-      }));
+    const sourceItems = [
+      ...currentModuleEntries.filter((item) => item.category === category),
+      ...(
+        INCLUDE_LEGACY_BUILT_IN_MODULES
+          ? moduleEntries.filter((item) => item.category === category)
+          : []
+      ),
+    ];
+    const items = sourceItems.map((item) => ({
+      ...item,
+      assetPath: getPaletteEntryAssetPath(item),
+    }));
 
     return {
       title: groupDisplayNames[category] ?? category,
       subtitle: `Assets/Modules/${category}`,
       items,
     };
-  })
-  .filter((group) => group.items.length > 0);
+  });
 
 export const PALETTE_TEMPLATE_MAP = new Map(
   PALETTE_GROUPS.flatMap((group) => group.items.map((item) => [item.templateId, item] as const)),
@@ -306,7 +359,13 @@ export function getModuleSnapAnchorRatioY(moduleRef?: string): number {
   }
 
   const normalized = moduleRef.toLocaleLowerCase("pl-PL");
-  if (normalized.includes("listwa 12 pin") || normalized.includes("listwa zaciskowa 12 pin")) {
+  if (
+    normalized.includes("listwa 12 pin") ||
+    normalized.includes("listwa 12pin") ||
+    (normalized.includes("listwa") && normalized.includes("12pin")) ||
+    normalized.includes("listwa zaciskowa 12 pin") ||
+    normalized.includes("listwa zaciskowa 12pin")
+  ) {
     // This asset's DIN clamp axis is above the geometric center of its viewBox.
     return 0.464;
   }
@@ -373,7 +432,7 @@ export function getModuleAssetUrl(moduleRef: string): string {
     : `${import.meta.env.BASE_URL}/`;
   const encodedRef = moduleRef
     .split("/")
-    .map((part) => encodeURIComponent(part))
+    .map((part) => encodeURIComponent(part).replace(/%2B/gi, "+"))
     .join("/");
 
   return `${baseUrl}assets/modules/${encodedRef}`;

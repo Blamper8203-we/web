@@ -13,7 +13,7 @@
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--bg-panel);
+  background: var(--card-background);
 }
 
 .cl-hero h2,
@@ -46,23 +46,68 @@
 
 .cl-summary-card,
 .cl-panel {
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  background: var(--bg-panel);
+  background: var(--card-background);
+  box-shadow: var(--shadow-sm);
 }
 
 .cl-summary-card {
   padding: 12px;
   display: grid;
-  gap: 6px;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.cl-summary-card:hover {
+  border-color: var(--state-info-border);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-1px);
+}
+
+.cl-summary-card::before {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: var(--accent-primary-hover);
+  background: var(--accent-primary-soft);
+  border: 1px solid var(--state-info-border);
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.cl-summary-card--visible::before {
+  content: "#";
+}
+
+.cl-summary-card--hidden::before {
+  content: "-";
+  color: var(--text-secondary);
+  background: var(--row-background);
+  border-color: var(--border-subtle);
+}
+
+.cl-summary-card--power::before {
+  content: "kW";
+  color: var(--accent-green);
+  background: var(--state-success-soft);
+  border-color: var(--state-success-border);
+  font-size: 10px;
 }
 
 .cl-summary-card span {
+  display: block;
   color: var(--text-secondary);
   font-size: 0.78rem;
 }
 
 .cl-summary-card strong {
+  display: block;
+  margin-top: 2px;
   font-size: 1rem;
 }
 
@@ -82,7 +127,7 @@
   border: 1px solid var(--border);
   border-bottom: 0;
   border-radius: 8px 8px 0 0;
-  background: var(--bg-toolbar);
+  background: var(--table-header-background);
 }
 
 .cl-toolbar strong {
@@ -96,9 +141,10 @@
 }
 
 .cl-table-shell {
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 0 0 8px 8px;
-  background: var(--bg-panel);
+  background: var(--panel-background);
+  box-shadow: var(--shadow-sm);
   overflow: auto;
 }
 
@@ -116,20 +162,20 @@
   position: sticky;
   top: 0;
   z-index: 1;
-  background: var(--bg-toolbar);
-  border-bottom: 1px solid var(--border);
+  background: var(--table-header-background);
+  border-bottom: 1px solid var(--panel-border-strong);
 }
 
 .cl-head span {
   padding: 10px 10px;
   border-right: 1px solid var(--border);
-  color: var(--text-secondary);
+  color: var(--text-main);
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .cl-head span:last-child,
-.cl-row span:last-child {
+.cl-row > span:last-child {
   border-right: 0;
 }
 
@@ -151,12 +197,12 @@
   align-items: center;
   gap: 12px;
   padding: 8px 12px;
-  background: rgba(43, 108, 176, 0.15); /* Subtly distinct background for RCD groups */
+  background: var(--accent-primary-soft);
   border-bottom: 1px solid var(--border);
 }
 
 .cl-rcd-badge {
-  background: #2b6cb0;
+  background: var(--accent-primary);
   color: #fff;
   font-size: 0.72rem;
   font-weight: 700;
@@ -184,12 +230,12 @@
   flex-direction: column;
 }
 
-.cl-row--nested span:first-child {
+.cl-row--nested > span:first-child {
   padding-left: 24px;
   position: relative;
 }
 
-.cl-row--nested span:first-child::before {
+.cl-row--nested > span:first-child::before {
   content: "";
   position: absolute;
   left: 10px;
@@ -201,20 +247,56 @@
   transform: translateY(-50%);
 }
 
-.cl-row span {
+.cl-row > span {
+  display: flex;
+  align-items: center;
   padding: 9px 10px;
-  border-right: 1px solid rgba(46, 48, 53, 0.9);
-  border-bottom: 1px solid rgba(46, 48, 53, 0.9);
+  border-right: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
   color: var(--text-main);
   font-size: 0.8rem;
 }
 
+.cl-cell-center {
+  justify-content: center;
+}
+
+.cl-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  min-height: 22px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.cl-chip--phase {
+  color: var(--accent-primary-hover);
+  background: var(--state-info-soft);
+  border: 1px solid var(--state-info-border);
+}
+
+.cl-chip--protection {
+  color: var(--text-main);
+  background: var(--row-background);
+  border: 1px solid var(--border-subtle);
+}
+
 .cl-row:nth-child(even) {
-  background: rgba(255, 255, 255, 0.015);
+  background: var(--row-background);
+}
+
+.cl-row:hover {
+  background: var(--row-background-hover);
 }
 
 .cl-circuit-name {
-  color: #d8e6ff;
+  color: #dceaff;
 }
 
 .cl-side {
@@ -226,7 +308,7 @@
 .cl-panel__header {
   padding: 10px 12px;
   border-bottom: 1px solid var(--border);
-  background: var(--bg-toolbar);
+  background: var(--table-header-background);
 }
 
 .cl-panel ul,

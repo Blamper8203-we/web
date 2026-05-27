@@ -77,8 +77,14 @@ export function AppLeftPanel({
             </div>
             <section className="palette-group" key={activePaletteGroup.title}>
               <div className="palette-group-header">
-                <strong>{activePaletteGroup.title}</strong>
-                <span>{activePaletteGroup.subtitle}</span>
+                <span className="palette-group-header__icon">
+                  <AppIcon name="module" size={15} />
+                </span>
+                <div>
+                  <strong>{activePaletteGroup.title}</strong>
+                  <span>{activePaletteGroup.subtitle}</span>
+                </div>
+                <span className="palette-group-header__count">{activePaletteGroup.items.length}</span>
               </div>
               <div className="palette-grid">
                 {activePaletteGroup.items.map((item) => (
@@ -123,7 +129,7 @@ export function AppLeftPanel({
                               parameters={item.placeholderDefaults}
                               rasterDprCap={4}
                               renderHeight={44}
-                              renderMode={isRcdPreview ? "raster" : "svg"}
+                              renderMode="svg"
                               renderWidth={48}
                               src={item.assetPath}
                             />

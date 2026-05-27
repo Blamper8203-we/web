@@ -64,7 +64,7 @@
 }
 
 .statusbar-icon-accent {
-  color: var(--accent-orange);
+  color: var(--accent-primary-hover);
 }
 
 .statusbar-icon-warn {
@@ -97,5 +97,22 @@
 }
 
 .statusbar-alert.warning {
-  color: var(--accent-orange);
+  color: var(--accent-warning);
+}
+
+.statusbar-alert {
+  padding: 3px 6px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.statusbar-alert.danger {
+  border-color: var(--state-danger-border);
+  background: var(--state-danger-soft);
+}
+
+.statusbar-alert.warning {
+  border-color: var(--state-warning-border);
+  background: var(--state-warning-soft);
 }

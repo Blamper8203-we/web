@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import type { SymbolItem } from "../types/symbolItem";
 import { serializeParameters } from "../lib/modules/rasterPreview";
-import { loadPreparedSvgMarkup } from "../lib/modules/svgAsset";
+import { loadPreparedSvgMarkup, shouldRenderRawModuleAsset } from "../lib/modules/svgAsset";
 
 interface PreparedSymbolAsset {
-  namespacedMarkup: string;
+  imageSrc?: string;
+  namespacedMarkup?: string;
 }
 
 function namespaceSvgMarkup(svgMarkup: string, prefix: string): string {
@@ -85,8 +86,17 @@ export function useDinRailPreparedAssets(symbols: SymbolItem[]) {
     let cancelled = false;
     const nextSymbols = symbols.filter((symbol) => symbol.visualPath);
 
-    Promise.all(
+    Promise.all<readonly [string, PreparedSymbolAsset]>(
       nextSymbols.map(async (symbol) => {
+        if (shouldRenderRawModuleAsset(symbol.visualPath)) {
+          return [
+            symbol.id,
+            {
+              imageSrc: symbol.visualPath,
+            },
+          ] as const;
+        }
+
         const rawMarkup = await loadPreparedSvgMarkup(symbol.visualPath, symbol.parameters);
         return [
           symbol.id,

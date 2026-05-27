@@ -2,6 +2,7 @@ node_modules/
 dist/
 build/
 .vite/
+.module-backups/
 
 .env
 .env.local

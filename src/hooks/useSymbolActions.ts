@@ -7,6 +7,7 @@ import {
   getNextGroupName,
   isDistributionSymbol,
   isGroupHeadSymbol,
+  shouldExcludeFromAutoGrouping,
   snapDraggedGroupToNeighborModules,
   normalizeDinRailModuleOrdering,
   normalizeGroupConsistency,
@@ -132,10 +133,7 @@ export function resolveReleasedDinRailGrouping(
 }
 
 function shouldExcludeFromReleaseGrouping(symbol: SymbolItem): boolean {
-  return symbol.deviceKind === "fr"
-    || symbol.deviceKind === "spd"
-    || symbol.deviceKind === "phaseIndicator"
-    || symbol.deviceKind === "rcd";
+  return shouldExcludeFromAutoGrouping(symbol);
 }
 
 export function useSymbolActions({
@@ -333,7 +331,9 @@ export function useSymbolActions({
         `Edycja ${label}`,
         { symbols, selectedSymbolId, selectedSymbolIds },
         {
-          symbols: symbols.map((s) => (s.id === nextSymbol.id ? nextSymbol : s)),
+          symbols: normalizeDinRailModuleOrdering(
+            normalizeGroupConsistency(symbols.map((s) => (s.id === nextSymbol.id ? nextSymbol : s)))
+          ),
           selectedSymbolId: nextSymbol.id,
           selectedSymbolIds: [nextSymbol.id],
         },
@@ -360,7 +360,9 @@ export function useSymbolActions({
         `Edycja tabeli ${label}`,
         { symbols, selectedSymbolId, selectedSymbolIds },
         {
-          symbols: symbols.map((s) => (s.id === symbolId ? nextSymbol : s)),
+          symbols: normalizeDinRailModuleOrdering(
+            normalizeGroupConsistency(symbols.map((s) => (s.id === symbolId ? nextSymbol : s)))
+          ),
           selectedSymbolId: symbolId,
           selectedSymbolIds: [symbolId],
         },

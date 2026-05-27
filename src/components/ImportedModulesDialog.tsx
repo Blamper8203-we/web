@@ -57,7 +57,7 @@ export function ImportedModulesDialog({
                     parameters={moduleDefinition.parameters}
                     rasterDprCap={4}
                     renderHeight={44}
-                    renderMode={isRcdPreview ? "raster" : "svg"}
+                    renderMode="svg"
                     renderWidth={48}
                     src={moduleDefinition.assetPath}
                   />

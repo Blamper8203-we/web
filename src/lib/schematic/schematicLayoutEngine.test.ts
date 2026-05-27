@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { createDefaultSymbolItem } from "../../types/symbolItem";
+import {
+  DRAW_LEFT,
+  DRAW_RIGHT,
+  MODULE_WIDTH,
+} from "./schematicLayout";
 import { buildSchematicLayout } from "./schematicLayoutEngine";
 
 describe("schematicLayoutEngine (Avalonia parity & stable sorting)", () => {
@@ -13,6 +18,58 @@ describe("schematicLayoutEngine (Avalonia parity & stable sorting)", () => {
 
     expect(result.nodes).toHaveLength(0);
     expect(result.pages).toHaveLength(1);
+  });
+
+  it("Build_WithConnectorsTerminalStripsAndDistributionBlocks_ShouldExcludeThemFromSchematic", () => {
+    const rcd = createDefaultSymbolItem({
+      id: "rcd",
+      type: "RCD 2P",
+      deviceKind: "rcd",
+      group: "G1",
+      groupName: "Grupa-1",
+      x: 100,
+    });
+    const mcb = createDefaultSymbolItem({
+      id: "mcb",
+      type: "MCB 1P",
+      deviceKind: "mcb",
+      group: "G1",
+      groupName: "Grupa-1",
+      rcdSymbolId: "rcd",
+      x: 200,
+    });
+    const connector = createDefaultSymbolItem({
+      id: "connector",
+      type: "Złącza",
+      label: "Złącze 3XPEN",
+      deviceKind: "terminalBlock",
+      group: "G1",
+      groupName: "Grupa-1",
+      visualPath: "assets/modules/zlacza/zlacze-3xpen.svg",
+      x: 300,
+    });
+    const terminalStrip = createDefaultSymbolItem({
+      id: "terminal-strip",
+      type: "Listwy zaciskowe",
+      label: "Listwa N/PE",
+      group: "G1",
+      groupName: "Grupa-1",
+      visualPath: "assets/modules/Listwy zaciskowe/LISTWA 12 PIN.svg",
+      x: 400,
+    });
+    const distributionBlock = createDefaultSymbolItem({
+      id: "distribution-block",
+      type: "Blok rozdzielczy",
+      label: "Blok rozdzielczy 4 15",
+      group: "G1",
+      groupName: "Grupa-1",
+      x: 500,
+    });
+
+    const result = buildSchematicLayout([rcd, mcb, connector, terminalStrip, distributionBlock]);
+
+    expect(result.nodes.map((node) => node.id)).toEqual(["rcd", "mcb"]);
+    expect(result.nodes.every((node) => node.distributionBlockLabel === "")).toBe(true);
   });
 
   it("Build_WithStandaloneFr_ShouldCreateQsNode", () => {
@@ -291,5 +348,375 @@ describe("schematicLayoutEngine (Avalonia parity & stable sorting)", () => {
     expect(headB!.protection).toContain("4P");
     expect(headA!.pageIndex).toBe(0);
     expect(headB!.pageIndex).toBe(0);
+  });
+
+  it("keeps discovered three-phase RCD heads on the first schematic page even when SVG geometry is tall", () => {
+    const rcd = createDefaultSymbolItem({
+      id: "rcd-discovered",
+      type: "RCD 40A",
+      deviceKind: "rcd",
+      phase: "L1+L2+L3",
+      width: 232.58,
+      height: 1103,
+      group: "G1",
+      moduleRef: "RCD/RCD 40A.svg",
+      visualPath: "/assets/modules/RCD/RCD%2040A.svg?dinboardSource=importedSvg",
+    });
+    const mcb = createDefaultSymbolItem({
+      id: "mcb",
+      type: "MCB 1P",
+      deviceKind: "mcb",
+      phase: "L1",
+      group: "G1",
+      x: 250,
+    });
+
+    const result = buildSchematicLayout([rcd, mcb]);
+    const head = result.nodes.find((node) => node.id === "rcd-discovered");
+
+    expect(head).toBeDefined();
+    expect(head!.nodeType).toBe("RCD");
+    expect(head!.phaseCount).toBe(3);
+    expect(head!.pageIndex).toBe(0);
+  });
+
+  it("places RCD 4P and RCD 40A 4P equivalently when their electrical settings match", () => {
+    const rcd4p = createDefaultSymbolItem({
+      id: "rcd-4p",
+      type: "RCD",
+      deviceKind: "rcd",
+      phase: "L1+L2+L3",
+      group: "G1",
+      moduleRef: "RCD/RCD 4P.svg",
+      rcdRatedCurrent: 40,
+    });
+    const rcd40a = createDefaultSymbolItem({
+      id: "rcd-40a-4p",
+      type: "RCD",
+      deviceKind: "rcd",
+      phase: "L1+L2+L3",
+      group: "G2",
+      moduleRef: "RCD/RCD 40A 4P.svg",
+      rcdRatedCurrent: 40,
+      x: 300,
+    });
+
+    const result = buildSchematicLayout([rcd4p, rcd40a]);
+    const head4p = result.nodes.find((node) => node.id === "rcd-4p");
+    const head40a = result.nodes.find((node) => node.id === "rcd-40a-4p");
+
+    expect(head4p?.nodeType).toBe("RCD");
+    expect(head40a?.nodeType).toBe("RCD");
+    expect(head4p?.phaseCount).toBe(3);
+    expect(head40a?.phaseCount).toBe(3);
+    expect(head4p?.pageIndex).toBe(0);
+    expect(head40a?.pageIndex).toBe(0);
+  });
+
+  it("treats an old manually-phased RCD 40A 4P as a three-phase schematic head", () => {
+    const rcd40a = createDefaultSymbolItem({
+      id: "rcd-40a-4p",
+      type: "RCD 40A 4P",
+      deviceKind: "rcd",
+      phase: "L1",
+      parameters: { ManualPhase: "true" },
+      group: "G1",
+      moduleRef: "RCD/RCD 40A 4P.svg",
+      visualPath: "/assets/modules/RCD/RCD%2040A%204P.svg?dinboardSource=importedSvg",
+      rcdRatedCurrent: 40,
+    });
+    const mcb = createDefaultSymbolItem({
+      id: "mcb",
+      type: "MCB 1P",
+      deviceKind: "mcb",
+      phase: "L1",
+      group: "G1",
+      x: 250,
+    });
+
+    const result = buildSchematicLayout([rcd40a, mcb]);
+    const head = result.nodes.find((node) => node.id === "rcd-40a-4p");
+
+    expect(head).toBeDefined();
+    expect(head!.nodeType).toBe("RCD");
+    expect(head!.protection).toContain("4P");
+    expect(head!.phase).toBe("L1+L2+L3");
+    expect(head!.phaseCount).toBe(3);
+    expect(head!.pageIndex).toBe(0);
+  });
+
+  it("places standalone RCD 40A 4P on the first schematic page as a main RCD", () => {
+    const rcd40a = createDefaultSymbolItem({
+      id: "standalone-rcd-40a-4p",
+      type: "RCD 40A 4P",
+      deviceKind: "rcd",
+      phase: "L1+L2+L3",
+      moduleRef: "RCD/RCD 40A 4P.svg",
+      visualPath: "/assets/modules/RCD/RCD%2040A%204P.svg?dinboardSource=importedSvg",
+      rcdRatedCurrent: 40,
+      x: 200,
+    });
+
+    const result = buildSchematicLayout([rcd40a]);
+    const head = result.nodes.find((node) => node.id === "standalone-rcd-40a-4p");
+
+    expect(head).toBeDefined();
+    expect(head!.nodeType).toBe("RCD");
+    expect(head!.protection).toContain("4P");
+    expect(head!.phase).toBe("L1+L2+L3");
+    expect(head!.phaseCount).toBe(3);
+    expect(head!.pageIndex).toBe(0);
+  });
+
+  it("places Polish-named imported RCD 4-pole assets on the first schematic page", () => {
+    const rcd = createDefaultSymbolItem({
+      id: "imported-polish-rcd",
+      type: "Wyłącznik różnicowoprądowy 40A 4-biegunowy",
+      label: "Wyłącznik różnicowoprądowy 40A 4-biegunowy",
+      deviceKind: "other",
+      phase: "L1",
+      moduleRef: "RCD/Wyłącznik różnicowoprądowy 40A 4-biegunowy.svg",
+      visualPath: "/assets/modules/RCD/Wyłącznik%20różnicowoprądowy%2040A%204-biegunowy.svg?dinboardSource=importedSvg",
+      x: 120,
+    });
+
+    const result = buildSchematicLayout([rcd]);
+    const head = result.nodes.find((node) => node.id === "imported-polish-rcd");
+
+    expect(head).toBeDefined();
+    expect(head!.nodeType).toBe("RCD");
+    expect(head!.protection).toContain("4P");
+    expect(head!.phase).toBe("L1+L2+L3");
+    expect(head!.pageIndex).toBe(0);
+  });
+
+  it("keeps standalone FR, phase indicator, SPD and two 3P+N RCD heads compact inside the drawing area", () => {
+    const symbols = [
+      createDefaultSymbolItem({
+        id: "fr",
+        type: "Rozłącznik izolacyjny FR 3P",
+        deviceKind: "fr",
+        phase: "L1+L2+L3",
+        x: 100,
+      }),
+      createDefaultSymbolItem({
+        id: "phase-indicator",
+        type: "Kontrolki faz",
+        label: "Kontrolki faz",
+        deviceKind: "phaseIndicator",
+        phase: "L1+L2+L3",
+        x: 200,
+      }),
+      createDefaultSymbolItem({
+        id: "spd",
+        type: "SPD",
+        label: "SPD T1+T2 275V 25kA",
+        deviceKind: "spd",
+        phase: "L1+L2+L3",
+        x: 300,
+      }),
+      createDefaultSymbolItem({
+        id: "rcd-a",
+        type: "Rozłącznik różnicowoprądowy 3P+N",
+        label: "Rozłącznik różnicowoprądowy 3P+N",
+        deviceKind: "rcd",
+        phase: "L1+L2+L3",
+        moduleRef: "RCD/Rozłącznik różnicowoprądowy 3P+N.svg",
+        x: 400,
+      }),
+      createDefaultSymbolItem({
+        id: "rcd-b",
+        type: "Rozłącznik różnicowoprądowy 3P+N",
+        label: "Rozłącznik różnicowoprądowy 3P+N",
+        deviceKind: "rcd",
+        phase: "L1+L2+L3",
+        moduleRef: "RCD/Rozłącznik różnicowoprądowy 3P+N.svg",
+        x: 500,
+      }),
+    ];
+
+    const result = buildSchematicLayout(symbols);
+    const firstPageNodes = result.nodes.filter((node) => node.pageIndex === 0);
+    const firstPage = result.pages[0];
+
+    expect(firstPageNodes).toHaveLength(5);
+    expect(firstPage.busX1).toBeGreaterThanOrEqual(DRAW_LEFT);
+    expect(firstPage.busX2).toBeLessThanOrEqual(DRAW_RIGHT);
+    expect(Math.max(...firstPageNodes.map((node) => node.x + MODULE_WIDTH))).toBeLessThanOrEqual(DRAW_RIGHT);
+    expect(Math.min(...firstPageNodes.map((node) => node.x))).toBeGreaterThanOrEqual(DRAW_LEFT);
+  });
+
+  it("does not hide a second RCD when it was accidentally added to an existing RCD group", () => {
+    const oldRcd = createDefaultSymbolItem({
+      id: "old-rcd-4p",
+      type: "RCD 4P",
+      deviceKind: "rcd",
+      phase: "L1+L2+L3",
+      group: "G1",
+      moduleRef: "RCD/RCD 4P.svg",
+      x: 100,
+    });
+    const newRcd = createDefaultSymbolItem({
+      id: "new-rcd-40a-4p",
+      type: "RCD 40A 4P",
+      deviceKind: "rcd",
+      phase: "L1+L2+L3",
+      group: "G1",
+      moduleRef: "RCD/RCD 40A 4P.svg",
+      visualPath: "/assets/modules/RCD/RCD%2040A%204P.svg?dinboardSource=importedSvg",
+      x: 300,
+    });
+
+    const result = buildSchematicLayout([oldRcd, newRcd]);
+    const oldHead = result.nodes.find((node) => node.id === "old-rcd-4p");
+    const newHead = result.nodes.find((node) => node.id === "new-rcd-40a-4p");
+
+    expect(oldHead?.nodeType).toBe("RCD");
+    expect(newHead?.nodeType).toBe("RCD");
+    expect(oldHead?.pageIndex).toBe(0);
+    expect(newHead?.pageIndex).toBe(0);
+  });
+
+  it("cycles pending single-phase RCDs through L1, L2, L3 sequentially", () => {
+    const rcd1 = createDefaultSymbolItem({
+      id: "rcd-1",
+      type: "RCD 2P",
+      deviceKind: "rcd",
+      phase: "PENDING" as any,
+      x: 100,
+    });
+    const rcd2 = createDefaultSymbolItem({
+      id: "rcd-2",
+      type: "RCD 2P",
+      deviceKind: "rcd",
+      phase: "PENDING" as any,
+      x: 200,
+    });
+    const rcd3 = createDefaultSymbolItem({
+      id: "rcd-3",
+      type: "RCD 2P",
+      deviceKind: "rcd",
+      phase: "PENDING" as any,
+      x: 300,
+    });
+    const rcd4 = createDefaultSymbolItem({
+      id: "rcd-4",
+      type: "RCD 2P",
+      deviceKind: "rcd",
+      phase: "PENDING" as any,
+      x: 400,
+    });
+
+    const result = buildSchematicLayout([rcd1, rcd2, rcd3, rcd4]);
+
+    const node1 = result.nodes.find((n) => n.id === "rcd-1");
+    const node2 = result.nodes.find((n) => n.id === "rcd-2");
+    const node3 = result.nodes.find((n) => n.id === "rcd-3");
+    const node4 = result.nodes.find((n) => n.id === "rcd-4");
+
+    expect(node1!.phase).toBe("L1");
+    expect(node2!.phase).toBe("L2");
+    expect(node3!.phase).toBe("L3");
+    expect(node4!.phase).toBe("L1");
+  });
+
+  it("keeps RCD 2P single-phase even when stale data says L1+L2+L3", () => {
+    const firstRcd = createDefaultSymbolItem({
+      id: "rcd-2p-a",
+      type: "RCD 40A 2P",
+      label: "RCD 40A 2P",
+      deviceKind: "rcd",
+      phase: "L1+L2+L3",
+      group: "GA",
+      x: 100,
+    });
+    const firstMcb = createDefaultSymbolItem({
+      id: "mcb-a",
+      type: "MCB 1P",
+      deviceKind: "mcb",
+      phase: "L2",
+      group: "GA",
+      x: 140,
+    });
+    const secondRcd = createDefaultSymbolItem({
+      id: "rcd-2p-b",
+      type: "RCD 40A 2P",
+      label: "RCD 40A 2P",
+      deviceKind: "rcd",
+      phase: "L1+L2+L3",
+      group: "GB",
+      x: 260,
+    });
+    const secondMcb = createDefaultSymbolItem({
+      id: "mcb-b",
+      type: "MCB 1P",
+      deviceKind: "mcb",
+      phase: "L3",
+      group: "GB",
+      x: 300,
+    });
+
+    const result = buildSchematicLayout([firstRcd, firstMcb, secondRcd, secondMcb]);
+    const firstHead = result.nodes.find((node) => node.id === "rcd-2p-a");
+    const secondHead = result.nodes.find((node) => node.id === "rcd-2p-b");
+    const firstChild = result.nodes.find((node) => node.id === "mcb-a");
+    const secondChild = result.nodes.find((node) => node.id === "mcb-b");
+
+    expect(firstHead!.protection).toContain("2P");
+    expect(firstHead!.phase).toBe("L1");
+    expect(firstHead!.phaseCount).toBe(1);
+    expect(firstChild!.phase).toBe("L1");
+    expect(secondHead!.protection).toContain("2P");
+    expect(secondHead!.phase).toBe("L2");
+    expect(secondHead!.phaseCount).toBe(1);
+    expect(secondChild!.phase).toBe("L2");
+  });
+
+  it("chunks a large RCD group exceeding maxChildrenPerHeadChunk across multiple pages", () => {
+    const rcd = createDefaultSymbolItem({
+      id: "rcd-large",
+      type: "RCD 4P",
+      deviceKind: "rcd",
+      phase: "L1+L2+L3",
+      group: "G_LARGE",
+      moduleRef: "RCD/RCD 4P.svg",
+      x: 100,
+    });
+
+    // Create 12 MCB symbols under this RCD group
+    const mcbs = Array.from({ length: 12 }, (_, i) =>
+      createDefaultSymbolItem({
+        id: `mcb-${i + 1}`,
+        type: "MCB 1P",
+        deviceKind: "mcb",
+        group: "G_LARGE",
+        rcdSymbolId: "rcd-large",
+        x: 120 + i * 20,
+      })
+    );
+
+    const result = buildSchematicLayout([rcd, ...mcbs]);
+
+    // Root nodes should have 2 chunks representing the RCD head (due to chunking into packages of at most 9)
+    // One chunk of size 9, one of size 3.
+    const rcdNodes = result.nodes.filter((node) => node.id === "rcd-large");
+    expect(rcdNodes).toHaveLength(2);
+
+    const chunk1 = rcdNodes[0];
+    const chunk2 = rcdNodes[1];
+
+    expect(chunk1.nodeType).toBe("RCD");
+    expect(chunk1.children).toHaveLength(9);
+    expect(chunk1.protection).not.toContain("(cd.)");
+
+    expect(chunk2.nodeType).toBe("RCD");
+    expect(chunk2.children).toHaveLength(3);
+    expect(chunk2.protection).toContain("(cd.)");
+
+    // All 12 MCBs should be accounted for as children across the two RCD chunks
+    const allChildIds = [...chunk1.children.map(c => c.id), ...chunk2.children.map(c => c.id)];
+    expect(allChildIds).toHaveLength(12);
+    expect(allChildIds).toContain("mcb-1");
+    expect(allChildIds).toContain("mcb-12");
   });
 });

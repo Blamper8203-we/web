@@ -7,7 +7,7 @@ export const FRAME_MARGIN_TOP = 24;
 export const FRAME_MARGIN_RIGHT = 24;
 export const FRAME_MARGIN_BOTTOM = 24;
 
-export const TITLEBLOCK_WIDTH = 52;
+export const TITLEBLOCK_WIDTH = 190;
 export const TITLEBLOCK_HEIGHT = 360;
 export const TITLEBLOCK_VISUAL_WIDTH = 190;
 
@@ -18,7 +18,7 @@ export const DRAW_BOTTOM = A4_HEIGHT_PX - FRAME_MARGIN_BOTTOM - 6;
 export const DRAW_WIDTH = DRAW_RIGHT - DRAW_LEFT;
 export const DRAW_HEIGHT = DRAW_BOTTOM - DRAW_TOP;
 
-export const COLUMN_MARGIN_LEFT = 72;
+export const COLUMN_MARGIN_LEFT = 150;
 export const COLUMN_MARGIN_RIGHT = 24;
 export const COLUMN_WIDTH = 142;
 export const COLUMN_GAP = 12;

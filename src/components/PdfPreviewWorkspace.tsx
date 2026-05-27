@@ -1,6 +1,7 @@
 import { pdf } from "@react-pdf/renderer";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
+import { exportDinRailToDataURL } from "../lib/export/dinRailSnapshotService";
 import { PdfProtocolDocument } from "../lib/export/PdfProtocolDocument";
 import { calculateTotalDistribution } from "../lib/phaseDistribution/phaseDistributionCalculator";
 import { validateProject } from "../lib/validation/electricalValidationService";
@@ -20,7 +21,7 @@ const PREVIEW_DEBOUNCE_MS = 180;
 export function PdfPreviewWorkspace({
   metadata,
   symbols,
-  rail: _rail,
+  rail,
   activeTab = "title-page",
 }: PdfPreviewWorkspaceProps) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
@@ -65,6 +66,14 @@ export function PdfPreviewWorkspace({
           return;
         }
 
+        const dinRailImages = activeTab === "din-rail"
+          ? await exportDinRailToDataURL(symbols, rail)
+          : [];
+
+        if (cancelled || currentRequestId !== requestIdRef.current) {
+          return;
+        }
+
         const blob = await pdf(
           <PdfProtocolDocument
             metadata={metadata}
@@ -72,7 +81,7 @@ export function PdfPreviewWorkspace({
             phaseDistribution={phaseDistribution}
             validationResult={validationResult}
             schematicImages={[]}
-            dinRailImages={[]}
+            dinRailImages={dinRailImages}
             previewOnly={activeTab}
           />,
         ).toBlob();
@@ -113,7 +122,7 @@ export function PdfPreviewWorkspace({
         window.clearTimeout(debounceTimer);
       }
     };
-  }, [metadata, symbols, phaseDistribution, validationResult, activeTab]);
+  }, [metadata, symbols, rail, phaseDistribution, validationResult, activeTab]);
 
   useEffect(() => {
     return () => {

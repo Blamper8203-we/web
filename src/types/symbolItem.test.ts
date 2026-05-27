@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createDefaultSymbolItem } from "./symbolItem";
+import { createDefaultSymbolItem, isAuxiliaryNonCircuitSymbol } from "./symbolItem";
 import { toDisplayModuleNumber } from "../lib/appHelpers";
 
 describe("createDefaultSymbolItem (Avalonia parity)", () => {
@@ -30,7 +30,7 @@ describe("createDefaultSymbolItem (Avalonia parity)", () => {
     expect(spd.displayProtection).toBe("SPD T1+T2 275V 25kA");
   });
 
-  it("computes terminal block display module number as LW*", () => {
+  it("computes terminal block display module number as X*", () => {
     const terminal = createDefaultSymbolItem({
       type: "Listwy zaciskowe",
       visualPath: "assets/modules/Listwy zaciskowe/LISTWA 12 PIN.svg",
@@ -38,7 +38,32 @@ describe("createDefaultSymbolItem (Avalonia parity)", () => {
     });
 
     expect(terminal.isTerminalBlock).toBe(true);
-    expect(terminal.displayModuleNumber).toBe("LW2");
+    expect(terminal.displayModuleNumber).toBe("X2");
+  });
+
+  it("detects connector modules as terminal blocks", () => {
+    const connector = createDefaultSymbolItem({
+      type: "Złącza",
+      label: "ZŁĄCZE 3XPEN",
+      deviceKind: "terminalBlock",
+      visualPath: "assets/modules/zlacza/zlacze-3xpen.svg",
+      moduleNumber: 3,
+    });
+
+    expect(connector.isTerminalBlock).toBe(true);
+    expect(connector.displayModuleNumber).toBe("X3");
+  });
+
+  it("does not treat imported RCD assets as auxiliary modules", () => {
+    const rcd = createDefaultSymbolItem({
+      type: "Wyłącznik różnicowoprądowy 40A 4P",
+      label: "RCD 40A 4P",
+      deviceKind: "rcd",
+      visualPath: "assets/modules/Rozdzielnica/RCD 40A 4P.svg",
+      moduleRef: "Rozdzielnica/RCD 40A 4P.svg",
+    });
+
+    expect(isAuxiliaryNonCircuitSymbol(rcd)).toBe(false);
   });
 });
 
@@ -53,4 +78,3 @@ describe("toDisplayModuleNumber", () => {
     expect(toDisplayModuleNumber(symbol)).toBe("#0");
   });
 });
-

@@ -60,11 +60,29 @@ export interface MeasurementRcdProtocolRow {
   assessment: string;
 }
 
+export interface MeasurementUnifiedProtocolRow {
+  index: number;
+  sourceCircuitId: string;
+  referenceDesignation: string;
+  circuitName: string;
+  location: string;
+  protectionType: string;
+  ratedCurrent: string;
+  lnResistance: string;
+  lpeResistance: string;
+  npeResistance: string;
+  measuredImpedance: string;
+  allowedImpedance: string;
+  assessment: string;
+}
+
+
 export interface MeasurementProtocolsData {
   continuityHeader: MeasurementProtocolHeaderSettings;
   loopHeader: MeasurementProtocolHeaderSettings;
   insulationHeader: MeasurementProtocolHeaderSettings;
   rcdGroundHeader: MeasurementProtocolHeaderSettings;
+  unifiedHeader: MeasurementProtocolHeaderSettings;
   continuityMeterName: string;
   continuityMeterSerialNumber: string;
   continuityMeasurementCurrent: string;
@@ -87,6 +105,7 @@ export interface MeasurementProtocolsData {
   loopImpedanceRows: MeasurementLoopProtocolRow[];
   insulationRows: MeasurementInsulationProtocolRow[];
   rcdRows: MeasurementRcdProtocolRow[];
+  unifiedRows: MeasurementUnifiedProtocolRow[];
 }
 
 export interface ProjectMetadata {
@@ -126,6 +145,7 @@ export interface ProjectMetadata {
   titlePageUseManualWorkScopeCheckboxes: boolean;
   titlePageCompanyLogoFileName: string;
   titlePageCompanyLogoDataUrl: string;
+  measurementProtocolStyle: "separate" | "unified";
   measurementProtocols: MeasurementProtocolsData;
 
   // Power supply configuration
@@ -133,4 +153,5 @@ export interface ProjectMetadata {
   supplyPhases: 1 | 3;
   mainBreakerA: 25 | 32 | 40 | 63 | 80 | 100 | 125;
   contractedPowerKw: number;
+  simultaneityFactor: number;
 }

@@ -70,7 +70,7 @@ export function RcdManagementDialog({ entries, onClose, onSave }: RcdManagementD
 
         {!hasRows ? (
           <div className="rcd-dialog__empty">
-            <strong>Brak modułów RCD w projekcie.</strong>
+            <strong>Brak modułów RCD w zleceniu.</strong>
             <span>Dodaj przynajmniej jeden moduł RCD na szynę DIN.</span>
           </div>
         ) : (

@@ -42,15 +42,15 @@ export function CircuitListPage({ rows }: CircuitListPageProps) {
       </header>
 
       <div className="cl-summary">
-        <article className="cl-summary-card">
+        <article className="cl-summary-card cl-summary-card--visible">
           <span>Widoczne po filtracji</span>
           <strong>{visibleCount}</strong>
         </article>
-        <article className="cl-summary-card">
+        <article className="cl-summary-card cl-summary-card--hidden">
           <span>Ukryte elementy pomocnicze</span>
           <strong>{hiddenCount}</strong>
         </article>
-        <article className="cl-summary-card">
+        <article className="cl-summary-card cl-summary-card--power">
           <span>Suma mocy obwodów</span>
           <strong>{formatNumber(totalPower)} W</strong>
         </article>
@@ -93,8 +93,8 @@ export function CircuitListPage({ rows }: CircuitListPageProps) {
                           <div key={row.id} className={`cl-row ${rcdGroup.rcd ? "cl-row--nested" : ""}`}>
                             <span>{row.referenceDesignation || "-"}</span>
                             <span>{row.label || "-"}</span>
-                            <span>{row.phase || "-"}</span>
-                            <span>{row.displayProtection || row.protectionType || "-"}</span>
+                            <span className="cl-cell-center"><span className="cl-chip cl-chip--phase">{row.phase || "-"}</span></span>
+                            <span className="cl-cell-center"><span className="cl-chip cl-chip--protection">{row.displayProtection || row.protectionType || "-"}</span></span>
                             <span className="cl-circuit-name">{row.circuitName || "-"}</span>
                             <span>{formatNumber(row.powerW)}</span>
                             <span>{formatNumber(row.cableLength)}</span>
@@ -143,9 +143,9 @@ export function CircuitListPage({ rows }: CircuitListPageProps) {
           <article className="cl-panel">
             <div className="cl-panel__header">
               <span className="cl-eyebrow">Stan</span>
-              <strong>Dane aktualnego projektu</strong>
+              <strong>Dane aktualnego zlecenia</strong>
             </div>
-            <p>Lista czyta dane bezpośrednio z aktualnych symboli projektu.</p>
+            <p>Lista czyta dane bezpośrednio z aktualnych symboli rozdzielnicy.</p>
             <p>Aktualny zestaw danych: {rows.length} rekordów.</p>
           </article>
         </aside>

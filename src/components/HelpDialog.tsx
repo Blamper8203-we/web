@@ -36,9 +36,9 @@ export function HelpDialog({ onClose }: HelpDialogProps) {
           <section className="help-dialog__section">
             <h3>Skróty klawiaturowe</h3>
             <ul>
-              <li><kbd>Ctrl</kbd> + <kbd>N</kbd> - nowy projekt</li>
-              <li><kbd>Ctrl</kbd> + <kbd>O</kbd> - otwórz projekt</li>
-              <li><kbd>Ctrl</kbd> + <kbd>S</kbd> - zapisz projekt</li>
+              <li><kbd>Ctrl</kbd> + <kbd>N</kbd> - nowe zlecenie</li>
+              <li><kbd>Ctrl</kbd> + <kbd>O</kbd> - otwórz zlecenie</li>
+              <li><kbd>Ctrl</kbd> + <kbd>S</kbd> - zapisz zlecenie</li>
               <li><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd> - zapisz jako</li>
               <li><kbd>Ctrl</kbd> + <kbd>P</kbd> - drukuj</li>
               <li><kbd>Ctrl</kbd> + <kbd>Z</kbd> - cofnij</li>
@@ -50,10 +50,10 @@ export function HelpDialog({ onClose }: HelpDialogProps) {
           </section>
 
           <section className="help-dialog__section">
-            <h3>Zapis projektu</h3>
+            <h3>Zapis zlecenia</h3>
             <ul>
               <li>Przeglądarka trzyma roboczą kopię lokalnie; pełny zapis wykonaj przez <strong>Plik → Zapisz</strong> do pliku <code>.dinboard</code>.</li>
-              <li>Przed zamknięciem karty lub odświeżeniem strony zapisz projekt, jeśli widzisz status niezapisanych zmian.</li>
+              <li>Przed zamknięciem karty lub odświeżeniem strony zapisz zlecenie, jeśli widzisz status niezapisanych zmian.</li>
             </ul>
           </section>
 
@@ -70,7 +70,7 @@ export function HelpDialog({ onClose }: HelpDialogProps) {
             <h3>Zakres Web v1</h3>
             <ul>
               <li>Brak eksportu LaTeX, generatora szyny prądowej i kalkulatora indukcji.</li>
-              <li>Walidacje i obliczenia wspierają projekt — dokumentację sprawdź przed wydaniem na budowę.</li>
+              <li>Walidacje i obliczenia wspierają wykonanie oraz odbiór instalacji — dokumentację sprawdź przed przekazaniem inwestorowi.</li>
             </ul>
           </section>
         </div>
@@ -84,4 +84,3 @@ export function HelpDialog({ onClose }: HelpDialogProps) {
     </div>
   );
 }
-

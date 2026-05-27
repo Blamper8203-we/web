@@ -23,7 +23,7 @@ import {
 } from '../lib/appHelpers';
 import { generateDinRailSvg, getDinRailDimensions, type DinRailConfig } from '../lib/schematic/dinRailGenerator';
 import type { ProjectMetadata } from '../types/projectMetadata';
-import type { SymbolItem } from '../types/symbolItem';
+import type { PhaseAssignment, SymbolItem } from '../types/symbolItem';
 import type { DinRailCanvasRail } from '../components/DinRailCanvasPixi';
 import type { PaletteTemplate } from '../lib/appHelpers';
 import type { SheetType } from '../lib/appHelpers';
@@ -147,7 +147,7 @@ export function useProjectActions({
     setCurrentFilePath(null);
     resetProjectState();
     setActiveSheet('sheet1');
-    showTemporaryStatus('Utworzono nowy projekt', 3000);
+    showTemporaryStatus('Utworzono nowe zlecenie', 3000);
   }, [
     resetProjectState,
     setActiveSheet,
@@ -161,7 +161,7 @@ export function useProjectActions({
     if (
       hasUnsavedChanges &&
       !window.confirm(
-        'Masz niezapisane zmiany. Czy na pewno chcesz otworzyć nowy projekt bez ich zapisywania?',
+        'Masz niezapisane zmiany. Czy na pewno chcesz otworzyć inne zlecenie bez ich zapisywania?',
       )
     ) {
       return;
@@ -191,7 +191,7 @@ export function useProjectActions({
       } else {
         applyRailFromSymbols(normalizedSymbols);
       }
-      showTemporaryStatus('Otwarto projekt', 3000);
+      showTemporaryStatus('Otwarto zlecenie', 3000);
     } catch (e) {
       showTemporaryStatus(`Błąd: ${e instanceof Error ? e.message : 'Nieznany'}`, 5000);
     }
@@ -225,7 +225,7 @@ export function useProjectActions({
         if (path) {
           setCurrentFilePath(path);
           setHasUnsavedChanges(false);
-          showTemporaryStatus('Pobrano plik projektu', 3000);
+          showTemporaryStatus('Zapisano plik zlecenia', 3000);
         }
       } catch (e) {
         showTemporaryStatus(`Błąd: ${e instanceof Error ? e.message : 'Nieznany'}`, 5000);
@@ -283,7 +283,7 @@ export function useProjectActions({
     const blob = new Blob([`\uFEFF${csvContent}`], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    const stem = metadata.projectNumber?.trim() || "projekt";
+    const stem = metadata.projectNumber?.trim() || "zlecenie";
     link.href = url;
     link.download = `${stem}-bom.csv`;
     link.click();
@@ -309,7 +309,7 @@ export function useProjectActions({
       }
 
       const link = document.createElement("a");
-      const stem = metadata.projectNumber?.trim() || "projekt";
+      const stem = metadata.projectNumber?.trim() || "zlecenie";
       const url = URL.createObjectURL(blob);
       link.href = url;
       link.download = withAnnotations ? `${stem}-oznaczenia.png` : `${stem}-czysty.png`;
@@ -342,7 +342,7 @@ export function useProjectActions({
       }
 
       const link = document.createElement("a");
-      const stem = metadata.projectNumber?.trim() || "projekt";
+      const stem = metadata.projectNumber?.trim() || "zlecenie";
       const url = URL.createObjectURL(blob);
       link.href = url;
       link.download = `${stem}-rozdzielnica-opis-hq.png`;
@@ -408,6 +408,44 @@ export function useProjectActions({
     [executeSymbolsCommand, selectedSymbolId, selectedSymbolIds, showTemporaryStatus, symbols],
   );
 
+  const handleApplyPhaseMoveSuggestion = useCallback(
+    (symbolId: string, toPhase: "L1" | "L2" | "L3") => {
+      const target = symbols.find((symbol) => symbol.id === symbolId);
+      if (!target) {
+        showTemporaryStatus("Nie znaleziono obwodu do przeniesienia", 3000);
+        return;
+      }
+
+      if (target.isPhaseLocked) {
+        showTemporaryStatus("Obwód ma zablokowaną fazę", 3000);
+        return;
+      }
+
+      if (target.phase === toPhase) {
+        showTemporaryStatus("Obwód jest już na tej fazie", 2500);
+        return;
+      }
+
+      const distributionBefore = calculateTotalDistribution(symbols);
+      const nextSymbols = symbols.map((symbol) =>
+        symbol.id === symbolId
+          ? { ...symbol, phase: toPhase as PhaseAssignment }
+          : symbol,
+      );
+      const distributionAfter = calculateTotalDistribution(nextSymbols);
+      const label = target.referenceDesignation || target.circuitName || target.label || target.id;
+      const message = `Przeniesiono ${label}: ${target.phase} -> ${toPhase}. Asymetria ${distributionBefore.imbalancePercent.toFixed(1)}% -> ${distributionAfter.imbalancePercent.toFixed(1)}%.`;
+
+      executeSymbolsCommand(
+        "Sugestia bilansu faz",
+        { symbols, selectedSymbolId, selectedSymbolIds },
+        { symbols: nextSymbols, selectedSymbolId, selectedSymbolIds },
+        message,
+      );
+    },
+    [executeSymbolsCommand, selectedSymbolId, selectedSymbolIds, showTemporaryStatus, symbols],
+  );
+
   const handleOpenDinRailGenerator = useCallback(() => {
     setActiveSheet('sheet1');
     setDinRailGeneratorRequest((r) => r + 1);
@@ -454,6 +492,7 @@ export function useProjectActions({
     handleExportPng,
     handleExportDinRailPngWithDescriptionsNoBrackets,
     handleAutoBalance,
+    handleApplyPhaseMoveSuggestion,
     handleOpenDinRailGenerator,
     handleRailGenerated,
     handleMetadataChange,

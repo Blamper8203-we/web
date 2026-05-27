@@ -17,17 +17,20 @@ const DEFAULT_STANDARDS = [
   "IEC 61346",
   "PN-HD 60364",
 ];
+export const DEFAULT_SIMULTANEITY_FACTOR = 0.6;
 
-const DEFAULT_WORK_SCOPE_ITEMS = [
+export const DEFAULT_WORK_SCOPE_ITEMS = [
   "Montaż rozdzielnicy głównej",
   "Układanie przewodów i osprzętu",
   "Pomiary ochrony przeciwporażeniowej",
 ];
 
-const DEFAULT_ATTACHMENT_ITEMS = [
-  "Protokoły z pomiarów",
-  "Schemat rozdzielnicy",
-  "Uprawnienia wykonawcy",
+export const DEFAULT_ATTACHMENT_ITEMS = [
+  "Tabela zbiorcza pomiarów",
+  "RCD i uziemienie",
+  "Schemat instalacji elektrycznej",
+  "Widok rozdzielnicy elektrycznej",
+  "Lista obwodów",
 ];
 
 function createChecklistItems(values: string[]): TitlePageChecklistItem[] {
@@ -35,6 +38,109 @@ function createChecklistItems(values: string[]): TitlePageChecklistItem[] {
     text,
     isChecked: true,
   }));
+}
+
+const ATTACHMENT_ITEM_PREFIX_PATTERN = /^(?:[-*•]\s*|\[\s*[xX]?\]\s*|[\u2713\u2714\u2611]\s*)+/u;
+const ATTACHMENT_ITEM_MARKER_PATTERN = /^(?:[-*•]+|\[\s*[xX]?\]|[\u2713\u2714\u2611]+)$/u;
+
+const STANDARD_ATTACHMENT_ALIASES: Record<string, string> = {
+  "tabela zbiorcza": "Tabela zbiorcza pomiarów",
+  "tabela zbiorcza pomiarow": "Tabela zbiorcza pomiarów",
+  "protokol rcd": "RCD i uziemienie",
+  "protokol rcd i uziemienia": "RCD i uziemienie",
+  "rcd i uziemienia": "RCD i uziemienie",
+  "rcd i uziemienie": "RCD i uziemienie",
+  schemat: "Schemat instalacji elektrycznej",
+  "schemat instalacji": "Schemat instalacji elektrycznej",
+  "schemat instalacji elektrycznej": "Schemat instalacji elektrycznej",
+  "schemat jednokreskowy rozdzielnicy": "Schemat instalacji elektrycznej",
+  rozdzielnica: "Widok rozdzielnicy elektrycznej",
+  "widok rozdzielnicy": "Widok rozdzielnicy elektrycznej",
+  "widok rozdzielnicy elektrycznej": "Widok rozdzielnicy elektrycznej",
+  "lista obwodow": "Lista obwodów",
+};
+
+const LEGACY_STANDARD_ATTACHMENT_ITEMS = new Set([
+  "opis obwodow",
+  "protokol z pomiarow ochronnych",
+  "protokoly z pomiarow",
+  "schemat rozdzielnicy",
+  "uprawnienia wykonawcy",
+  "kopia uprawnien budowlanych / sep",
+]);
+
+function comparableAttachmentItem(value: string): string {
+  return value
+    .toLocaleLowerCase("pl-PL")
+    .replace(/ł/g, "l")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+function normalizeAttachmentItem(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed || ATTACHMENT_ITEM_MARKER_PATTERN.test(trimmed)) {
+    return null;
+  }
+
+  const normalized = trimmed.replace(ATTACHMENT_ITEM_PREFIX_PATTERN, "").trim();
+  if (!normalized || ATTACHMENT_ITEM_MARKER_PATTERN.test(normalized)) {
+    return null;
+  }
+
+  const comparable = comparableAttachmentItem(normalized);
+  const standardAlias = STANDARD_ATTACHMENT_ALIASES[comparable];
+  if (standardAlias) {
+    return standardAlias;
+  }
+
+  if (
+    comparable === "zalaczniki" ||
+    comparable === "zalaczniki do protokolu" ||
+    comparable === "zakres prac" ||
+    LEGACY_STANDARD_ATTACHMENT_ITEMS.has(comparable) ||
+    DEFAULT_WORK_SCOPE_ITEMS.some((item) => comparableAttachmentItem(item) === comparable)
+  ) {
+    return null;
+  }
+
+  return normalized;
+}
+
+export function normalizeAttachmentItems(items: string[] | undefined): string[] {
+  const normalizedItems: string[] = [];
+
+  for (const item of items ?? []) {
+    const normalized = normalizeAttachmentItem(item);
+    if (!normalized) {
+      continue;
+    }
+
+    const alreadyExists = normalizedItems.some(
+      (candidate) => comparableAttachmentItem(candidate) === comparableAttachmentItem(normalized),
+    );
+    if (!alreadyExists) {
+      normalizedItems.push(normalized);
+    }
+  }
+
+  return normalizedItems;
+}
+
+export function mergeDefaultAttachmentItems(items: string[] | undefined): string[] {
+  const merged = [...DEFAULT_ATTACHMENT_ITEMS];
+
+  for (const item of normalizeAttachmentItems(items)) {
+    const alreadyExists = merged.some(
+      (mergedItem) => comparableAttachmentItem(mergedItem) === comparableAttachmentItem(item),
+    );
+    if (!alreadyExists) {
+      merged.push(item);
+    }
+  }
+
+  return merged;
 }
 
 function createPlaceholderMeasurementProtocols(): MeasurementProtocolsData {
@@ -82,20 +188,20 @@ export function createDefaultProjectMetadata(): ProjectMetadata {
   const titlePageObjectType = "Budynek jednorodzinny / Lokal mieszkalny";
 
   return {
-    projectNumber: "E-01",
-    author: "inz. Adam Wisniewski",
-    authorLicense: "upr. bud. nr 67890",
-    company: "Instalacja elektryczna - dom jednorodzinny",
+    projectNumber: "PW-01/2026",
+    author: "Jan Kowalski",
+    authorLicense: "SEP E+D nr 123/2026",
+    company: "Dokumentacja powykonawcza instalacji elektrycznej",
     titlePageObjectType,
     address: "ul. Budowlana 12, 59-300 Lubin",
     investor: "Jan Kowalski",
     contractor: "FHU Elektro Jan Kowalski",
-    designerId: "upr. bud. nr 67890",
-    revision: "1.0",
+    designerId: "SEP E+D nr 123/2026",
+    revision: "wyd. 1",
     drawingScale: "bez skali",
     drawingDate: today,
     sheetNumber: "",
-    designerSignature: "mgr inz. Adam Wisniewski",
+    designerSignature: "Jan Kowalski",
     investorSignature: "",
     contractorSignature: "PIECZATKA WYKONAWCY",
     isFormalDocumentationMode: true,
@@ -107,14 +213,16 @@ export function createDefaultProjectMetadata(): ProjectMetadata {
     titlePageWorkScopeItems: createChecklistItems(DEFAULT_WORK_SCOPE_ITEMS),
     titlePageAttachmentItems: [...DEFAULT_ATTACHMENT_ITEMS],
     titlePageSepValidUntil: "31.12.2026",
-    titlePageUseManualWorkScopeCheckboxes: true,
+    titlePageUseManualWorkScopeCheckboxes: false,
     titlePageCompanyLogoFileName: "",
     titlePageCompanyLogoDataUrl: "",
+    measurementProtocolStyle: "unified",
     measurementProtocols: createDefaultMeasurementProtocols(today, titlePageObjectType),
     supplyVoltageV: 230,
     supplyPhases: 3,
     mainBreakerA: 63,
     contractedPowerKw: 14,
+    simultaneityFactor: DEFAULT_SIMULTANEITY_FACTOR,
   };
 }
 
@@ -145,14 +253,16 @@ export function createEmptyProjectMetadata(): ProjectMetadata {
     titlePageWorkScopeItems: [],
     titlePageAttachmentItems: [],
     titlePageSepValidUntil: "",
-    titlePageUseManualWorkScopeCheckboxes: true,
+    titlePageUseManualWorkScopeCheckboxes: false,
     titlePageCompanyLogoFileName: "",
     titlePageCompanyLogoDataUrl: "",
+    measurementProtocolStyle: "unified",
     measurementProtocols: createPlaceholderMeasurementProtocols(),
     supplyVoltageV: 230,
     supplyPhases: 3,
     mainBreakerA: 63,
     contractedPowerKw: 14,
+    simultaneityFactor: DEFAULT_SIMULTANEITY_FACTOR,
   };
 }
 
@@ -231,7 +341,7 @@ export function normalizeProjectMetadata(
           }))
       : defaults.titlePageWorkScopeItems,
     titlePageAttachmentItems: Array.isArray(raw?.titlePageAttachmentItems)
-      ? raw.titlePageAttachmentItems.filter((item) => item.trim().length > 0)
+      ? mergeDefaultAttachmentItems(raw.titlePageAttachmentItems)
       : defaults.titlePageAttachmentItems,
     titlePageSepValidUntil: raw?.titlePageSepValidUntil ?? defaults.titlePageSepValidUntil,
     titlePageUseManualWorkScopeCheckboxes:
@@ -242,6 +352,8 @@ export function normalizeProjectMetadata(
       raw?.titlePageCompanyLogoFileName ?? defaults.titlePageCompanyLogoFileName,
     titlePageCompanyLogoDataUrl:
       raw?.titlePageCompanyLogoDataUrl ?? defaults.titlePageCompanyLogoDataUrl,
+    measurementProtocolStyle:
+      raw?.measurementProtocolStyle ?? defaults.measurementProtocolStyle,
     measurementProtocols: normalizeMeasurementProtocolsData(
       raw?.measurementProtocols,
       measurementDate,
@@ -251,7 +363,16 @@ export function normalizeProjectMetadata(
     supplyPhases: raw?.supplyPhases ?? defaults.supplyPhases,
     mainBreakerA: raw?.mainBreakerA ?? defaults.mainBreakerA,
     contractedPowerKw: raw?.contractedPowerKw ?? defaults.contractedPowerKw,
+    simultaneityFactor: normalizeSimultaneityFactor(raw?.simultaneityFactor, defaults.simultaneityFactor),
   };
+}
+
+export function normalizeSimultaneityFactor(value: number | undefined, fallback = DEFAULT_SIMULTANEITY_FACTOR): number {
+  if (!Number.isFinite(value)) {
+    return fallback;
+  }
+
+  return Math.max(0.1, Math.min(1, Math.round(Number(value) * 100) / 100));
 }
 
 export function resetDocumentationFields(metadata: ProjectMetadata): ProjectMetadata {

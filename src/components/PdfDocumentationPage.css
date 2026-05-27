@@ -42,7 +42,7 @@
 .pd-card {
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--bg-panel);
+  background: var(--card-background);
 }
 
 .pd-editor {
@@ -55,7 +55,7 @@
 .pd-card__header {
   padding: 10px 12px;
   border-bottom: 1px solid var(--border);
-  background: var(--bg-toolbar);
+  background: var(--table-header-background);
 }
 
 .pd-editor-body {
@@ -153,7 +153,7 @@
   gap: 8px;
   padding: 10px 12px 8px;
   border-bottom: 1px solid var(--border);
-  background: var(--bg-toolbar);
+  background: var(--table-header-background);
   overflow-x: auto;
 }
 
@@ -168,14 +168,14 @@
 }
 
 .pd-preview-tab:hover {
-  background: var(--bg-panel-alt);
+  background: var(--hover-background);
   color: var(--text-main);
 }
 
 .pd-preview-tab.active {
-  background: rgba(59, 130, 246, 0.08);
-  color: var(--accent-blue);
-  border-color: var(--accent-blue);
+  background: var(--accent-primary-soft);
+  color: var(--accent-primary-hover);
+  border-color: var(--accent-primary);
 }
 
 .pd-preview-stage {
@@ -333,7 +333,7 @@
 
 .pd-hero-icon {
   margin-top: 1px;
-  color: var(--accent-orange);
+  color: var(--accent-primary-hover);
 }
 
 .pd-hero p {
@@ -763,13 +763,21 @@
 }
 .pd-table th, .pd-table td {
   padding: 8px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-subtle);
 }
 .pd-table th {
-  background: var(--bg-toolbar);
-  color: var(--text-secondary);
-  font-weight: 600;
+  background: var(--table-header-background);
+  color: var(--text-main);
+  font-weight: 700;
   white-space: nowrap;
+}
+
+.pd-table tbody tr:nth-child(even) {
+  background: var(--row-background);
+}
+
+.pd-table tbody tr:hover {
+  background: var(--row-background-hover);
 }
 .pd-table td input {
   width: 100%;
@@ -780,8 +788,9 @@
   border-radius: 4px;
 }
 .pd-table td input:hover, .pd-table td input:focus {
-  border-color: var(--border);
-  background: var(--bg-panel);
+  border-color: var(--accent-primary);
+  background: var(--panel-background);
+  box-shadow: 0 0 0 2px var(--accent-primary-soft);
 }
 
 .pd-export-error {

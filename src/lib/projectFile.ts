@@ -4,7 +4,7 @@ import { createEmptyProjectMetadata } from "./projectMetadata";
 import { getModuleAssetUrl } from "./modules/moduleCatalog";
 import { buildSchematicLayout } from "./schematic/schematicLayoutEngine";
 
-const DEFAULT_PROJECT_FILE_NAME = "projekt.dinboard";
+const DEFAULT_PROJECT_FILE_NAME = "zlecenie.dinboard";
 const PROJECT_FILE_ACCEPT = ".dinboard,.json,application/json";
 const WEB_PROJECT_SCHEMA_VERSION = 2;
 const MANUAL_REFERENCE_DESIGNATION_KEY = "ManualReferenceDesignation";
@@ -375,7 +375,7 @@ export function parseProjectFileContent(content: string, fileName?: string): Pro
   const hasAvaloniaSchema = typeof parsed.schemaVersion === "number" && parsed.schemaVersion > 0 && !hasWebShape;
 
   if (symbols === null || (!hasWebShape && !hasAvaloniaSchema)) {
-    throw new Error("Nieprawidlowy format pliku projektu");
+    throw new Error("Nieprawidlowy format pliku zlecenia");
   }
 
   if (hasWebShape) {

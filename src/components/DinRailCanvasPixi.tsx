@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Application, Container, Text, TextStyle } from "pixi.js";
-import type { SymbolItem } from "../types/symbolItem";
+import { isAuxiliaryNonCircuitSymbol, type SymbolItem } from "../types/symbolItem";
 import {
   generateDinRailSvg,
   getDinRailDimensions,
@@ -220,6 +220,10 @@ function getSymbolDesignationLabel(
     symbol.parameters[MANUAL_REFERENCE_DESIGNATION_KEY]?.toLocaleLowerCase("pl-PL") === "true";
 
   if (isManualDesignation && manualDesignation.length > 0) {
+    return manualDesignation;
+  }
+
+  if (isAuxiliaryNonCircuitSymbol(symbol) && manualDesignation.length > 0) {
     return manualDesignation;
   }
 
@@ -881,10 +885,6 @@ export function DinRailCanvas({
       }
     }
 
-    if (interaction.mode === "idle" && rail.isVisible) {
-      onSymbolSelect?.(null);
-    }
-
     interactionRef.current = { mode: "idle" };
     setSelectionRect(null);
   }, [commitSelectionRect, flushViewportState, onSymbolMoveEnd, onSymbolSelect, rail.isVisible, selectionRect]);
@@ -1198,8 +1198,16 @@ export function DinRailCanvas({
                 pointerEvents: "none",
                 zIndex: 2,
               }}
-              dangerouslySetInnerHTML={{ __html: asset.namespacedMarkup }}
-            />
+              dangerouslySetInnerHTML={
+                asset.namespacedMarkup
+                  ? { __html: asset.namespacedMarkup }
+                  : undefined
+              }
+            >
+              {asset.imageSrc && (
+                <img alt="" draggable={false} src={asset.imageSrc} />
+              )}
+            </div>
           );
         })}
         <div
@@ -1304,7 +1312,7 @@ export function DinRailCanvas({
                 style={{
                   ...selectionRectStyle,
                   border: "none",
-                  background: "rgba(13, 121, 242, 0.12)",
+                  background: "var(--state-info-soft)",
                   pointerEvents: "none",
                 }}
               />

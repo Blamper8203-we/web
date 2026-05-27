@@ -1,0 +1,242 @@
+import { describe, expect, it } from "vitest";
+import { createDefaultSymbolItem } from "../types/symbolItem";
+import {
+  getReferencePrefix,
+  normalizeDinRailModuleOrdering,
+  normalizeGroupConsistency,
+  normalizePaletteAssetDimensions,
+  type PaletteTemplate,
+} from "./appHelpers";
+
+describe("normalizePaletteAssetDimensions", () => {
+  it("restores fixed 4P RCD phase from the palette even when an old symbol has ManualPhase", () => {
+    const template: PaletteTemplate = {
+      templateId: "imported-catalog-rcd-40a-4p",
+      code: "RCD 40A 4P",
+      label: "RCD 40A 4P",
+      type: "RCD",
+      category: "RCD",
+      deviceKind: "rcd",
+      phase: "L1+L2+L3",
+      modules: 4,
+      moduleRef: "RCD/RCD 40A 4P.svg",
+      assetPath: "/assets/modules/RCD/RCD%2040A%204P.svg?dinboardSource=importedSvg",
+      customWidth: 930.32,
+      customHeight: 1103,
+      rcdRatedCurrent: 40,
+      rcdResidualCurrent: 30,
+      rcdType: "A",
+    };
+    const symbol = createDefaultSymbolItem({
+      id: "old-rcd-40a-4p",
+      type: "RCD",
+      deviceKind: "rcd",
+      moduleRef: template.moduleRef,
+      moduleSourceType: "ImportedSvg",
+      phase: "L1",
+      parameters: { ManualPhase: "true" },
+      width: 120,
+      height: 520,
+    });
+
+    const [normalized] = normalizePaletteAssetDimensions([symbol], new Map([[template.templateId, template]]));
+
+    expect(normalized.phase).toBe("L1+L2+L3");
+    expect(normalized.parameters.ManualPhase).toBe("false");
+    expect(normalized.rcdRatedCurrent).toBe(40);
+    expect(normalized.displayProtection).toContain("40A/30mA");
+  });
+
+  it("preserves a valid single-phase RCD phase from the symbol", () => {
+    const template: PaletteTemplate = {
+      templateId: "rcd-2p-svg",
+      code: "RCD 2P",
+      label: "RCD 2P",
+      type: "RCD",
+      category: "RCD",
+      deviceKind: "rcd",
+      phase: "L1",
+      modules: 2,
+      moduleRef: "RCD/RCD 2P.svg",
+      assetPath: "/assets/modules/RCD/RCD%202P.svg",
+      rcdRatedCurrent: 40,
+      rcdResidualCurrent: 30,
+      rcdType: "A",
+    };
+    const symbol = createDefaultSymbolItem({
+      id: "rcd-2p-inst",
+      type: "RCD",
+      deviceKind: "rcd",
+      moduleRef: template.moduleRef,
+      moduleSourceType: "BuiltInAsset",
+      phase: "L3",
+      width: 60,
+      height: 520,
+    });
+
+    const [normalized] = normalizePaletteAssetDimensions([symbol], new Map([[template.templateId, template]]));
+
+    expect(normalized.phase).toBe("L3");
+    expect(normalized.rcdRatedCurrent).toBe(40);
+  });
+
+  it("converts stale 2P RCD multiphase values to a single phase", () => {
+    const template: PaletteTemplate = {
+      templateId: "imported-catalog-rcd-40a-2p",
+      code: "RCD 40A 2P",
+      label: "RCD 40A 2P",
+      type: "RCD",
+      category: "RCD",
+      deviceKind: "rcd",
+      phase: "L1",
+      modules: 2,
+      moduleRef: "RCD/RCD 40A 2P.svg",
+      assetPath: "/assets/modules/RCD/RCD%2040A%202P.svg?dinboardSource=importedSvg",
+      rcdRatedCurrent: 40,
+      rcdResidualCurrent: 30,
+      rcdType: "A",
+    };
+    const symbol = createDefaultSymbolItem({
+      id: "rcd-2p-old",
+      type: "RCD",
+      label: "RCD 40A 2P",
+      deviceKind: "rcd",
+      moduleRef: template.moduleRef,
+      moduleSourceType: "ImportedSvg",
+      phase: "L1+L2+L3",
+      parameters: { ManualPhase: "true" },
+    });
+
+    const [normalized] = normalizePaletteAssetDimensions([symbol], new Map([[template.templateId, template]]));
+
+    expect(normalized.phase).toBe("L1");
+    expect(normalized.parameters.ManualPhase).toBe("false");
+  });
+
+  it("cycles grouped 2P RCD heads through single phases and applies them to child circuits", () => {
+    const firstRcd = createDefaultSymbolItem({
+      id: "rcd-1",
+      type: "RCD 2P",
+      deviceKind: "rcd",
+      phase: "L1+L2+L3",
+      group: "G1",
+      groupName: "Grupa-1",
+    });
+    const firstMcb = createDefaultSymbolItem({
+      id: "mcb-1",
+      type: "MCB 1P",
+      deviceKind: "mcb",
+      phase: "L2",
+      group: "G1",
+      groupName: "Grupa-1",
+    });
+    const secondRcd = createDefaultSymbolItem({
+      id: "rcd-2",
+      type: "RCD 2P",
+      deviceKind: "rcd",
+      phase: "L1+L2+L3",
+      group: "G2",
+      groupName: "Grupa-2",
+    });
+    const secondMcb = createDefaultSymbolItem({
+      id: "mcb-2",
+      type: "MCB 1P",
+      deviceKind: "mcb",
+      phase: "L3",
+      group: "G2",
+      groupName: "Grupa-2",
+    });
+
+    const normalized = normalizeGroupConsistency([firstRcd, firstMcb, secondRcd, secondMcb]);
+
+    expect(normalized.find((symbol) => symbol.id === "rcd-1")?.phase).toBe("L1");
+    expect(normalized.find((symbol) => symbol.id === "mcb-1")?.phase).toBe("L1");
+    expect(normalized.find((symbol) => symbol.id === "rcd-2")?.phase).toBe("L2");
+    expect(normalized.find((symbol) => symbol.id === "mcb-2")?.phase).toBe("L2");
+  });
+
+  it("keeps terminal connectors outside RCD groups and assigns X references by rail order", () => {
+    const rcd = createDefaultSymbolItem({
+      id: "rcd",
+      type: "RCD 2P",
+      deviceKind: "rcd",
+      group: "G1",
+      groupName: "Grupa-1",
+      isSnappedToRail: true,
+      x: 0,
+      y: 0,
+    });
+    const mcb = createDefaultSymbolItem({
+      id: "mcb",
+      type: "MCB 1P",
+      deviceKind: "mcb",
+      group: "G1",
+      groupName: "Grupa-1",
+      rcdSymbolId: "rcd",
+      isSnappedToRail: true,
+      x: 100,
+      y: 0,
+    });
+    const connector = createDefaultSymbolItem({
+      id: "connector",
+      type: "Złącza",
+      label: "Złącze 3XPEN",
+      deviceKind: "terminalBlock",
+      group: "G1",
+      groupName: "Grupa-1",
+      rcdSymbolId: "rcd",
+      isSnappedToRail: true,
+      x: 200,
+      y: 0,
+      referenceDesignation: "",
+      visualPath: "assets/modules/zlacza/zlacze-3xpen.svg",
+    });
+    const distributionBlock = createDefaultSymbolItem({
+      id: "block",
+      type: "Blok rozdzielczy",
+      label: "Blok rozdzielczy 4 15",
+      deviceKind: "other",
+      group: "G1",
+      groupName: "Grupa-1",
+      rcdSymbolId: "rcd",
+      isSnappedToRail: true,
+      x: 300,
+      y: 0,
+      referenceDesignation: "",
+    });
+
+    const normalized = normalizeDinRailModuleOrdering(
+      normalizeGroupConsistency([rcd, mcb, connector, distributionBlock]),
+    );
+
+    expect(normalized.find((symbol) => symbol.id === "connector")).toMatchObject({
+      group: "",
+      rcdSymbolId: "",
+      referenceDesignation: "X1",
+      displayModuleNumber: "X1",
+    });
+    expect(normalized.find((symbol) => symbol.id === "block")).toMatchObject({
+      group: "",
+      rcdSymbolId: "",
+      referenceDesignation: "X2",
+    });
+    expect(normalized.find((symbol) => symbol.id === "mcb")?.rcdSymbolId).toBe("rcd");
+  });
+
+  it("uses X as the palette reference prefix for terminal blocks", () => {
+    const template: PaletteTemplate = {
+      templateId: "terminal",
+      code: "Złącze",
+      label: "Złącze",
+      type: "Złącza",
+      category: "Złącza",
+      deviceKind: "terminalBlock",
+      phase: "L1+L2+L3",
+      modules: 1,
+      moduleRef: "zlacza/zlacze.svg",
+      assetPath: "/assets/modules/zlacza/zlacze.svg",
+    };
+
+    expect(getReferencePrefix(template)).toBe("X");
+  });
+});

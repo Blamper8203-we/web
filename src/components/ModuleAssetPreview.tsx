@@ -5,7 +5,7 @@ import {
   getRasterSupersample,
   shouldUseProgressiveDownsample,
 } from "../lib/modules/rasterPreview";
-import { loadPreparedSvgDataUri } from "../lib/modules/svgAsset";
+import { loadPreparedSvgDataUri, shouldRenderRawModuleAsset } from "../lib/modules/svgAsset";
 
 interface ModuleAssetPreviewProps {
   alt: string;
@@ -62,11 +62,18 @@ export function ModuleAssetPreview({
   src,
 }: ModuleAssetPreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const renderRawAsset = shouldRenderRawModuleAsset(src);
   const cacheKey = buildCacheKey(src, parameters);
   const [preparedSvgUri, setPreparedSvgUri] = useState<string | null>(() => svgCache.get(cacheKey) ?? null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
+    if (renderRawAsset) {
+      setPreparedSvgUri(null);
+      setFailed(false);
+      return;
+    }
+
     let cancelled = false;
 
     loadPreparedSvgDataUri(src, parameters)
@@ -88,10 +95,11 @@ export function ModuleAssetPreview({
     return () => {
       cancelled = true;
     };
-  }, [cacheKey, parameters, src]);
+  }, [cacheKey, parameters, renderRawAsset, src]);
 
   useEffect(() => {
     if (
+      renderRawAsset ||
       renderMode !== "raster" ||
       !preparedSvgUri ||
       !canvasRef.current ||
@@ -186,7 +194,11 @@ export function ModuleAssetPreview({
     return () => {
       cancelled = true;
     };
-  }, [preparedSvgUri, rasterDprCap, renderHeight, renderMode, renderWidth]);
+  }, [preparedSvgUri, rasterDprCap, renderHeight, renderMode, renderRawAsset, renderWidth]);
+
+  if (renderRawAsset) {
+    return <img alt={alt} className={className} src={src} />;
+  }
 
   if (failed || !preparedSvgUri) {
     return <img alt={alt} className={className} src={src} />;

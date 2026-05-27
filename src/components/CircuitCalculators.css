@@ -1,9 +1,10 @@
 .circuit-calculators {
   margin: 16px;
   padding: 12px;
-  background-color: var(--panel-background-alt);
-  border: 1px solid var(--panel-border);
+  background-color: var(--card-background);
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
+  box-shadow: var(--shadow-sm);
 }
 
 .circuit-calculators-title {
@@ -51,5 +52,5 @@
 }
 
 .calc-value.text-warning {
-  color: var(--accent-orange);
+  color: var(--accent-warning);
 }

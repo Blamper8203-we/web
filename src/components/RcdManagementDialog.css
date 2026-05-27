@@ -42,18 +42,27 @@
 
 .rcd-dialog__table th,
 .rcd-dialog__table td {
-  border-bottom: 1px solid var(--panel-border);
+  border-bottom: 1px solid var(--border-subtle);
   padding: 8px;
   text-align: left;
   font-size: var(--font-size-sm);
 }
 
 .rcd-dialog__table th {
-  color: var(--text-secondary);
+  background: var(--table-header-background);
+  color: var(--text-main);
   font-size: var(--font-size-xs);
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.rcd-dialog__table tbody tr:nth-child(even) {
+  background: var(--row-background);
+}
+
+.rcd-dialog__table tbody tr:hover {
+  background: var(--row-background-hover);
 }
 
 .rcd-dialog__table td {
@@ -72,6 +81,6 @@
 
 .rcd-dialog__table td input:focus {
   outline: none;
-  border-color: rgba(13, 121, 242, 0.6);
-  box-shadow: 0 0 0 2px rgba(13, 121, 242, 0.16);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-primary-soft);
 }

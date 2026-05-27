@@ -75,8 +75,9 @@ function textField(
   label: string,
   value: string,
   placeholder = "",
+  options?: string[],
 ): CircuitEditFieldDefinition {
-  return { key, label, kind: "text", value, placeholder };
+  return { key, label, kind: "text", value, placeholder, options };
 }
 
 function numberField(
@@ -105,8 +106,12 @@ function checkboxField(
   return { key, label, kind: "checkbox", value };
 }
 
-export function getCircuitEditFields(symbol: SymbolItem): CircuitEditFieldDefinition[] {
+export function getCircuitEditFields(symbol: SymbolItem, symbols?: SymbolItem[]): CircuitEditFieldDefinition[] {
   const moduleType = getModuleType(symbol);
+  
+  const locationOptions = symbols
+    ? Array.from(new Set(symbols.map((s) => s.location).filter((loc) => loc.trim().length > 0))).sort()
+    : [];
 
   switch (moduleType) {
     case "switch":
@@ -118,9 +123,9 @@ export function getCircuitEditFields(symbol: SymbolItem): CircuitEditFieldDefini
     case "spd":
       return createSpdFields(symbol);
     case "socket":
-      return createSocketFields(symbol, getPoleCount(symbol));
+      return createSocketFields(symbol, getPoleCount(symbol), locationOptions);
     default:
-      return createMcbFields(symbol, getPoleCount(symbol));
+      return createMcbFields(symbol, getPoleCount(symbol), locationOptions);
   }
 }
 
@@ -314,21 +319,22 @@ function createSpdFields(symbol: SymbolItem): CircuitEditFieldDefinition[] {
 function createSocketFields(
   symbol: SymbolItem,
   poleCount: ModulePoleCount,
+  locationOptions: string[],
 ): CircuitEditFieldDefinition[] {
   return [
     textField("ReferenceDesignation", "Oznaczenie", symbol.referenceDesignation),
     textField("CircuitName", "Nazwa obwodu", symbol.circuitName, "np. Gniazdo serwisowe"),
-    textField("Location", "Lokalizacja", symbol.location, "np. Rozdzielnica"),
+    textField("Location", "Lokalizacja", symbol.location, "np. Rozdzielnica", locationOptions),
     comboField("Phase", "Faza", getDisplayPhase(symbol.phase), getPhaseOptions(poleCount)),
     numberField("CableCrossSection", "Przekrój (mm2)", symbol.cableCrossSection, "np. 2.5"),
   ];
 }
 
-function createMcbFields(symbol: SymbolItem, poleCount: ModulePoleCount): CircuitEditFieldDefinition[] {
+function createMcbFields(symbol: SymbolItem, poleCount: ModulePoleCount, locationOptions: string[]): CircuitEditFieldDefinition[] {
   return [
     textField("ReferenceDesignation", "Oznaczenie", symbol.referenceDesignation),
     textField("CircuitName", "Nazwa obwodu", symbol.circuitName, "np. Oświetlenie salon"),
-    textField("Location", "Lokalizacja", symbol.location, "np. Piętro 1, Kuchnia"),
+    textField("Location", "Lokalizacja", symbol.location, "np. Piętro 1, Kuchnia", locationOptions),
     comboField("CircuitType", "Typ obwodu", symbol.circuitType || "Gniazdo", CIRCUIT_TYPE_PRESETS),
     comboField("ProtectionType", "Zabezpieczenie", symbol.protectionType || "B16", PROTECTION_PRESETS),
     numberField("PowerW", "Moc (W)", symbol.powerW, "np. 2000"),

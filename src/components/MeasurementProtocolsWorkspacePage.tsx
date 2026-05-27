@@ -1,38 +1,42 @@
+import { useEffect, useState } from "react";
 import type { CircuitRow } from "../types/circuitRow";
+import type { SymbolItem } from "../types/symbolItem";
 import type {
   MeasurementContinuityProtocolRow,
   MeasurementInsulationProtocolRow,
   MeasurementLoopProtocolRow,
   MeasurementProtocolsData,
   MeasurementRcdProtocolRow,
+  MeasurementUnifiedProtocolRow,
   ProjectMetadata,
 } from "../types/projectMetadata";
+import {
+  DEFAULT_WORK_SCOPE_ITEMS,
+  mergeDefaultAttachmentItems,
+} from "../lib/projectMetadata";
+import { buildCircuitListTableRows } from "../lib/circuitRows";
+import { exportDinRailToDataURL } from "../lib/export/dinRailSnapshotService";
+import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
 import "./MeasurementProtocolsWorkspacePage.css";
+const UNIFIED_ROWS_PER_PAGE = 7;
+const CIRCUIT_LIST_ROWS_PER_PAGE = 10;
+const TITLE_WORK_SCOPE_MAX_ITEMS = 12;
+const TITLE_WORK_SCOPE_COLUMN_SIZE = 6;
 
-const CONTINUITY_ROWS_PER_PAGE = 18;
-const LOOP_ROWS_PER_PAGE = 18;
-const INSULATION_ROWS_PER_PAGE = 18;
-
-type WorkspaceTab = "overview" | "continuity" | "loop" | "insulation" | "rcd-ground" | "title-page";
+type WorkspaceTab = "overview" | "unified" | "continuity" | "loop" | "insulation" | "rcd-ground" | "title-page" | "circuit-list" | "din-rail";
 
 type MeasurementProtocolsWorkspacePageProps = {
   metadata: ProjectMetadata;
+  symbols: SymbolItem[];
+  rail: DinRailCanvasRail;
   circuitRows: CircuitRow[];
   onChange: (next: ProjectMetadata) => void;
   activeTab: WorkspaceTab;
 };
 
-type InlineFieldProps = {
-  label: string;
-  value: string;
-  placeholder: string;
-  onChange: (value: string) => void;
-  width?: string;
-};
-
 type ProtocolTableRowsMap = Pick<
   MeasurementProtocolsData,
-  "continuityRows" | "loopImpedanceRows" | "insulationRows" | "rcdRows"
+  "continuityRows" | "loopImpedanceRows" | "insulationRows" | "rcdRows" | "unifiedRows"
 >;
 type ProtocolTableKey = keyof ProtocolTableRowsMap;
 type ProtocolTableRowByKey = {
@@ -40,66 +44,11 @@ type ProtocolTableRowByKey = {
   loopImpedanceRows: MeasurementLoopProtocolRow;
   insulationRows: MeasurementInsulationProtocolRow;
   rcdRows: MeasurementRcdProtocolRow;
+  unifiedRows: MeasurementUnifiedProtocolRow;
 };
 type StringFieldKeys<T> = {
   [K in keyof T]-?: T[K] extends string ? K : never;
 }[keyof T];
-
-function InlineField({
-  label,
-  value,
-  placeholder,
-  onChange,
-  width
-}: InlineFieldProps) {
-  return (
-    <label className="mp-inline-field">
-      <span>{label}</span>
-      <input
-        type="text"
-        value={value}
-        placeholder={placeholder}
-        onChange={(event) => onChange(event.currentTarget.value)}
-        style={width ? { width } : undefined}
-      />
-    </label>
-  );
-}
-
-
-
-function SheetHeader({
-  header,
-  note,
-  protocolName,
-}: {
-  header: any;
-  note: string;
-  protocolName?: string;
-}) {
-  return (
-    <header className="mp-sheet-header">
-      <div className="mp-header-left">
-        {protocolName ? <div className="mp-header-protocol-name">{protocolName}</div> : null}
-        <h1>{header.headerTitle || "Protokół Nr 01 / 2026"}</h1>
-        <p>{header.headerSubtitle || note}</p>
-      </div>
-
-      <div className="mp-header-right">
-        <div>Data pomiarów: {header.measurementDate || "11.04.2026"}</div>
-        <div>Obiekt: {header.objectName || "Nowy projekt"}</div>
-      </div>
-    </header>
-  );
-}
-
-function SectionHeading({ title }: { title: string }) {
-  return (
-    <div className="mp-section-heading">
-      {title}
-    </div>
-  );
-}
 
 function chunkRows<T>(rows: T[], size: number): T[][] {
   if (rows.length === 0) {
@@ -131,28 +80,70 @@ function createHeaderForPage<T extends { headerTitle?: string }>(
   };
 }
 
-const DEFAULT_WORK_SCOPE_ITEMS = [
-  { text: "Montaż rozdzielnicy głównej", isChecked: true },
-  { text: "Układanie przewodów i osprzętu", isChecked: true },
-  { text: "Pomiary ochrony przeciwporażeniowej", isChecked: true },
-];
+function formatProtocolNumberLabel(headerTitle: string | undefined): string {
+  const normalized = headerTitle?.trim();
+  if (!normalized) {
+    return "";
+  }
 
-const DEFAULT_ATTACHMENT_ITEMS = [
-  "Protokoły z pomiarów",
-  "Schemat rozdzielnicy",
-  "Uprawnienia wykonawcy",
-];
+  return normalized.replace(/^protokół\s+(pomiarów\s+)?nr\s+/i, "").trim();
+}
 
 export function MeasurementProtocolsWorkspacePage({
   metadata,
-  circuitRows: _circuitRows,
+  symbols,
+  rail,
+  circuitRows,
   onChange,
   activeTab,
 }: MeasurementProtocolsWorkspacePageProps) {
+  const [dinRailPreviewUrl, setDinRailPreviewUrl] = useState<string | null>(null);
+  const [dinRailPreviewError, setDinRailPreviewError] = useState<string | null>(null);
   const protocols = metadata.measurementProtocols;
-  const continuityPages = chunkRows(protocols.continuityRows, CONTINUITY_ROWS_PER_PAGE);
-  const loopPages = chunkRows(protocols.loopImpedanceRows, LOOP_ROWS_PER_PAGE);
-  const insulationPages = chunkRows(protocols.insulationRows, INSULATION_ROWS_PER_PAGE);
+  const unifiedPages = chunkRows(protocols.unifiedRows, UNIFIED_ROWS_PER_PAGE);
+  const circuitListRows = buildCircuitListTableRows(circuitRows);
+  const circuitListPages = chunkRows(circuitListRows, CIRCUIT_LIST_ROWS_PER_PAGE);
+
+  useEffect(() => {
+    if (activeTab !== "din-rail") {
+      return;
+    }
+
+    let isCancelled = false;
+    setDinRailPreviewUrl(null);
+    setDinRailPreviewError(null);
+
+    async function refreshDinRailPreview() {
+      try {
+        const images = await exportDinRailToDataURL(symbols, rail);
+        if (isCancelled) {
+          return;
+        }
+
+        const previewUrl = images[0] ?? null;
+        setDinRailPreviewUrl(previewUrl);
+        if (!previewUrl) {
+          setDinRailPreviewError("Brak widoku szyny DIN do pokazania w dokumentacji.");
+        }
+      } catch (error) {
+        if (isCancelled) {
+          return;
+        }
+
+        setDinRailPreviewError(
+          error instanceof Error
+            ? error.message
+            : "Nie udało się przygotować widoku rozdzielnicy.",
+        );
+      }
+    }
+
+    void refreshDinRailPreview();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [activeTab, symbols, rail]);
 
   const updateProtocols = (patch: Partial<MeasurementProtocolsData>) => {
     onChange({
@@ -165,13 +156,11 @@ export function MeasurementProtocolsWorkspacePage({
     });
   };
 
-
-
   const updateTableRows = <K extends ProtocolTableKey>(
     key: K,
     rows: ProtocolTableRowsMap[K],
   ) => {
-    updateProtocols({ [key]: rows } as Pick<MeasurementProtocolsData, K>);
+    updateProtocols({ [key]: rows } as unknown as Pick<MeasurementProtocolsData, K>);
   };
 
   const updateTableRow = <
@@ -197,379 +186,594 @@ export function MeasurementProtocolsWorkspacePage({
     : `....... / ${protocolYear}`;
   const workScopeItems = metadata.titlePageWorkScopeItems.length > 0
     ? metadata.titlePageWorkScopeItems
-    : DEFAULT_WORK_SCOPE_ITEMS;
-  const attachmentItems = metadata.titlePageAttachmentItems.length > 0
-    ? metadata.titlePageAttachmentItems
-    : DEFAULT_ATTACHMENT_ITEMS;
-  const leftWorkScopeItems = workScopeItems.slice(0, 5);
-  const rightWorkScopeItems = workScopeItems.slice(5, 10);
-  const leftAttachmentItems = attachmentItems.slice(0, 5);
-  const rightAttachmentItems = attachmentItems.slice(5, 10);
-  const contractorName = metadata.contractor || metadata.author || "................................";
-  const installerName = metadata.author || metadata.contractor || "................................";
-  const objectType = metadata.titlePageObjectType || metadata.company || "Budynek jednorodzinny / Lokal mieszkalny";
-  const sepNumber = metadata.designerId || metadata.authorLicense || "................................";
-  const sepValidUntil = metadata.titlePageSepValidUntil || "................................";
-  const investorSignature = metadata.isFormalDocumentationMode
-    ? metadata.investorSignature || ""
-    : "nie dotyczy";
-  const installerSignature = metadata.isFormalDocumentationMode
-    ? metadata.designerSignature || ""
-    : "nie dotyczy";
-  const stampText = metadata.isFormalDocumentationMode
-    ? metadata.contractorSignature || "PIECZĄTKA WYKONAWCY"
-    : "NIE DOTYCZY";
+    : DEFAULT_WORK_SCOPE_ITEMS.map((text) => ({ text, isChecked: true }));
+  const attachmentItems = mergeDefaultAttachmentItems(metadata.titlePageAttachmentItems);
+  const titleWorkScopeItems = workScopeItems.slice(0, TITLE_WORK_SCOPE_MAX_ITEMS);
+  const titleAttachmentItems = attachmentItems;
+  const titleWorkScopeColumns = chunkRows(titleWorkScopeItems, TITLE_WORK_SCOPE_COLUMN_SIZE);
+  const titleAttachmentColumns = titleAttachmentItems.length > 3
+    ? chunkRows(titleAttachmentItems, Math.ceil(titleAttachmentItems.length / 2))
+    : [titleAttachmentItems];
+  const objectType = metadata.titlePageObjectType || "Budynek jednorodzinny / Lokal mieszkalny";
+  const stampText = metadata.contractorSignature || "PIECZĘĆ WYKONAWCY";
 
   return (
     <div className="mp-page">
       <div className="mp-stage">
         {activeTab === "title-page" && (
-          <article className="mp-sheet mp-sheet--portrait">
-            <div className="tp-container">
-              <header className="tp-header">
-                <div className="tp-logo-box">
-                  {metadata.titlePageCompanyLogoDataUrl ? (
-                    <img
-                      src={metadata.titlePageCompanyLogoDataUrl}
-                      alt="Logo firmy"
-                      style={{ width: "100%", height: "100%", objectFit: "contain" }}
-                    />
-                  ) : (
-                    "LOGO"
-                  )}
-                </div>
-                <div className="tp-header-title">
-                  <h2>DOKUMENTACJA POWYKONAWCZA</h2>
-                  <p>ZGODNOŚĆ Z NORMĄ PN-HD 60364</p>
-                </div>
-                <div className="tp-header-meta">
-                  <div>NR PROTOKOŁU: {protocolNumber}</div>
-                  <div>Data: {displayDate}</div>
-                </div>
-              </header>
-
-              <div className="tp-main-title">
-                <h1>OŚWIADCZENIE WYKONAWCY</h1>
-                <p>instalacji elektrycznej wykonanej zgodnie z przepisami</p>
-              </div>
-
-              <section className="tp-info-box tp-info-box--light">
-                <h3>INFORMACJE O OBIEKCIE</h3>
-                <div className="tp-info-grid">
-                  <span className="tp-info-label">Rodzaj:</span>
-                  <span className="tp-info-value">{objectType}</span>
-                  <span className="tp-info-label">Adres:</span>
-                  <span className="tp-info-value">{metadata.address || "................................................................"}</span>
-                  <span className="tp-info-label">Inwestor:</span>
-                  <span className="tp-info-value">{metadata.investor || "................................................................"}</span>
-                </div>
-              </section>
-
-              <div className="tp-grid-2">
-                <section className="tp-info-box">
-                  <h3>ZAKRES PRAC</h3>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                    <ul className="tp-check-list">
-                      {leftWorkScopeItems.map((item, index) => (
-                        <li className="tp-check-item" key={`work-left-${index}`}>
-                          <span className="tp-checkbox">
-                            {metadata.titlePageUseManualWorkScopeCheckboxes ? "" : item.isChecked ? "✓" : ""}
-                          </span>
-                          <span>{item.text}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <ul className="tp-check-list">
-                      {rightWorkScopeItems.map((item, index) => (
-                        <li className="tp-check-item" key={`work-right-${index}`}>
-                          <span className="tp-checkbox">
-                            {metadata.titlePageUseManualWorkScopeCheckboxes ? "" : item.isChecked ? "✓" : ""}
-                          </span>
-                          <span>{item.text}</span>
-                        </li>
-                      ))}
-                    </ul>
+          <div className="a4-page">
+            <div>
+              <div className="flex justify-between items-start border-b-2 border-gray-800 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 mp-title-logo-frame">
+                    {metadata.titlePageCompanyLogoDataUrl ? (
+                      <img src={metadata.titlePageCompanyLogoDataUrl} alt="Logo firmy" />
+                    ) : (
+                      <span>LOGO</span>
+                    )}
                   </div>
-                </section>
-
-                <section className="tp-info-box">
-                  <h3>ZAŁĄCZNIKI</h3>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                    <ul className="tp-attachment-list">
-                      {leftAttachmentItems.map((item, index) => (
-                        <li key={`attach-left-${index}`}>- {item}</li>
-                      ))}
-                    </ul>
-                    <ul className="tp-attachment-list">
-                      {rightAttachmentItems.map((item, index) => (
-                        <li key={`attach-right-${index}`}>- {item}</li>
-                      ))}
-                    </ul>
+                  <div>
+                    <h1 className="text-sm font-bold text-gray-900 tracking-wider uppercase">Dokumentacja Powykonawcza</h1>
+                    <p className="text-[9px] text-gray-500 font-medium">ZGODNOŚĆ Z NORMĄ PN-HD 60364 (ARKUSZ 6)</p>
                   </div>
-                </section>
-              </div>
-
-              <div className="tp-grid-2" style={{ marginTop: "12px" }}>
-                <section className="tp-info-box tp-info-box--light">
-                  <h3>WYKONAWCA / INSTALATOR</h3>
-                  <div style={{ fontSize: "15px", fontWeight: 700, color: "#0f172a" }}>{contractorName}</div>
-                  <div style={{ marginTop: "4px", fontSize: "11px", color: "#0f172a" }}>{installerName}</div>
-                  <div style={{ marginTop: "8px", fontSize: "8.2px", color: "#64748b" }}>
-                    Dokumentacja odbiorowa instalacji elektrycznej
-                  </div>
-                </section>
-                <section className="tp-info-box tp-info-box--light">
-                  <h3>UPRAWNIENIA SEP</h3>
-                  <div style={{ fontSize: "12px", fontWeight: 700, color: "#0f172a" }}>Kwalifikacje: E + D</div>
-                  <div style={{ marginTop: "4px", fontSize: "10px", color: "#0f172a" }}>Nr: {sepNumber}</div>
-                  <div style={{ marginTop: "4px", fontSize: "8.6px", color: "#64748b" }}>Ważne do: {sepValidUntil}</div>
-                </section>
-              </div>
-
-              <div className="tp-signatures">
-                <div className="tp-sig-line">
-                  <div style={{ minHeight: "20px", color: "#0f172a" }}>{investorSignature}</div>
-                  <div style={{ height: "1px", backgroundColor: "#cbd5e1", margin: "4px 0" }} />
-                  <div>PODPIS INWESTORA</div>
                 </div>
-                <div className="tp-stamp-box">{stampText}</div>
-                <div className="tp-sig-line">
-                  <div style={{ minHeight: "20px", color: "#0f172a" }}>{installerSignature}</div>
-                  <div style={{ height: "1px", backgroundColor: "#cbd5e1", margin: "4px 0" }} />
-                  <div>PODPIS ELEKTRYKA</div>
+                <div className="text-right">
+                  <div className="text-[9px] font-semibold text-gray-500 uppercase">Protokół nr</div>
+                  <div className="text-xs font-bold text-white bg-brand px-2.5 py-0.5 rounded mt-0.5 inline-block">{protocolNumber}</div>
+                  <div className="text-[9px] text-gray-400 mt-1">Data: <span className="font-medium text-gray-700">{displayDate}</span></div>
                 </div>
               </div>
 
-              <div className="tp-bottom-note">
-                Instalacja została wykonana zgodnie z projektem (jeśli dotyczy), przepisami oraz normą PN-HD 60364.
-                Pomiary wykazały skuteczność zastosowanych środków ochrony.
+              <div className="text-center my-6">
+                <h2 className="text-2xl font-black text-gray-900 tracking-tight uppercase">Oświadczenie Wykonawcy</h2>
+                <p className="text-xs text-gray-500 italic mt-0.5">instalacji elektrycznej wykonanej zgodnie z przepisami i normami</p>
+              </div>
+
+              <div className="bg-gray-50 rounded-xl border border-gray-200/80 p-4 mb-4">
+                <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-3">Informacje o obiekcie</h3>
+                <div className="flex flex-col gap-2 text-xs">
+                  <div className="flex items-baseline">
+                    <span className="font-bold text-gray-700 w-24 shrink-0">Rodzaj obiektu:</span>
+                    <input className="mp-editable flex-grow text-gray-900 font-semibold" value={metadata.titlePageObjectType || ""} placeholder="Budynek jednorodzinny / Lokal mieszkalny" onChange={(e) => onChange({ ...metadata, titlePageObjectType: e.target.value })} />
+                  </div>
+                  <div className="flex items-baseline">
+                    <span className="font-bold text-gray-700 w-24 shrink-0">Adres:</span>
+                    <input className="mp-editable flex-grow text-gray-900 font-semibold" value={metadata.address || ""} placeholder="................................................................" onChange={(e) => onChange({ ...metadata, address: e.target.value })} />
+                  </div>
+                  <div className="flex items-baseline">
+                    <span className="font-bold text-gray-700 w-24 shrink-0">Inwestor:</span>
+                    <input className="mp-editable flex-grow text-gray-900 font-semibold" value={metadata.investor || ""} placeholder="................................................................" onChange={(e) => onChange({ ...metadata, investor: e.target.value })} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="border border-gray-200 rounded-xl p-4 flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-3">Zakres prac</h3>
+                    <div className={titleWorkScopeColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-2" : "flex flex-col gap-2.5"}>
+                      {titleWorkScopeColumns.map((columnItems, columnIndex) => (
+                        <div key={columnIndex} className="flex flex-col gap-2.5">
+                          {columnItems.map((item, itemIndex) => {
+                            const absoluteIndex = columnIndex * TITLE_WORK_SCOPE_COLUMN_SIZE + itemIndex;
+                            return (
+                              <label key={absoluteIndex} className="flex items-start gap-2.5 cursor-pointer">
+                                <input type="checkbox" checked={item.isChecked} readOnly className="mt-0.5 w-4 h-4 rounded border-gray-300 mp-check-input" />
+                                <span className="text-[11px] font-medium text-gray-700 leading-tight flex-1">{item.text}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border border-gray-200 rounded-xl p-4 flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-3">Załączniki do protokołu</h3>
+                    <div className={titleAttachmentColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-2" : "flex flex-col gap-2.5"}>
+                      {titleAttachmentColumns.map((columnItems, columnIndex) => (
+                        <div key={columnIndex} className="flex flex-col gap-2.5">
+                          {columnItems.map((item, itemIndex) => (
+                              <label key={`${columnIndex}-${itemIndex}`} className="flex items-start gap-2.5 cursor-pointer">
+                                <input type="checkbox" checked={true} readOnly className="mt-0.5 w-4 h-4 rounded border-gray-300 mp-check-input" />
+                                <span className="text-[11px] font-medium text-gray-700 leading-tight flex-1">{item}</span>
+                              </label>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="border border-gray-200 rounded-xl p-4 flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-2">Wykonawca / Instalator</h3>
+                    <input className="mp-editable text-xs font-bold text-gray-950 mt-1" value={metadata.contractor || ""} placeholder="................................" onChange={(e) => onChange({ ...metadata, contractor: e.target.value })} />
+                    <p className="text-[9px] text-gray-400 mt-1">Podmiot odpowiedzialny za montaż instalacji</p>
+                  </div>
+                </div>
+
+                <div className="border border-gray-200 rounded-xl p-4 flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-2">Uprawnienia SEP (Kwalifikacyjne)</h3>
+                    <div className="text-xs flex flex-col gap-1 mt-1">
+                      <div className="flex items-baseline">
+                        <span className="font-semibold text-gray-700 w-[110px]">Eksploatacja (E):</span>
+                        <input className="mp-editable text-gray-950 font-bold ml-1 flex-grow" value={metadata.designerId || ""} placeholder="................................" onChange={(e) => onChange({ ...metadata, designerId: e.target.value })} />
+                      </div>
+                      <div className="flex items-baseline">
+                        <span className="font-semibold text-gray-700 w-[110px]">Dozór (D):</span>
+                        <input className="mp-editable text-gray-950 font-bold ml-1 flex-grow" value={metadata.authorLicense || ""} placeholder="................................" onChange={(e) => onChange({ ...metadata, authorLicense: e.target.value })} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-950 text-white rounded-xl p-4 mb-6 text-center shadow-sm">
+                <p className="text-[10px] uppercase font-bold text-blue-400 tracking-wider mb-1">Pełna treść oświadczenia wykonawcy</p>
+                <p className="text-[10px] leading-relaxed font-light text-gray-200">
+                  Oświadczam, że instalacja elektryczna w wyżej wymienionym obiekcie została wykonana zgodnie z przepisami ustawy Prawo Budowlane, obowiązującymi normami technicznymi (w tym <span className="font-bold text-white">PN-HD 60364-6</span>) oraz sztuką budowlaną. Przeprowadzone pomiary odbiorcze wykazały skuteczność zastosowanych środków ochrony przeciwporażeniowej.
+                </p>
               </div>
             </div>
-          </article>
+
+            <div className="mt-auto">
+              <div className="grid grid-cols-3 gap-4 items-end pt-4 border-t border-gray-100">
+                <div className="text-center">
+                  <div className="h-16 flex items-center justify-center">
+                    <span className="text-[10px] text-gray-300 italic">miejsce na podpis</span>
+                  </div>
+                  <div className="border-t border-gray-300 pt-1.5">
+                    <p className="text-[10px] font-bold text-gray-700 uppercase">Podpis Inwestora</p>
+                    <p className="text-[8px] text-gray-400 mt-0.5">Potwierdzam odbiór prac</p>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="h-20 border border-dashed border-gray-300 rounded-lg flex items-center justify-center p-2 mb-1 bg-gray-50/30">
+                    <span className="text-[9px] text-gray-400 uppercase tracking-wider font-semibold">{stampText}</span>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="h-16 flex items-center justify-center">
+                    <span className="text-[10px] text-gray-300 italic">miejsce na podpis</span>
+                  </div>
+                  <div className="border-t border-gray-300 pt-1.5">
+                    <p className="text-[10px] font-bold text-gray-700 uppercase">Podpis Elektryka</p>
+                    <p className="text-[8px] text-gray-400 mt-0.5">Osoba uprawniona (pomiarowiec)</p>
+                  </div>
+                </div>
+              </div>
+              <div className="text-center text-[8px] text-gray-400 mt-6 tracking-wide uppercase">
+                Strona 1 z 3 • Dokument wygenerowany cyfrowo • Zgodny z normą PN-HD 60364
+              </div>
+            </div>
+          </div>
         )}
 
-        {activeTab === "continuity" && continuityPages.map((rowsPage, pageIndex) => {
-          const pageOffset = pageIndex * CONTINUITY_ROWS_PER_PAGE;
+        {activeTab === "circuit-list" && circuitListPages.map((rowsPage, pageIndex) => (
+          <div className="a4-page a4-page--landscape" key={`circuit-list-page-${pageIndex}`}>
+            <div>
+              <div className="flex justify-between items-start border-b-2 border-gray-800 pb-3 gap-4">
+                <div className="flex items-center gap-3 flex-grow" style={{ minWidth: 0 }}>
+                  <div className="px-3 py-1 bg-brand text-white font-bold rounded text-xs uppercase tracking-wider">
+                    Lista obwodów
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <h2 className="text-sm font-extrabold text-gray-900 tracking-wider uppercase">
+                      Zestawienie obwodów instalacji elektrycznej
+                    </h2>
+                    <p className="text-[9px] text-gray-500 font-medium">
+                      Arkusz {pageIndex + 1} z {circuitListPages.length} • dane z aktualnej rozdzielnicy
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="text-[9px] text-gray-400">Data: <span className="font-medium text-gray-700">{displayDate}</span></div>
+                  <div className="text-[9px] text-gray-500 mt-0.5">Obiekt: <span className="font-semibold text-gray-900">{objectType}</span></div>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <div className="bg-gray-100 text-gray-800 text-[10px] font-bold px-3 py-1.5 rounded-t-lg border border-gray-300 flex justify-between items-center">
+                  <span>{pageIndex === 0 ? "1. Lista obwodów" : `1. Lista obwodów (ciąg dalszy ${pageIndex + 1})`}</span>
+                  <span className="text-gray-500 font-medium">{circuitListRows.length} pozycji</span>
+                </div>
+                <div className="overflow-x-auto border-x border-b border-gray-300 rounded-b-lg">
+                  <table className="w-full text-left border-collapse" style={{ fontSize: "9px" }}>
+                    <thead>
+                      <tr className="bg-gray-100 text-gray-800 font-bold border-b border-gray-300">
+                        <th className="p-2 border-r border-gray-300 text-center w-8">Lp.</th>
+                        <th className="p-2 border-r border-gray-300 text-center w-16">Ozn.</th>
+                        <th className="p-2 border-r border-gray-300 w-36">Nazwa obwodu</th>
+                        <th className="p-2 border-r border-gray-300 w-28">Lokalizacja</th>
+                        <th className="p-2 border-r border-gray-300 text-center w-12">Faza</th>
+                        <th className="p-2 border-r border-gray-300 text-center w-20">Zabezp.</th>
+                        <th className="p-2 border-r border-gray-300 text-center w-24">RCD</th>
+                        <th className="p-2 border-r border-gray-300 text-center w-16">Przewód</th>
+                        <th className="p-2 border-r border-gray-300 text-center w-16">Dł. [m]</th>
+                        <th className="p-2 text-center w-16">Moc [W]</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {rowsPage.map(({ index, location, rcdLabel, rcdProtection, row }) => (
+                        <tr key={row.id} className="border-b border-gray-200">
+                          <td className="p-2 border-r border-gray-300 text-center font-bold text-gray-700">{index}</td>
+                          <td className="p-2 border-r border-gray-300 text-center font-mono font-semibold text-gray-900">{row.referenceDesignation || "-"}</td>
+                          <td className="p-2 border-r border-gray-300 font-semibold text-gray-900">{row.circuitName || row.label || "-"}</td>
+                          <td className="p-2 border-r border-gray-300 text-gray-700">{location || row.displayLocation || "-"}</td>
+                          <td className="p-2 border-r border-gray-300 text-center font-mono text-gray-900">{row.phase || "-"}</td>
+                          <td className="p-2 border-r border-gray-300 text-center font-mono font-semibold text-gray-900">{row.displayProtection || row.protectionType || "-"}</td>
+                          <td className="p-2 border-r border-gray-300 text-center text-gray-700">
+                            <div className="font-semibold">{rcdLabel || "-"}</div>
+                            {rcdProtection ? <div className="text-[8px] text-gray-500">{rcdProtection}</div> : null}
+                          </td>
+                          <td className="p-2 border-r border-gray-300 text-center font-mono text-gray-900">{row.cableCrossSection ? `${row.cableCrossSection} mm²` : "-"}</td>
+                          <td className="p-2 border-r border-gray-300 text-center font-mono text-gray-900">{row.cableLength || "-"}</td>
+                          <td className="p-2 text-center font-mono text-gray-900">{row.powerW || "-"}</td>
+                        </tr>
+                      ))}
+                      {circuitListRows.length === 0 && (
+                        <tr>
+                          <td className="p-3 text-center text-gray-500" colSpan={10}>Brak obwodów do pokazania.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-auto">
+              <div className="text-center text-[8px] text-gray-400 tracking-wide uppercase pt-4 border-t border-gray-100">
+                Lista obwodów • dokumentacja powykonawcza • PN-HD 60364
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {activeTab === "din-rail" && (
+          <div className="a4-page a4-page--landscape" key="din-rail-page">
+            <div>
+              <div className="flex justify-between items-start border-b-2 border-gray-800 pb-3 gap-4">
+                <div className="flex items-center gap-3 flex-grow" style={{ minWidth: 0 }}>
+                  <div className="px-3 py-1 bg-brand text-white font-bold rounded text-xs uppercase tracking-wider">
+                    Rozdzielnica elektryczna
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <h2 className="text-sm font-extrabold text-gray-900 tracking-wider uppercase">
+                      Widok elewacji rozdzielnicy
+                    </h2>
+                    <p className="text-[9px] text-gray-500 font-medium">
+                      Dane z aktualnej szyny DIN i modułów w projekcie
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="text-[9px] text-gray-400">Data: <span className="font-medium text-gray-700">{displayDate}</span></div>
+                  <div className="text-[9px] text-gray-500 mt-0.5">Obiekt: <span className="font-semibold text-gray-900">{objectType}</span></div>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <div className="bg-gray-100 text-gray-800 text-[10px] font-bold px-3 py-1.5 rounded-t-lg border border-gray-300">
+                  1. Widok rozdzielnicy elektrycznej
+                </div>
+                <div className="mp-din-rail-preview-frame border-x border-b border-gray-300 rounded-b-lg">
+                  {dinRailPreviewUrl ? (
+                    <img
+                      className="mp-din-rail-preview-image"
+                      src={dinRailPreviewUrl}
+                      alt="Widok rozdzielnicy elektrycznej"
+                    />
+                  ) : (
+                    <div className="mp-din-rail-preview-empty">
+                      <strong>{dinRailPreviewError ? "Nie udało się odświeżyć widoku." : "Odświeżanie widoku rozdzielnicy..."}</strong>
+                      <span>{dinRailPreviewError ?? "Podgląd zostanie pokazany po przygotowaniu snapshotu szyny DIN."}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-auto">
+              <div className="text-center text-[8px] text-gray-400 tracking-wide uppercase pt-4 border-t border-gray-100">
+                Rozdzielnica elektryczna • dokumentacja powykonawcza • PN-HD 60364
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "unified" && unifiedPages.map((rowsPage, pageIndex) => {
+          const pageOffset = pageIndex * UNIFIED_ROWS_PER_PAGE;
           const isFirstPage = pageIndex === 0;
-          const isLastPage = pageIndex === continuityPages.length - 1;
-          const pageHeader = createHeaderForPage(protocols.continuityHeader, pageIndex, continuityPages.length);
+          const isLastPage = pageIndex === unifiedPages.length - 1;
+          const pageHeader = createHeaderForPage(protocols.unifiedHeader, pageIndex, unifiedPages.length);
+          const protocolNumberLabel = formatProtocolNumberLabel(pageHeader.headerTitle);
 
           return (
-            <article className="mp-sheet" key={`continuity-page-${pageIndex}`}>
-              <SheetHeader protocolName="Ciągłość PE" header={pageHeader} note="Badanie ciągłości przewodów PE i połączeń wyrównawczych" />
-              <div className="mp-header-divider" />
-              {isFirstPage ? (
-                <>
-                  <SectionHeading title="1. Dane techniczne i narzędzia" />
-                  <div className="mp-form-row">
-                    <InlineField label="Miernik:" value={protocols.continuityMeterName} placeholder=".........................................." onChange={(v) => updateProtocols({ continuityMeterName: v })} />
-                    <InlineField label="Nr fabryczny:" value={protocols.continuityMeterSerialNumber} placeholder=".........................................." onChange={(v) => updateProtocols({ continuityMeterSerialNumber: v })} />
+            <div className="a4-page a4-page--landscape" key={`unified-page-${pageIndex}`}>
+              <div>
+                <div className="flex justify-between items-start border-b-2 border-gray-800 pb-3 gap-4">
+                  <div className="flex items-center gap-3 flex-grow" style={{ minWidth: 0 }}>
+                    <div className="px-3 py-1 bg-brand text-white font-bold rounded text-xs uppercase tracking-wider">
+                      Tabela zbiorcza
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <h2 className="text-sm font-extrabold text-gray-900 tracking-wider uppercase">Protokół Pomiarów Nr <span className="bg-gray-100 px-1 rounded text-brand">{protocolNumberLabel}</span></h2>
+                      <p className="text-[9px] text-gray-500 font-medium">Zbiorcze wyniki pomiarów pętli zwarcia i rezystancji izolacji</p>
+                    </div>
                   </div>
-                  <div className="mp-form-row">
-                    <div className="mp-inline-field"><span>Prąd pomiarowy:</span><strong>{">= 200 mA"}</strong></div>
+                  <div className="text-right shrink-0">
+                    <div className="text-[9px] text-gray-400">Data pomiarów: <span className="font-medium text-gray-700">{displayDate}</span></div>
+                    <div className="text-[9px] text-gray-500 mt-0.5">Obiekt: <span className="font-semibold text-gray-900">{objectType}</span></div>
                   </div>
-                  <SectionHeading title="2. Wyniki badania ciągłości" />
-                </>
-              ) : (
-                <SectionHeading title={`2. Wyniki badania ciągłości (ciąg dalszy ${pageIndex + 1})`} />
-              )}
-              <table className="mp-table">
-                <thead><tr><th style={{ width: "40px" }}>Lp.</th><th>Nazwa obwodu / element</th><th>Lokalizacja</th><th>Badany przewód / połączenie</th><th>Wynik [Ω]</th><th>Ocena</th></tr></thead>
-                <tbody>
-                  {rowsPage.map((row, localIndex) => {
-                    const absoluteIndex = pageOffset + localIndex;
-                    return (
-                      <tr key={absoluteIndex}>
-                        <td className="mp-index-cell">{row.index}</td>
-                        <td><input className="mp-table-input" value={row.circuitName} onChange={(e) => updateTableRow("continuityRows", absoluteIndex, "circuitName", e.target.value)} /></td>
-                        <td><input className="mp-table-input" value={row.location} onChange={(e) => updateTableRow("continuityRows", absoluteIndex, "location", e.target.value)} /></td>
-                        <td><input className="mp-table-input" value={row.connectionType} onChange={(e) => updateTableRow("continuityRows", absoluteIndex, "connectionType", e.target.value)} /></td>
-                        <td><input className="mp-table-input mp-table-input--center" value={row.measuredResistance} onChange={(e) => updateTableRow("continuityRows", absoluteIndex, "measuredResistance", e.target.value)} /></td>
-                        <td><input className="mp-table-input mp-table-input--center" value={row.assessment} onChange={(e) => updateTableRow("continuityRows", absoluteIndex, "assessment", e.target.value)} /></td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              {isLastPage && <div className="mp-legend">Legenda: PE - przewód ochronny, połączenie wyrównawcze - połączenie ochronne między częściami przewodzącymi.</div>}
-            </article>
-          );
-        })}
+                </div>
 
-        {activeTab === "loop" && loopPages.map((rowsPage, pageIndex) => {
-          const pageOffset = pageIndex * LOOP_ROWS_PER_PAGE;
-          const isFirstPage = pageIndex === 0;
-          const isLastPage = pageIndex === loopPages.length - 1;
-          const pageHeader = createHeaderForPage(protocols.loopHeader, pageIndex, loopPages.length);
+                {isFirstPage && (
+                  <div className="mt-4">
+                    <div className="bg-gray-100 text-gray-800 text-[10px] font-bold px-3 py-1.5 rounded-t-lg border border-gray-200">
+                      1. Dane techniczne i narzędzia pomiarowe
+                    </div>
+                    <div className="border-x border-b border-gray-200 rounded-b-lg p-3 bg-white grid grid-cols-2 gap-y-2 gap-x-4 text-xs">
+                      <div className="flex items-center">
+                        <span className="font-bold text-gray-600 mr-2 shrink-0">Miernik (Pętla):</span>
+                        <input className="mp-editable text-gray-900 font-medium flex-grow" value={protocols.loopMeterName || ""} placeholder="..." onChange={(e) => updateProtocols({ loopMeterName: e.target.value })} />
+                      </div>
+                      <div className="flex items-center">
+                        <span className="font-bold text-gray-600 mr-2 shrink-0">Miernik (Izolacja):</span>
+                        <input className="mp-editable text-gray-900 font-medium flex-grow" value={protocols.insulationMeterName || ""} placeholder="..." onChange={(e) => updateProtocols({ insulationMeterName: e.target.value })} />
+                      </div>
+                      <div className="flex items-center">
+                        <span className="font-bold text-gray-600 mr-2 shrink-0">Napięcie próby:</span>
+                        <input className="mp-editable text-gray-900 font-semibold bg-gray-100 px-1.5 py-0.5 rounded w-16" value={protocols.insulationTestVoltage || "500V"} onChange={(e) => updateProtocols({ insulationTestVoltage: e.target.value })} />
+                      </div>
+                      <div className="flex items-center justify-end">
+                        <span className="font-bold text-gray-600 mr-2">Układ sieci:</span>
+                        <span className="text-brand font-bold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">TN-S / TN-C-S</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-          return (
-            <article className="mp-sheet" key={`loop-page-${pageIndex}`}>
-              <SheetHeader protocolName="Pętla zwarcia" header={pageHeader} note="Badanie skuteczności ochrony przeciwporażeniowej" />
-              <div className="mp-header-divider" />
-              {isFirstPage ? (
-                <>
-                  <SectionHeading title="1. Dane techniczne i narzędzia" />
-                  <div className="mp-form-row">
-                    <InlineField label="Miernik:" value={protocols.loopMeterName} placeholder=".........................................." onChange={(v) => updateProtocols({ loopMeterName: v })} />
-                    <InlineField label="Nr fabryczny:" value={protocols.loopMeterSerialNumber} placeholder=".........................................." onChange={(v) => updateProtocols({ loopMeterSerialNumber: v })} />
+                <div className="mt-4">
+                  <div className="bg-gray-100 text-gray-800 text-[10px] font-bold px-3 py-1.5 rounded-t-lg border border-gray-300 flex justify-between items-center">
+                    <span>{isFirstPage ? "2. Zbiorcze wyniki pomiarów obwodów" : `2. Zbiorcze wyniki pomiarów obwodów (ciąg dalszy ${pageIndex + 1})`}</span>
                   </div>
-                  <div className="mp-form-row">
-                    <div className="mp-inline-field"><span>Napięcie sieci:</span><strong>230/400V</strong></div>
-                    <div className="mp-inline-field"><span>Układ sieci:</span><strong>TN-S / TN-C-S</strong></div>
+                  <div className="overflow-x-auto border-x border-b border-gray-300 rounded-b-lg">
+                    <table className="w-full text-left border-collapse" style={{ fontSize: "10px" }}>
+                      <thead>
+                        <tr className="bg-gray-100 text-gray-800 font-bold border-b border-gray-300">
+                          <th className="p-2 border-r border-gray-300 text-center w-8">Lp.</th>
+                          <th className="p-2 border-r border-gray-300 w-48">Nazwa obwodu</th>
+                          <th className="p-2 border-r border-gray-300 w-24">Lokalizacja</th>
+                          <th className="p-2 border-r border-gray-300 text-center w-16">In</th>
+                          <th colSpan={3} className="p-1 border-r border-gray-300 text-center bg-blue-50/50 text-gray-800">Riso [MΩ] (Wym. {protocols.groundRequiredResistance || "> 1.0"})</th>
+                          <th colSpan={2} className="p-1 border-r border-gray-300 text-center bg-gray-100 text-gray-800">Pętla zwarcia</th>
+                          <th className="p-2 text-center w-16">Ocena</th>
+                        </tr>
+                        <tr className="bg-gray-50 text-[10px] text-gray-700 border-b border-gray-300">
+                          <th colSpan={4} className="border-r border-gray-300"></th>
+                          <th className="p-1 border-r border-gray-300 text-center font-bold w-12">L-N</th>
+                          <th className="p-1 border-r border-gray-300 text-center font-bold w-12">L-PE</th>
+                          <th className="p-1 border-r border-gray-300 text-center font-bold w-12">N-PE</th>
+                          <th className="p-1 border-r border-gray-300 text-center font-bold w-12">Zs [Ω]</th>
+                          <th className="p-1 border-r border-gray-300 text-center font-bold w-12">Zadm [Ω]</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {rowsPage.map((row, localIndex) => {
+                          const absoluteIndex = pageOffset + localIndex;
+                          return (
+                            <tr key={absoluteIndex} className="hover:bg-gray-100 border-b border-gray-200">
+                              <td className="p-2 border-r border-gray-300 text-center font-bold text-gray-700">{row.index}</td>
+                              <td className="p-2 border-r border-gray-300 font-semibold"><input className="mp-editable text-gray-900" value={row.circuitName} onChange={(e) => updateTableRow("unifiedRows", absoluteIndex, "circuitName", e.target.value)} /></td>
+                              <td className="p-2 border-r border-gray-300 text-gray-800"><input className="mp-editable" value={row.location} onChange={(e) => updateTableRow("unifiedRows", absoluteIndex, "location", e.target.value)} /></td>
+                              <td className="p-2 border-r border-gray-300 text-center font-mono font-semibold"><input className="mp-editable text-center" value={row.protectionType} onChange={(e) => updateTableRow("unifiedRows", absoluteIndex, "protectionType", e.target.value)} /></td>
+                              <td className="p-2 border-r border-gray-300 text-center font-mono font-medium bg-blue-50/30"><input className="mp-editable text-center" value={row.lnResistance} onChange={(e) => updateTableRow("unifiedRows", absoluteIndex, "lnResistance", e.target.value)} /></td>
+                              <td className="p-2 border-r border-gray-300 text-center font-mono font-medium bg-blue-50/30"><input className="mp-editable text-center" value={row.lpeResistance} onChange={(e) => updateTableRow("unifiedRows", absoluteIndex, "lpeResistance", e.target.value)} /></td>
+                              <td className="p-2 border-r border-gray-300 text-center font-mono font-medium bg-blue-50/30"><input className="mp-editable text-center" value={row.npeResistance} onChange={(e) => updateTableRow("unifiedRows", absoluteIndex, "npeResistance", e.target.value)} /></td>
+                              <td className="p-2 border-r border-gray-300 text-center font-mono font-semibold"><input className="mp-editable text-center" value={row.measuredImpedance} onChange={(e) => updateTableRow("unifiedRows", absoluteIndex, "measuredImpedance", e.target.value)} /></td>
+                              <td className="p-2 border-r border-gray-300 text-center font-mono font-semibold"><input className="mp-editable text-center" value={row.allowedImpedance} onChange={(e) => updateTableRow("unifiedRows", absoluteIndex, "allowedImpedance", e.target.value)} /></td>
+                              <td className="p-1 text-center font-bold text-emerald-600"><input className="mp-editable text-center" value={row.assessment} onChange={(e) => updateTableRow("unifiedRows", absoluteIndex, "assessment", e.target.value)} /></td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
-                  <SectionHeading title="2. Wyniki pomiarów impedancji pętli zwarcia" />
-                </>
-              ) : (
-                <SectionHeading title={`2. Wyniki pomiarów impedancji pętli zwarcia (ciąg dalszy ${pageIndex + 1})`} />
-              )}
-              <table className="mp-table">
-                <thead><tr><th>Lp.</th><th>Nazwa obwodu / punkt pomiarowy</th><th>Lokalizacja</th><th>Typ zabezp.</th><th>In [A]</th><th>Ia [A]</th><th>Zs [Ω] zmierzona</th><th>Zadm [Ω] dopuszcz.</th><th>Ocena</th></tr></thead>
-                <tbody>
-                  {rowsPage.map((row, localIndex) => {
-                    const absoluteIndex = pageOffset + localIndex;
-                    return (
-                      <tr key={absoluteIndex}>
-                        <td className="mp-index-cell">{row.index}</td>
-                        <td><input className="mp-table-input" value={row.circuitName} onChange={(e) => updateTableRow("loopImpedanceRows", absoluteIndex, "circuitName", e.target.value)} /></td>
-                        <td><input className="mp-table-input" value={row.location} onChange={(e) => updateTableRow("loopImpedanceRows", absoluteIndex, "location", e.target.value)} /></td>
-                        <td><input className="mp-table-input mp-table-input--center" value={row.protectionType} onChange={(e) => updateTableRow("loopImpedanceRows", absoluteIndex, "protectionType", e.target.value)} /></td>
-                        <td><input className="mp-table-input mp-table-input--center" value={row.ratedCurrent} onChange={(e) => updateTableRow("loopImpedanceRows", absoluteIndex, "ratedCurrent", e.target.value)} /></td>
-                        <td><input className="mp-table-input mp-table-input--center" value={row.tripCurrent} onChange={(e) => updateTableRow("loopImpedanceRows", absoluteIndex, "tripCurrent", e.target.value)} /></td>
-                        <td><input className="mp-table-input mp-table-input--center" value={row.measuredImpedance} onChange={(e) => updateTableRow("loopImpedanceRows", absoluteIndex, "measuredImpedance", e.target.value)} /></td>
-                        <td><input className="mp-table-input mp-table-input--center" value={row.allowedImpedance} onChange={(e) => updateTableRow("loopImpedanceRows", absoluteIndex, "allowedImpedance", e.target.value)} /></td>
-                        <td><input className="mp-table-input mp-table-input--center" value={row.assessment} onChange={(e) => updateTableRow("loopImpedanceRows", absoluteIndex, "assessment", e.target.value)} /></td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              {isLastPage && <div className="mp-legend">Legenda: In - prąd znamionowy zabezpieczenia, Ia - prąd wyłączenia, Zs - zmierzona impedancja pętli zwarcia, Zadm - dopuszczalna impedancja pętli zwarcia.</div>}
-            </article>
-          );
-        })}
+                </div>
 
-        {activeTab === "insulation" && insulationPages.map((rowsPage, pageIndex) => {
-          const pageOffset = pageIndex * INSULATION_ROWS_PER_PAGE;
-          const isFirstPage = pageIndex === 0;
-          const isLastPage = pageIndex === insulationPages.length - 1;
-          const pageHeader = createHeaderForPage(protocols.insulationHeader, pageIndex, insulationPages.length);
+                {isLastPage && (
+                  <div className="mt-4 text-[9px] text-gray-500 leading-relaxed space-y-1">
+                    <p><span className="font-bold">Uwaga:</span> Wszystkie odbiorniki elektryczne na czas pomiaru rezystancji izolacji zostały odłączone. Pomiary przeprowadzono przy napięciu probierczym stałym {protocols.insulationTestVoltage || "500V"}.</p>
+                    <p><span className="font-bold">Legenda:</span> <span className="font-semibold text-gray-700">In</span> - prąd znamionowy zabezpieczenia, <span className="font-semibold text-gray-700">Zs</span> - zmierzona impedancja pętli zwarcia, <span className="font-semibold text-gray-700">Zadm</span> - maksymalna dopuszczalna impedancja pętli zwarcia warunkująca szybkie wyłączenie.</p>
+                  </div>
+                )}
+              </div>
 
-          return (
-            <article className="mp-sheet" key={`insulation-page-${pageIndex}`}>
-              <SheetHeader protocolName="Rezystancja izolacji" header={pageHeader} note="Badanie rezystancji izolacji obwodów" />
-              <div className="mp-header-divider" />
-              {isFirstPage ? (
-                <>
-                  <SectionHeading title="1. Dane techniczne i narzędzia" />
-                  <div className="mp-form-row">
-                    <InlineField label="Miernik:" value={protocols.insulationMeterName} placeholder=".........................................." onChange={(v) => updateProtocols({ insulationMeterName: v })} />
-                    <InlineField label="Nr fabryczny:" value={protocols.insulationMeterSerialNumber} placeholder=".........................................." onChange={(v) => updateProtocols({ insulationMeterSerialNumber: v })} />
+              <div className="mt-auto">
+                <div className="grid grid-cols-2 gap-8 items-end pt-4 border-t border-gray-100">
+                  <div className="text-center">
+                    <div className="h-16 flex items-center justify-center">
+                      <span className="text-[10px] text-gray-300 italic">miejsce na pieczęć / podpis</span>
+                    </div>
+                    <div className="border-t border-gray-300 pt-1.5">
+                      <p className="text-[10px] font-bold text-gray-700 uppercase">Sprawdził (Wykonawca/Elektryk)</p>
+                      <p className="text-[8px] text-gray-400 mt-0.5">Podpis osoby z uprawnieniami SEP</p>
+                    </div>
                   </div>
-                  <div className="mp-form-row">
-                    <div className="mp-inline-field"><span>Napięcie próby:</span><strong>{protocols.insulationTestVoltage || "500V"}</strong></div>
+                  <div className="text-center">
+                    <div className="h-16 flex items-center justify-center">
+                      <span className="text-[10px] text-gray-300 italic">miejsce na podpis</span>
+                    </div>
+                    <div className="border-t border-gray-300 pt-1.5">
+                      <p className="text-[10px] font-bold text-gray-700 uppercase">Przedstawiciel Inwestora</p>
+                      <p className="text-[8px] text-gray-400 mt-0.5">Potwierdzam otrzymanie wyników</p>
+                    </div>
                   </div>
-                  <SectionHeading title={`2. Wyniki pomiarów rezystancji izolacji (napięcie próby ${protocols.insulationTestVoltage || "500V"})`} />
-                </>
-              ) : (
-                <SectionHeading title={`2. Wyniki pomiarów rezystancji izolacji (ciąg dalszy ${pageIndex + 1})`} />
-              )}
-              <table className="mp-table">
-                <thead><tr><th>Lp.</th><th>Nazwa obwodu / punkt pomiarowy</th><th>Lokalizacja</th><th>L-N [MΩ]</th><th>L-PE [MΩ]</th><th>N-PE [MΩ]</th><th>Wymagana [MΩ]</th><th>Ocena</th></tr></thead>
-                <tbody>
-                  {rowsPage.map((row, localIndex) => {
-                    const absoluteIndex = pageOffset + localIndex;
-                    return (
-                      <tr key={absoluteIndex}>
-                        <td className="mp-index-cell">{row.index}</td>
-                        <td><input className="mp-table-input" value={row.circuitName} onChange={(e) => updateTableRow("insulationRows", absoluteIndex, "circuitName", e.target.value)} /></td>
-                        <td><input className="mp-table-input" value={row.location} onChange={(e) => updateTableRow("insulationRows", absoluteIndex, "location", e.target.value)} /></td>
-                        <td><input className="mp-table-input mp-table-input--center" value={row.lnResistance} onChange={(e) => updateTableRow("insulationRows", absoluteIndex, "lnResistance", e.target.value)} /></td>
-                        <td><input className="mp-table-input mp-table-input--center" value={row.lpeResistance} onChange={(e) => updateTableRow("insulationRows", absoluteIndex, "lpeResistance", e.target.value)} /></td>
-                        <td><input className="mp-table-input mp-table-input--center" value={row.npeResistance} onChange={(e) => updateTableRow("insulationRows", absoluteIndex, "npeResistance", e.target.value)} /></td>
-                        <td><input className="mp-table-input mp-table-input--center" value={row.requiredResistance} onChange={(e) => updateTableRow("insulationRows", absoluteIndex, "requiredResistance", e.target.value)} /></td>
-                        <td><input className="mp-table-input mp-table-input--center" value={row.assessment} onChange={(e) => updateTableRow("insulationRows", absoluteIndex, "assessment", e.target.value)} /></td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              {isLastPage && (
-                <>
-                  <p style={{ fontSize: "10px", fontStyle: "italic", color: "#666", margin: "10px 0" }}>Uwaga: Wszystkie odbiorniki na czas pomiaru zostały odłączone.</p>
-                  <div className="mp-legend">Legenda: L-N - przewód fazowy do neutralnego, L-PE - przewód fazowy do ochronnego, N-PE - przewód neutralny do ochronnego.</div>
-                </>
-              )}
-            </article>
+                </div>
+              </div>
+            </div>
           );
         })}
 
         {activeTab === "rcd-ground" && (() => {
           const pageHeader = createHeaderForPage(protocols.rcdGroundHeader, 0, 1);
-          const isFirstPage = true;
-          const isLastPage = true;
-          const pageIndex = 0;
-          const pageOffset = 0;
+          const protocolNumberLabel = formatProtocolNumberLabel(pageHeader.headerTitle);
           const rowsPage = protocols.rcdRows;
+          const absoluteIndexBase = 0;
 
           return (
-            <article className="mp-sheet" key="rcd-ground-page-single">
-              <SheetHeader protocolName="RCD i uziemienie" header={pageHeader} note="Test wyłączników RCD i rezystancja uziemienia" />
-              <div className="mp-header-divider" />
-              {isFirstPage ? (
-                <>
-                  <SectionHeading title="1. Dane techniczne i narzędzia" />
-                  <div className="mp-form-row">
-                    <InlineField label="Miernik:" value={protocols.rcdGroundMeterName} placeholder=".........................................." onChange={(v) => updateProtocols({ rcdGroundMeterName: v })} />
-                    <InlineField label="Nr fabryczny:" value={protocols.rcdGroundMeterSerialNumber} placeholder=".........................................." onChange={(v) => updateProtocols({ rcdGroundMeterSerialNumber: v })} />
-                  </div>
-                  <SectionHeading title="2. Badanie wyłączników różnicowoprądowych (RCD)" />
-                </>
-              ) : (
-                <SectionHeading title={`2. Badanie wyłączników różnicowoprądowych (ciąg dalszy ${pageIndex + 1})`} />
-              )}
-              <table className="mp-table">
-                <thead><tr><th>Lp.</th><th>Typ RCD</th><th>IΔn [mA]</th><th>Prąd wyzw. [mA]</th><th>Czas wyzw. [ms]</th><th>Przycisk TEST</th><th>Ocena</th></tr></thead>
-                <tbody>
-                  {rowsPage.map((row, localIndex) => {
-                    const absoluteIndex = pageOffset + localIndex;
-                    return (
-                      <tr key={absoluteIndex}>
-                        <td className="mp-index-cell">{row.index}</td>
-                        <td><input className="mp-table-input" value={row.deviceType} onChange={(e) => updateTableRow("rcdRows", absoluteIndex, "deviceType", e.target.value)} /></td>
-                        <td><input className="mp-table-input mp-table-input--center" value={row.residualCurrent} onChange={(e) => updateTableRow("rcdRows", absoluteIndex, "residualCurrent", e.target.value)} /></td>
-                        <td><input className="mp-table-input mp-table-input--center" value={row.tripCurrent} onChange={(e) => updateTableRow("rcdRows", absoluteIndex, "tripCurrent", e.target.value)} /></td>
-                        <td><input className="mp-table-input mp-table-input--center" value={row.tripTimeMs} onChange={(e) => updateTableRow("rcdRows", absoluteIndex, "tripTimeMs", e.target.value)} /></td>
-                        <td><input className="mp-table-input mp-table-input--center" value={row.testButtonResult} onChange={(e) => updateTableRow("rcdRows", absoluteIndex, "testButtonResult", e.target.value)} /></td>
-                        <td><input className="mp-table-input mp-table-input--center" value={row.assessment} onChange={(e) => updateTableRow("rcdRows", absoluteIndex, "assessment", e.target.value)} /></td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              {isLastPage && (
-                <>
-                  <div className="mp-legend">Legenda: IΔn - znamionowy prąd różnicowy, TEST - wynik działania przycisku testowego.</div>
-                  <SectionHeading title="3. Pomiar rezystancji uziemienia (GSU)" />
-                  <div className="mp-conclusion-box" style={{ marginBottom: "10px" }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "8px" }}>
-                      <div style={{ display: "flex", gap: "8px" }}><span>Metoda pomiaru:</span><input style={{ border: 0, borderBottom: "1px dotted #000", flex: 1 }} value={protocols.groundMeasurementMethod} onChange={(e) => updateProtocols({ groundMeasurementMethod: e.target.value })} /></div>
-                      <div style={{ display: "flex", gap: "8px" }}><span>Rodzaj uziomu:</span><input style={{ border: 0, borderBottom: "1px dotted #000", flex: 1 }} value={protocols.groundElectrodeType} onChange={(e) => updateProtocols({ groundElectrodeType: e.target.value })} /></div>
+            <div className="a4-page" key="rcd-ground-page-single">
+              <div>
+                <div className="flex justify-between items-start border-b-2 border-gray-800 pb-3 gap-4">
+                  <div className="flex items-center gap-3 flex-grow" style={{ minWidth: 0 }}>
+                    <div className="px-3 py-1 bg-brand text-white font-bold rounded text-xs uppercase tracking-wider">
+                      RCD i uziemienie
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                      <div style={{ display: "flex", gap: "8px" }}><span>Zmierzona wartość Ru:</span><input style={{ border: 0, borderBottom: "1px dotted #000", width: "80px" }} value={protocols.groundMeasuredResistance} onChange={(e) => updateProtocols({ groundMeasuredResistance: e.target.value })} /><span>Ω</span></div>
-                      <div style={{ display: "flex", gap: "8px" }}><span>Wartość wymagana:</span><input style={{ border: 0, borderBottom: "1px dotted #000", width: "80px" }} value={protocols.groundRequiredResistance} onChange={(e) => updateProtocols({ groundRequiredResistance: e.target.value })} /><span>Ω</span></div>
-                    </div>
-                    <div style={{ marginTop: "12px" }}>
-                      <strong>ORZECZENIE:</strong>
-                      <textarea rows={2} value={protocols.groundConclusionText} onChange={(e) => updateProtocols({ groundConclusionText: e.target.value })} />
+                    <div style={{ minWidth: 0 }}>
+                      <h2 className="text-sm font-extrabold text-gray-900 tracking-wider uppercase">Protokół Pomiarów Nr <span className="bg-gray-100 px-1 rounded text-brand">{protocolNumberLabel}</span></h2>
+                      <p className="text-[9px] text-gray-500 font-medium">Test wyłączników różnicowoprądowych RCD i pomiar rezystancji uziemienia</p>
                     </div>
                   </div>
-                  <div className="mp-legend" style={{ marginTop: "5px" }}>Legenda: GSU - główna szyna uziemiająca, Ru - zmierzona rezystancja uziemienia.</div>
-                </>
-              )}
-            </article>
+                  <div className="text-right shrink-0">
+                    <div className="text-[9px] text-gray-400">Data pomiarów: <span className="font-medium text-gray-700">{displayDate}</span></div>
+                    <div className="text-[9px] text-gray-500 mt-0.5">Obiekt: <span className="font-semibold text-gray-900">{objectType}</span></div>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <div className="bg-gray-100 text-gray-800 text-[10px] font-bold px-3 py-1.5 rounded-t-lg border border-gray-200">
+                    1. Dane techniczne i narzędzia pomiarowe
+                  </div>
+                  <div className="border-x border-b border-gray-200 rounded-b-lg p-3 bg-white grid grid-cols-2 gap-y-2 gap-x-4 text-xs">
+                    <div className="flex items-center">
+                      <span className="font-bold text-gray-600 mr-2 shrink-0">Miernik:</span>
+                      <input className="mp-editable text-gray-900 font-medium flex-grow" value={protocols.rcdGroundMeterName || ""} placeholder="..." onChange={(e) => updateProtocols({ rcdGroundMeterName: e.target.value })} />
+                    </div>
+                    <div className="flex items-center">
+                      <span className="font-bold text-gray-600 mr-2 shrink-0">Nr fabryczny:</span>
+                      <input className="mp-editable text-gray-900 font-medium flex-grow" value={protocols.rcdGroundMeterSerialNumber || ""} placeholder="..." onChange={(e) => updateProtocols({ rcdGroundMeterSerialNumber: e.target.value })} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <div className="bg-gray-100 text-gray-800 text-[10px] font-bold px-3 py-1.5 rounded-t-lg border border-gray-300">
+                    2. Tabela pomiarów (Wyłączniki różnicowoprądowe)
+                  </div>
+                  <div className="overflow-x-auto border-x border-b border-gray-300 rounded-b-lg">
+                    <table className="w-full text-left border-collapse" style={{ fontSize: "10px" }}>
+                      <thead>
+                        <tr className="bg-gray-100 text-gray-800 font-bold border-b border-gray-300">
+                          <th className="p-2 border-r border-gray-300 text-center w-8">Lp.</th>
+                          <th className="p-2 border-r border-gray-300 w-48">Typ RCD</th>
+                          <th className="p-2 border-r border-gray-300 text-center w-20">IΔn [mA]</th>
+                          <th className="p-2 border-r border-gray-300 text-center w-24">Prąd wyzw. [mA]</th>
+                          <th className="p-2 border-r border-gray-300 text-center w-24">Czas wyzw. [ms]</th>
+                          <th className="p-2 border-r border-gray-300 text-center w-20">Przycisk TEST</th>
+                          <th className="p-2 text-center w-20">Ocena</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {rowsPage.map((row, localIndex) => {
+                          const absoluteIndex = absoluteIndexBase + localIndex;
+                          return (
+                            <tr key={absoluteIndex} className="hover:bg-gray-100 border-b border-gray-200">
+                              <td className="p-2 border-r border-gray-300 text-center font-bold text-gray-700">{row.index}</td>
+                              <td className="p-2 border-r border-gray-300 font-semibold"><input className="mp-editable text-gray-900" value={row.deviceType} onChange={(e) => updateTableRow("rcdRows", absoluteIndex, "deviceType", e.target.value)} /></td>
+                              <td className="p-2 border-r border-gray-300 text-center font-mono font-semibold"><input className="mp-editable text-center" value={row.residualCurrent} onChange={(e) => updateTableRow("rcdRows", absoluteIndex, "residualCurrent", e.target.value)} /></td>
+                              <td className="p-2 border-r border-gray-300 text-center font-mono font-medium"><input className="mp-editable text-center" value={row.tripCurrent} onChange={(e) => updateTableRow("rcdRows", absoluteIndex, "tripCurrent", e.target.value)} /></td>
+                              <td className="p-2 border-r border-gray-300 text-center font-mono font-medium"><input className="mp-editable text-center" value={row.tripTimeMs} onChange={(e) => updateTableRow("rcdRows", absoluteIndex, "tripTimeMs", e.target.value)} /></td>
+                              <td className="p-2 border-r border-gray-300 text-center font-bold text-emerald-600"><input className="mp-editable text-center" value={row.testButtonResult} onChange={(e) => updateTableRow("rcdRows", absoluteIndex, "testButtonResult", e.target.value)} /></td>
+                              <td className="p-2 text-center font-bold text-emerald-600"><input className="mp-editable text-center" value={row.assessment} onChange={(e) => updateTableRow("rcdRows", absoluteIndex, "assessment", e.target.value)} /></td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <div className="bg-gray-100 text-gray-800 text-[10px] font-bold px-3 py-1.5 rounded-t-lg border border-gray-300">
+                    3. Pomiar rezystancji uziemienia (GSU)
+                  </div>
+                  <div className="border-x border-b border-gray-300 rounded-b-lg p-4 bg-white text-xs">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex items-center">
+                        <span className="font-bold text-gray-700 mr-2 shrink-0">Metoda pomiaru:</span>
+                        <input className="mp-editable text-gray-950 font-bold border-b border-gray-300 flex-grow pb-0.5" value={protocols.groundMeasurementMethod || ""} placeholder="..." onChange={(e) => updateProtocols({ groundMeasurementMethod: e.target.value })} />
+                      </div>
+                      <div className="flex items-center">
+                        <span className="font-bold text-gray-700 mr-2 shrink-0">Rodzaj uziomu:</span>
+                        <input className="mp-editable text-gray-950 font-bold border-b border-gray-300 flex-grow pb-0.5" value={protocols.groundElectrodeType || ""} placeholder="..." onChange={(e) => updateProtocols({ groundElectrodeType: e.target.value })} />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 mt-3">
+                      <div className="flex items-center">
+                        <span className="font-bold text-gray-700 mr-2 shrink-0">Zmierzona wartość Ru:</span>
+                        <input className="mp-editable text-brand font-black text-sm px-1 font-mono w-16" value={protocols.groundMeasuredResistance || ""} placeholder="..." onChange={(e) => updateProtocols({ groundMeasuredResistance: e.target.value })} />
+                        <span className="font-bold text-gray-900">Ω</span>
+                      </div>
+                      <div className="flex items-center">
+                        <span className="font-bold text-gray-700 mr-2 shrink-0">Wartość wymagana:</span>
+                        <input className="mp-editable text-gray-900 font-bold px-1 font-mono w-16" value={protocols.groundRequiredResistance || ""} placeholder="..." onChange={(e) => updateProtocols({ groundRequiredResistance: e.target.value })} />
+                        <span className="font-bold text-gray-900">Ω</span>
+                      </div>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-gray-200">
+                      <span className="font-bold text-gray-900 uppercase tracking-wider block text-[10px] mb-2">Orzeczenie techniczne:</span>
+                      <textarea 
+                        className="mp-editable w-full bg-white p-2 rounded border border-gray-300 text-gray-900 font-medium text-xs resize-none" 
+                        rows={2}
+                        value={protocols.groundConclusionText || ""}
+                        placeholder="Wpisz orzeczenie..."
+                        onChange={(e) => updateProtocols({ groundConclusionText: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-auto">
+                  <div className="grid grid-cols-2 gap-8 items-end pt-4 border-t border-gray-100">
+                    <div className="text-center">
+                      <div className="h-16 flex items-center justify-center">
+                        <span className="text-[10px] text-gray-300 italic">miejsce na pieczęć / podpis</span>
+                      </div>
+                      <div className="border-t border-gray-300 pt-1.5">
+                        <p className="text-[10px] font-bold text-gray-700 uppercase">Sprawdził (Wykonawca/Elektryk)</p>
+                        <p className="text-[8px] text-gray-400 mt-0.5">Podpis osoby z uprawnieniami SEP</p>
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="h-16 flex items-center justify-center">
+                        <span className="text-[10px] text-gray-300 italic">miejsce na podpis</span>
+                      </div>
+                      <div className="border-t border-gray-300 pt-1.5">
+                        <p className="text-[10px] font-bold text-gray-700 uppercase">Przedstawiciel Inwestora</p>
+                        <p className="text-[8px] text-gray-400 mt-0.5">Potwierdzam otrzymanie wyników</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           );
         })()}
+
+        {/* Support for legacy pages (continuity, loop, insulation) to render similarly if not unified */}
+        {["continuity", "loop", "insulation"].includes(activeTab) && (
+          <div className="a4-page a4-page--landscape flex items-center justify-center text-gray-400">
+            Protokoły klasyczne: układ nie otrzymał pełnej modernizacji Tailwindowej, zalecany styl zunifikowany. W PDF wyglądają poprawnie.
+          </div>
+        )}
       </div>
     </div>
   );

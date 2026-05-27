@@ -2,6 +2,9 @@ import "./PowerBalancePage.css";
 import { useState } from "react";
 import type { ProjectMetadata } from "../types/projectMetadata";
 import type { SymbolItem } from "../types/symbolItem";
+import { buildPhaseBalanceRows, type PhaseBalanceRow } from "../lib/phaseDistribution/phaseBalanceRows";
+import { buildPhaseMoveSuggestions, type PhaseMoveSuggestion } from "../lib/phaseDistribution/phaseBalanceSuggestions";
+import { buildPhaseImbalanceInsights } from "../lib/phaseDistribution/phaseImbalanceInsights";
 import {
   calculateTotalDistribution,
   type BalanceMode,
@@ -21,22 +24,29 @@ export type BalanceApplyHandler = (
   previewOnly?: boolean,
 ) => BalanceApplyResult;
 
+export type PhaseMoveApplyHandler = (symbolId: string, toPhase: "L1" | "L2" | "L3") => void;
+
 interface PowerBalancePageProps {
   symbols: SymbolItem[];
   onApplyBalance: BalanceApplyHandler;
+  onApplyPhaseMove: PhaseMoveApplyHandler;
   metadata: ProjectMetadata;
 }
 
-export function PowerBalancePage({ symbols, onApplyBalance, metadata }: PowerBalancePageProps) {
+export function PowerBalancePage({ symbols, onApplyBalance, onApplyPhaseMove, metadata }: PowerBalancePageProps) {
   const distribution = calculateTotalDistribution(symbols);
   const totalPower = distribution.l1PowerW + distribution.l2PowerW + distribution.l3PowerW;
   const totalCurrent = distribution.l1CurrentA + distribution.l2CurrentA + distribution.l3CurrentA;
-  const calculatedPower = totalPower * 0.6;
+  const simultaneityFactor = Math.max(0.1, Math.min(1, metadata.simultaneityFactor));
+  const calculatedPower = totalPower * simultaneityFactor;
   const connectionPower = Math.max(0, metadata.contractedPowerKw) * 1000;
   const connectionUsage = connectionPower > 0 ? (calculatedPower / connectionPower) * 100 : 0;
   const reservePower = connectionPower - calculatedPower;
   const imbalance = distribution.imbalancePercent;
   const imbalanceClass = imbalance > 30 ? "critical" : imbalance > 15 ? "warning" : "ok";
+  const balanceRows = buildPhaseBalanceRows(symbols, metadata.supplyVoltageV);
+  const imbalanceInsights = buildPhaseImbalanceInsights(balanceRows);
+  const moveSuggestions = buildPhaseMoveSuggestions(balanceRows);
 
   return (
     <div className="power-balance-page">
@@ -64,7 +74,7 @@ export function PowerBalancePage({ symbols, onApplyBalance, metadata }: PowerBal
             <AppIcon className="accent-primary" name="balance" size={14} />
             Współczynnik jednoczesności
           </span>
-          <strong>0.60</strong>
+          <strong>{simultaneityFactor.toFixed(2)}</strong>
         </div>
       </div>
 
@@ -110,6 +120,10 @@ export function PowerBalancePage({ symbols, onApplyBalance, metadata }: PowerBal
         <strong>{imbalance.toFixed(1)}%</strong>
       </div>
 
+      <PhaseBalanceTable rows={balanceRows} />
+      <ImbalanceInsightsCard insights={imbalanceInsights} />
+      <PhaseMoveSuggestionsCard suggestions={moveSuggestions} onApplyPhaseMove={onApplyPhaseMove} />
+
       <AutoBalanceSection symbols={symbols} onApplyBalance={onApplyBalance} />
     </div>
   );
@@ -150,6 +164,154 @@ function PhaseCard({
       </div>
       <span className="pb-phase-power">{power.toFixed(0)} W</span>
     </div>
+  );
+}
+
+function PhaseBalanceTable({ rows }: { rows: PhaseBalanceRow[] }) {
+  return (
+    <section className="card pb-circuit-table-card">
+      <div className="section-header">OBCIĄŻENIA OBWODÓW</div>
+      {rows.length === 0 ? (
+        <p className="pb-circuit-empty">Brak obwodów MCB/RCBO do bilansu.</p>
+      ) : (
+        <div className="pb-circuit-table-wrap">
+          <table className="pb-circuit-table">
+            <thead>
+              <tr>
+                <th>Ozn.</th>
+                <th>Obwód</th>
+                <th>Faza</th>
+                <th>Moc</th>
+                <th>Prąd</th>
+                <th>Blok.</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.id}>
+                  <td className="pb-circuit-ref">{row.referenceDesignation}</td>
+                  <td className="pb-circuit-name">{row.circuitName}</td>
+                  <td>
+                    <span className={`pb-phase-chip ${phaseClass(row.phase)}`}>{row.phase}</span>
+                  </td>
+                  <td>{formatPower(row.powerW)}</td>
+                  <td>{row.currentA.toFixed(1)} A</td>
+                  <td>{row.isPhaseLocked ? "Tak" : "-"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function formatPower(powerW: number): string {
+  if (powerW >= 1000) {
+    return `${(powerW / 1000).toFixed(2)} kW`;
+  }
+
+  return `${powerW.toFixed(0)} W`;
+}
+
+function phaseClass(phase: string): string {
+  const normalized = phase.toUpperCase();
+  if (normalized === "L2") return "l2";
+  if (normalized === "L3") return "l3";
+  if (normalized.includes("+")) return "multi";
+  return "l1";
+}
+
+function ImbalanceInsightsCard({
+  insights,
+}: {
+  insights: ReturnType<typeof buildPhaseImbalanceInsights>;
+}) {
+  if (!insights.heaviestPhase || insights.spreadW <= 0) {
+    return (
+      <section className="card pb-insights-card">
+        <div className="section-header">ANALIZA ASYMETRII</div>
+        <p className="pb-circuit-empty">Brak dominującej fazy w obwodach jednofazowych.</p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="card pb-insights-card">
+      <div className="section-header">ANALIZA ASYMETRII</div>
+      <div className="pb-insight-summary">
+        <span>Najbardziej obciążona faza</span>
+        <strong>{insights.heaviestPhase}</strong>
+      </div>
+      <div className="pb-insight-summary">
+        <span>Najmniej obciążona faza</span>
+        <strong>{insights.lightestPhase ?? "-"}</strong>
+      </div>
+      <div className="pb-insight-summary">
+        <span>Różnica obciążenia</span>
+        <strong>{formatPower(insights.spreadW)}</strong>
+      </div>
+      {insights.contributors.length > 0 ? (
+        <div className="pb-insight-contributors">
+          {insights.contributors.map((row) => (
+            <div className="pb-insight-row" key={row.id}>
+              <div>
+                <strong>{row.referenceDesignation}</strong>
+                <span>{row.circuitName}</span>
+              </div>
+              <span>{formatPower(row.powerW)}</span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function PhaseMoveSuggestionsCard({
+  suggestions,
+  onApplyPhaseMove,
+}: {
+  suggestions: PhaseMoveSuggestion[];
+  onApplyPhaseMove: PhaseMoveApplyHandler;
+}) {
+  return (
+    <section className="card pb-suggestions-card">
+      <div className="section-header">SUGESTIE PRZENIESIENIA</div>
+      {suggestions.length === 0 ? (
+        <p className="pb-circuit-empty">Brak prostych przeniesień, które poprawiają asymetrię.</p>
+      ) : (
+        <div className="pb-suggestion-list">
+          {suggestions.map((suggestion) => (
+            <div
+              className="pb-suggestion-row"
+              key={`${suggestion.row.id}-${suggestion.fromPhase}-${suggestion.toPhase}`}
+            >
+              <div>
+                <strong>{suggestion.row.referenceDesignation}</strong>
+                <span>{suggestion.row.circuitName}</span>
+              </div>
+              <div className="pb-suggestion-move">
+                <span>{suggestion.fromPhase}</span>
+                <span>→</span>
+                <span>{suggestion.toPhase}</span>
+              </div>
+              <small>
+                {suggestion.beforeImbalancePercent.toFixed(1)}% → {suggestion.afterImbalancePercent.toFixed(1)}%
+              </small>
+              <button
+                className="pb-suggestion-apply"
+                type="button"
+                onClick={() => onApplyPhaseMove(suggestion.row.id, suggestion.toPhase)}
+              >
+                Zastosuj
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 

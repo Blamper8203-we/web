@@ -6,6 +6,9 @@ import type {
 
 export type PdfDocumentationPreviewTab =
   | "title-page"
+  | "circuit-list"
+  | "din-rail"
+  | "unified"
   | "continuity"
   | "loop"
   | "insulation"
@@ -20,10 +23,34 @@ export const pdfDocumentationTabs: Array<{
   { id: "loop", label: "Pętla zwarcia" },
   { id: "insulation", label: "Rezystancja izolacji" },
   { id: "rcd-ground", label: "RCD i uziemienie" },
+  { id: "circuit-list", label: "Lista obwodów" },
+  { id: "din-rail", label: "Rozdzielnica elektryczna" },
 ];
+
+export function getPdfDocumentationTabs(style: "separate" | "unified"): Array<{
+  id: PdfDocumentationPreviewTab;
+  label: string;
+}> {
+  if (style === "unified") {
+    return [
+      { id: "title-page", label: "Strona główna" },
+      { id: "unified", label: "Tabela zbiorcza" },
+      { id: "rcd-ground", label: "RCD i uziemienie" },
+      { id: "circuit-list", label: "Lista obwodów" },
+      { id: "din-rail", label: "Rozdzielnica elektryczna" },
+    ];
+  }
+  return pdfDocumentationTabs;
+}
 
 export function getProtocolLabel(tab: PdfDocumentationPreviewTab): string {
   switch (tab) {
+    case "circuit-list":
+      return "Lista obwodów";
+    case "din-rail":
+      return "Rozdzielnica elektryczna";
+    case "unified":
+      return "Tabela zbiorcza";
     case "continuity":
       return "Ciągłość PE";
     case "loop":
@@ -92,6 +119,8 @@ export function getSelectedProtocolHeader(
   tab: PdfDocumentationPreviewTab,
 ): MeasurementProtocolHeaderSettings | null {
   switch (tab) {
+    case "unified":
+      return metadata.measurementProtocols.unifiedHeader;
     case "continuity":
       return metadata.measurementProtocols.continuityHeader;
     case "loop":
@@ -111,6 +140,14 @@ export function updateSelectedProtocolHeader(
   nextHeader: MeasurementProtocolHeaderSettings,
 ): ProjectMetadata {
   switch (tab) {
+    case "unified":
+      return {
+        ...metadata,
+        measurementProtocols: {
+          ...metadata.measurementProtocols,
+          unifiedHeader: nextHeader,
+        },
+      };
     case "continuity":
       return {
         ...metadata,

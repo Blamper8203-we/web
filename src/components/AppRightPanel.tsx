@@ -1,10 +1,12 @@
 import type { RightTab } from "../lib/appHelpers";
+import { normalizeSimultaneityFactor } from "../lib/projectMetadata";
 import type { ValidationResult } from "../lib/validation/electricalValidationService";
+import type { ValidationQuickFixId } from "../lib/validation/validationQuickFixes";
 import type { ProjectMetadata } from "../types/projectMetadata";
 import type { SymbolItem } from "../types/symbolItem";
 import { AppIcon } from "./AppIcon";
 import { CircuitEditPanel } from "./CircuitEditPanel";
-import { PowerBalancePage, type BalanceApplyHandler } from "./PowerBalancePage";
+import { PowerBalancePage, type BalanceApplyHandler, type PhaseMoveApplyHandler } from "./PowerBalancePage";
 import { ValidationPanel } from "./ValidationPanel";
 
 const MAIN_BREAKER_VALUES = [25, 32, 40, 63, 80, 100, 125] as const;
@@ -19,10 +21,16 @@ export interface AppRightPanelProps {
   setActiveRightTab: (tab: RightTab) => void;
   symbols: SymbolItem[];
   handleAutoBalance: BalanceApplyHandler;
+  handleApplyPhaseMoveSuggestion: PhaseMoveApplyHandler;
   validationResult: ValidationResult;
+  isDinRailGenerated: boolean;
   selectedSymbol: SymbolItem | null;
   handleCircuitEditSave: (nextSymbol: SymbolItem) => void;
   handleSymbolSelectionChange: (ids: string[], primaryId: string | null) => void;
+  handleValidationSymbolSelect: (symbolId: string) => void;
+  handleValidationFieldEdit: (symbolId: string, fieldKey: string) => void;
+  handleValidationQuickFix: (symbolId: string, fixId: ValidationQuickFixId) => void;
+  highlightedCircuitEditFieldKey: string | null;
   metadata: ProjectMetadata;
   handleMetadataChange: (nextMetadata: ProjectMetadata) => void;
   handleOpenRcdManager: () => void;
@@ -34,10 +42,16 @@ export function AppRightPanel({
   setActiveRightTab,
   symbols,
   handleAutoBalance,
+  handleApplyPhaseMoveSuggestion,
   validationResult,
+  isDinRailGenerated,
   selectedSymbol,
   handleCircuitEditSave,
   handleSymbolSelectionChange,
+  handleValidationSymbolSelect,
+  handleValidationFieldEdit,
+  handleValidationQuickFix,
+  highlightedCircuitEditFieldKey,
   metadata,
   handleMetadataChange,
   handleOpenRcdManager,
@@ -51,28 +65,46 @@ export function AppRightPanel({
       <div className="panel-content">
           <div className="right-tabs">
             <button className={`right-tab-btn ${activeRightTab === "config" ? "active" : ""}`} type="button" onClick={() => setActiveRightTab("config")}>
-              <span>Konfiguracja</span>
+              <AppIcon name="power" size={14} />
+              <span>Zasilanie</span>
             </button>
             <button className={`right-tab-btn ${activeRightTab === "balance" ? "active" : ""}`} type="button" onClick={() => setActiveRightTab("balance")}>
+              <AppIcon name="balance" size={14} />
               <span>Bilans</span>
             </button>
             <button className={`right-tab-btn ${activeRightTab === "validation" ? "active" : ""}`} type="button" onClick={() => setActiveRightTab("validation")}>
+              <AppIcon name="validation" size={14} />
               <span>Walidacja</span>
             </button>
             <button className={`right-tab-btn ${activeRightTab === "circuitEdit" ? "active" : ""}`} type="button" onClick={() => setActiveRightTab("circuitEdit")}>
+              <AppIcon name="pencil" size={14} />
               <span>Edycja</span>
             </button>
           </div>
         <div className="right-panel-content">
           {activeRightTab === "balance" && (
-            <PowerBalancePage symbols={symbols} onApplyBalance={handleAutoBalance} metadata={metadata} />
+            <PowerBalancePage
+              symbols={symbols}
+              onApplyBalance={handleAutoBalance}
+              onApplyPhaseMove={handleApplyPhaseMoveSuggestion}
+              metadata={metadata}
+            />
           )}
           {activeRightTab === "validation" && (
-            <ValidationPanel result={validationResult} />
+            <ValidationPanel
+              result={validationResult}
+              symbols={symbols}
+              isDinRailGenerated={isDinRailGenerated}
+              onSelectSymbol={handleValidationSymbolSelect}
+              onEditSymbolField={handleValidationFieldEdit}
+              onApplyQuickFix={handleValidationQuickFix}
+            />
           )}
           {activeRightTab === "circuitEdit" && (
             <CircuitEditPanel
               symbol={selectedSymbol}
+              symbols={symbols}
+              highlightedFieldKey={highlightedCircuitEditFieldKey}
               onSave={handleCircuitEditSave}
               onClearSelection={() => handleSymbolSelectionChange([], null)}
             />
@@ -135,6 +167,26 @@ export function AppRightPanel({
                       />
                       <span>kW</span>
                     </div>
+                  </label>
+                  <label className="power-config-field">
+                    <span><AppIcon className="accent-green" name="balance" size={12} />Współczynnik jednoczesności</span>
+                    <input
+                      value={metadata.simultaneityFactor}
+                      inputMode="decimal"
+                      type="number"
+                      min="0.1"
+                      max="1"
+                      step="0.05"
+                      onChange={(e) =>
+                        handleMetadataChange({
+                          ...metadata,
+                          simultaneityFactor: normalizeSimultaneityFactor(
+                            Number(e.target.value),
+                            metadata.simultaneityFactor,
+                          ),
+                        })
+                      }
+                    />
                   </label>
                 </div>
               </section>

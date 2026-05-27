@@ -2,9 +2,9 @@
   width: min(760px, calc(100vw - 32px));
   max-height: calc(100vh - 48px);
   overflow: auto;
-  border-radius: 14px;
-  border: 1px solid rgba(124, 135, 255, 0.35);
-  background: linear-gradient(180deg, #12161f 0%, #0f131b 100%);
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+  background: linear-gradient(180deg, var(--panel-background-alt) 0%, var(--panel-background) 100%);
   box-shadow: 0 24px 56px rgba(0, 0, 0, 0.42);
   padding: 18px 20px 16px;
 }
@@ -41,4 +41,3 @@
   font-size: 12px;
   font-weight: 700;
 }
-

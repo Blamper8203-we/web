@@ -1,5 +1,5 @@
 import type { DinRailCanvasRail } from "../../components/DinRailCanvasPixi";
-import type { SymbolItem } from "../../types/symbolItem";
+import { isAuxiliaryNonCircuitSymbol, type SymbolItem } from "../../types/symbolItem";
 import { buildSchematicLayout } from "../schematic/schematicLayoutEngine";
 import {
   DIN_RAIL_GROUP_BRACKET_BAR_HEIGHT,
@@ -126,6 +126,10 @@ function getSymbolDesignationLabel(
     return manualDesignation;
   }
 
+  if (isAuxiliaryNonCircuitSymbol(symbol) && manualDesignation.length > 0) {
+    return manualDesignation;
+  }
+
   return automaticDesignationBySymbolId.get(symbol.id) ?? "";
 }
 
@@ -148,7 +152,7 @@ async function renderDinRailSnapshotCanvas(
   // Browsers enforce a hard canvas dimension limit (Chrome: 16384px, Firefox: 32767px).
   // A 24-module DIN rail is ~6120 logical units wide. At scale 4 that's 24480px — way over the limit.
   // We automatically clamp the scale so the largest dimension stays within safe bounds.
-  const MAX_CANVAS_DIMENSION = 16384;
+  const MAX_CANVAS_DIMENSION = 3840;
   const requestedScale = clamp(options.scale ?? 2, 1, 8);
   const maxDimension = Math.max(rail.width, rail.height);
   const safeScale = maxDimension * requestedScale > MAX_CANVAS_DIMENSION

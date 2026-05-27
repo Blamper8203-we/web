@@ -50,14 +50,14 @@
 
 .sheet-tab:hover {
   color: var(--text-main);
-  background: var(--panel-background-alt);
+  background: var(--hover-background);
 }
 
 .sheet-tab.active {
   color: var(--text-inverse);
-  border-color: var(--accent-orange);
-  background: var(--accent-orange);
-  box-shadow: 0 0 12px rgba(13, 121, 242, 0.25), 0 2px 6px rgba(13, 121, 242, 0.18);
+  border-color: var(--accent-primary);
+  background: var(--accent-primary);
+  box-shadow: 0 0 12px rgba(47, 128, 237, 0.25), 0 2px 6px rgba(47, 128, 237, 0.18);
 }
 
 .main-content.is-pdf-workspace .sheet-tabs-bar {

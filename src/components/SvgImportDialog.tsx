@@ -255,7 +255,7 @@ export function SvgImportDialog({
                       parameters={item.parameters}
                       rasterDprCap={4}
                       renderHeight={44}
-                      renderMode={isRcdPreview ? "raster" : "svg"}
+                      renderMode="svg"
                       renderWidth={48}
                       src={item.assetPath}
                     />
@@ -288,7 +288,7 @@ export function SvgImportDialog({
                     parameters={selectedItem.parameters}
                     rasterDprCap={5}
                     renderHeight={220}
-                    renderMode={isRcdPreview ? "raster" : "svg"}
+                    renderMode="svg"
                     renderWidth={190}
                     src={selectedItem.assetPath}
                   />
@@ -316,7 +316,7 @@ export function SvgImportDialog({
                       value={selectedItem.category}
                       onChange={(event) => updateItem(selectedItem.id, (item) => {
                         const nextCategory = event.target.value;
-                        const traits = deriveImportTraits(nextCategory);
+                        const traits = deriveImportTraits(nextCategory, item.fileName);
                         return {
                           ...item,
                           category: nextCategory,

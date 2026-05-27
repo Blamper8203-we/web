@@ -1,9 +1,12 @@
 import type { CircuitTypeValue, DeviceKind, PhaseAssignment } from "../../types/symbolItem";
 import type { PaletteGroup, PaletteTemplate } from "./moduleCatalog";
-import { MODULE_PX_PER_MM, MODULE_UNIT_MM_WIDTH } from "./moduleCatalog";
+import { getModuleAssetUrl, MODULE_PX_PER_MM, MODULE_UNIT_MM_WIDTH } from "./moduleCatalog";
 import { reportRuntimeError } from "../runtimeDiagnostics";
 
 const IMPORTED_MODULES_STORAGE_KEY = "dinboard.importedModules";
+const IMPORTED_MODULES_CATALOG_VERSION_KEY = "dinboard.importedModules.catalogVersion";
+const IMPORTED_MODULES_CATALOG_VERSION = "new-svg-models-2026-05-24-rcd-visible";
+const HIDDEN_PALETTE_TEMPLATE_IDS_STORAGE_KEY = "dinboard.hiddenPaletteTemplateIds";
 
 const CATEGORY_DEFAULT_HEIGHT_MM: Record<string, number> = {
   FR: 80,
@@ -30,6 +33,9 @@ export interface ImportedModuleDefinition {
   parameters: Record<string, string>;
   phase: PhaseAssignment;
   rawSvg: string;
+  rcdRatedCurrent?: number;
+  rcdResidualCurrent?: number;
+  rcdType?: string;
   type: string;
   widthMm: number;
 }
@@ -63,6 +69,29 @@ interface ImportedFilePayload {
 interface SvgDimensions {
   height: number;
   width: number;
+}
+
+export interface DiscoveredModuleAsset {
+  category: string;
+  fileName: string;
+  moduleRef: string;
+  size?: number;
+  updatedAt?: number;
+}
+
+function ensureImportedModulesCatalogVersion(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const currentVersion = window.localStorage.getItem(IMPORTED_MODULES_CATALOG_VERSION_KEY);
+  if (currentVersion === IMPORTED_MODULES_CATALOG_VERSION) {
+    return;
+  }
+
+  window.localStorage.removeItem(IMPORTED_MODULES_STORAGE_KEY);
+  window.localStorage.removeItem(HIDDEN_PALETTE_TEMPLATE_IDS_STORAGE_KEY);
+  window.localStorage.setItem(IMPORTED_MODULES_CATALOG_VERSION_KEY, IMPORTED_MODULES_CATALOG_VERSION);
 }
 
 function parseSvgDimensions(svgMarkup: string): SvgDimensions | null {
@@ -152,14 +181,26 @@ function isPercentSvgLength(value: string | null): boolean {
 
 function normalizeDetectionText(value: string): string {
   return value
+    .replace(/ł/g, "l")
+    .replace(/Ł/g, "L")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toUpperCase();
 }
 
+function matchExplicitPoleCount(value: string): RegExpMatchArray | null {
+  const normalizedName = normalizeDetectionText(value);
+  return normalizedName.match(/(^|[^0-9])([1-9]|1[0-2])\s*(?:P|POL[A-Z]*|BIEG[A-Z]*|TOR[A-Z]*)([^A-Z0-9]|$)/);
+}
+
 function detectPoleCount(fileName: string): number {
   const normalizedName = normalizeDetectionText(fileName);
-  const match = normalizedName.match(/(^|[^0-9])([1-9]|1[0-2])\s*P([^A-Z0-9]|$)/);
+  const polePlusNeutralMatch = normalizedName.match(/(^|[^0-9])([1-9]|1[0-2])\s*P\s*\+\s*N([^A-Z0-9]|$)/);
+  if (polePlusNeutralMatch) {
+    return Number.parseInt(polePlusNeutralMatch[2]!, 10) + 1;
+  }
+
+  const match = matchExplicitPoleCount(fileName);
   if (match) {
     return Number.parseInt(match[2]!, 10);
   }
@@ -176,10 +217,23 @@ function detectPoleCount(fileName: string): number {
   return 1;
 }
 
+function detectExplicitPoleCount(fileName: string): number | null {
+  const match = matchExplicitPoleCount(fileName);
+  if (!match) {
+    return null;
+  }
+
+  return Number.parseInt(match[2]!, 10);
+}
+
+function isRcdDetectionText(value: string): boolean {
+  return value.includes("RCD") || value.includes("RCCB") || value.includes("ROZNIC");
+}
+
 function detectCategory(fileName: string): string {
   const upperName = normalizeDetectionText(fileName);
 
-  if (upperName.includes("RCD")) return "RCD";
+  if (isRcdDetectionText(upperName)) return "RCD";
   if (upperName.includes("MCB")) return "MCB";
   if (upperName.includes("SPD")) return "SPD";
   if (upperName.includes("FR")) return "FR";
@@ -220,10 +274,17 @@ function detectType(category: string): string {
   }
 }
 
-function detectPhase(category: string): PhaseAssignment {
+function detectPhase(category: string, fileName = ""): PhaseAssignment {
   switch (category) {
-    case "FR":
     case "RCD":
+      {
+        const poleCount = detectExplicitPoleCount(fileName);
+        if (poleCount === 1 || poleCount === 2) {
+          return "L1";
+        }
+        return "L1+L2+L3";
+      }
+    case "FR":
     case "SPD":
     case "Listwy zaciskowe":
     case "Z\u0142\u0105cza":
@@ -233,10 +294,10 @@ function detectPhase(category: string): PhaseAssignment {
   }
 }
 
-export function deriveImportTraits(category: string) {
+export function deriveImportTraits(category: string, fileName = "") {
   return {
     deviceKind: detectDeviceKind(category),
-    phase: detectPhase(category),
+    phase: detectPhase(category, fileName),
     type: detectType(category),
     defaultHeightMm: CATEGORY_DEFAULT_HEIGHT_MM[category],
   };
@@ -280,6 +341,43 @@ function extractPlaceholderDefaults(svgMarkup: string, category: string): Record
   }
 
   return defaults;
+}
+
+function detectRcdRatedCurrent(fileName: string, category: string): number | undefined {
+  if (category !== "RCD") {
+    return undefined;
+  }
+
+  const match = fileName.match(/(?:^|[^0-9])(\d{2,3})\s*A(?:[^a-z]|$)/i);
+  if (!match) {
+    return undefined;
+  }
+
+  const current = Number.parseInt(match[1] ?? "", 10);
+  return Number.isFinite(current) && current > 0 ? current : undefined;
+}
+
+function detectRcdResidualCurrent(fileName: string, category: string): number | undefined {
+  if (category !== "RCD") {
+    return undefined;
+  }
+
+  const match = fileName.match(/(?:^|[^0-9])(\d{2,3})\s*mA(?:[^a-z]|$)/i);
+  if (!match) {
+    return 30;
+  }
+
+  const current = Number.parseInt(match[1] ?? "", 10);
+  return Number.isFinite(current) && current > 0 ? current : 30;
+}
+
+function detectRcdType(fileName: string, category: string): string | undefined {
+  if (category !== "RCD") {
+    return undefined;
+  }
+
+  const match = fileName.match(/(?:typ|type)\s*([A-Z]{1,2})/i);
+  return match?.[1]?.toUpperCase() ?? "A";
 }
 
 function parseSvgDocument(svgMarkup: string): Document | null {
@@ -463,6 +561,53 @@ export function calculateModulesFromWidthMm(widthMm: number): number {
   return Math.max(1, Math.round(widthMm / MODULE_UNIT_MM_WIDTH));
 }
 
+function normalizeCatalogCategory(category: string, fileName: string): string {
+  const trimmedCategory = category.trim();
+  const normalizedCategory = normalizeDetectionText(trimmedCategory);
+  const detectedCategory = detectCategory(fileName);
+
+  if (normalizedCategory === "CONTROLS") {
+    return "Kontrolki faz";
+  }
+
+  if (normalizedCategory === "ZLACZA") {
+    return "Z\u0142\u0105cza";
+  }
+
+  if (!trimmedCategory || normalizedCategory === "INNE") {
+    return detectedCategory;
+  }
+
+  return trimmedCategory;
+}
+
+function buildStableImportedModuleId(moduleRef: string): string {
+  return moduleRef
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("pl-PL")
+    .replace(/\.svg$/i, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    || "module";
+}
+
+function buildDiscoveredModuleAssetPath(moduleRef: string, version?: string): string {
+  const assetUrl = getModuleAssetUrl(moduleRef);
+  const separator = assetUrl.includes("?") ? "&" : "?";
+  const cacheKey = version ? `&v=${encodeURIComponent(version)}` : "";
+
+  return `${assetUrl}${separator}dinboardSource=importedSvg${cacheKey}`;
+}
+
+function buildDiscoveredModuleAssetVersion(asset: DiscoveredModuleAsset): string | undefined {
+  const parts = [asset.updatedAt, asset.size].filter(
+    (value): value is number => typeof value === "number" && Number.isFinite(value),
+  );
+
+  return parts.length > 0 ? parts.join("-") : undefined;
+}
+
 function buildImportedModuleDefinition(item: PendingSvgImportItem): ImportedModuleDefinition {
   const customWidth = Math.round(item.widthMm * MODULE_PX_PER_MM * 100) / 100;
   const customHeight = Math.round(item.heightMm * MODULE_PX_PER_MM * 100) / 100;
@@ -485,6 +630,9 @@ function buildImportedModuleDefinition(item: PendingSvgImportItem): ImportedModu
     customWidth,
     customHeight,
     parameters: item.parameters,
+    rcdRatedCurrent: detectRcdRatedCurrent(item.fileName, item.category),
+    rcdResidualCurrent: detectRcdResidualCurrent(item.fileName, item.category),
+    rcdType: detectRcdType(item.fileName, item.category),
   };
 }
 
@@ -523,7 +671,7 @@ function buildPendingSvgImportItem(
     sizeDetection: explicitMmDimensions?.source ?? "fallback",
     deviceKind: detectDeviceKind(category),
     type: detectType(category),
-    phase: detectPhase(category),
+    phase: detectPhase(category, safeName),
     rawSvg: normalizedSvg,
     assetPath: createSvgDataUri(normalizedSvg),
     parameters,
@@ -578,6 +726,52 @@ export function finalizePendingSvgImports(items: PendingSvgImportItem[]): Import
   return items.filter((item) => item.selected).map(buildImportedModuleDefinition);
 }
 
+export function buildDiscoveredModuleDefinition(
+  asset: DiscoveredModuleAsset,
+  rawSvg: string,
+): ImportedModuleDefinition | null {
+  if (!isValidSvgMarkup(rawSvg)) {
+    return null;
+  }
+
+  const normalizedSvg = sanitizeSvg(rawSvg);
+  const category = normalizeCatalogCategory(asset.category, asset.fileName);
+  const safeName = asset.fileName.replace(/\.[^.]+$/, "");
+  const svgDimensions = parseSvgDimensions(normalizedSvg);
+  const explicitMmDimensions = parseExplicitMmDimensions(normalizedSvg, svgDimensions);
+  const detectedModules = detectPoleCount(safeName);
+  const widthMm = explicitMmDimensions?.widthMm ?? calculateDefaultWidthMm(detectedModules);
+  const modules = explicitMmDimensions?.widthMm
+    ? calculateModulesFromWidthMm(explicitMmDimensions.widthMm)
+    : detectedModules;
+  const heightMm = explicitMmDimensions?.heightMm ?? calculateDefaultHeightMm(category, modules, svgDimensions);
+  const customWidth = Math.round(widthMm * MODULE_PX_PER_MM * 100) / 100;
+  const customHeight = Math.round(heightMm * MODULE_PX_PER_MM * 100) / 100;
+
+  return {
+    id: `catalog-${buildStableImportedModuleId(asset.moduleRef)}`,
+    code: safeName,
+    label: safeName,
+    category,
+    modules,
+    widthMm,
+    heightMm,
+    deviceKind: detectDeviceKind(category),
+    type: detectType(category),
+    phase: detectPhase(category, asset.fileName),
+    moduleRef: asset.moduleRef,
+    originalFileName: asset.fileName,
+    rawSvg: normalizedSvg,
+    assetPath: buildDiscoveredModuleAssetPath(asset.moduleRef, buildDiscoveredModuleAssetVersion(asset)),
+    customWidth,
+    customHeight,
+    parameters: extractPlaceholderDefaults(normalizedSvg, category),
+    rcdRatedCurrent: detectRcdRatedCurrent(asset.fileName, category),
+    rcdResidualCurrent: detectRcdResidualCurrent(asset.fileName, category),
+    rcdType: detectRcdType(asset.fileName, category),
+  };
+}
+
 export async function savePendingSvgImportsToDirectory(
   items: PendingSvgImportItem[],
   directoryHandle: FileSystemDirectoryHandle,
@@ -597,6 +791,7 @@ export function loadImportedModules(): ImportedModuleDefinition[] {
   }
 
   try {
+    ensureImportedModulesCatalogVersion();
     const raw = window.localStorage.getItem(IMPORTED_MODULES_STORAGE_KEY);
     if (!raw) {
       return [];
@@ -625,6 +820,7 @@ export function saveImportedModules(modules: ImportedModuleDefinition[]) {
   }
 
   try {
+    ensureImportedModulesCatalogVersion();
     window.localStorage.setItem(IMPORTED_MODULES_STORAGE_KEY, JSON.stringify(modules));
   } catch (error) {
     reportRuntimeError(error, {
@@ -677,6 +873,9 @@ export function toImportedPaletteTemplate(definition: ImportedModuleDefinition):
     customWidth: definition.customWidth,
     customHeight: definition.customHeight,
     circuitType: detectCircuitType(definition.category),
+    rcdRatedCurrent: definition.rcdRatedCurrent,
+    rcdResidualCurrent: definition.rcdResidualCurrent,
+    rcdType: definition.rcdType,
   };
 }
 

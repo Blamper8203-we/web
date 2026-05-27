@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   applyCircuitEditValues,
   getCircuitEditFields,
@@ -10,6 +10,8 @@ import { AppIcon } from "./AppIcon";
 
 interface CircuitEditPanelProps {
   symbol: SymbolItem | null;
+  symbols?: SymbolItem[];
+  highlightedFieldKey?: string | null;
   onSave: (nextSymbol: SymbolItem) => void;
   onClearSelection: () => void;
 }
@@ -18,16 +20,18 @@ type FieldValue = string | number | boolean;
 
 import { CircuitCalculators } from "./CircuitCalculators";
 
-export function CircuitEditPanel({ symbol, onSave, onClearSelection }: CircuitEditPanelProps) {
-  const fields = useMemo(() => (symbol ? getCircuitEditFields(symbol) : []), [symbol]);
+export function CircuitEditPanel({ symbol, symbols, highlightedFieldKey, onSave, onClearSelection }: CircuitEditPanelProps) {
+  const fields = useMemo(() => (symbol ? getCircuitEditFields(symbol, symbols) : []), [symbol, symbols]);
   const header = useMemo(() => (symbol ? getCircuitEditHeader(symbol) : null), [symbol]);
   const [values, setValues] = useState<Record<string, FieldValue>>({});
   const [isDirty, setIsDirty] = useState(false);
+  const fieldsRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setValues(Object.fromEntries(fields.map((field) => [field.key, field.value])));
     setIsDirty(false);
-  }, [fields, symbol?.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [symbol?.id]);
 
   if (!symbol || !header) {
     return (
@@ -50,6 +54,22 @@ export function CircuitEditPanel({ symbol, onSave, onClearSelection }: CircuitEd
     setIsDirty(false);
   };
 
+  const focusNextField = (currentKey: string) => {
+    const controls = Array.from(
+      fieldsRef.current?.querySelectorAll<HTMLElement>("[data-circuit-edit-control]") ?? [],
+    );
+    const currentIndex = controls.findIndex((control) => control.dataset.circuitEditKey === currentKey);
+    const nextControl = currentIndex >= 0 ? controls[currentIndex + 1] : undefined;
+
+    if (!nextControl) {
+      return false;
+    }
+
+    nextControl.focus();
+    nextControl.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    return true;
+  };
+
   const isSocketOrMcb = symbol.deviceKind === "mcb" || symbol.deviceKind === "rcbo" || symbol.type?.toLowerCase().includes("mcb") || symbol.circuitType === "Gniazdo" || symbol.type?.toLowerCase().includes("socket");
   const moduleTypeForCalc = isSocketOrMcb ? "mcb" : "other";
 
@@ -68,14 +88,16 @@ export function CircuitEditPanel({ symbol, onSave, onClearSelection }: CircuitEd
         </button>
       </div>
 
-      <div className="circuit-edit-fields">
+      <div className="circuit-edit-fields" ref={fieldsRef}>
         {fields.map((field) => (
           <CircuitEditField
             field={field}
             key={field.key}
             value={values[field.key] ?? field.value}
+            isHighlighted={field.key === highlightedFieldKey}
             onChange={(value) => updateValue(field.key, value)}
             onCommit={handleSave}
+            onFocusNext={() => focusNextField(field.key)}
           />
         ))}
       </div>
@@ -99,11 +121,14 @@ export function CircuitEditPanel({ symbol, onSave, onClearSelection }: CircuitEd
 interface CircuitEditFieldProps {
   field: CircuitEditFieldDefinition;
   value: FieldValue;
+  isHighlighted: boolean;
   onChange: (value: FieldValue) => void;
   onCommit: () => void;
+  onFocusNext: () => boolean;
 }
 
-function CircuitEditField({ field, value, onChange, onCommit }: CircuitEditFieldProps) {
+function CircuitEditField({ field, value, isHighlighted, onChange, onCommit, onFocusNext }: CircuitEditFieldProps) {
+  const controlRef = useRef<HTMLInputElement | HTMLSelectElement | null>(null);
   const options = field.kind === "combo" ? withCurrentOption(field.options ?? [], String(value)) : [];
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
     if (event.key !== "Enter") {
@@ -111,27 +136,47 @@ function CircuitEditField({ field, value, onChange, onCommit }: CircuitEditField
     }
 
     event.preventDefault();
-    onCommit();
+    const didFocusNext = onFocusNext();
+
+    if (!didFocusNext) {
+      onCommit();
+    }
   };
+
+  useEffect(() => {
+    if (!isHighlighted) {
+      return;
+    }
+
+    controlRef.current?.focus();
+    controlRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [isHighlighted, field.key]);
 
   if (field.kind === "checkbox") {
     return (
-      <label className="circuit-edit-checkbox">
+      <label className={`circuit-edit-checkbox ${isHighlighted ? "is-highlighted" : ""}`}>
         <span>{field.label}</span>
         <input
+          ref={controlRef as React.RefObject<HTMLInputElement>}
+          data-circuit-edit-control="true"
+          data-circuit-edit-key={field.key}
           type="checkbox"
           checked={Boolean(value)}
           onChange={(event) => onChange(event.currentTarget.checked)}
+          onKeyDown={handleKeyDown}
         />
       </label>
     );
   }
 
   return (
-    <label className="circuit-edit-field">
+    <label className={`circuit-edit-field ${isHighlighted ? "is-highlighted" : ""}`}>
       <span>{field.label}</span>
       {field.kind === "combo" ? (
         <select
+          ref={controlRef as React.RefObject<HTMLSelectElement>}
+          data-circuit-edit-control="true"
+          data-circuit-edit-key={field.key}
           value={String(value)}
           onChange={(event) => onChange(event.currentTarget.value)}
           onKeyDown={handleKeyDown}
@@ -143,16 +188,29 @@ function CircuitEditField({ field, value, onChange, onCommit }: CircuitEditField
           ))}
         </select>
       ) : (
-        <input
-          type={field.kind === "number" ? "number" : "text"}
-          value={String(value)}
-          placeholder={field.placeholder}
-          step={field.kind === "number" ? "0.1" : undefined}
-          onChange={(event) =>
-            onChange(field.kind === "number" ? event.currentTarget.value : event.currentTarget.value)
-          }
-          onKeyDown={handleKeyDown}
-        />
+        <>
+          <input
+            ref={controlRef as React.RefObject<HTMLInputElement>}
+            data-circuit-edit-control="true"
+            data-circuit-edit-key={field.key}
+            type={field.kind === "number" ? "number" : "text"}
+            value={String(value)}
+            placeholder={field.placeholder}
+            step={field.kind === "number" ? "0.1" : undefined}
+            onChange={(event) =>
+              onChange(field.kind === "number" ? event.currentTarget.value : event.currentTarget.value)
+            }
+            onKeyDown={handleKeyDown}
+            list={field.options && field.options.length > 0 ? `${field.key}-datalist` : undefined}
+          />
+          {field.kind === "text" && field.options && field.options.length > 0 && (
+            <datalist id={`${field.key}-datalist`}>
+              {field.options.map((opt) => (
+                <option key={opt} value={opt} />
+              ))}
+            </datalist>
+          )}
+        </>
       )}
     </label>
   );

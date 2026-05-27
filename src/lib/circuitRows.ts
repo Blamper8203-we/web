@@ -1,5 +1,9 @@
 import type { CircuitRow } from "../types/circuitRow";
-import type { SymbolItem } from "../types/symbolItem";
+import {
+  isAuxiliaryNonCircuitSymbol,
+  isTerminalOrConnectorSymbol,
+  type SymbolItem,
+} from "../types/symbolItem";
 
 export const CIRCUIT_ROWS_STORAGE_KEY = "dinboard-web.circuit-rows.v1";
 const LEGACY_CIRCUIT_ROWS_STORAGE_KEY = "dinboard-tauri.circuit-rows.v1";
@@ -13,6 +17,14 @@ export type CircuitRcdGroup = {
 export type CircuitGroup = {
   location: string;
   rcdGroups: CircuitRcdGroup[];
+};
+
+export type CircuitListTableRow = {
+  index: number;
+  location: string;
+  rcdLabel: string;
+  rcdProtection: string;
+  row: CircuitRow;
 };
 
 export function createDemoCircuitRows(): CircuitRow[] {
@@ -231,6 +243,10 @@ export function createDemoCircuitRows(): CircuitRow[] {
 }
 
 function toCircuitDeviceKind(symbol: SymbolItem): CircuitRow["deviceKind"] {
+  if (isTerminalOrConnectorSymbol(symbol)) {
+    return "terminal-block";
+  }
+
   switch (symbol.deviceKind) {
     case "mcb":
     case "rcbo":
@@ -374,22 +390,13 @@ export function isTerminalBlockOrAux(item: CircuitRow): boolean {
     return true;
   }
 
-  const searchable = `${item.type} ${item.label} ${item.visualPath}`.toLocaleLowerCase("pl-PL");
-
-  return (
-    searchable.includes("złączk") ||
-    searchable.includes("zlaczk") ||
-    searchable.includes("zacisk") ||
-    searchable.includes("terminal") ||
-    searchable.includes("listwa") ||
-    searchable.includes("listwy") ||
-    searchable.includes("szyna") ||
-    searchable.includes("busbar") ||
-    searchable.includes("rozdzielcz") ||
-    searchable.includes("styk") ||
-    searchable.includes("zasilacz") ||
-    searchable.includes("blok")
-  );
+  return isAuxiliaryNonCircuitSymbol({
+    type: item.type,
+    label: item.label,
+    visualPath: item.visualPath,
+    isTerminalBlock: item.isTerminalBlock,
+    deviceKind: item.deviceKind === "terminal-block" ? "terminalBlock" : "other",
+  });
 }
 
 export function buildVisibleCircuitGroups(allRows: CircuitRow[]): CircuitGroup[] {
@@ -444,6 +451,34 @@ export function buildVisibleCircuitGroups(allRows: CircuitRow[]): CircuitGroup[]
       rcdGroups,
     };
   });
+}
+
+export function buildCircuitListTableRows(allRows: CircuitRow[]): CircuitListTableRow[] {
+  const tableRows: CircuitListTableRow[] = [];
+  const groups = buildVisibleCircuitGroups(allRows);
+
+  for (const group of groups) {
+    for (const rcdGroup of group.rcdGroups) {
+      const rcdLabel = rcdGroup.rcd
+        ? firstNonEmpty(rcdGroup.rcd.referenceDesignation, rcdGroup.rcd.label, rcdGroup.rcd.type, "RCD")
+        : "";
+      const rcdProtection = rcdGroup.rcd
+        ? firstNonEmpty(rcdGroup.rcd.displayProtection, rcdGroup.rcd.protectionType, "RCD")
+        : "";
+
+      for (const row of rcdGroup.rows) {
+        tableRows.push({
+          index: tableRows.length + 1,
+          location: group.location,
+          rcdLabel,
+          rcdProtection,
+          row,
+        });
+      }
+    }
+  }
+
+  return tableRows;
 }
 
 export function countHiddenCircuitRows(rows: CircuitRow[]): number {

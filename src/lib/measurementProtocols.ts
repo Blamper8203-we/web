@@ -6,6 +6,7 @@ import type {
   MeasurementProtocolHeaderSettings,
   MeasurementProtocolsData,
   MeasurementRcdProtocolRow,
+  MeasurementUnifiedProtocolRow,
   ProjectMetadata,
 } from "../types/projectMetadata";
 
@@ -145,6 +146,24 @@ function createEmptyRcdRow(index: number): MeasurementRcdProtocolRow {
   };
 }
 
+function createEmptyUnifiedRow(index: number): MeasurementUnifiedProtocolRow {
+  return {
+    index,
+    sourceCircuitId: "",
+    referenceDesignation: "",
+    circuitName: "",
+    location: "",
+    protectionType: "",
+    ratedCurrent: "",
+    lnResistance: "",
+    lpeResistance: "",
+    npeResistance: "",
+    measuredImpedance: "",
+    allowedImpedance: "",
+    assessment: "",
+  };
+}
+
 function normalizeContinuityRows(
   rows: Partial<MeasurementContinuityProtocolRow>[] | undefined,
 ): MeasurementContinuityProtocolRow[] {
@@ -232,6 +251,33 @@ function normalizeRcdRows(rows: Partial<MeasurementRcdProtocolRow>[] | undefined
 
   while (normalized.length < RCD_ROW_COUNT) {
     normalized.push(createEmptyRcdRow(normalized.length + 1));
+  }
+
+  return normalized;
+}
+
+function normalizeUnifiedRows(
+  rows: Partial<MeasurementUnifiedProtocolRow>[] | undefined,
+): MeasurementUnifiedProtocolRow[] {
+  const normalized = (rows ?? [])
+    .map((row, index) => ({
+      index: index + 1,
+      sourceCircuitId: normalizeText(row.sourceCircuitId),
+      referenceDesignation: normalizeText(row.referenceDesignation),
+      circuitName: normalizeText(row.circuitName),
+      location: normalizeText(row.location),
+      protectionType: normalizeText(row.protectionType),
+      ratedCurrent: normalizeText(row.ratedCurrent),
+      lnResistance: normalizeText(row.lnResistance),
+      lpeResistance: normalizeText(row.lpeResistance),
+      npeResistance: normalizeText(row.npeResistance),
+      measuredImpedance: normalizeText(row.measuredImpedance),
+      allowedImpedance: normalizeText(row.allowedImpedance),
+      assessment: normalizeText(row.assessment),
+    }));
+
+  while (normalized.length < LOOP_ROW_COUNT) {
+    normalized.push(createEmptyUnifiedRow(normalized.length + 1));
   }
 
   return normalized;
@@ -328,6 +374,25 @@ function buildRcdSeedRows(circuitRows: CircuitRow[]): MeasurementRcdProtocolRow[
     }));
 }
 
+function buildUnifiedSeedRows(circuitRows: CircuitRow[]): MeasurementUnifiedProtocolRow[] {
+  return buildCircuitSeedRows(circuitRows)
+    .map((row, index) => ({
+      index: index + 1,
+      sourceCircuitId: row.sourceCircuitId,
+      referenceDesignation: row.referenceDesignation,
+      circuitName: row.circuitName,
+      location: row.location,
+      protectionType: row.protectionType,
+      ratedCurrent: row.ratedCurrent,
+      lnResistance: "",
+      lpeResistance: "",
+      npeResistance: "",
+      measuredImpedance: "",
+      allowedImpedance: "",
+      assessment: "",
+    }));
+}
+
 function hasContinuityContent(row: MeasurementContinuityProtocolRow): boolean {
   return (
     row.circuitName.length > 0 ||
@@ -370,6 +435,21 @@ function hasRcdContent(row: MeasurementRcdProtocolRow): boolean {
     row.tripCurrent.length > 0 ||
     row.tripTimeMs.length > 0 ||
     row.testButtonResult.length > 0 ||
+    row.assessment.length > 0
+  );
+}
+
+function hasUnifiedContent(row: MeasurementUnifiedProtocolRow): boolean {
+  return (
+    row.circuitName.length > 0 ||
+    row.location.length > 0 ||
+    row.protectionType.length > 0 ||
+    row.ratedCurrent.length > 0 ||
+    row.lnResistance.length > 0 ||
+    row.lpeResistance.length > 0 ||
+    row.npeResistance.length > 0 ||
+    row.measuredImpedance.length > 0 ||
+    row.allowedImpedance.length > 0 ||
     row.assessment.length > 0
   );
 }
@@ -452,6 +532,32 @@ function matchRcdRow(candidate: MeasurementRcdProtocolRow, seeded: MeasurementRc
   const seededKey = buildComparableKey(seeded.deviceType, seeded.residualCurrent);
 
   return fullKey.length > 0 && fullKey === seededKey;
+}
+
+function matchUnifiedRow(candidate: MeasurementUnifiedProtocolRow, seeded: MeasurementUnifiedProtocolRow): boolean {
+  if (candidate.sourceCircuitId && seeded.sourceCircuitId) {
+    return candidate.sourceCircuitId === seeded.sourceCircuitId;
+  }
+
+  const fullKey = buildComparableKey(
+    candidate.circuitName,
+    candidate.location,
+    candidate.protectionType,
+    candidate.ratedCurrent,
+  );
+  const seededKey = buildComparableKey(
+    seeded.circuitName,
+    seeded.location,
+    seeded.protectionType,
+    seeded.ratedCurrent,
+  );
+
+  if (fullKey && seededKey && fullKey === seededKey) {
+    return true;
+  }
+
+  return buildComparableKey(candidate.circuitName, candidate.protectionType, candidate.ratedCurrent) ===
+    buildComparableKey(seeded.circuitName, seeded.protectionType, seeded.ratedCurrent);
 }
 
 function appendRemainingRows<T>(target: T[], pool: T[], predicate: (row: T) => boolean): void {
@@ -570,6 +676,35 @@ function mergeRcdRows(
   return normalizeRcdRows(merged);
 }
 
+function mergeUnifiedRows(
+  seededRows: MeasurementUnifiedProtocolRow[],
+  storedRows: MeasurementUnifiedProtocolRow[],
+): MeasurementUnifiedProtocolRow[] {
+  const storedPool = storedRows.map((row) => ({ ...row }));
+  const merged: MeasurementUnifiedProtocolRow[] = [];
+
+  for (const seededRow of seededRows) {
+    const matchIndex = storedPool.findIndex((candidate) => matchUnifiedRow(candidate, seededRow));
+    if (matchIndex >= 0) {
+      const storedRow = storedPool.splice(matchIndex, 1)[0];
+      merged.push({
+        ...seededRow,
+        lnResistance: storedRow.lnResistance,
+        lpeResistance: storedRow.lpeResistance,
+        npeResistance: storedRow.npeResistance,
+        measuredImpedance: storedRow.measuredImpedance,
+        allowedImpedance: storedRow.allowedImpedance,
+        assessment: storedRow.assessment,
+      });
+    } else {
+      merged.push(seededRow);
+    }
+  }
+
+  appendRemainingRows(merged, storedPool, hasUnifiedContent);
+  return normalizeUnifiedRows(merged);
+}
+
 export function createDefaultMeasurementProtocols(
   measurementDate: string,
   objectName: string,
@@ -591,6 +726,12 @@ export function createDefaultMeasurementProtocols(
     rcdGroundHeader: createDefaultProtocolHeader(
       4,
       RCD_GROUND_DEFAULT_SUBTITLE,
+      measurementDate,
+      objectName,
+    ),
+    unifiedHeader: createDefaultProtocolHeader(
+      1,
+      "Tabela zbiorcza wyników pomiarów",
       measurementDate,
       objectName,
     ),
@@ -616,6 +757,7 @@ export function createDefaultMeasurementProtocols(
     loopImpedanceRows: normalizeLoopRows(undefined),
     insulationRows: normalizeInsulationRows(undefined),
     rcdRows: normalizeRcdRows(undefined),
+    unifiedRows: normalizeUnifiedRows(undefined),
   };
 }
 
@@ -631,6 +773,7 @@ export function normalizeMeasurementProtocolsData(
     loopHeader: normalizeHeader(raw?.loopHeader, defaults.loopHeader),
     insulationHeader: normalizeHeader(raw?.insulationHeader, defaults.insulationHeader),
     rcdGroundHeader: normalizeHeader(raw?.rcdGroundHeader, defaults.rcdGroundHeader),
+    unifiedHeader: normalizeHeader(raw?.unifiedHeader, defaults.unifiedHeader),
     continuityMeterName: normalizeText(raw?.continuityMeterName),
     continuityMeterSerialNumber: normalizeText(raw?.continuityMeterSerialNumber),
     continuityMeasurementCurrent: valueOrFallback(
@@ -662,6 +805,7 @@ export function normalizeMeasurementProtocolsData(
     loopImpedanceRows: normalizeLoopRows(raw?.loopImpedanceRows),
     insulationRows: normalizeInsulationRows(raw?.insulationRows),
     rcdRows: normalizeRcdRows(raw?.rcdRows),
+    unifiedRows: normalizeUnifiedRows(raw?.unifiedRows),
   };
 }
 
@@ -669,7 +813,7 @@ export function buildEditableMeasurementProtocols(
   metadata: ProjectMetadata,
   circuitRows: CircuitRow[],
 ): MeasurementProtocolsData {
-  const objectName = firstNonEmpty(metadata.titlePageObjectType, metadata.company, "Nowy projekt");
+  const objectName = firstNonEmpty(metadata.titlePageObjectType, metadata.company, "Nowe zlecenie");
   const measurementDate = firstNonEmpty(metadata.drawingDate, new Date().toISOString().slice(0, 10));
   const stored = normalizeMeasurementProtocolsData(
     metadata.measurementProtocols,
@@ -689,5 +833,6 @@ export function buildEditableMeasurementProtocols(
       stored.insulationRows,
     ),
     rcdRows: mergeRcdRows(buildRcdSeedRows(circuitRows), stored.rcdRows),
+    unifiedRows: mergeUnifiedRows(buildUnifiedSeedRows(circuitRows), stored.unifiedRows),
   };
 }

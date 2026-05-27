@@ -4,7 +4,14 @@ import {
   type PaletteTemplate,
 } from './modules/moduleCatalog';
 import { DinRailConfig } from './schematic/dinRailGenerator';
-import { SymbolItem } from '../types/symbolItem';
+import {
+  createDefaultSymbolItem,
+  isAuxiliaryNonCircuitSymbol,
+  isDistributionBlockSymbol,
+  isTerminalOrConnectorSymbol,
+  type PhaseAssignment,
+  type SymbolItem,
+} from '../types/symbolItem';
 import { AppIconName } from '../components/AppIcon';
 
 export type SheetType = "sheet1" | "sheet2" | "sheet3" | "sheet4";
@@ -15,6 +22,8 @@ export type { PaletteTemplate };
 export const DEFAULT_DIN_RAIL_CONFIG: DinRailConfig = { rows: 1, modulesPerRow: 24 };
 export const HIDDEN_PALETTE_TEMPLATE_IDS_STORAGE_KEY = "dinboard.hiddenPaletteTemplateIds";
 const MANUAL_REFERENCE_DESIGNATION_KEY = "ManualReferenceDesignation";
+const MANUAL_PHASE_KEY = "ManualPhase";
+const SINGLE_PHASES: PhaseAssignment[] = ["L1", "L2", "L3"];
 
 export function buildPaletteTemplateMap(
   paletteGroups: Array<{ items: PaletteTemplate[] }>,
@@ -46,6 +55,37 @@ export function normalizePaletteAssetDimensions(
     const dimensions = getPaletteTemplateDimensions(template);
     const widthChanged = Math.abs(symbol.width - dimensions.width) > 0.01;
     const heightChanged = Math.abs(symbol.height - dimensions.height) > 0.01;
+    const sourceType = template.templateId.startsWith("imported-catalog-")
+      ? "ImportedSvg"
+      : symbol.moduleSourceType;
+    const sourceTypeChanged = symbol.moduleSourceType !== sourceType;
+    const visualPath = template.assetPath || symbol.visualPath;
+    const visualPathChanged = symbol.visualPath !== visualPath;
+    const deviceKind = template.deviceKind;
+    const deviceKindChanged = symbol.deviceKind !== deviceKind;
+    const isFixedThreePhase = isFixedThreePhaseTemplate(template);
+    const rawPhase =
+      !isFixedThreePhase
+        ? (symbol.phase || template.phase)
+        : template.phase;
+    const phase = isSinglePhaseRcdTemplate(template)
+      ? normalizeSinglePhaseAssignment(rawPhase, template.phase)
+      : rawPhase;
+    const phaseChanged = symbol.phase !== phase;
+    const shouldClearManualPhase =
+      symbol.parameters[MANUAL_PHASE_KEY] === "true"
+      && (isFixedThreePhase || (isSinglePhaseRcdTemplate(template) && !isSinglePhaseAssignment(symbol.phase)));
+    const parameters =
+      shouldClearManualPhase
+        ? { ...symbol.parameters, [MANUAL_PHASE_KEY]: "false" }
+        : symbol.parameters;
+    const parametersChanged = parameters !== symbol.parameters;
+    const rcdRatedCurrent = template.rcdRatedCurrent ?? symbol.rcdRatedCurrent;
+    const rcdRatedCurrentChanged = symbol.rcdRatedCurrent !== rcdRatedCurrent;
+    const rcdResidualCurrent = template.rcdResidualCurrent ?? symbol.rcdResidualCurrent;
+    const rcdResidualCurrentChanged = symbol.rcdResidualCurrent !== rcdResidualCurrent;
+    const rcdType = template.rcdType ?? symbol.rcdType;
+    const rcdTypeChanged = symbol.rcdType !== rcdType;
     const isBuiltInLikeSource =
       symbol.moduleSourceType === "BuiltInAsset" || symbol.moduleSourceType === "ImportedSvg";
     const widthRatio = dimensions.width > 0 ? symbol.width / dimensions.width : 1;
@@ -57,24 +97,99 @@ export function normalizePaletteAssetDimensions(
       && heightRatio > 0
       && widthRatio < 0.55
       && heightRatio < 0.55;
-    const shouldNormalize =
+    const shouldNormalizeDimensions =
       isBuiltInLikeSource
       ? (widthChanged || heightChanged)
       : isSeverelyUnderscaled;
+    const shouldNormalize =
+      shouldNormalizeDimensions ||
+      sourceTypeChanged ||
+      visualPathChanged ||
+      deviceKindChanged ||
+      phaseChanged ||
+      parametersChanged ||
+      rcdRatedCurrentChanged ||
+      rcdResidualCurrentChanged ||
+      rcdTypeChanged;
 
     if (!shouldNormalize) {
       return symbol;
     }
 
     changed = true;
-    return {
+    return createDefaultSymbolItem({
       ...symbol,
-      width: dimensions.width,
-      height: dimensions.height,
-    };
+      deviceKind,
+      moduleSourceType: sourceType,
+      phase,
+      parameters,
+      rcdRatedCurrent,
+      rcdResidualCurrent,
+      rcdType,
+      visualPath,
+      width: shouldNormalizeDimensions ? dimensions.width : symbol.width,
+      height: shouldNormalizeDimensions ? dimensions.height : symbol.height,
+    });
   });
 
   return changed ? nextSymbols : symbols;
+}
+
+function isFixedThreePhaseTemplate(template: PaletteTemplate): boolean {
+  if (template.deviceKind !== "rcd") {
+    return template.phase === "L1+L2+L3" || template.phase === "3F";
+  }
+
+  return isFixedThreePhaseRcdTemplate(template);
+}
+
+function isSinglePhaseRcdTemplate(template: PaletteTemplate): boolean {
+  return template.deviceKind === "rcd" && !isFixedThreePhaseRcdTemplate(template);
+}
+
+function isFixedThreePhaseRcdTemplate(template: PaletteTemplate): boolean {
+  if (template.deviceKind !== "rcd") {
+    return false;
+  }
+
+  const identity = `${template.type} ${template.label} ${template.code} ${template.moduleRef}`
+    .toLocaleUpperCase("pl-PL");
+  if (identity.includes("2P") || identity.includes("1P")) {
+    return false;
+  }
+
+  return template.modules >= 3 || identity.includes("4P") || identity.includes("3P") || template.phase === "L1+L2+L3";
+}
+
+function isFixedThreePhaseRcdSymbol(symbol: SymbolItem): boolean {
+  if (symbol.deviceKind !== "rcd") {
+    return false;
+  }
+
+  const identity = `${symbol.type} ${symbol.label} ${symbol.visualPath} ${symbol.moduleRef}`
+    .toLocaleUpperCase("pl-PL");
+  if (identity.includes("2P") || identity.includes("1P")) {
+    return false;
+  }
+
+  return identity.includes("4P") || identity.includes("3P") || symbol.phase === "L1+L2+L3";
+}
+
+function isSinglePhaseAssignment(phase: string | null | undefined): phase is PhaseAssignment {
+  return SINGLE_PHASES.includes((phase || "").toUpperCase() as PhaseAssignment);
+}
+
+function normalizeSinglePhaseAssignment(
+  phase: string | null | undefined,
+  fallback: string | null | undefined = "L1",
+): PhaseAssignment {
+  const normalizedPhase = (phase || "").toUpperCase();
+  if (isSinglePhaseAssignment(normalizedPhase)) {
+    return normalizedPhase;
+  }
+
+  const normalizedFallback = (fallback || "").toUpperCase();
+  return isSinglePhaseAssignment(normalizedFallback) ? normalizedFallback : "L1";
 }
 
 export function getPaletteIconName(template: PaletteTemplate): AppIconName {
@@ -208,6 +323,8 @@ export function getReferencePrefix(template: PaletteTemplate): string {
     case "mcb":
     case "rcbo":
       return "F";
+    case "terminalBlock":
+      return "X";
     default:
       return "X";
   }
@@ -237,11 +354,17 @@ export function isGroupHeadSymbol(symbol: SymbolItem): boolean {
 }
 
 export function isDistributionSymbol(symbol: SymbolItem): boolean {
-  return symbol.deviceKind === "mcb" || symbol.deviceKind === "rcbo" || symbol.isTerminalBlock;
+  return symbol.deviceKind === "mcb" || symbol.deviceKind === "rcbo";
 }
 
 export function shouldExcludeFromAutoGrouping(symbol: SymbolItem): boolean {
-  return symbol.deviceKind === "fr" || symbol.deviceKind === "spd" || symbol.deviceKind === "phaseIndicator" || symbol.deviceKind === "rcd";
+  return (
+    symbol.deviceKind === "fr" ||
+    symbol.deviceKind === "spd" ||
+    symbol.deviceKind === "phaseIndicator" ||
+    symbol.deviceKind === "rcd" ||
+    isAuxiliaryNonCircuitSymbol(symbol)
+  );
 }
 
 export function getNextGroupName(symbols: SymbolItem[]): string {
@@ -301,7 +424,7 @@ export function compareDinPosition(left: SymbolItem, right: SymbolItem): number 
 
 export function canAutoJoinExistingGroup(symbol: SymbolItem, snapTarget: SymbolItem): boolean {
   void snapTarget;
-  return !(symbol.deviceKind === "fr" || symbol.deviceKind === "spd" || symbol.deviceKind === "phaseIndicator" || symbol.deviceKind === "rcd");
+  return !shouldExcludeFromAutoGrouping(symbol);
 }
 
 export function resolveRcdSource(symbols: SymbolItem[], snapTarget: SymbolItem): SymbolItem | null {
@@ -391,8 +514,8 @@ export function snapDraggedGroupToNeighborModules(
 }
 
 export function toDisplayModuleNumber(symbol: SymbolItem): string {
-  if (symbol.isTerminalBlock) {
-    return `LW${symbol.moduleNumber}`;
+  if (isTerminalOrConnectorSymbol(symbol)) {
+    return `X${symbol.moduleNumber}`;
   }
 
   if (symbol.deviceKind === "rcd" || symbol.type.toLocaleUpperCase("pl-PL").includes("RCD")) {
@@ -427,6 +550,43 @@ function shouldAutoAssignGroupCircuitDesignation(symbol: SymbolItem): boolean {
   return symbol.deviceKind === "mcb" || symbol.deviceKind === "rcbo";
 }
 
+function shouldUseAuxiliaryReferenceDesignation(symbol: SymbolItem): boolean {
+  return isTerminalOrConnectorSymbol(symbol) || isDistributionBlockSymbol(symbol);
+}
+
+function assignAuxiliaryReferenceDesignations(symbols: SymbolItem[]): void {
+  const auxiliarySymbols = symbols
+    .filter(shouldUseAuxiliaryReferenceDesignation)
+    .sort(compareDinPosition);
+  const reservedDesignations = new Set(
+    auxiliarySymbols
+      .filter(hasManualReferenceDesignation)
+      .map((symbol) => symbol.referenceDesignation.trim().toLocaleUpperCase("pl-PL")),
+  );
+  let auxiliaryCounter = 1;
+
+  for (const symbol of auxiliarySymbols) {
+    if (!hasManualReferenceDesignation(symbol)) {
+      while (reservedDesignations.has(`X${auxiliaryCounter}`)) {
+        auxiliaryCounter++;
+      }
+
+      symbol.referenceDesignation = `X${auxiliaryCounter}`;
+      auxiliaryCounter++;
+    }
+
+    const referenceNumber = symbol.referenceDesignation.match(/^X(\d+)$/i);
+    if (referenceNumber) {
+      const moduleNumber = Number.parseInt(referenceNumber[1], 10);
+      if (Number.isFinite(moduleNumber) && moduleNumber > 0) {
+        symbol.moduleNumber = moduleNumber;
+      }
+    }
+
+    symbol.displayModuleNumber = toDisplayModuleNumber(symbol);
+  }
+}
+
 export function normalizeDinRailModuleOrdering(symbols: SymbolItem[]): SymbolItem[] {
   const nextSymbols = symbols.map((symbol) => ({
     ...symbol,
@@ -454,8 +614,6 @@ export function normalizeDinRailModuleOrdering(symbols: SymbolItem[]): SymbolIte
     }))
     .sort((left, right) => left.minY - right.minY || left.minX - right.minX || left.groupId.localeCompare(right.groupId, "pl"));
 
-  let terminalCounter = 1;
-
   for (const [groupIndex, group] of orderedGroups.entries()) {
     const modules = group.symbols.slice().sort(compareDinPosition);
     const rcds = modules.filter((symbol) => symbol.deviceKind === "rcd");
@@ -478,11 +636,7 @@ export function normalizeDinRailModuleOrdering(symbols: SymbolItem[]): SymbolIte
     let groupCounter = 1;
     let groupedCircuitCounter = 1;
     for (const symbol of others) {
-      if (symbol.isTerminalBlock) {
-        symbol.moduleNumber = terminalCounter++;
-      } else {
-        symbol.moduleNumber = groupCounter++;
-      }
+      symbol.moduleNumber = groupCounter++;
 
       if (
         headRcd
@@ -512,6 +666,8 @@ export function normalizeDinRailModuleOrdering(symbols: SymbolItem[]): SymbolIte
     symbol.displayModuleNumber = toDisplayModuleNumber(symbol);
   }
 
+  assignAuxiliaryReferenceDesignations(nextSymbols);
+
   return nextSymbols;
 }
 
@@ -533,6 +689,21 @@ export function normalizeGroupConsistency(symbols: SymbolItem[]): SymbolItem[] {
     }
   }
 
+  for (const symbol of nextSymbols) {
+    if (!isAuxiliaryNonCircuitSymbol(symbol)) {
+      continue;
+    }
+
+    symbol.group = "";
+    symbol.groupName = "";
+    symbol.rcdSymbolId = "";
+    if (symbol.deviceKind !== "rcd") {
+      symbol.rcdRatedCurrent = 0;
+      symbol.rcdResidualCurrent = 0;
+      symbol.rcdType = "";
+    }
+  }
+
   const grouped = new Map<string, SymbolItem[]>();
   for (const symbol of nextSymbols) {
     if (!symbol.group) {
@@ -544,13 +715,26 @@ export function normalizeGroupConsistency(symbols: SymbolItem[]): SymbolItem[] {
     grouped.set(symbol.group, bucket);
   }
 
-  for (const [, groupSymbols] of grouped.entries()) {
+  let autoSinglePhaseRcdIndex = 0;
+
+  for (const [groupId, groupSymbols] of grouped.entries()) {
+    const rcds = groupSymbols.filter((symbol) => symbol.deviceKind === "rcd");
+    const fixedThreePhaseRcds = rcds.slice(1).filter(isFixedThreePhaseRcdSymbol);
+    for (const [index, rcd] of fixedThreePhaseRcds.entries()) {
+      rcd.group = `${groupId}:${rcd.id}`;
+      rcd.groupName = rcd.groupName
+        ? `${rcd.groupName} RCD ${index + 2}`
+        : `RCD ${index + 2}`;
+      rcd.rcdSymbolId = "";
+    }
+
+    const activeGroupSymbols = groupSymbols.filter((symbol) => symbol.group === groupId);
     const groupLabel =
-      groupSymbols.find((symbol) => symbol.groupName.trim().length > 0)?.groupName ?? "";
-    const headRcd = groupSymbols.find((symbol) => symbol.deviceKind === "rcd") ?? null;
+      activeGroupSymbols.find((symbol) => symbol.groupName.trim().length > 0)?.groupName ?? "";
+    const headRcd = activeGroupSymbols.find((symbol) => symbol.deviceKind === "rcd") ?? null;
 
     if (!headRcd) {
-      for (const symbol of groupSymbols) {
+      for (const symbol of activeGroupSymbols) {
         symbol.group = "";
         symbol.groupName = "";
         if (symbol.deviceKind !== "rcd") {
@@ -563,7 +747,24 @@ export function normalizeGroupConsistency(symbols: SymbolItem[]): SymbolItem[] {
       continue;
     }
 
-    for (const symbol of groupSymbols) {
+    const isSinglePhaseRcd = !isFixedThreePhaseRcdSymbol(headRcd);
+    const autoPhase = SINGLE_PHASES[autoSinglePhaseRcdIndex % SINGLE_PHASES.length] ?? "L1";
+    const shouldAutoAssignHeadPhase =
+      isSinglePhaseRcd && headRcd.parameters[MANUAL_PHASE_KEY] !== "true" && !headRcd.isPhaseLocked;
+    const headRcdPhase = isSinglePhaseRcd
+      ? (shouldAutoAssignHeadPhase
+          ? autoPhase
+          : normalizeSinglePhaseAssignment(headRcd.phase, autoPhase))
+      : headRcd.phase;
+
+    if (isSinglePhaseRcd) {
+      autoSinglePhaseRcdIndex++;
+      if (headRcd.phase !== headRcdPhase) {
+        headRcd.phase = headRcdPhase;
+      }
+    }
+
+    for (const symbol of activeGroupSymbols) {
       if (!symbol.groupName && groupLabel) {
         symbol.groupName = groupLabel;
       }
@@ -581,6 +782,9 @@ export function normalizeGroupConsistency(symbols: SymbolItem[]): SymbolItem[] {
           symbol.rcdRatedCurrent = headRcd.rcdRatedCurrent;
           symbol.rcdResidualCurrent = headRcd.rcdResidualCurrent;
           symbol.rcdType = headRcd.rcdType;
+          if (isSinglePhaseRcd) {
+            symbol.phase = headRcdPhase;
+          }
         }
         continue;
       }
@@ -589,6 +793,9 @@ export function normalizeGroupConsistency(symbols: SymbolItem[]): SymbolItem[] {
       symbol.rcdRatedCurrent = headRcd.rcdRatedCurrent;
       symbol.rcdResidualCurrent = headRcd.rcdResidualCurrent;
       symbol.rcdType = headRcd.rcdType;
+      if (isSinglePhaseRcd) {
+        symbol.phase = headRcdPhase;
+      }
     }
 
   }

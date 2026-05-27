@@ -73,10 +73,10 @@ export function ProjectPropertiesPage({
       <header className="pp-hero">
         <AppIcon className="pp-hero-icon" name="fileEdit" size={18} />
         <div>
-          <span className="pp-eyebrow">Projekt</span>
-          <h2>Właściwości projektu</h2>
+          <span className="pp-eyebrow">Powykonawcza</span>
+          <h2>Dokumentacja wykonania instalacji</h2>
           <p>
-            Dane projektu, inwestycji i metadane dokumentacji dla bieżącego projektu.
+            Dane obiektu, wykonawcy, elektryka i dokumentacji odbiorczej dla mieszkania lub domu.
           </p>
         </div>
       </header>
@@ -86,8 +86,8 @@ export function ProjectPropertiesPage({
           <article className="pp-card">
             <div className="pp-card__header">
               <div>
-                <span className="pp-eyebrow">Podstawy</span>
-                <h3>Dane projektu i inwestycji</h3>
+                <span className="pp-eyebrow">Obiekt</span>
+                <h3>Dane obiektu i zlecenia</h3>
               </div>
             </div>
 
@@ -95,7 +95,7 @@ export function ProjectPropertiesPage({
               <label className="pp-toggle">
                 <span className="pp-field-label">
                   <AppIcon className="pp-field-icon" name="check" size={12} />
-                  Tryb formalny (podpisy)
+                  Dokumentacja z podpisami i pieczątką
                 </span>
                 <input
                   type="checkbox"
@@ -106,8 +106,8 @@ export function ProjectPropertiesPage({
 
               <div className="pp-fields">
                 <Field
-                  label="Nazwa projektu / inwestycja"
-                  placeholder="Instalacja elektryczna - dom jednorodzinny"
+                  label="Zakres / nazwa dokumentacji"
+                  placeholder="Dokumentacja powykonawcza instalacji elektrycznej"
                   value={metadata.company}
                   onChange={handleTextField("company")}
                 />
@@ -136,8 +136,8 @@ export function ProjectPropertiesPage({
           <article className="pp-card">
             <div className="pp-card__header">
               <div>
-                <span className="pp-eyebrow">Rysunek</span>
-                <h3>Metadane dokumentacji</h3>
+                <span className="pp-eyebrow">Dokument</span>
+                <h3>Dane protokołu i schematu</h3>
               </div>
             </div>
 
@@ -146,16 +146,16 @@ export function ProjectPropertiesPage({
                 {metadata.isFormalDocumentationMode && (
                   <>
                     <Field
-                      label="Projektant"
-                      placeholder="inż. Adam Wiśniewski"
+                      label="Elektryk / osoba wykonująca"
+                      placeholder="Jan Kowalski"
                       value={metadata.author}
                       onChange={(value) => {
                         updateField("author", value);
                       }}
                     />
                     <Field
-                      label="Uprawnienia projektanta"
-                      placeholder="upr. bud. nr 67890"
+                      label="Uprawnienia SEP"
+                      placeholder="E + D / 123/2026"
                       value={metadata.designerId}
                       onChange={(value) => {
                         onChange({
@@ -170,8 +170,8 @@ export function ProjectPropertiesPage({
                 )}
 
                 <Field
-                  label="Nr rysunku"
-                  placeholder="E-01"
+                  label="Nr dokumentacji / protokołu"
+                  placeholder="PW-01/2026"
                   value={metadata.projectNumber}
                   onChange={handleTextField("projectNumber")}
                 />
@@ -182,7 +182,7 @@ export function ProjectPropertiesPage({
                   onChange={handleTextField("drawingScale")}
                 />
                 <Field
-                  label="Data"
+                  label="Data wykonania / odbioru"
                   placeholder="2026-03-29"
                   value={formatDateForField(metadata.drawingDate)}
                   onChange={handleTextField("drawingDate")}
@@ -216,12 +216,12 @@ export function ProjectPropertiesPage({
                 <div className="pp-card__header">
                   <div>
                     <span className="pp-eyebrow">Podpisy</span>
-                    <h3>Podpis projektanta</h3>
+                    <h3>Podpis elektryka</h3>
                   </div>
                 </div>
                 <div className="pp-card__body">
                   <Field
-                    label="Podpis projektanta"
+                    label="Podpis elektryka"
                     placeholder="........................."
                     value={metadata.designerSignature}
                     onChange={handleTextField("designerSignature")}
@@ -254,7 +254,7 @@ export function ProjectPropertiesPage({
             <div className="pp-card__header">
               <div>
                 <span className="pp-eyebrow">Status</span>
-                <h3>Powiązanie z dokumentacją</h3>
+                <h3>Status dokumentacji</h3>
               </div>
             </div>
 
@@ -263,15 +263,15 @@ export function ProjectPropertiesPage({
                 <div>
                   <dt>Tryb</dt>
                   <dd>
-                    {metadata.isFormalDocumentationMode ? "Formalny / z podpisami" : "Uproszczony"}
+                    {metadata.isFormalDocumentationMode ? "Powykonawcza z podpisami" : "Robocza / uproszczona"}
                   </dd>
                 </div>
                 <div>
-                  <dt>Projektant</dt>
+                  <dt>Elektryk</dt>
                   <dd>{metadata.author || "Brak danych"}</dd>
                 </div>
                 <div>
-                  <dt>Nr rysunku</dt>
+                  <dt>Nr dokumentacji</dt>
                   <dd>{metadata.projectNumber || "Brak danych"}</dd>
                 </div>
                 <div>
@@ -289,7 +289,7 @@ export function ProjectPropertiesPage({
             </div>
 
             <div className="pp-sheet">
-              <div className="pp-sheet__title">{metadata.company || "Nazwa projektu"}</div>
+              <div className="pp-sheet__title">{metadata.company || "Dokumentacja powykonawcza"}</div>
               <div className="pp-sheet__divider" />
               <div className="pp-sheet__row">
                 <span>Inwestor</span>
@@ -306,18 +306,18 @@ export function ProjectPropertiesPage({
               {metadata.isFormalDocumentationMode && (
                 <>
                   <div className="pp-sheet__row">
-                    <span>Projektant</span>
+                    <span>Elektryk</span>
                     <strong>{metadata.author || "................................"}</strong>
                   </div>
                   <div className="pp-sheet__row">
-                    <span>Uprawnienia</span>
+                    <span>Uprawnienia SEP</span>
                     <strong>{metadata.designerId || "................................"}</strong>
                   </div>
                 </>
               )}
               <div className="pp-sheet__row">
-                <span>Nr rysunku</span>
-                <strong>{metadata.projectNumber || "E-01"}</strong>
+                <span>Nr dokumentacji</span>
+                <strong>{metadata.projectNumber || "PW-01/2026"}</strong>
               </div>
               <div className="pp-sheet__row">
                 <span>Data</span>
@@ -339,7 +339,7 @@ export function ProjectPropertiesPage({
               {metadata.isFormalDocumentationMode && (
                 <div className="pp-sheet__signatures">
                   <div>
-                    <span>Podpis projektanta</span>
+                    <span>Podpis elektryka</span>
                     <strong>{metadata.designerSignature || "................................"}</strong>
                   </div>
                   <div>

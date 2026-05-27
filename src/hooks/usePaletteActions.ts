@@ -114,6 +114,25 @@ export function usePaletteActions({
       const shouldPlaceOnDinRail =
         options?.snapToRail === true && supportsDinRailPlacement(template);
 
+      let phase = template.phase;
+      if (template.deviceKind === 'rcd') {
+        const templateIdentity = `${template.type} ${template.code} ${template.label} ${template.moduleRef}`
+          .toUpperCase();
+        const isSinglePhaseRcd =
+          !templateIdentity.includes("4P") &&
+          !templateIdentity.includes("3P") &&
+          (template.modules <= 2 || templateIdentity.includes("2P") || templateIdentity.includes("1P"));
+        if (isSinglePhaseRcd) {
+          const existingSinglePhaseRcds = symbols.filter((s) => 
+            s.deviceKind === 'rcd' && 
+            !`${s.type} ${s.label} ${s.moduleRef} ${s.visualPath}`.toUpperCase().includes("4P") &&
+            !`${s.type} ${s.label} ${s.moduleRef} ${s.visualPath}`.toUpperCase().includes("3P")
+          );
+          const phases = ["L1", "L2", "L3"] as const;
+          phase = phases[existingSinglePhaseRcds.length % 3];
+        }
+      }
+
       const nextSymbol = createDefaultSymbolItem({
         type: template.type,
         deviceKind: template.deviceKind,
@@ -124,7 +143,7 @@ export function usePaletteActions({
         circuitType: template.circuitType ?? 'Inne',
         location: selectedSymbol?.location ?? '',
         powerW: template.powerW ?? 0,
-        phase: template.phase,
+        phase: phase,
         protectionType: template.protectionType ?? '',
         x,
         y,
@@ -145,7 +164,7 @@ export function usePaletteActions({
               ? 4
               : 2.5
             : 10,
-        moduleSourceType: template.moduleRef?.startsWith('imported/')
+        moduleSourceType: template.moduleRef?.startsWith('imported/') || template.templateId.startsWith('imported-catalog-')
           ? 'ImportedSvg'
           : template.moduleRef
             ? 'BuiltInAsset'
@@ -195,7 +214,7 @@ export function usePaletteActions({
 
         if (snapTarget && !excludeFromGrouping) {
           if (snapTarget.group) {
-            if (nextSymbol.deviceKind !== 'spd') {
+            if (nextSymbol.deviceKind !== 'spd' && nextSymbol.deviceKind !== 'rcd') {
               nextSymbol.group = snapTarget.group;
               nextSymbol.groupName = snapTarget.groupName;
 
@@ -209,20 +228,6 @@ export function usePaletteActions({
                 nextSymbol.rcdRatedCurrent = snapTarget.rcdRatedCurrent;
                 nextSymbol.rcdResidualCurrent = snapTarget.rcdResidualCurrent;
                 nextSymbol.rcdType = snapTarget.rcdType;
-              }
-
-              if (nextSymbol.deviceKind === 'rcd') {
-                nextSymbols = nextSymbols.map((s) =>
-                  s.group === nextSymbol.group && s.id !== nextSymbol.id
-                    ? {
-                        ...s,
-                        rcdSymbolId: nextSymbol.id,
-                        rcdRatedCurrent: nextSymbol.rcdRatedCurrent,
-                        rcdResidualCurrent: nextSymbol.rcdResidualCurrent,
-                        rcdType: nextSymbol.rcdType,
-                      }
-                    : s,
-                );
               }
 
               statusMessage = `Dodano ${template.code} do grupy ${snapTarget.groupName || snapTarget.group}.`;
@@ -260,7 +265,9 @@ export function usePaletteActions({
               statusMessage = `Dodano ${template.code} i utworzono nowa grupe ${groupName}.`;
             }
           }
-        } else if (nextSymbol.deviceKind === 'rcd' && !nextSymbol.group) {
+        }
+
+        if (nextSymbol.deviceKind === 'rcd' && !nextSymbol.group) {
           const groupId = crypto.randomUUID();
           const groupName = getNextGroupName(symbols);
           nextSymbol.group = groupId;

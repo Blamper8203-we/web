@@ -10,28 +10,32 @@ import { reportRuntimeError } from "../lib/runtimeDiagnostics";
 import {
   PALETTE_GROUPS as ASSET_PALETTE_GROUPS,
 } from '../lib/modules/moduleCatalog';
+import { discoverModuleAssets } from '../lib/modules/moduleAssetDiscovery';
 import {
   buildPaletteTemplateMap,
   HIDDEN_PALETTE_TEMPLATE_IDS_STORAGE_KEY,
 } from '../lib/appHelpers';
 
+function loadHiddenPaletteTemplateIds(): string[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = window.localStorage.getItem(HIDDEN_PALETTE_TEMPLATE_IDS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is string => typeof item === 'string')
+      : [];
+  } catch {
+    return [];
+  }
+}
+
 export function useImportedModules(showTemporaryStatus: (msg: string, ms?: number) => void) {
   const [importedModules, setImportedModules] = useState<ImportedModuleDefinition[]>(() =>
     loadImportedModules(),
   );
-
-  const [hiddenPaletteTemplateIds, setHiddenPaletteTemplateIds] = useState<string[]>(() => {
-    if (typeof window === 'undefined') return [];
-    try {
-      const raw = window.localStorage.getItem(HIDDEN_PALETTE_TEMPLATE_IDS_STORAGE_KEY);
-      const parsed = raw ? JSON.parse(raw) : [];
-      return Array.isArray(parsed)
-        ? parsed.filter((item): item is string => typeof item === 'string')
-        : [];
-    } catch {
-      return [];
-    }
-  });
+  const [discoveredModules, setDiscoveredModules] = useState<ImportedModuleDefinition[]>([]);
+  const [hiddenPaletteTemplateIds, setHiddenPaletteTemplateIds] = useState<string[]>(loadHiddenPaletteTemplateIds);
+  const [hasSyncedCatalogStorage, setHasSyncedCatalogStorage] = useState(false);
 
   const [svgImportDialogOpen, setSvgImportDialogOpen] = useState(false);
   const [importedModulesManagerOpen, setImportedModulesManagerOpen] = useState(false);
@@ -39,21 +43,29 @@ export function useImportedModules(showTemporaryStatus: (msg: string, ms?: numbe
 
   const paletteGroups = useMemo(() => {
     const hiddenSet = new Set(hiddenPaletteTemplateIds);
-    return mergePaletteGroups(ASSET_PALETTE_GROUPS, importedModules)
+    const importedKeys = new Set(
+      importedModules.map((item) => `${item.category}::${item.code}`.toLocaleLowerCase('pl-PL')),
+    );
+    const visibleDiscoveredModules = discoveredModules.filter((item) => {
+      const key = `${item.category}::${item.code}`.toLocaleLowerCase('pl-PL');
+      return !importedKeys.has(key);
+    });
+
+    return mergePaletteGroups(ASSET_PALETTE_GROUPS, [...visibleDiscoveredModules, ...importedModules])
       .map((group) => ({
         ...group,
         items: group.items.filter((item) => !hiddenSet.has(item.templateId)),
-      }))
-      .filter((group) => group.items.length > 0);
-  }, [hiddenPaletteTemplateIds, importedModules]);
+      }));
+  }, [discoveredModules, hiddenPaletteTemplateIds, importedModules]);
 
   const paletteTemplateMap = useMemo(() => buildPaletteTemplateMap(paletteGroups), [paletteGroups]);
 
   const importedModuleCategoryOptions = useMemo(() => {
     const options = new Set<string>(ASSET_PALETTE_GROUPS.map((g) => g.title));
     for (const mod of importedModules) options.add(mod.category);
+    for (const mod of discoveredModules) options.add(mod.category);
     return Array.from(options).sort((a, b) => a.localeCompare(b, 'pl'));
-  }, [importedModules]);
+  }, [discoveredModules, importedModules]);
 
   // Keep active tab valid when groups change
   useEffect(() => {
@@ -63,12 +75,51 @@ export function useImportedModules(showTemporaryStatus: (msg: string, ms?: numbe
     setActivePaletteGroupTitle(paletteGroups[0]?.title ?? '');
   }, [activePaletteGroupTitle, paletteGroups]);
 
-  // Persist state
   useEffect(() => {
+    setImportedModules((prev) => {
+      const nextModules = loadImportedModules();
+      return JSON.stringify(prev) === JSON.stringify(nextModules) ? prev : nextModules;
+    });
+    setHiddenPaletteTemplateIds(loadHiddenPaletteTemplateIds());
+    setHasSyncedCatalogStorage(true);
+  }, []);
+
+  // Persist state after catalog-version migration has had a chance to clear stale entries.
+  useEffect(() => {
+    if (!hasSyncedCatalogStorage) {
+      return;
+    }
+
     saveImportedModules(importedModules);
-  }, [importedModules]);
+  }, [hasSyncedCatalogStorage, importedModules]);
 
   useEffect(() => {
+    let cancelled = false;
+
+    const refreshDiscoveredModules = async () => {
+      const nextModules = await discoverModuleAssets(ASSET_PALETTE_GROUPS);
+      if (!cancelled) {
+        setDiscoveredModules((prev) => {
+          const isSame = JSON.stringify(prev) === JSON.stringify(nextModules);
+          return isSame ? prev : nextModules;
+        });
+      }
+    };
+
+    void refreshDiscoveredModules();
+    const intervalId = window.setInterval(refreshDiscoveredModules, 3000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!hasSyncedCatalogStorage) {
+      return;
+    }
+
     try {
       window.localStorage.setItem(
         HIDDEN_PALETTE_TEMPLATE_IDS_STORAGE_KEY,
@@ -79,7 +130,7 @@ export function useImportedModules(showTemporaryStatus: (msg: string, ms?: numbe
         source: "unhandled-error",
       });
     }
-  }, [hiddenPaletteTemplateIds]);
+  }, [hasSyncedCatalogStorage, hiddenPaletteTemplateIds]);
 
   const handleHidePaletteTemplate = useCallback((templateId: string) => {
     setHiddenPaletteTemplateIds((prev) => (prev.includes(templateId) ? prev : [...prev, templateId]));
