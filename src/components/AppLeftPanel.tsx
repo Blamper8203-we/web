@@ -82,7 +82,6 @@ export function AppLeftPanel({
                 </span>
                 <div>
                   <strong>{activePaletteGroup.title}</strong>
-                  <span>{activePaletteGroup.subtitle}</span>
                 </div>
                 <span className="palette-group-header__count">{activePaletteGroup.items.length}</span>
               </div>
