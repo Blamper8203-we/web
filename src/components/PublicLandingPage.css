@@ -126,6 +126,32 @@
   line-height: 1.6;
 }
 
+.landing__warning {
+  margin-top: 8px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: rgba(235, 87, 87, 0.09);
+  border: 1px solid rgba(235, 87, 87, 0.28);
+  color: #eb5757;
+  font-size: 14px;
+  line-height: 1.5;
+  width: fit-content;
+  max-width: 64ch;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: landing-fade-in 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.landing__warning svg {
+  color: #eb5757;
+}
+
+.landing__warning strong {
+  font-weight: 700;
+  color: #fff;
+}
+
 @media (max-width: 768px) {
   .landing {
     padding: 40px 16px;

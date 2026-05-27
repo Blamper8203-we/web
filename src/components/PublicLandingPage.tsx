@@ -20,6 +20,26 @@ export function PublicLandingPage({ onOpenWorkspace }: PublicLandingPageProps) {
           DINBoard wspiera elektryka przy wykonaniu rozdzielnicy, opisaniu obwodów,
           sprawdzeniu instalacji i przygotowaniu dokumentacji odbiorczej PDF.
         </p>
+        <div className="landing__warning">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ flexShrink: 0 }}
+          >
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          <span>
+            <strong>Uwaga!</strong> Aplikacja znajduje się w fazie testów i może zawierać błędy. Prosimy o weryfikację wygenerowanych danych.
+          </span>
+        </div>
         <div className="landing__actions">
           <a className="landing__button" href="/app" onClick={handleOpenWorkspace}>
             Otwórz aplikację
