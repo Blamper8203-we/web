@@ -963,6 +963,10 @@ export function DinRailCanvas({
 
   const updateRows = (value: string) => {
     if (value.trim() === "") {
+      setDraftConfig((prev) => ({
+        ...prev,
+        rows: "" as unknown as number,
+      }));
       return;
     }
     const parsed = parseInt(value, 10);
@@ -977,6 +981,10 @@ export function DinRailCanvas({
 
   const updateModulesPerRow = (value: string) => {
     if (value.trim() === "") {
+      setDraftConfig((prev) => ({
+        ...prev,
+        modulesPerRow: "" as unknown as number,
+      }));
       return;
     }
     const parsed = parseInt(value, 10);

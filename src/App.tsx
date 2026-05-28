@@ -97,7 +97,7 @@ function AppWorkspace() {
     config: DEFAULT_DIN_RAIL_CONFIG, svg: "", width: 0, height: 0, isVisible: false,
   });
   const [activeRightTab, setActiveRightTab] = useState<RightTab>("balance");
-  const [showRightPanel, setShowRightPanel] = useState(true);
+  const [showRightPanel, setShowRightPanel] = useState(() => window.innerWidth > 768);
   const [highlightedCircuitEditTarget, setHighlightedCircuitEditTarget] = useState<{
     symbolId: string;
     fieldKey: string;
