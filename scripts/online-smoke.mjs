@@ -1,7 +1,7 @@
 import { createServer } from "node:http";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import { extname, join, normalize } from "node:path";
+import { extname, join, normalize, sep } from "node:path";
 
 const HOST = "127.0.0.1";
 const PORT = Number(process.env.DINBOARD_SMOKE_PORT || 4173);
@@ -36,7 +36,7 @@ const CONTENT_TYPES = new Map([
 function isInsideDist(path) {
   const normalizedDist = normalize(DIST_DIR);
   const normalizedPath = normalize(path);
-  return normalizedPath === normalizedDist || normalizedPath.startsWith(`${normalizedDist}\\`);
+  return normalizedPath === normalizedDist || normalizedPath.startsWith(`${normalizedDist}${sep}`);
 }
 
 async function serveFile(response, filePath) {
