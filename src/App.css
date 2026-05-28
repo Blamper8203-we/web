@@ -3002,14 +3002,11 @@ input[type="text"].schematic-cell-editor:focus,
     overflow: hidden;
   }
 
-  .right-panel {
+  .main-content:not(.is-right-panel-hidden) .left-panel {
     display: none;
   }
 
-  .main-content.is-circuit-editing .left-panel {
-    display: none;
-  }
-
+  .main-content:not(.is-right-panel-hidden) .right-panel,
   .main-content.is-circuit-editing .right-panel {
     grid-column: 1;
     grid-row: 3;
@@ -3018,6 +3015,10 @@ input[type="text"].schematic-cell-editor:focus,
     display: flex;
     border-left: 0;
     border-top: 1px solid var(--panel-border);
+  }
+
+  .main-content.is-right-panel-hidden .right-panel {
+    display: none;
   }
 
   .main-content.is-circuit-editing .right-panel-header,
