@@ -1191,7 +1191,8 @@ body {
   display: grid;
   grid-template-columns: 54px minmax(0, 1fr);
   gap: 10px;
-  align-items: start;
+  align-items: center;
+  align-content: center;
   min-height: 64px;
   padding: 8px;
   background: var(--card-background);
