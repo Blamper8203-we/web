@@ -1578,6 +1578,7 @@ button:focus-visible {
 .din-rail-surface {
   cursor: grab;
   background: transparent;
+  touch-action: none;
 }
 
 .din-rail-hitbox {
@@ -1593,6 +1594,7 @@ button:focus-visible {
 
 .din-rail-hitbox {
   cursor: grab;
+  touch-action: none;
 }
 
 .din-rail-hitbox:hover {

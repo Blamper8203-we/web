@@ -253,6 +253,7 @@ export function DinRailCanvas({
   showGroups = true,
 }: DinRailCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const surfaceRef = useRef<HTMLDivElement>(null);
   const pixiHostRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<Application | null>(null);
   const pixiWorldRef = useRef<Container | null>(null);
@@ -338,10 +339,15 @@ export function DinRailCanvas({
   );
   const shouldRenderPixiLabels = false && snappedSymbols.length <= PIXI_LABEL_SYMBOL_LIMIT;
 
-  const previewSvg = useMemo(() => generateDinRailSvg(draftConfig), [draftConfig]);
+  const safePreviewConfig = useMemo<DinRailConfig>(() => ({
+    rows: Math.max(1, draftConfig.rows || 1),
+    modulesPerRow: Math.max(6, draftConfig.modulesPerRow || 6),
+  }), [draftConfig]);
+
+  const previewSvg = useMemo(() => generateDinRailSvg(safePreviewConfig), [safePreviewConfig]);
   const previewDims = useMemo(
-    () => getDinRailDimensions(draftConfig.rows, draftConfig.modulesPerRow),
-    [draftConfig],
+    () => getDinRailDimensions(safePreviewConfig.rows, safePreviewConfig.modulesPerRow),
+    [safePreviewConfig],
   );
   const previewScale = Math.min(
     (DIN_RAIL_PREVIEW_CANVAS_WIDTH - DIN_RAIL_PREVIEW_MARGIN_X * 2) / previewDims.width,
@@ -350,7 +356,7 @@ export function DinRailCanvas({
   );
   const totalModules = rail.isVisible
     ? rail.config.rows * rail.config.modulesPerRow
-    : draftConfig.rows * draftConfig.modulesPerRow;
+    : (draftConfig.rows || 1) * (draftConfig.modulesPerRow || 6);
 
   const flushViewportState = useCallback(() => {
     setPan((currentPan) => (
@@ -457,6 +463,31 @@ export function DinRailCanvas({
       scaleRef.current / 1.1,
     );
   }, [rail.isVisible, viewportSize.height, viewportSize.width, zoomAroundViewportPoint]);
+
+  const handleWheel = useCallback((event: WheelEvent) => {
+    if (!rail.isVisible) {
+      return;
+    }
+
+    event.preventDefault();
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) {
+      return;
+    }
+
+    const viewportPoint = {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+    };
+    const normalizedDelta =
+      event.deltaMode === 1
+        ? event.deltaY * 16
+        : event.deltaMode === 2
+          ? event.deltaY * Math.max(viewportSize.height, 1)
+          : event.deltaY;
+    const factor = clamp(Math.exp(-normalizedDelta * 0.0015), 0.82, 1.22);
+    zoomAroundViewportPoint(viewportPoint, scaleRef.current * factor);
+  }, [rail.isVisible, viewportSize.height, zoomAroundViewportPoint]);
 
   const snapModulePlacement = useCallback(
     (
@@ -689,6 +720,22 @@ export function DinRailCanvas({
     };
   }, []);
 
+  useEffect(() => {
+    const surface = surfaceRef.current;
+    if (!surface) {
+      return;
+    }
+
+    const onWheelNative = (event: WheelEvent) => {
+      handleWheel(event);
+    };
+
+    surface.addEventListener("wheel", onWheelNative, { passive: false });
+    return () => {
+      surface.removeEventListener("wheel", onWheelNative);
+    };
+  }, [handleWheel]);
+
   const bindMeasuredNode = useCallback((symbolId: string, node: HTMLDivElement | null) => {
     if (node) {
       measuredNodesRef.current.set(symbolId, node);
@@ -720,7 +767,10 @@ export function DinRailCanvas({
       return;
     }
 
-    event.currentTarget.setPointerCapture(event.pointerId);
+    const svgContainer = event.currentTarget.closest(".din-rail-svg-container");
+    if (svgContainer instanceof HTMLElement) {
+      svgContainer.setPointerCapture(event.pointerId);
+    }
     event.stopPropagation();
 
     if (event.button === 1) {
@@ -888,31 +938,6 @@ export function DinRailCanvas({
     interactionRef.current = { mode: "idle" };
     setSelectionRect(null);
   }, [commitSelectionRect, flushViewportState, onSymbolMoveEnd, onSymbolSelect, rail.isVisible, selectionRect]);
-
-  const handleWheel = useCallback((event: React.WheelEvent<HTMLDivElement>) => {
-    if (!rail.isVisible) {
-      return;
-    }
-
-    event.preventDefault();
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) {
-      return;
-    }
-
-    const viewportPoint = {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
-    };
-    const normalizedDelta =
-      event.deltaMode === 1
-        ? event.deltaY * 16
-        : event.deltaMode === 2
-          ? event.deltaY * Math.max(viewportSize.height, 1)
-          : event.deltaY;
-    const factor = clamp(Math.exp(-normalizedDelta * 0.0015), 0.82, 1.22);
-    zoomAroundViewportPoint(viewportPoint, scaleRef.current * factor);
-  }, [rail.isVisible, viewportSize.height, zoomAroundViewportPoint]);
 
   const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     const types = Array.from(event.dataTransfer.types).map((type) => type.toLowerCase());
@@ -1293,12 +1318,12 @@ export function DinRailCanvas({
           </div>
         )}
         <div
+          ref={surfaceRef}
           className="din-rail-surface"
           onDragLeave={() => setIsDropTarget(false)}
           onDragOver={handleDragOver}
           onDrop={handleDrop}
           onPointerDown={handleSurfacePointerDown}
-          onWheel={handleWheel}
           style={{ position: "absolute", inset: 0, zIndex: 4 }}
         />
         {(selectedBoundsStyle || selectionRectStyle) && (

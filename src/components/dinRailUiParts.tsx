@@ -168,7 +168,7 @@ export function DinRailGeneratorDialog({
               type="number"
               min={1}
               max={10}
-              value={draftConfig.rows}
+              value={draftConfig.rows === 0 ? "" : draftConfig.rows}
               onChange={(event) => onRowsChange(event.target.value)}
             />
           </label>
@@ -180,7 +180,7 @@ export function DinRailGeneratorDialog({
               min={6}
               max={48}
               step={6}
-              value={draftConfig.modulesPerRow}
+              value={draftConfig.modulesPerRow === 0 ? "" : draftConfig.modulesPerRow}
               onChange={(event) => onModulesPerRowChange(event.target.value)}
             />
           </label>
