@@ -13,11 +13,9 @@ import {
   buildCircuitRowsFromSymbols,
 } from "../circuitRows";
 import type { ValidationResult } from "../validation/electricalValidationService";
-import { buildValidationDisplayGroupsForSymbols } from "../validation/validationPresentation";
 
 const UNIFIED_ROWS_PER_PAGE = 7;
 const CIRCUIT_LIST_ROWS_PER_PAGE = 10;
-const VALIDATION_GROUPS_PER_PAGE = 7;
 const TITLE_WORK_SCOPE_MAX_ITEMS = 12;
 const TITLE_WORK_SCOPE_COLUMN_SIZE = 6;
 const A4_PREVIEW_PADDING = 42.5;
@@ -40,6 +38,7 @@ const styles = StyleSheet.create({
   page: { padding: 30, fontFamily: "Arial", color: "#111827", backgroundColor: "#FFFFFF" },
   landscapePage: { padding: 30, fontFamily: "Arial", color: "#111827", backgroundColor: "#FFFFFF" },
   previewA4Page: { padding: A4_PREVIEW_PADDING },
+  titlePage: { paddingHorizontal: 30, paddingVertical: 20, fontFamily: "Arial", color: "#111827", backgroundColor: "#FFFFFF" },
   
   // Layout basics
   flex: { display: "flex" },
@@ -123,6 +122,7 @@ const styles = StyleSheet.create({
   bgAmber50: { backgroundColor: "#FFFBEB" },
   
   // Specific complex components
+  pb2: { paddingBottom: 8 },
   pb3: { paddingBottom: 12 },
   pb4: { paddingBottom: 16 },
   pt2: { paddingTop: 8 },
@@ -163,8 +163,8 @@ const styles = StyleSheet.create({
   grid2Col: { width: "48%" },
   grid3: { flexDirection: "row", justifyContent: "space-between" },
   grid3Col: { width: "31%" },
-  signatureSlot: { height: 64, justifyContent: "center", alignItems: "center" },
-  titleStampSlot: { height: 80, width: "100%", justifyContent: "center", alignItems: "center" },
+  signatureSlot: { height: 48, justifyContent: "center", alignItems: "center" },
+  titleStampSlot: { height: 60, width: "100%", justifyContent: "center", alignItems: "center" },
   validationGroup: { padding: 8, borderWidth: 1, borderColor: "#E5E7EB", borderStyle: "solid", borderRadius: 6, marginBottom: 8 },
   validationGroupError: { borderLeftWidth: 3, borderLeftColor: "#EF4444" },
   validationGroupWarning: { borderLeftWidth: 3, borderLeftColor: "#D97706" },
@@ -242,7 +242,6 @@ export function PdfProtocolDocument({
 }: PdfProtocolDocumentProps) {
   const groupedCircuits = buildPdfCircuitGroups(symbols);
   const circuitListRows = buildCircuitListTableRows(buildCircuitRowsFromSymbols(symbols));
-  const validationGroups = buildValidationDisplayGroupsForSymbols(validationResult, symbols);
 
   const chunkArray = <T,>(arr: T[], size: number): T[][] => {
     const chunks: T[][] = [];
@@ -268,11 +267,6 @@ export function PdfProtocolDocument({
     headerTitle.replace(/^protokół\s+(pomiarów\s+)?nr\s+/i, "").trim();
 
   const displayDate = formatDateForField(metadata.drawingDate) || formatDateForField(new Date().toISOString());
-  const validationChunks = chunkArray(validationGroups, VALIDATION_GROUPS_PER_PAGE);
-  const validationErrorCount = validationResult.errors.length;
-  const validationWarningCount = validationResult.warnings.length;
-  const validationInfoCount = validationResult.info.length;
-  const validationPageChunks = validationChunks.length > 0 ? validationChunks : [[]];
 
   const drawingDateStr = metadata.drawingDate?.trim() || "";
   let resolvedYear = new Date().getFullYear();
@@ -319,8 +313,8 @@ export function PdfProtocolDocument({
   return (
     <Document title={`Dokumentacja_${metadata.projectNumber || "powykonawcza"}`}>
       {(!previewOnly || previewOnly === "title-page") && (
-        <Page size="A4" style={[styles.page, styles.previewA4Page]}>
-          <View style={[styles.flexRow, styles.justifyBetween, styles.borderB2Dark, styles.pb4]}>
+        <Page size="A4" style={styles.titlePage}>
+          <View style={[styles.flexRow, styles.justifyBetween, styles.borderB2Dark, styles.pb3]}>
             <View style={[styles.flexRow, styles.itemsCenter]}>
               <View style={[styles.logoBox, styles.mr3]}>
                 {metadata.titlePageCompanyLogoDataUrl ? (
@@ -343,19 +337,19 @@ export function PdfProtocolDocument({
             </View>
           </View>
 
-          <View style={[styles.itemsCenter, { marginTop: 24, marginBottom: 24 }]}>
+          <View style={[styles.itemsCenter, { marginTop: 14, marginBottom: 14 }]}>
             <Text style={[styles.text2xl, styles.fontBlack, styles.textGray900, styles.uppercase]}>Oświadczenie Wykonawcy</Text>
             <Text style={[styles.textSm, styles.textGray500, styles.italic, styles.mt1]}>instalacji elektrycznej wykonanej zgodnie z przepisami i normami</Text>
           </View>
 
-          <View style={[styles.bgGray50, styles.roundedXl, styles.border, styles.p4, styles.mb4]}>
-            <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb3]}>Informacje o obiekcie</Text>
+          <View style={[styles.bgGray50, styles.roundedXl, styles.border, styles.p3, styles.mb2]}>
+            <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb2]}>Informacje o obiekcie</Text>
             <View style={styles.flexCol}>
-              <View style={[styles.flexRow, styles.mb2]}>
+              <View style={[styles.flexRow, styles.mb1]}>
                 <Text style={[styles.fontBold, styles.textGray700, styles.textSm, { width: 100 }]}>Rodzaj obiektu:</Text>
                 <Text style={[styles.fontSemiBold, styles.textGray900, styles.textSm, styles.flex1]}>{objectType}</Text>
               </View>
-              <View style={[styles.flexRow, styles.mb2]}>
+              <View style={[styles.flexRow, styles.mb1]}>
                 <Text style={[styles.fontBold, styles.textGray700, styles.textSm, { width: 100 }]}>Adres:</Text>
                 <Text style={[styles.fontSemiBold, styles.textGray900, styles.textSm, styles.flex1]}>{metadata.address || "................................................................"}</Text>
               </View>
@@ -366,9 +360,9 @@ export function PdfProtocolDocument({
             </View>
           </View>
 
-          <View style={[styles.grid2, styles.mb4]}>
-            <View style={[styles.border, styles.roundedXl, styles.p4, styles.grid2Col]}>
-              <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb3]}>Zakres prac</Text>
+          <View style={[styles.grid2, styles.mb2]}>
+            <View style={[styles.border, styles.roundedXl, styles.p3, styles.grid2Col]}>
+              <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb2]}>Zakres prac</Text>
               <View style={titleWorkScopeColumns.length > 1 ? styles.grid2 : styles.flexCol}>
                 {titleWorkScopeColumns.map((columnItems, columnIndex) => (
                   <View key={columnIndex} style={titleWorkScopeColumns.length > 1 ? styles.grid2Col : undefined}>
@@ -387,13 +381,13 @@ export function PdfProtocolDocument({
                 ))}
               </View>
             </View>
-            <View style={[styles.border, styles.roundedXl, styles.p4, styles.grid2Col]}>
-              <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb3]}>Załączniki do protokołu</Text>
+            <View style={[styles.border, styles.roundedXl, styles.p3, styles.grid2Col]}>
+              <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb2]}>Załączniki do protokołu</Text>
               <View style={titleAttachmentColumns.length > 1 ? styles.grid2 : styles.flexCol}>
                 {titleAttachmentColumns.map((columnItems, columnIndex) => (
                   <View key={columnIndex} style={titleAttachmentColumns.length > 1 ? styles.grid2Col : undefined}>
                     {columnItems.map((item, itemIndex) => (
-                      <View key={`${columnIndex}-${itemIndex}`} style={[styles.flexRow, styles.mb25]}>
+                      <View key={`${columnIndex}-${itemIndex}`} style={[styles.flexRow, styles.mb2]}>
                         <View style={styles.checkboxContainer}>
                           <Text style={styles.checkboxChecked}>✓</Text>
                         </View>
@@ -406,14 +400,14 @@ export function PdfProtocolDocument({
             </View>
           </View>
 
-          <View style={[styles.grid2, styles.mb4]}>
-            <View style={[styles.border, styles.roundedXl, styles.p4, styles.grid2Col]}>
-              <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb2]}>Wykonawca / Instalator</Text>
+          <View style={[styles.grid2, styles.mb2]}>
+            <View style={[styles.border, styles.roundedXl, styles.p3, styles.grid2Col]}>
+              <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb1]}>Wykonawca / Instalator</Text>
               <Text style={[styles.textSm, styles.fontBold, styles.textGray950, styles.mt1]}>{contractorName}</Text>
               <Text style={[styles.textXs, styles.textGray400, styles.mt1]}>Podmiot odpowiedzialny za montaż instalacji</Text>
             </View>
-            <View style={[styles.border, styles.roundedXl, styles.p4, styles.grid2Col]}>
-              <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb2]}>Uprawnienia SEP (Kwalifikacyjne)</Text>
+            <View style={[styles.border, styles.roundedXl, styles.p3, styles.grid2Col]}>
+              <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb1]}>Uprawnienia SEP (Kwalifikacyjne)</Text>
               <View style={styles.flexCol}>
                 <View style={[styles.flexRow, styles.mb1]}>
                   <Text style={[styles.fontSemiBold, styles.textGray700, styles.textSm, { width: 110 }]}>Eksploatacja (E):</Text>
@@ -427,9 +421,9 @@ export function PdfProtocolDocument({
             </View>
           </View>
 
-          <View style={[styles.bgGray950, styles.roundedXl, styles.p4, styles.mb6, styles.textCenter]}>
+          <View style={[styles.bgGray950, styles.roundedXl, styles.p3, styles.mb3, styles.textCenter]}>
             <Text style={[styles.textSm, styles.fontBold, styles.textBlue400, styles.uppercase, styles.mb1]}>Pełna treść oświadczenia wykonawcy</Text>
-            <Text style={[styles.textSm, styles.fontLight, styles.textGray200, { lineHeight: 1.625 }]}>
+            <Text style={[styles.textSm, styles.fontLight, styles.textGray200, { lineHeight: 1.5 }]}>
               Oświadczam, że instalacja elektryczna w wyżej wymienionym obiekcie została wykonana zgodnie z przepisami ustawy Prawo Budowlane, obowiązującymi normami technicznymi (w tym PN-HD 60364-6) oraz sztuką budowlaną. Przeprowadzone pomiary odbiorcze wykazały skuteczność zastosowanych środków ochrony przeciwporażeniowej.
             </Text>
           </View>
@@ -687,8 +681,8 @@ export function PdfProtocolDocument({
 
           {/* RCD Page in similar style if requested */}
           {(previewOnly === "rcd-ground" || (!previewOnly && metadata.measurementProtocols?.rcdRows?.length > 0)) && (
-            <Page size="A4" style={[styles.page, styles.previewA4Page]}>
-              <View style={[styles.flexRow, styles.justifyBetween, styles.borderB2Dark, styles.pb3]}>
+            <Page size="A4" style={styles.titlePage}>
+              <View style={[styles.flexRow, styles.justifyBetween, styles.borderB2Dark, styles.pb2]}>
                 <View style={[styles.flexRow, styles.itemsCenter, { width: "70%" }]}>
                   <View style={[styles.bgBrand, styles.px3, styles.py1, styles.rounded, styles.mr3]}>
                     <Text style={[styles.textWhite, styles.fontBold, styles.textXs, styles.uppercase]}>RCD i uziemienie</Text>
@@ -706,7 +700,7 @@ export function PdfProtocolDocument({
                 </View>
               </View>
 
-              <View style={styles.mt4}>
+              <View style={styles.mt2}>
                 <View style={[styles.bgGray100, styles.px3, styles.py2, styles.rounded, styles.border, { borderBottomWidth: 0, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }]}>
                   <Text style={[styles.textXs, styles.fontBold, styles.textGray800]}>1. Dane techniczne i narzędzia pomiarowe</Text>
                 </View>
@@ -753,12 +747,12 @@ export function PdfProtocolDocument({
                 </View>
               </View>
 
-              <View style={styles.mt4}>
+              <View style={styles.mt2}>
                 <View style={[styles.bgGray100, styles.px3, styles.py2, styles.rounded, styles.border, { borderBottomWidth: 0, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }]}>
                   <Text style={[styles.textXs, styles.fontBold, styles.textGray800]}>3. Pomiar rezystancji uziemienia (GSU)</Text>
                 </View>
-                <View style={[styles.bgWhite, styles.p4, styles.border, styles.rounded, { borderTopLeftRadius: 0, borderTopRightRadius: 0 }]}>
-                  <View style={[styles.flexRow, styles.mb3]}>
+                <View style={[styles.bgWhite, styles.p3, styles.border, styles.rounded, { borderTopLeftRadius: 0, borderTopRightRadius: 0 }]}>
+                  <View style={[styles.flexRow, styles.mb2]}>
                     <View style={[styles.flexRow, styles.itemsCenter, { width: "50%" }]}>
                       <Text style={[styles.textXs, styles.fontBold, styles.textGray600, styles.mr2]}>Metoda pomiaru:</Text>
                       <Text style={[styles.textXs, styles.fontMedium, styles.textGray900]}>{protocolValue(metadata.measurementProtocols?.groundMeasurementMethod, "....................")}</Text>
@@ -768,7 +762,7 @@ export function PdfProtocolDocument({
                       <Text style={[styles.textXs, styles.fontMedium, styles.textGray900]}>{protocolValue(metadata.measurementProtocols?.groundElectrodeType, "....................")}</Text>
                     </View>
                   </View>
-                  <View style={[styles.grid2, styles.mt4]}>
+                  <View style={[styles.grid2, styles.mt2]}>
                     <View style={[styles.flexRow, styles.itemsCenter]}>
                       <Text style={[styles.textXs, styles.fontBold, styles.textGray700, styles.mr2]}>Zmierzona wartość Ru:</Text>
                       <Text style={[styles.textSm, styles.fontBlack, styles.textBrand]}>{protocolValue(metadata.measurementProtocols?.groundMeasuredResistance, "..........")}Ω</Text>
@@ -778,10 +772,10 @@ export function PdfProtocolDocument({
                       <Text style={[styles.textSm, styles.fontBold, styles.textGray900]}>{protocolValue(metadata.measurementProtocols?.groundRequiredResistance, "..........")}Ω</Text>
                     </View>
                   </View>
-                  <View style={[styles.mt4, styles.pt4, styles.borderT]}>
-                    <Text style={[styles.textXs, styles.fontBold, styles.textGray800, styles.uppercase, styles.mb2]}>Orzeczenie techniczne:</Text>
-                    <View style={[styles.border, styles.rounded, styles.p3, styles.bgWhite]}>
-                      <Text style={[styles.textXs, styles.fontMedium, styles.textGray700, { lineHeight: 1.5 }]}>
+                  <View style={[styles.mt2, styles.pt2, styles.borderT]}>
+                    <Text style={[styles.textXs, styles.fontBold, styles.textGray800, styles.uppercase, styles.mb1]}>Orzeczenie techniczne:</Text>
+                    <View style={[styles.border, styles.rounded, styles.p2, styles.bgWhite]}>
+                      <Text style={[styles.textXs, styles.fontMedium, styles.textGray700, { lineHeight: 1.4 }]}>
                         {protocolValue(metadata.measurementProtocols?.groundConclusionText, "Instalacja uziemiająca spełnia wymagania...")}
                       </Text>
                     </View>
@@ -811,88 +805,6 @@ export function PdfProtocolDocument({
             </Page>
           )}
 
-          {/* Fallback for other tabs if they aren't completely removed in PDF, we can render simple pages or hide them */}
-          {/* Legacy pages like continuity/loop/insulation will be hidden in modern unified style since the unified table covers loop/insulation */}
-          {/* Validation Summary */}
-          {!previewOnly &&
-            validationPageChunks.map((chunk, chunkIdx) => (
-              <Page key={`validation-${chunkIdx}`} size="A4" style={[styles.page, styles.previewA4Page]}>
-                <View style={[styles.flexRow, styles.justifyBetween, styles.itemsCenter, styles.borderB2Dark, styles.pb3, styles.mb4]}>
-                  <View>
-                    <Text style={[styles.textLg, styles.fontExtraBold, styles.textGray950, styles.uppercase]}>Kontrola walidacyjna projektu</Text>
-                    <Text style={[styles.textXs, styles.textGray500, styles.mt1]}>
-                      {validationPageChunks.length > 1 ? `Arkusz ${chunkIdx + 1} z ${validationPageChunks.length}` : "Zestawienie błędów, ostrzeżeń i informacji"}
-                    </Text>
-                  </View>
-                  <View style={[styles.flexRow]}>
-                    <View style={[styles.bgRed50, styles.border, styles.rounded, styles.px2, styles.py1, styles.mr1]}>
-                      <Text style={[styles.textXs, styles.fontBold, styles.textRed500]}>Błędy: {validationErrorCount}</Text>
-                    </View>
-                    <View style={[styles.bgAmber50, styles.border, styles.rounded, styles.px2, styles.py1, styles.mr1]}>
-                      <Text style={[styles.textXs, styles.fontBold, styles.textAmber600]}>Ostrzeżenia: {validationWarningCount}</Text>
-                    </View>
-                    <View style={[styles.bgBlue50, styles.border, styles.rounded, styles.px2, styles.py1]}>
-                      <Text style={[styles.textXs, styles.fontBold, styles.textBrand]}>Info: {validationInfoCount}</Text>
-                    </View>
-                  </View>
-                </View>
-
-                {validationGroups.length === 0 ? (
-                  <View style={[styles.border, styles.roundedLg, styles.p4, styles.bgGray50]}>
-                    <Text style={[styles.textBase, styles.fontBold, styles.textGray900]}>Brak problemów w aktywnej walidacji.</Text>
-                    <Text style={[styles.textXs, styles.textGray600, styles.mt2]}>
-                      Projekt nie zawiera błędów, ostrzeżeń ani informacji wymagających uwagi na moment wygenerowania dokumentu.
-                    </Text>
-                  </View>
-                ) : (
-                  <View>
-                    {chunk.map((group) => (
-                      <View
-                        key={group.id}
-                        style={[
-                          styles.validationGroup,
-                          group.severity === "Error"
-                            ? styles.validationGroupError
-                            : group.severity === "Warning"
-                              ? styles.validationGroupWarning
-                              : styles.validationGroupInfo,
-                        ]}
-                        wrap={false}
-                      >
-                        <View style={[styles.flexRow, styles.justifyBetween, styles.mb1]}>
-                          <View style={{ width: "72%" }}>
-                            <Text style={[styles.textSm, styles.fontBold, styles.textGray900]}>{group.title}</Text>
-                            <Text style={[styles.textXs, styles.textGray500]}>{group.subtitle}</Text>
-                          </View>
-                          <Text
-                            style={[
-                              styles.textXs,
-                              styles.fontBold,
-                              group.severity === "Error"
-                                ? styles.textRed500
-                                : group.severity === "Warning"
-                                  ? styles.textAmber600
-                                  : styles.textBrand,
-                            ]}
-                          >
-                            {group.severity === "Error" ? "Błąd" : group.severity === "Warning" ? "Ostrzeżenie" : "Info"}
-                          </Text>
-                        </View>
-                        {group.messages.map((message) => (
-                          <View key={`${message.code}-${message.message}`} style={styles.validationMessage}>
-                            <Text style={[styles.textXs, styles.fontBold, styles.textGray600]}>{message.code}</Text>
-                            <Text style={[styles.textXs, styles.fontBold, styles.textGray900, styles.mt1]}>{message.message}</Text>
-                            {message.details ? (
-                              <Text style={[styles.textXs, styles.textGray600, styles.mt1]}>{message.details}</Text>
-                            ) : null}
-                          </View>
-                        ))}
-                      </View>
-                    ))}
-                  </View>
-                )}
-              </Page>
-            ))}
 
           {/* Schematic Images */}
           {(!previewOnly || previewOnly === "schematic") &&

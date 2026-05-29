@@ -207,58 +207,7 @@ describe("PdfProtocolDocument", () => {
     expect(text).toContain("Tabela zbiorcza");
     expect(text).toContain("RCD i uziemienie");
     expect(text).toContain("WIDOK ELEWACJI ROZDZIELNICY");
-    expect(text).toContain("Kontrola walidacyjna projektu");
-    expect(text).toContain("Brak problemów w aktywnej walidacji.");
     expect(text).toContain("Strona 1 z 3");
-  });
-
-  it("renders grouped validation messages with human-readable circuit labels", () => {
-    const mcb = createDefaultSymbolItem({
-      id: "mcb-technical-id",
-      deviceKind: "mcb",
-      referenceDesignation: "F2.1",
-      label: "rozłącznik nadprądowy MCB 2P",
-      circuitName: "",
-      protectionType: "Brak",
-      powerW: 0,
-    });
-
-    const document = PdfProtocolDocument({
-      metadata: createEmptyProjectMetadata(),
-      symbols: [mcb],
-      phaseDistribution: {
-        l1PowerW: 0,
-        l2PowerW: 0,
-        l3PowerW: 0,
-        l1CurrentA: 0,
-        l2CurrentA: 0,
-        l3CurrentA: 0,
-        imbalancePercent: 0,
-      },
-      validationResult: {
-        isValid: true,
-        errors: [],
-        warnings: [
-          {
-            code: "VAL-020",
-            message: 'Brak mocy obwodu "rozłącznik nadprądowy MCB 2P"',
-            details: "Bez mocy program nie może wiarygodnie policzyć obciążenia faz.",
-            severity: "Warning",
-            symbolId: "mcb-technical-id",
-          },
-        ],
-        info: [],
-      },
-      schematicImages: [],
-      dinRailImages: [],
-    });
-
-    const text = collectTextContent(document).join("\n");
-
-    expect(text).toContain("Kontrola walidacyjna projektu");
-    expect(text).toContain("F2.1 · rozłącznik nadprądowy MCB 2P");
-    expect(text).toContain("VAL-020");
-    expect(text).not.toContain("Obwód / aparat mcb-technical-id");
   });
 
   it("renders an uploaded company logo on the title page instead of the logo placeholder", () => {
