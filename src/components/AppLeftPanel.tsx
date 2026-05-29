@@ -140,7 +140,9 @@ export function AppLeftPanel({
                     })()}
                     <span className="palette-item-copy">
                       <span className="palette-item-label">{item.label}</span>
-                      <span className="palette-item-description">{getPaletteDescription(item)}</span>
+                      {getPaletteDescription(item) && (
+                        <span className="palette-item-description">{getPaletteDescription(item)}</span>
+                      )}
                     </span>
                     {item.code.toUpperCase() !== item.label.toUpperCase() && (
                       <span className="palette-item-code">{item.code}</span>

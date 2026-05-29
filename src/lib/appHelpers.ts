@@ -213,6 +213,10 @@ export function getPaletteIconName(template: PaletteTemplate): AppIconName {
 }
 
 export function getPaletteDescription(template: PaletteTemplate): string {
+  if (template.deviceKind === "terminalBlock") {
+    return "";
+  }
+
   const parts = [`${template.modules}M`, template.phase];
   const normalizedLabel = template.label.trim().toLocaleLowerCase("pl");
   const normalizedCode = template.code.trim().toLocaleLowerCase("pl");
