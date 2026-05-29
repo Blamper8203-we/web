@@ -217,7 +217,7 @@ function detectPoleCount(fileName: string): number {
   return 1;
 }
 
-function detectExplicitPoleCount(fileName: string): number | null {
+export function detectExplicitPoleCount(fileName: string): number | null {
   const match = matchExplicitPoleCount(fileName);
   if (!match) {
     return null;
@@ -277,12 +277,13 @@ function detectType(category: string): string {
 function detectPhase(category: string, fileName = ""): PhaseAssignment {
   switch (category) {
     case "RCD":
+    case "MCB":
       {
         const poleCount = detectExplicitPoleCount(fileName);
-        if (poleCount === 1 || poleCount === 2) {
-          return "L1";
+        if (poleCount !== null && poleCount >= 3) {
+          return "L1+L2+L3";
         }
-        return "L1+L2+L3";
+        return "L1";
       }
     case "FR":
     case "SPD":

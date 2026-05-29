@@ -1,3 +1,4 @@
+import { detectExplicitPoleCount } from "./modules/importedModuleCatalog";
 import {
   getModuleSnapAnchorRatioY,
   getPaletteTemplateDimensions,
@@ -217,7 +218,13 @@ export function getPaletteDescription(template: PaletteTemplate): string {
     return "";
   }
 
-  const parts = [`${template.modules}M`, template.phase];
+  let phaseText: string = template.phase;
+  if (template.deviceKind === "mcb" || template.deviceKind === "rcd") {
+    const poleCount = detectExplicitPoleCount(template.label) || template.modules;
+    phaseText = `${poleCount}P`;
+  }
+
+  const parts = [`${template.modules}M`, phaseText];
   const normalizedLabel = template.label.trim().toLocaleLowerCase("pl");
   const normalizedCode = template.code.trim().toLocaleLowerCase("pl");
 
