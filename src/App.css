@@ -1277,7 +1277,6 @@ body {
 }
 
 .palette-item-code {
-  grid-column: 2;
   font-size: var(--font-size-xs);
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -1289,13 +1288,20 @@ body {
 }
 
 .palette-item-visual {
-  grid-row: 1 / span 3;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 54px;
   height: 50px;
   color: var(--text-main);
+}
+
+.palette-item-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
 }
 
 .palette-module-preview {
