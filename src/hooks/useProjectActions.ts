@@ -49,6 +49,8 @@ function escapeCsv(value: string | number): string {
 
 
 
+
+
 interface UseProjectActionsParams {
   metadata: ProjectMetadata;
   setMetadata: React.Dispatch<React.SetStateAction<ProjectMetadata>>;
@@ -57,7 +59,6 @@ interface UseProjectActionsParams {
   currentFilePath: string | null;
   setCurrentFilePath: React.Dispatch<React.SetStateAction<string | null>>;
   paletteTemplateMap: Map<string, PaletteTemplate>;
-  hasUnsavedChanges: boolean;
   setHasUnsavedChanges: React.Dispatch<React.SetStateAction<boolean>>;
   selectedSymbolId: string | null;
   selectedSymbolIds: string[];
@@ -87,7 +88,6 @@ export function useProjectActions({
   currentFilePath,
   setCurrentFilePath,
   paletteTemplateMap,
-  hasUnsavedChanges,
   setHasUnsavedChanges,
   selectedSymbolId,
   selectedSymbolIds,
@@ -141,6 +141,37 @@ export function useProjectActions({
     undoRedoServiceRef,
   ]);
 
+  const handleSaveProject = useCallback(
+    async (asNew = false): Promise<boolean> => {
+      try {
+        const path = await saveProjectFile(
+          metadata,
+          symbols,
+          dinRail.isVisible ? {
+            svg: dinRail.svg,
+            width: dinRail.width,
+            height: dinRail.height,
+            rows: dinRail.config.rows,
+            modulesPerRow: dinRail.config.modulesPerRow,
+            isVisible: true,
+          } : null,
+          asNew ? undefined : currentFilePath ?? undefined,
+        );
+        if (path) {
+          setCurrentFilePath(path);
+          setHasUnsavedChanges(false);
+          showTemporaryStatus('Zapisano plik zlecenia', 3000);
+          return true;
+        }
+        return false;
+      } catch (e) {
+        showTemporaryStatus(`Błąd: ${e instanceof Error ? e.message : 'Nieznany'}`, 5000);
+        return false;
+      }
+    },
+    [currentFilePath, dinRail, metadata, setCurrentFilePath, setHasUnsavedChanges, showTemporaryStatus, symbols],
+  );
+
   const handleNewProject = useCallback(() => {
     setMetadata(createEmptyProjectMetadata());
     setSymbols([]);
@@ -158,15 +189,6 @@ export function useProjectActions({
   ]);
 
   const handleOpenProject = useCallback(async () => {
-    if (
-      hasUnsavedChanges &&
-      !window.confirm(
-        'Masz niezapisane zmiany. Czy na pewno chcesz otworzyć inne zlecenie bez ich zapisywania?',
-      )
-    ) {
-      return;
-    }
-
     try {
       const data = await openProjectFile();
       if (!data) return;
@@ -197,7 +219,6 @@ export function useProjectActions({
     }
   }, [
     applyRailFromSymbols,
-    hasUnsavedChanges,
     paletteTemplateMap,
     resetProjectState,
     setCurrentFilePath,
@@ -205,34 +226,6 @@ export function useProjectActions({
     setSymbols,
     showTemporaryStatus,
   ]);
-
-  const handleSaveProject = useCallback(
-    async (asNew = false) => {
-      try {
-        const path = await saveProjectFile(
-          metadata,
-          symbols,
-          dinRail.isVisible ? {
-            svg: dinRail.svg,
-            width: dinRail.width,
-            height: dinRail.height,
-            rows: dinRail.config.rows,
-            modulesPerRow: dinRail.config.modulesPerRow,
-            isVisible: true,
-          } : null,
-          asNew ? undefined : currentFilePath ?? undefined,
-        );
-        if (path) {
-          setCurrentFilePath(path);
-          setHasUnsavedChanges(false);
-          showTemporaryStatus('Zapisano plik zlecenia', 3000);
-        }
-      } catch (e) {
-        showTemporaryStatus(`Błąd: ${e instanceof Error ? e.message : 'Nieznany'}`, 5000);
-      }
-    },
-    [currentFilePath, dinRail, metadata, setCurrentFilePath, setHasUnsavedChanges, showTemporaryStatus, symbols],
-  );
 
   const handleExportPdf = useCallback(async () => {
     try {

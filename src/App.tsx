@@ -104,6 +104,7 @@ function AppWorkspace() {
   } | null>(null);
   const [isRcdManagerOpen, setIsRcdManagerOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [unsavedChangesActionType, setUnsavedChangesActionType] = useState<"new" | "open" | null>(null);
   const [showDinRailGroups, setShowDinRailGroups] = useState<boolean>(() => {
     try {
       const raw = window.localStorage.getItem(SHOW_DIN_RAIL_GROUPS_STORAGE_KEY);
@@ -170,7 +171,7 @@ function AppWorkspace() {
   } = useProjectActions({
     metadata, setMetadata, symbols, setSymbols,
     currentFilePath, setCurrentFilePath, paletteTemplateMap,
-    hasUnsavedChanges, setHasUnsavedChanges,
+    setHasUnsavedChanges,
     selectedSymbolId, selectedSymbolIds,
     setSelectedSymbolId, setSelectedSymbolIds,
     setDinRail, dinRail, setActiveSheet, setDinRailGeneratorRequest,
@@ -180,6 +181,50 @@ function AppWorkspace() {
     executeSymbolsCommand: history.executeSymbolsCommand,
     showTemporaryStatus,
   });
+
+  const triggerNewProject = useCallback(() => {
+    if (hasUnsavedChanges) {
+      setUnsavedChangesActionType("new");
+    } else {
+      handleNewProject();
+    }
+  }, [hasUnsavedChanges, handleNewProject]);
+
+  const triggerOpenProject = useCallback(() => {
+    if (hasUnsavedChanges) {
+      setUnsavedChangesActionType("open");
+    } else {
+      handleOpenProject();
+    }
+  }, [hasUnsavedChanges, handleOpenProject]);
+
+  const handleSaveUnsavedChanges = useCallback(async () => {
+    const saved = await handleSaveProject();
+    if (saved) {
+      const pendingAction = unsavedChangesActionType;
+      setUnsavedChangesActionType(null);
+      if (pendingAction === "new") {
+        handleNewProject();
+      } else if (pendingAction === "open") {
+        handleOpenProject();
+      }
+    }
+  }, [unsavedChangesActionType, handleSaveProject, handleNewProject, handleOpenProject]);
+
+  const handleDiscardUnsavedChanges = useCallback(() => {
+    const pendingAction = unsavedChangesActionType;
+    setUnsavedChangesActionType(null);
+    setHasUnsavedChanges(false);
+    if (pendingAction === "new") {
+      handleNewProject();
+    } else if (pendingAction === "open") {
+      handleOpenProject();
+    }
+  }, [unsavedChangesActionType, handleNewProject, handleOpenProject, setHasUnsavedChanges]);
+
+  const handleCancelUnsavedChanges = useCallback(() => {
+    setUnsavedChangesActionType(null);
+  }, []);
 
   const selectedSymbol = symbols.find((s) => s.id === selectedSymbolId) ?? null;
 
@@ -273,8 +318,8 @@ function AppWorkspace() {
     const handleGlobalKeyDown = (event: KeyboardEvent) => {
       handleGlobalAppShortcut(event, {
         openHelp: () => setIsHelpOpen(true),
-        newProject: handleNewProject,
-        openProject: handleOpenProject,
+        newProject: triggerNewProject,
+        openProject: triggerOpenProject,
         saveProject: handleSaveProject,
         print: () => window.print(),
       });
@@ -282,7 +327,7 @@ function AppWorkspace() {
 
     window.addEventListener("keydown", handleGlobalKeyDown);
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
-  }, [handleNewProject, handleOpenProject, handleSaveProject]);
+  }, [triggerNewProject, triggerOpenProject, handleSaveProject]);
 
   useEffect(() => {
     setSymbols((prev) => normalizeGroupConsistency(normalizePaletteAssetDimensions(prev, paletteTemplateMap)));
@@ -440,8 +485,8 @@ function AppWorkspace() {
         activeSheet={activeSheet}
         workspaceZoomPercent={workspaceZoomPercent}
         hasSelectedSymbol={Boolean(selectedSymbol)}
-        onNewProject={handleNewProject}
-        onOpenProject={handleOpenProject}
+        onNewProject={triggerNewProject}
+        onOpenProject={triggerOpenProject}
         onSaveProject={handleSaveProject}
         onExportPdf={handleExportPdf}
         onExportBom={handleExportBom}
@@ -586,6 +631,10 @@ function AppWorkspace() {
         onRequestPaletteRemoval={setPendingPaletteRemoval}
         onSaveRcdManager={handleSaveRcdManager}
         onSvgImportCommit={handleSvgImportCommit}
+        unsavedChangesActionType={unsavedChangesActionType}
+        onSaveUnsavedChanges={handleSaveUnsavedChanges}
+        onDiscardUnsavedChanges={handleDiscardUnsavedChanges}
+        onCancelUnsavedChanges={handleCancelUnsavedChanges}
       />
     </main>
   );

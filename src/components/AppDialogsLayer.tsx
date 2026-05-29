@@ -4,6 +4,7 @@ import { HelpDialog } from "./HelpDialog";
 import { ImportedModulesDialog } from "./ImportedModulesDialog";
 import { RcdManagementDialog, type RcdManagerEntry } from "./RcdManagementDialog";
 import { SvgImportDialog } from "./SvgImportDialog";
+import { UnsavedChangesDialog } from "./UnsavedChangesDialog";
 
 export interface PaletteContextMenuState {
   label: string;
@@ -39,6 +40,10 @@ interface AppDialogsLayerProps {
   onRequestPaletteRemoval: (removal: PendingPaletteRemoval) => void;
   onSaveRcdManager: (entries: RcdManagerEntry[]) => void;
   onSvgImportCommit: (modules: ImportedModuleDefinition[], preferredCategory: string) => void;
+  unsavedChangesActionType: "new" | "open" | null;
+  onSaveUnsavedChanges: () => void;
+  onDiscardUnsavedChanges: () => void;
+  onCancelUnsavedChanges: () => void;
 }
 
 export function AppDialogsLayer({
@@ -63,6 +68,10 @@ export function AppDialogsLayer({
   onRequestPaletteRemoval,
   onSaveRcdManager,
   onSvgImportCommit,
+  unsavedChangesActionType,
+  onSaveUnsavedChanges,
+  onDiscardUnsavedChanges,
+  onCancelUnsavedChanges,
 }: AppDialogsLayerProps) {
   return (
     <>
@@ -146,6 +155,15 @@ export function AppDialogsLayer({
 
       {isHelpOpen && (
         <HelpDialog onClose={onCloseHelp} />
+      )}
+
+      {unsavedChangesActionType && (
+        <UnsavedChangesDialog
+          actionType={unsavedChangesActionType}
+          onSave={onSaveUnsavedChanges}
+          onDiscard={onDiscardUnsavedChanges}
+          onCancel={onCancelUnsavedChanges}
+        />
       )}
     </>
   );
