@@ -5,7 +5,7 @@ import { reportRuntimeError } from "../runtimeDiagnostics";
 
 const IMPORTED_MODULES_STORAGE_KEY = "dinboard.importedModules";
 const IMPORTED_MODULES_CATALOG_VERSION_KEY = "dinboard.importedModules.catalogVersion";
-const IMPORTED_MODULES_CATALOG_VERSION = "new-svg-models-2026-05-24-rcd-visible";
+const IMPORTED_MODULES_CATALOG_VERSION = "new-svg-models-2026-05-29-zlacza";
 const HIDDEN_PALETTE_TEMPLATE_IDS_STORAGE_KEY = "dinboard.hiddenPaletteTemplateIds";
 
 const CATEGORY_DEFAULT_HEIGHT_MM: Record<string, number> = {
