@@ -65,14 +65,48 @@ export async function loadRawSvg(src: string): Promise<string> {
     return existingPromise;
   }
 
-  const promise = fetch(src)
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+  const performFetch = async (targetUrl: string): Promise<string> => {
+    const response = await fetch(targetUrl);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const contentType = response.headers.get("content-type") || "";
+    // If the response is HTML, it means the server served the SPA index.html fallback
+    if (contentType.includes("text/html")) {
+      throw new Error("Received HTML fallback instead of SVG");
+    }
+    return response.text();
+  };
+
+  const promise = (async () => {
+    try {
+      return await performFetch(src);
+    } catch (error) {
+      // Self-healing: If the fetch failed or got HTML fallback, and the URL has %2B,
+      // retry with literal '+' which Vite dev server requires on some systems.
+      if (src.includes("%2B") || src.includes("%2b")) {
+        try {
+          const fallbackUrl = src.replace(/%2B/gi, "+");
+          return await performFetch(fallbackUrl);
+        } catch {
+          // If fallback fails, throw the original error
+        }
       }
 
-      return response.text();
-    })
+      // Self-healing: Conversely, if the URL had a literal '+' and failed,
+      // try retrying with encoded '%2B' just in case.
+      if (src.includes("+")) {
+        try {
+          const fallbackUrl = src.replace(/\+/g, "%2B");
+          return await performFetch(fallbackUrl);
+        } catch {
+          // If fallback fails, throw the original error
+        }
+      }
+
+      throw error;
+    }
+  })()
     .then((content) => {
       rawSvgCache.set(src, content);
       rawSvgPromiseCache.delete(src);

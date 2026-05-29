@@ -430,10 +430,17 @@ export function getModuleAssetUrl(moduleRef: string): string {
   const baseUrl = import.meta.env.BASE_URL.endsWith("/")
     ? import.meta.env.BASE_URL
     : `${import.meta.env.BASE_URL}/`;
-  const encodedRef = moduleRef
+  let encodedRef = moduleRef
     .split("/")
     .map((part) => encodeURIComponent(part))
     .join("/");
+
+  // Vite's development server on local filesystem (especially on Windows)
+  // fails to locate files containing "+" if they are percent-encoded as "%2B".
+  // Decode %2B back to + during local development.
+  if (import.meta.env.DEV) {
+    encodedRef = encodedRef.replace(/%2B/gi, "+");
+  }
 
   return `${baseUrl}assets/modules/${encodedRef}`;
 }
