@@ -222,6 +222,8 @@ export function getPaletteDescription(template: PaletteTemplate): string {
   if (template.deviceKind === "mcb" || template.deviceKind === "rcd") {
     const poleCount = detectExplicitPoleCount(template.label) || template.modules;
     phaseText = `${poleCount}P`;
+  } else if (template.category === "Blok rozdzielczy") {
+    phaseText = "";
   }
 
   const parts = [`${template.modules}M`, phaseText];
