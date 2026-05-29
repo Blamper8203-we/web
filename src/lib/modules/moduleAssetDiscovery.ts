@@ -95,8 +95,8 @@ const FALLBACK_MODULE_ASSETS: DiscoveredModuleAsset[] = [
   },
   {
     category: "Złącza",
-    fileName: "Złączka 2-torowa.svg",
-    moduleRef: "Złącza/Złączka 2-torowa.svg",
+    fileName: "Złączka rozdzielcza 1P, 2-zaciskowa.svg",
+    moduleRef: "Złącza/Złączka rozdzielcza 1P, 2-zaciskowa.svg",
   },
   {
     category: "Złącza",
@@ -105,38 +105,38 @@ const FALLBACK_MODULE_ASSETS: DiscoveredModuleAsset[] = [
   },
   {
     category: "Złącza",
-    fileName: "Złączka 3-torowa (L1-L2-L3).svg",
-    moduleRef: "Złącza/Złączka 3-torowa (L1-L2-L3).svg",
+    fileName: "Złączka rozdzielcza 1P, 3-zaciskowa.svg",
+    moduleRef: "Złącza/Złączka rozdzielcza 1P, 3-zaciskowa.svg",
   },
   {
     category: "Złącza",
-    fileName: "Złączka N (1-torowa).svg",
-    moduleRef: "Złącza/Złączka N (1-torowa).svg",
+    fileName: "Złączka N 1-zaciskowa.svg",
+    moduleRef: "Złącza/Złączka N 1-zaciskowa.svg",
   },
   {
     category: "Złącza",
-    fileName: "Złączka N (2-torowa).svg",
-    moduleRef: "Złącza/Złączka N (2-torowa).svg",
+    fileName: "Złączka N 2-zaciskowa.svg",
+    moduleRef: "Złącza/Złączka N 2-zaciskowa.svg",
   },
   {
     category: "Złącza",
-    fileName: "Złączka N (3-torowa).svg",
-    moduleRef: "Złącza/Złączka N (3-torowa).svg",
+    fileName: "Złączka N 3-zaciskowa.svg",
+    moduleRef: "Złącza/Złączka N 3-zaciskowa.svg",
   },
   {
     category: "Złącza",
-    fileName: "Złączka PE (1-torowa).svg",
-    moduleRef: "Złącza/Złączka PE (1-torowa).svg",
+    fileName: "Złączka PE 1-zaciskowa.svg",
+    moduleRef: "Złącza/Złączka PE 1-zaciskowa.svg",
   },
   {
     category: "Złącza",
-    fileName: "Złączka PE (2-torowa).svg",
-    moduleRef: "Złącza/Złączka PE (2-torowa).svg",
+    fileName: "Złączka PE 2-zaciskowa.svg",
+    moduleRef: "Złącza/Złączka PE 2-zaciskowa.svg",
   },
   {
     category: "Złącza",
-    fileName: "Złączka PE (3-torowa).svg",
-    moduleRef: "Złącza/Złączka PE (3-torowa).svg",
+    fileName: "Złączka PE 3-zaciskowa.svg",
+    moduleRef: "Złącza/Złączka PE 3-zaciskowa.svg",
   },
 ];
 
