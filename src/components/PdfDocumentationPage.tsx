@@ -12,7 +12,6 @@ import { exportToPdf } from "../lib/export/pdfExportService";
 import {
   DEFAULT_ATTACHMENT_ITEMS,
   DEFAULT_WORK_SCOPE_ITEMS,
-  normalizeAttachmentItems,
 } from "../lib/projectMetadata";
 import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
 import "./PdfDocumentationPage.css";
@@ -103,20 +102,7 @@ function parseChecklistItems(value: string): TitlePageChecklistItem[] {
     });
 }
 
-function serializeLineItems(items: string[]) {
-  return normalizeAttachmentItems(items)
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0)
-    .join("\n");
-}
 
-function parseLineItems(value: string) {
-  return normalizeAttachmentItems(
-    value
-      .replace(/\r/g, "")
-      .split("\n"),
-  );
-}
 
 export function PdfDocumentationPage({
   metadata,
@@ -136,10 +122,7 @@ export function PdfDocumentationPage({
     () => serializeChecklistItems(metadata.titlePageWorkScopeItems),
     [metadata.titlePageWorkScopeItems],
   );
-  const attachmentText = useMemo(
-    () => serializeLineItems(metadata.titlePageAttachmentItems),
-    [metadata.titlePageAttachmentItems],
-  );
+
 
   const updateMetadata = (patch: Partial<ProjectMetadata>) => {
     onChange({
@@ -403,14 +386,10 @@ export function PdfDocumentationPage({
                   <h3 className="pd-card-title">Załączniki</h3>
                   <p className="pd-help-text">Każdy załącznik wpisz w osobnej linii.</p>
                   <textarea
-                    className="pd-textarea pd-textarea--large"
-                    value={attachmentText}
-                    placeholder={DEFAULT_ATTACHMENT_ITEMS.join("\n")}
-                    onChange={(event) =>
-                      updateMetadata({
-                        titlePageAttachmentItems: parseLineItems(event.currentTarget.value),
-                      })
-                    }
+                    className="pd-textarea pd-textarea--large opacity-60 bg-gray-50 cursor-not-allowed"
+                    value={DEFAULT_ATTACHMENT_ITEMS.join("\n")}
+                    readOnly
+                    disabled
                   />
                 </div>
               </article>
