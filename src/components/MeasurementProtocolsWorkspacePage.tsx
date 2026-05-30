@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import type { CircuitRow } from "../types/circuitRow";
 import type { SymbolItem } from "../types/symbolItem";
 import type {
@@ -100,6 +100,28 @@ export function MeasurementProtocolsWorkspacePage({
 }: MeasurementProtocolsWorkspacePageProps) {
   const [dinRailPreviewUrl, setDinRailPreviewUrl] = useState<string | null>(null);
   const [dinRailPreviewError, setDinRailPreviewError] = useState<string | null>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
+      reader.onerror = () => reject(new Error("Nie udało się odczytać pliku logo."));
+      reader.readAsDataURL(file);
+    }).catch(() => "");
+
+    if (dataUrl) {
+      onChange({
+        ...metadata,
+        titlePageCompanyLogoFileName: file.name,
+        titlePageCompanyLogoDataUrl: dataUrl,
+      });
+    }
+    event.target.value = "";
+  };
   const protocols = metadata.measurementProtocols;
   const unifiedPages = chunkRows(protocols.unifiedRows, UNIFIED_ROWS_PER_PAGE);
   const circuitListRows = buildCircuitListTableRows(circuitRows);
@@ -205,12 +227,27 @@ export function MeasurementProtocolsWorkspacePage({
           <div className="a4-page">
             <div>
               <div className="flex justify-between items-start border-b-2 border-gray-800 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 mp-title-logo-frame">
+                <div className="flex items-center gap-4">
+                  <div 
+                    className="w-16 h-16 border border-gray-300 rounded-xl flex items-center justify-center bg-white cursor-pointer hover:bg-gray-50 transition-colors overflow-hidden shrink-0 group relative shadow-sm"
+                    onClick={() => logoInputRef.current?.click()}
+                  >
+                    <input
+                      type="file"
+                      accept="image/png, image/jpeg, image/jpg, image/bmp"
+                      className="hidden"
+                      ref={logoInputRef}
+                      onChange={handleLogoUpload}
+                    />
                     {metadata.titlePageCompanyLogoDataUrl ? (
-                      <img src={metadata.titlePageCompanyLogoDataUrl} alt="Logo firmy" />
+                      <>
+                        <img src={metadata.titlePageCompanyLogoDataUrl} alt="Logo firmy" className="w-full h-full object-contain p-1.5" />
+                        <div className="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center text-[9px] font-bold text-white tracking-widest uppercase text-center leading-tight">
+                          Zmień<br/>logo
+                        </div>
+                      </>
                     ) : (
-                      <span>LOGO</span>
+                      <span className="text-[9px] text-gray-400 font-bold tracking-widest uppercase group-hover:scale-105 transition-transform text-center leading-tight">Dodaj<br/>logo</span>
                     )}
                   </div>
                   <div>
