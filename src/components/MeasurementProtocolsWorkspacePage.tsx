@@ -230,7 +230,7 @@ export function MeasurementProtocolsWorkspacePage({
               </div>
 
               <div className="bg-gray-50 rounded-xl border border-gray-200/80 p-4 mb-4">
-                <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-3">Informacje o obiekcie</h3>
+                <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-3 pb-2 border-b border-gray-100">Informacje o obiekcie</h3>
                 <div className="flex flex-col gap-2 text-xs">
                   <div className="flex items-baseline">
                     <span className="font-bold text-gray-700 w-24 shrink-0">Rodzaj obiektu:</span>
@@ -250,7 +250,7 @@ export function MeasurementProtocolsWorkspacePage({
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="border border-gray-200 rounded-xl p-4 flex flex-col justify-between">
                   <div>
-                    <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-3">Zakres prac</h3>
+                    <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-3 pb-2 border-b border-gray-100">Zakres prac</h3>
                     <div className={titleWorkScopeColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-1.5" : "flex flex-col gap-1.5"}>
                       {titleWorkScopeColumns.map((columnItems, columnIndex) => (
                         <div key={columnIndex} className="flex flex-col gap-1.5">
@@ -317,7 +317,7 @@ export function MeasurementProtocolsWorkspacePage({
 
                 <div className="border border-gray-200 rounded-xl p-4 flex flex-col justify-between">
                   <div>
-                    <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-3">Załączniki do protokołu</h3>
+                    <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-3 pb-2 border-b border-gray-100">Załączniki do protokołu</h3>
                     <div className={titleAttachmentColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-1.5" : "flex flex-col gap-1.5"}>
                       {titleAttachmentColumns.map((columnItems, columnIndex) => (
                         <div key={columnIndex} className="flex flex-col gap-1.5">
@@ -341,7 +341,7 @@ export function MeasurementProtocolsWorkspacePage({
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="border border-gray-200 rounded-xl p-4 flex flex-col justify-center">
                   <div>
-                    <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-2">Wykonawca / Instalator</h3>
+                    <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-2 pb-2 border-b border-gray-100">Wykonawca / Instalator</h3>
                     <input className="mp-editable text-xs font-bold text-gray-950 mt-2" value={metadata.contractor || ""} placeholder="................................" onChange={(e) => onChange({ ...metadata, contractor: e.target.value })} />
                     <p className="text-[9px] text-gray-400 mt-1.5">Podmiot odpowiedzialny za montaż instalacji</p>
                   </div>
@@ -349,7 +349,7 @@ export function MeasurementProtocolsWorkspacePage({
 
                 <div className="border border-gray-200 rounded-xl p-4 flex flex-col justify-center">
                   <div>
-                    <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-2">Uprawnienia SEP (Kwalifikacyjne)</h3>
+                    <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-2 pb-2 border-b border-gray-100">Uprawnienia SEP (Kwalifikacyjne)</h3>
                     <div className="text-xs flex flex-col gap-2 mt-2">
                       <div className="flex items-baseline">
                         <span className="font-semibold text-gray-700 w-[110px]">Eksploatacja (E):</span>
@@ -365,7 +365,7 @@ export function MeasurementProtocolsWorkspacePage({
               </div>
 
               <div className="bg-white border border-brand text-gray-800 rounded-xl p-4 mb-6 text-center shadow-sm">
-                <p className="text-[10px] uppercase font-bold text-brand tracking-wider mb-2">Pełna treść oświadczenia wykonawcy</p>
+                <p className="text-[10px] uppercase font-bold text-brand tracking-wider mb-2 pb-2 border-b border-gray-100">Pełna treść oświadczenia wykonawcy</p>
                 <p className="text-[10px] leading-relaxed font-normal text-gray-800">
                   Oświadczam, że instalacja elektryczna w wyżej wymienionym obiekcie została wykonana zgodnie z przepisami ustawy Prawo Budowlane, obowiązującymi normami technicznymi (w tym <span className="font-bold text-gray-950">PN-HD 60364-6</span>) oraz sztuką budowlaną. Przeprowadzone pomiary odbiorcze wykazały skuteczność zastosowanych środków ochrony przeciwporażeniowej.
                 </p>
