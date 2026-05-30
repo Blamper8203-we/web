@@ -251,13 +251,13 @@ export function MeasurementProtocolsWorkspacePage({
                 <div className="border border-gray-200 rounded-xl p-4 flex flex-col justify-between">
                   <div>
                     <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-3">Zakres prac</h3>
-                    <div className={titleWorkScopeColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-2" : "flex flex-col gap-2.5"}>
+                    <div className={titleWorkScopeColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-1.5" : "flex flex-col gap-1.5"}>
                       {titleWorkScopeColumns.map((columnItems, columnIndex) => (
-                        <div key={columnIndex} className="flex flex-col gap-2.5">
+                        <div key={columnIndex} className="flex flex-col gap-1.5">
                           {columnItems.map((item, itemIndex) => {
                             const absoluteIndex = columnIndex * TITLE_WORK_SCOPE_COLUMN_SIZE + itemIndex;
                             return (
-                              <label key={absoluteIndex} className="flex items-center gap-2.5 cursor-pointer">
+                              <label key={absoluteIndex} className="flex items-start gap-2 cursor-pointer relative group">
                                 <input 
                                   type="checkbox" 
                                   style={{ display: "none" }}
@@ -268,27 +268,23 @@ export function MeasurementProtocolsWorkspacePage({
                                     onChange({ ...metadata, titlePageWorkScopeItems: nextItems });
                                   }}
                                 />
-                                <div className="w-4 h-4 rounded border border-brand flex items-center justify-center bg-transparent shrink-0">
+                                <div className="w-4 h-4 rounded border border-brand flex items-center justify-center bg-transparent shrink-0 mt-0.5">
                                   {item.isChecked ? <span className="text-brand text-[10px] font-bold leading-none">✓</span> : null}
                                 </div>
-                                <textarea
-                                  className="mp-editable text-[11px] font-medium text-gray-900 leading-tight flex-1"
-                                  value={item.text}
-                                  placeholder="Wpisz punkt zakresu prac..."
-                                  rows={1}
-                                  onInput={(e) => {
-                                    e.currentTarget.style.height = 'auto';
-                                    e.currentTarget.style.height = e.currentTarget.scrollHeight + 'px';
-                                  }}
-                                  onChange={(e) => {
+                                <span
+                                  className="mp-editable text-[11px] font-medium text-gray-900 leading-tight flex-1 outline-none break-words min-h-[16px]"
+                                  contentEditable
+                                  suppressContentEditableWarning
+                                  onBlur={(e) => {
                                     const nextItems = [...workScopeItems];
-                                    nextItems[absoluteIndex] = { ...nextItems[absoluteIndex], text: e.target.value };
+                                    nextItems[absoluteIndex] = { ...nextItems[absoluteIndex], text: e.currentTarget.innerText };
                                     onChange({ ...metadata, titlePageWorkScopeItems: nextItems });
                                   }}
+                                  dangerouslySetInnerHTML={{ __html: item.text || "..." }}
                                 />
                                 <button
                                   type="button"
-                                  className="mp-delete-btn shrink-0"
+                                  className="mp-delete-btn shrink-0 mt-0.5"
                                   title="Usuń punkt"
                                   onClick={(e) => {
                                     e.preventDefault();
@@ -322,35 +318,31 @@ export function MeasurementProtocolsWorkspacePage({
                 <div className="border border-gray-200 rounded-xl p-4 flex flex-col justify-between">
                   <div>
                     <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-3">Załączniki do protokołu</h3>
-                    <div className={titleAttachmentColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-2" : "flex flex-col gap-2.5"}>
+                    <div className={titleAttachmentColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-1.5" : "flex flex-col gap-1.5"}>
                       {titleAttachmentColumns.map((columnItems, columnIndex) => (
-                        <div key={columnIndex} className="flex flex-col gap-2.5">
+                        <div key={columnIndex} className="flex flex-col gap-1.5">
                           {columnItems.map((item, itemIndex) => {
                               const chunkSize = titleAttachmentItems.length > 3 ? Math.ceil(titleAttachmentItems.length / 2) : titleAttachmentItems.length;
                               const absoluteIndex = columnIndex * chunkSize + itemIndex;
                               return (
-                                <label key={`${columnIndex}-${itemIndex}`} className="flex items-center gap-2.5 cursor-pointer">
-                                  <div className="w-4 h-4 rounded border border-brand flex items-center justify-center bg-transparent shrink-0">
+                                <label key={`${columnIndex}-${itemIndex}`} className="flex items-start gap-2 cursor-pointer relative group">
+                                  <div className="w-4 h-4 rounded border border-brand flex items-center justify-center bg-transparent shrink-0 mt-0.5">
                                     <span className="text-brand text-[10px] font-bold leading-none">✓</span>
                                   </div>
-                                  <textarea
-                                    className="mp-editable text-[11px] font-medium text-gray-900 leading-tight flex-1"
-                                    value={item}
-                                    placeholder="Wpisz nazwę załącznika..."
-                                    rows={1}
-                                    onInput={(e) => {
-                                      e.currentTarget.style.height = 'auto';
-                                      e.currentTarget.style.height = e.currentTarget.scrollHeight + 'px';
-                                    }}
-                                    onChange={(e) => {
+                                  <span
+                                    className="mp-editable text-[11px] font-medium text-gray-900 leading-tight flex-1 outline-none break-words min-h-[16px]"
+                                    contentEditable
+                                    suppressContentEditableWarning
+                                    onBlur={(e) => {
                                       const nextItems = [...titleAttachmentItems];
-                                      nextItems[absoluteIndex] = e.target.value;
+                                      nextItems[absoluteIndex] = e.currentTarget.innerText;
                                       onChange({ ...metadata, titlePageAttachmentItems: nextItems });
                                     }}
+                                    dangerouslySetInnerHTML={{ __html: item || "..." }}
                                   />
                                   <button
                                     type="button"
-                                    className="mp-delete-btn shrink-0"
+                                    className="mp-delete-btn shrink-0 mt-0.5"
                                     title="Usuń załącznik"
                                     onClick={(e) => {
                                       e.preventDefault();
