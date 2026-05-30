@@ -251,9 +251,9 @@ export function MeasurementProtocolsWorkspacePage({
                 <div className="border border-gray-200 rounded-xl p-4 flex flex-col justify-between">
                   <div>
                     <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-3 pb-2 border-b border-gray-100">Zakres prac</h3>
-                    <div className={titleWorkScopeColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-1.5" : "flex flex-col gap-1.5"}>
+                    <div className={titleWorkScopeColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-2.5" : "flex flex-col gap-2.5"}>
                       {titleWorkScopeColumns.map((columnItems, columnIndex) => (
-                        <div key={columnIndex} className="flex flex-col gap-1.5">
+                        <div key={columnIndex} className="flex flex-col gap-2.5">
                           {columnItems.map((item, itemIndex) => {
                             const absoluteIndex = columnIndex * TITLE_WORK_SCOPE_COLUMN_SIZE + itemIndex;
                             return (
@@ -318,9 +318,9 @@ export function MeasurementProtocolsWorkspacePage({
                 <div className="border border-gray-200 rounded-xl p-4 flex flex-col justify-between">
                   <div>
                     <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-3 pb-2 border-b border-gray-100">Załączniki do protokołu</h3>
-                    <div className={titleAttachmentColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-1.5" : "flex flex-col gap-1.5"}>
+                    <div className={titleAttachmentColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-2.5" : "flex flex-col gap-2.5"}>
                       {titleAttachmentColumns.map((columnItems, columnIndex) => (
-                        <div key={columnIndex} className="flex flex-col gap-1.5">
+                        <div key={columnIndex} className="flex flex-col gap-2.5">
                           {columnItems.map((item, itemIndex) => (
                             <div key={`${columnIndex}-${itemIndex}`} className="flex items-start gap-2">
                               <div className="w-4 h-4 rounded border border-brand flex items-center justify-center bg-transparent shrink-0 mt-0.5">
