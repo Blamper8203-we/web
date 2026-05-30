@@ -384,7 +384,7 @@ export function PdfDocumentationPage({
               <article className="pd-card">
                 <div className="pd-card__body">
                   <h3 className="pd-card-title">Załączniki</h3>
-                  <p className="pd-help-text">Każdy załącznik wpisz w osobnej linii.</p>
+                  <p className="pd-help-text">Ta sekcja zawiera z góry zdefiniowane, stałe załączniki.</p>
                   <textarea
                     className="pd-textarea pd-textarea--large opacity-60 cursor-not-allowed"
                     value={DEFAULT_ATTACHMENT_ITEMS.join("\n")}
