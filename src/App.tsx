@@ -683,11 +683,6 @@ function App() {
     }
   }, [routePath]);
 
-  const handleOpenLastProject = useCallback(() => {
-    setInitialAction("last");
-    navigateToApp();
-  }, [navigateToApp]);
-
   const handleOpenNewProject = useCallback(() => {
     setInitialAction("new");
     navigateToApp();
@@ -709,7 +704,6 @@ function App() {
   if (routePath !== APP_ROUTE_PATH) {
     return (
       <PublicLandingPage 
-        onOpenLastProject={handleOpenLastProject} 
         onOpenNewProject={handleOpenNewProject}
         onOpenProjectFile={handleOpenProjectFile}
       />

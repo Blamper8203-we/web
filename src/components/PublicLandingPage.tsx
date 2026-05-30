@@ -1,13 +1,11 @@
 import "./PublicLandingPage.css";
 
 interface PublicLandingPageProps {
-  onOpenLastProject: () => void;
   onOpenNewProject: () => void;
   onOpenProjectFile: () => void;
 }
 
 export function PublicLandingPage({ 
-  onOpenLastProject,
   onOpenNewProject,
   onOpenProjectFile,
 }: PublicLandingPageProps) {
@@ -42,9 +40,6 @@ export function PublicLandingPage({
           </span>
         </div>
         <div className="landing__actions">
-          <button className="landing__button" onClick={onOpenLastProject}>
-            Ostatni projekt
-          </button>
           <button className="landing__button landing__button--secondary" onClick={onOpenProjectFile}>
             Otwórz projekt
           </button>
