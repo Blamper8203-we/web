@@ -247,7 +247,7 @@ export function MeasurementProtocolsWorkspacePage({
                         </div>
                       </>
                     ) : (
-                      <span className="text-[9px] text-gray-400 font-bold tracking-widest uppercase group-hover:scale-105 transition-transform text-center leading-tight">Dodaj<br/>logo</span>
+                      <span className="text-[9px] text-[#9aa3b4] font-extrabold tracking-widest uppercase group-hover:scale-105 transition-transform text-center">DODAJ LOGO</span>
                     )}
                   </div>
                   <div>
