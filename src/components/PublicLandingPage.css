@@ -13,10 +13,17 @@
 }
 
 .landing__hero {
-  width: min(840px, 100%);
+  width: min(920px, 100%);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 40px;
+  align-items: center;
+  animation: landing-fade-in 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.landing__hero-content {
   display: grid;
   gap: 16px;
-  animation: landing-fade-in 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes landing-fade-in {
@@ -45,7 +52,7 @@
   background-clip: text;
 }
 
-.landing__hero > p {
+.landing__hero-content > p {
   margin: 0;
   max-width: 64ch;
   font-size: 15px;
@@ -114,8 +121,45 @@
   transform: translateY(-1px);
 }
 
+.landing__button--huge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  width: 240px;
+  height: 240px;
+  border-radius: 24px;
+  border: 1px solid rgba(47, 128, 237, 0.4);
+  color: #fff;
+  background: linear-gradient(135deg, rgba(47, 128, 237, 0.12) 0%, rgba(47, 128, 237, 0.02) 100%);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 20px;
+  box-shadow: 0 8px 32px rgba(47, 128, 237, 0.1);
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+
+.landing__button--huge:hover {
+  background: linear-gradient(135deg, rgba(47, 128, 237, 0.25) 0%, rgba(47, 128, 237, 0.08) 100%);
+  border-color: var(--accent-primary);
+  box-shadow: 0 12px 40px rgba(47, 128, 237, 0.25);
+  transform: translateY(-4px) scale(1.02);
+}
+
+.landing__button--huge svg {
+  color: var(--accent-primary);
+  transition: transform 200ms ease;
+}
+
+.landing__button--huge:hover svg {
+  transform: scale(1.1);
+}
+
 .landing__grid {
-  width: min(840px, 100%);
+  width: min(920px, 100%);
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
@@ -179,6 +223,19 @@
 .landing__warning strong {
   font-weight: 700;
   color: #fff;
+}
+
+@media (max-width: 840px) {
+  .landing__hero {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .landing__button--huge {
+    width: 100%;
+    height: 120px;
+    flex-direction: row;
+    border-radius: 16px;
+  }
 }
 
 @media (max-width: 768px) {
