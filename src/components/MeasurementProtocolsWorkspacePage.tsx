@@ -258,10 +258,29 @@ export function MeasurementProtocolsWorkspacePage({
                             const absoluteIndex = columnIndex * TITLE_WORK_SCOPE_COLUMN_SIZE + itemIndex;
                             return (
                               <label key={absoluteIndex} className="flex items-center gap-2.5 cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  className="hidden" 
+                                  checked={item.isChecked}
+                                  onChange={(e) => {
+                                    const nextItems = [...workScopeItems];
+                                    nextItems[absoluteIndex] = { ...nextItems[absoluteIndex], isChecked: e.target.checked };
+                                    onChange({ ...metadata, titlePageWorkScopeItems: nextItems });
+                                  }}
+                                />
                                 <div className="w-4 h-4 rounded border border-brand flex items-center justify-center bg-transparent shrink-0">
                                   {item.isChecked ? <span className="text-brand text-[10px] font-bold leading-none">✓</span> : null}
                                 </div>
-                                <span className="text-[11px] font-medium text-gray-700 leading-tight flex-1">{item.text}</span>
+                                <input
+                                  className="mp-editable text-[11px] font-medium text-gray-900 leading-tight flex-1"
+                                  value={item.text}
+                                  placeholder="Wpisz punkt zakresu prac..."
+                                  onChange={(e) => {
+                                    const nextItems = [...workScopeItems];
+                                    nextItems[absoluteIndex] = { ...nextItems[absoluteIndex], text: e.target.value };
+                                    onChange({ ...metadata, titlePageWorkScopeItems: nextItems });
+                                  }}
+                                />
                               </label>
                             );
                           })}
@@ -277,14 +296,27 @@ export function MeasurementProtocolsWorkspacePage({
                     <div className={titleAttachmentColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-2" : "flex flex-col gap-2.5"}>
                       {titleAttachmentColumns.map((columnItems, columnIndex) => (
                         <div key={columnIndex} className="flex flex-col gap-2.5">
-                          {columnItems.map((item, itemIndex) => (
-                              <label key={`${columnIndex}-${itemIndex}`} className="flex items-center gap-2.5 cursor-pointer">
-                                <div className="w-4 h-4 rounded border border-brand flex items-center justify-center bg-transparent shrink-0">
-                                  <span className="text-brand text-[10px] font-bold leading-none">✓</span>
-                                </div>
-                                <span className="text-[11px] font-medium text-gray-700 leading-tight flex-1">{item}</span>
-                              </label>
-                          ))}
+                          {columnItems.map((item, itemIndex) => {
+                              const chunkSize = titleAttachmentItems.length > 3 ? Math.ceil(titleAttachmentItems.length / 2) : titleAttachmentItems.length;
+                              const absoluteIndex = columnIndex * chunkSize + itemIndex;
+                              return (
+                                <label key={`${columnIndex}-${itemIndex}`} className="flex items-center gap-2.5 cursor-pointer">
+                                  <div className="w-4 h-4 rounded border border-brand flex items-center justify-center bg-transparent shrink-0">
+                                    <span className="text-brand text-[10px] font-bold leading-none">✓</span>
+                                  </div>
+                                  <input
+                                    className="mp-editable text-[11px] font-medium text-gray-900 leading-tight flex-1"
+                                    value={item}
+                                    placeholder="Wpisz nazwę załącznika..."
+                                    onChange={(e) => {
+                                      const nextItems = [...titleAttachmentItems];
+                                      nextItems[absoluteIndex] = e.target.value;
+                                      onChange({ ...metadata, titlePageAttachmentItems: nextItems });
+                                    }}
+                                  />
+                                </label>
+                              );
+                          })}
                         </div>
                       ))}
                     </div>
