@@ -37,6 +37,7 @@ import { useImportedModules } from "./hooks/useImportedModules";
 import type { ProjectMetadata } from "./types/projectMetadata";
 import type { SymbolItem } from "./types/symbolItem";
 import { PublicLandingPage } from "./components/PublicLandingPage";
+import { FeedbackModal } from "./components/FeedbackModal";
 import "./App.css";
 
 const APP_ROUTE_PATH = "/app";
@@ -74,10 +75,12 @@ import { openProjectFile } from "./lib/projectFile";
 
 function AppWorkspace({ 
   initialAction, 
-  initialData 
+  initialData,
+  onOpenFeedback
 }: { 
   initialAction: "new" | "last" | "load_data" | null;
   initialData: ProjectFileData | null;
+  onOpenFeedback: () => void;
 }) {
   // ── Core state ───────────────────────────────────────────────────────────────
   const [metadata, setMetadata] = useState<ProjectMetadata>(() => loadProjectMetadata());
@@ -528,6 +531,7 @@ function AppWorkspace({
         onToggleDinRailGroups={handleToggleDinRailGroups}
         onChangeSheet={setActiveSheet}
         showTemporaryStatus={showTemporaryStatus}
+        onOpenFeedback={onOpenFeedback}
       />
 
       <div
@@ -662,10 +666,11 @@ function AppWorkspace({
   );
 }
 
-function App() {
+export default function App() {
   const [routePath, setRoutePath] = useState<"/" | "/app">(() => normalizeRoutePath(window.location.pathname));
   const [initialAction, setInitialAction] = useState<"new" | "last" | "load_data" | null>(null);
   const [initialData, setInitialData] = useState<ProjectFileData | null>(null);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
   useEffect(() => {
     const handlePopState = () => {
@@ -703,14 +708,25 @@ function App() {
 
   if (routePath !== APP_ROUTE_PATH) {
     return (
-      <PublicLandingPage 
-        onOpenNewProject={handleOpenNewProject}
-        onOpenProjectFile={handleOpenProjectFile}
-      />
+      <>
+        <PublicLandingPage 
+          onOpenNewProject={handleOpenNewProject}
+          onOpenProjectFile={handleOpenProjectFile}
+          onOpenFeedback={() => setIsFeedbackModalOpen(true)}
+        />
+        {isFeedbackModalOpen && <FeedbackModal onClose={() => setIsFeedbackModalOpen(false)} />}
+      </>
     );
   }
 
-  return <AppWorkspace initialAction={initialAction} initialData={initialData} />;
+  return (
+    <>
+      <AppWorkspace 
+        initialAction={initialAction} 
+        initialData={initialData} 
+        onOpenFeedback={() => setIsFeedbackModalOpen(true)}
+      />
+      {isFeedbackModalOpen && <FeedbackModal onClose={() => setIsFeedbackModalOpen(false)} />}
+    </>
+  );
 }
-
-export default App;

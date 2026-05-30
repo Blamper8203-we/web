@@ -1,23 +1,16 @@
-import { useState } from "react";
 import "./PublicLandingPage.css";
 
 interface PublicLandingPageProps {
   onOpenNewProject: () => void;
   onOpenProjectFile: () => void;
+  onOpenFeedback: () => void;
 }
 
 export function PublicLandingPage({ 
   onOpenNewProject,
   onOpenProjectFile,
+  onOpenFeedback,
 }: PublicLandingPageProps) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopyEmail = (e: React.MouseEvent) => {
-    e.preventDefault();
-    navigator.clipboard.writeText("dinboard2026@gmail.com");
-    setCopied(true);
-    setTimeout(() => setCopied(false), 3000);
-  };
 
   return (
     <main className="landing">
@@ -100,20 +93,11 @@ export function PublicLandingPage({
           <p>Aplikacja DINBoard jest w fazie testów i stale się rozwija. Chcesz żeby program robił coś jeszcze? Daj znać, co poprawić lub dodać!</p>
           <button 
             className="landing__button landing__button--secondary" 
-            onClick={handleCopyEmail}
+            onClick={onOpenFeedback}
             style={{ cursor: "pointer" }}
           >
-            {copied ? (
-              <>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#27ae60" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 8 }}><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Skopiowano adres e-mail!
-              </>
-            ) : (
-              <>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 8 }}><path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"/><path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"/></svg>
-                Napisz: dinboard2026@gmail.com
-              </>
-            )}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 8 }}><path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"/><path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"/></svg>
+            Napisz zgłoszenie
           </button>
         </div>
       </footer>
