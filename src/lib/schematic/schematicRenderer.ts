@@ -672,19 +672,19 @@ function drawTitleBlock(
   const designerSig = truncateText(getDesignerSignature(metadata), 30);
   const contractorSig = truncateText(getContractorSignature(metadata), 30);
 
-  drawTitleCell(ctx, x, rowTops[0], width, rowHeights[0], "Zakres / dokumentacja:", title, 5.2, 7.4);
-  drawTitleCell(ctx, x, rowTops[1], width, rowHeights[1], "Inwestor:", investor, 5, 6.6);
-  drawTitleCell(ctx, x, rowTops[2], width, rowHeights[2], "Adres obiektu:", address, 5, 6.6);
-  drawTitleCell(ctx, x, rowTops[3], colW, rowHeights[3], "Wykonawca:", contractor, 4.8, 6.3);
-  drawTitleCell(ctx, splitX, rowTops[3], colW, rowHeights[3], "Elektryk / SEP:", `${designer}\n${designerLicense}`, 4.8, 6);
-  drawTitleCell(ctx, x, rowTops[4], colW, rowHeights[4], "Nr dokumentacji:", drawNum, 4.8, 6.8);
-  drawTitleCell(ctx, splitX, rowTops[4], colW, rowHeights[4], "Skala:", scale, 4.8, 6.8);
-  drawTitleCell(ctx, x, rowTops[5], colW, rowHeights[5], "Data wykonania:", date, 4.8, 6.8);
-  drawTitleCell(ctx, splitX, rowTops[5], colW, rowHeights[5], "Arkusz:", sheet, 4.8, 6.8);
-  drawTitleCell(ctx, x, rowTops[6], width, rowHeights[6], "Rewizja / zmiana:", revision, 5, 6.6);
-  drawTitleCell(ctx, x, rowTops[7], width, rowHeights[7], "Normy:", standards, 5, 6.6);
-  drawTitleCell(ctx, x, rowTops[8], colW, rowHeights[8], "Podpis elektryka:", designerSig, 4.8, 6.2);
-  drawTitleCell(ctx, splitX, rowTops[8], colW, rowHeights[8], "Podpis wykonawcy:", contractorSig, 4.8, 6.2);
+  drawTitleCell(ctx, x, rowTops[0], width, rowHeights[0], "Zakres / dokumentacja:", title, 6.5, 8.5);
+  drawTitleCell(ctx, x, rowTops[1], width, rowHeights[1], "Inwestor:", investor, 6.0, 7.5);
+  drawTitleCell(ctx, x, rowTops[2], width, rowHeights[2], "Adres obiektu:", address, 6.0, 7.5);
+  drawTitleCell(ctx, x, rowTops[3], colW, rowHeights[3], "Wykonawca:", contractor, 5.5, 7.0);
+  drawTitleCell(ctx, splitX, rowTops[3], colW, rowHeights[3], "Elektryk / SEP:", `${designer}\n${designerLicense}`, 5.5, 6.5);
+  drawTitleCell(ctx, x, rowTops[4], colW, rowHeights[4], "Nr dokumentacji:", drawNum, 5.5, 7.5);
+  drawTitleCell(ctx, splitX, rowTops[4], colW, rowHeights[4], "Skala:", scale, 5.5, 7.5);
+  drawTitleCell(ctx, x, rowTops[5], colW, rowHeights[5], "Data wykonania:", date, 5.5, 7.5);
+  drawTitleCell(ctx, splitX, rowTops[5], colW, rowHeights[5], "Arkusz:", sheet, 5.5, 7.5);
+  drawTitleCell(ctx, x, rowTops[6], width, rowHeights[6], "Rewizja / zmiana:", revision, 6.0, 7.5);
+  drawTitleCell(ctx, x, rowTops[7], width, rowHeights[7], "Normy:", standards, 6.0, 7.5);
+  drawTitleCell(ctx, x, rowTops[8], colW, rowHeights[8], "Podpis elektryka:", designerSig, 5.5, 7.0);
+  drawTitleCell(ctx, splitX, rowTops[8], colW, rowHeights[8], "Podpis wykonawcy:", contractorSig, 5.5, 7.0);
 }
 
 function drawPathGuides(ctx: CanvasRenderingContext2D, pageDevices: SchematicNode[], page: PageInfo): void {
@@ -904,8 +904,11 @@ function drawTitleCell(
   labelSize: number,
   valueSize: number,
 ): void {
-  text(ctx, label, x + 4, cellY + 3, labelSize, COLORS.textLabel);
-  text(ctx, value, x + 4, cellY + Math.max(9, labelSize + 6), valueSize, COLORS.text, true, width - 8);
+  text(ctx, label, x + 4, cellY + 4, labelSize, COLORS.textLabel);
+  
+  ctx.font = `700 ${valueSize}px Segoe UI, sans-serif`;
+  const wrappedValue = wrapText(ctx, value, width - 8).join("\n");
+  text(ctx, wrappedValue, x + 4, cellY + Math.max(13, labelSize + 9), valueSize, COLORS.text, true);
 }
 
 function symFr(ctx: CanvasRenderingContext2D, cx: number, cy: number, color: string): void {

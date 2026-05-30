@@ -429,20 +429,13 @@ export function PdfProtocolDocument({
           </View>
 
           <View style={[styles.mtAuto]}>
-            <View style={[styles.grid3, styles.borderT, styles.pt4, { alignItems: 'flex-end' }]}>
-              <View style={[styles.grid3Col, styles.textCenter]}>
-                <View style={styles.signatureSlot}><Text style={[styles.textXs, styles.textGray300, styles.italic]}>miejsce na podpis</Text></View>
-                <View style={[styles.borderT, styles.pt2]}>
-                  <Text style={[styles.textSm, styles.fontBold, styles.textGray700, styles.uppercase]}>Podpis Inwestora</Text>
-                  <Text style={[styles.textXs, styles.textGray400, styles.mt1]}>Potwierdzam odbiór prac</Text>
-                </View>
-              </View>
-              <View style={[styles.grid3Col, styles.textCenter, styles.itemsCenter]}>
+            <View style={[styles.flexRow, styles.borderT, styles.pt4, { alignItems: 'flex-end', justifyContent: 'space-between' }]}>
+              <View style={[styles.textCenter, styles.itemsCenter, { width: 200 }]}>
                 <View style={[styles.borderDashed, styles.roundedLg, styles.bgGray50, styles.titleStampSlot, styles.mb1]}>
                   <Text style={[styles.textXs, styles.textGray400, styles.fontSemiBold, styles.uppercase]}>{stampText}</Text>
                 </View>
               </View>
-              <View style={[styles.grid3Col, styles.textCenter]}>
+              <View style={[styles.textCenter, { width: 200 }]}>
                 <View style={styles.signatureSlot}><Text style={[styles.textXs, styles.textGray300, styles.italic]}>miejsce na podpis</Text></View>
                 <View style={[styles.borderT, styles.pt2]}>
                   <Text style={[styles.textSm, styles.fontBold, styles.textGray700, styles.uppercase]}>Podpis Elektryka</Text>
@@ -657,20 +650,12 @@ export function PdfProtocolDocument({
                   )}
 
                   <View style={[styles.mtAuto]}>
-                    <View style={[styles.grid2, styles.borderT, styles.pt4, { alignItems: 'flex-end', justifyContent: 'center' }]}>
-                      <View style={[styles.grid2Col, styles.textCenter, { maxWidth: 200 }]}>
+                    <View style={[styles.flexRow, styles.borderT, styles.pt4, { alignItems: 'flex-end', justifyContent: 'flex-end' }]}>
+                      <View style={[styles.textCenter, { width: 250 }]}>
                         <View style={styles.signatureSlot}><Text style={[styles.textXs, styles.textGray300, styles.italic]}>miejsce na pieczęć / podpis</Text></View>
                         <View style={[styles.borderT, styles.pt2]}>
                           <Text style={[styles.textSm, styles.fontBold, styles.textGray700, styles.uppercase]}>Sprawdził (Wykonawca/Elektryk)</Text>
                           <Text style={[styles.textXs, styles.textGray400, styles.mt1]}>Podpis osoby z uprawnieniami SEP</Text>
-                        </View>
-                      </View>
-                      <View style={{ width: 40 }} />
-                      <View style={[styles.grid2Col, styles.textCenter, { maxWidth: 200 }]}>
-                        <View style={styles.signatureSlot}><Text style={[styles.textXs, styles.textGray300, styles.italic]}>miejsce na podpis</Text></View>
-                        <View style={[styles.borderT, styles.pt2]}>
-                          <Text style={[styles.textSm, styles.fontBold, styles.textGray700, styles.uppercase]}>Przedstawiciel Inwestora</Text>
-                          <Text style={[styles.textXs, styles.textGray400, styles.mt1]}>Potwierdzam otrzymanie wyników</Text>
                         </View>
                       </View>
                     </View>
@@ -784,20 +769,12 @@ export function PdfProtocolDocument({
               </View>
 
               <View style={[styles.mtAuto]}>
-                <View style={[styles.grid2, styles.borderT, styles.pt4, { alignItems: 'flex-end', justifyContent: 'center' }]}>
-                  <View style={[styles.grid2Col, styles.textCenter, { maxWidth: 200 }]}>
+                <View style={[styles.flexRow, styles.borderT, styles.pt4, { alignItems: 'flex-end', justifyContent: 'flex-end' }]}>
+                  <View style={[styles.textCenter, { width: 250 }]}>
                     <View style={styles.signatureSlot}><Text style={[styles.textXs, styles.textGray300, styles.italic]}>miejsce na pieczęć / podpis</Text></View>
                     <View style={[styles.borderT, styles.pt2]}>
                       <Text style={[styles.textSm, styles.fontBold, styles.textGray700, styles.uppercase]}>Sprawdził (Wykonawca/Elektryk)</Text>
                       <Text style={[styles.textXs, styles.textGray400, styles.mt1]}>Podpis osoby z uprawnieniami SEP</Text>
-                    </View>
-                  </View>
-                  <View style={{ width: 40 }} />
-                  <View style={[styles.grid2Col, styles.textCenter, { maxWidth: 200 }]}>
-                    <View style={styles.signatureSlot}><Text style={[styles.textXs, styles.textGray300, styles.italic]}>miejsce na podpis</Text></View>
-                    <View style={[styles.borderT, styles.pt2]}>
-                      <Text style={[styles.textSm, styles.fontBold, styles.textGray700, styles.uppercase]}>Przedstawiciel Inwestora</Text>
-                      <Text style={[styles.textXs, styles.textGray400, styles.mt1]}>Potwierdzam otrzymanie wyników</Text>
                     </View>
                   </View>
                 </View>

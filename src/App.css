@@ -65,7 +65,7 @@
   --card-shadow: var(--shadow-md);
   --shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.52), 0 4px 14px rgba(0, 0, 0, 0.24);
 
-  --font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-family: "Roboto", "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-size-xs: 0.6875rem;
   --font-size-sm: 0.75rem;
   --font-size-md: 0.8125rem;
@@ -1892,6 +1892,23 @@ button:focus-visible {
 .din-rail-symbol-preview img,
 .din-rail-symbol-preview canvas {
   image-rendering: auto;
+}
+
+.din-rail-symbol-preview::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border: 1.5px solid var(--accent-primary);
+  border-radius: 3px;
+  box-shadow: 0 0 3px rgba(47, 128, 237, 0.24);
+  background: rgba(47, 128, 237, 0.15);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease-in-out;
+}
+
+.din-rail-symbol-preview.is-selected::after {
+  opacity: 1;
 }
 
 .din-rail-symbol-badge {

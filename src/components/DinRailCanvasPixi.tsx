@@ -1218,7 +1218,7 @@ export function DinRailCanvas({
             <div
               key={symbol.id}
               ref={(node) => bindMeasuredNode(symbol.id, node)}
-              className="din-rail-symbol-preview"
+              className={`din-rail-symbol-preview${selectedIds.has(symbol.id) ? " is-selected" : ""}`}
               aria-hidden="true"
               style={{
                 position: "absolute",

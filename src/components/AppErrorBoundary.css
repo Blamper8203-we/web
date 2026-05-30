@@ -7,7 +7,7 @@
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 180px),
     var(--app-background);
-  font-family: Inter, "Segoe UI", system-ui, sans-serif;
+  font-family: Roboto, "Segoe UI", system-ui, sans-serif;
 }
 
 .app-error-boundary__panel {

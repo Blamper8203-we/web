@@ -229,7 +229,7 @@ export function MeasurementProtocolsWorkspacePage({
               <div className="flex justify-between items-start border-b-2 border-gray-800 pb-4">
                 <div className="flex items-center gap-4">
                   <div 
-                    className="w-16 h-16 border border-gray-300 rounded-xl flex items-center justify-center bg-white cursor-pointer hover:bg-gray-50 transition-colors overflow-hidden shrink-0 group relative shadow-sm"
+                    className="w-16 h-16 border border-brand rounded-xl flex items-center justify-center bg-white cursor-pointer hover:bg-gray-50 transition-colors overflow-hidden shrink-0 group relative shadow-sm"
                     onClick={() => logoInputRef.current?.click()}
                   >
                     <input
@@ -247,7 +247,7 @@ export function MeasurementProtocolsWorkspacePage({
                         </div>
                       </>
                     ) : (
-                      <span className="text-[9px] text-[#9aa3b4] font-extrabold tracking-widest uppercase group-hover:scale-105 transition-transform text-center">DODAJ LOGO</span>
+                      <span className="text-[10px] text-gray-900 font-bold tracking-wide uppercase group-hover:scale-105 transition-transform text-center leading-tight">DODAJ<br/>LOGO</span>
                     )}
                   </div>
                   <div>
@@ -425,22 +425,13 @@ export function MeasurementProtocolsWorkspacePage({
             </div>
 
             <div className="mt-auto">
-              <div className="grid grid-cols-3 gap-4 items-end pt-4 border-t border-gray-100">
-                <div className="text-center">
-                  <div className="h-16 flex items-center justify-center">
-                    <span className="text-[10px] text-gray-300 italic">miejsce na podpis</span>
-                  </div>
-                  <div className="border-t border-gray-300 pt-1.5">
-                    <p className="text-[10px] font-bold text-gray-700 uppercase">Podpis Inwestora</p>
-                    <p className="text-[8px] text-gray-400 mt-0.5">Potwierdzam odbiór prac</p>
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="h-20 border border-dashed border-gray-300 rounded-lg flex items-center justify-center p-2 mb-1 bg-gray-50/30">
+              <div className="flex justify-between items-end pt-4 border-t border-gray-100">
+                <div className="text-center w-64">
+                  <div className="h-20 border border-dashed border-gray-300 rounded-lg flex items-center justify-center p-2 mb-1 bg-gray-50/30 mx-auto w-full">
                     <span className="text-[9px] text-gray-400 uppercase tracking-wider font-semibold">{stampText}</span>
                   </div>
                 </div>
-                <div className="text-center">
+                <div className="text-center w-64">
                   <div className="h-16 flex items-center justify-center">
                     <span className="text-[10px] text-gray-300 italic">miejsce na podpis</span>
                   </div>
@@ -700,23 +691,14 @@ export function MeasurementProtocolsWorkspacePage({
               </div>
 
               <div className="mt-auto">
-                <div className="grid grid-cols-2 gap-8 items-end pt-4 border-t border-gray-100">
-                  <div className="text-center">
+                <div className="flex justify-end pt-4 border-t border-gray-100">
+                  <div className="text-center w-64">
                     <div className="h-16 flex items-center justify-center">
                       <span className="text-[10px] text-gray-300 italic">miejsce na pieczęć / podpis</span>
                     </div>
                     <div className="border-t border-gray-300 pt-1.5">
                       <p className="text-[10px] font-bold text-gray-700 uppercase">Sprawdził (Wykonawca/Elektryk)</p>
                       <p className="text-[8px] text-gray-400 mt-0.5">Podpis osoby z uprawnieniami SEP</p>
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="h-16 flex items-center justify-center">
-                      <span className="text-[10px] text-gray-300 italic">miejsce na podpis</span>
-                    </div>
-                    <div className="border-t border-gray-300 pt-1.5">
-                      <p className="text-[10px] font-bold text-gray-700 uppercase">Przedstawiciel Inwestora</p>
-                      <p className="text-[8px] text-gray-400 mt-0.5">Potwierdzam otrzymanie wyników</p>
                     </div>
                   </div>
                 </div>
@@ -844,23 +826,14 @@ export function MeasurementProtocolsWorkspacePage({
                 </div>
 
                 <div className="mt-auto">
-                  <div className="grid grid-cols-2 gap-8 items-end pt-4 border-t border-gray-100">
-                    <div className="text-center">
+                  <div className="flex justify-end pt-4 border-t border-gray-100">
+                    <div className="text-center w-64">
                       <div className="h-16 flex items-center justify-center">
                         <span className="text-[10px] text-gray-300 italic">miejsce na pieczęć / podpis</span>
                       </div>
                       <div className="border-t border-gray-300 pt-1.5">
                         <p className="text-[10px] font-bold text-gray-700 uppercase">Sprawdził (Wykonawca/Elektryk)</p>
                         <p className="text-[8px] text-gray-400 mt-0.5">Podpis osoby z uprawnieniami SEP</p>
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="h-16 flex items-center justify-center">
-                        <span className="text-[10px] text-gray-300 italic">miejsce na podpis</span>
-                      </div>
-                      <div className="border-t border-gray-300 pt-1.5">
-                        <p className="text-[10px] font-bold text-gray-700 uppercase">Przedstawiciel Inwestora</p>
-                        <p className="text-[8px] text-gray-400 mt-0.5">Potwierdzam otrzymanie wyników</p>
                       </div>
                     </div>
                   </div>
