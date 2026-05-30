@@ -306,6 +306,15 @@ export function AppHeader({
         </button>
 
         <a
+          href="mailto:dinboard2026@gmail.com?subject=[DINBoard]%20Sugestia%20lub%20Zgłoszenie"
+          className="toolbar-menu-btn"
+          style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#e8eaef", textDecoration: "none" }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"/><path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"/></svg>
+          Zgłoś pomysł
+        </a>
+
+        <a
           href="https://suppi.pl/dinboard"
           target="_blank"
           rel="noopener noreferrer"
