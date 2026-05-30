@@ -86,7 +86,7 @@ export function PublicLandingPage({
         <article className="landing__card">
           <h2>Baza własnych aparatów</h2>
           <p>
-            Korzystaj z wbudowanej biblioteki symboli i z łatwością importuj własne pliki wektorowe SVG prosto z katalogów producentów.
+            Korzystaj z wbudowanej biblioteki symboli i z łatwością importuj własne pliki wektorowe (w formacie SVG).
           </p>
         </article>
       </section>
