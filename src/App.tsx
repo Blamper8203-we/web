@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, useTransition } from "react";
+import { useEffect, useState, useCallback, useMemo, useTransition, Suspense, lazy } from "react";
 import type { PdfDocumentationPreviewTab } from "./lib/pdfDocumentation";
 import type { DinRailCanvasRail } from "./components/DinRailCanvasPixi";
 import { AppHeader } from "./components/AppHeader";
@@ -8,7 +8,7 @@ import { AppStatusBar } from "./components/AppStatusBar";
 import { AppSheetTabs } from "./components/AppSheetTabs";
 import { AppDialogsLayer } from "./components/AppDialogsLayer";
 import { AppWorkspaceCanvas } from "./components/AppWorkspaceCanvas";
-import { PdfWorkspaceShell } from "./components/PdfWorkspaceShell";
+const PdfWorkspaceShell = lazy(() => import("./components/PdfWorkspaceShell").then(m => ({ default: m.PdfWorkspaceShell })));
 import type { RcdManagerEntry } from "./components/RcdManagementDialog";
 import { buildCircuitRowsFromSymbols } from "./lib/circuitRows";
 import { PROJECT_METADATA_STORAGE_KEY, loadProjectMetadata } from "./lib/projectMetadata";
@@ -132,6 +132,7 @@ function AppWorkspace({
   });
   const [pdfPreviewTab, setPdfPreviewTab] = useState<PdfDocumentationPreviewTab>("title-page");
   const [, startPdfTabTransition] = useTransition();
+  const [schematicViewportResetRequest, setSchematicViewportResetRequest] = useState(0);
 
   const showTemporaryStatus = useCallback((message: string, timeoutMs = 3500) => {
     setSaveStatus(message);
@@ -347,6 +348,7 @@ function AppWorkspace({
         openProject: triggerOpenProject,
         saveProject: handleSaveProject,
         print: () => window.print(),
+        resetSchematicViewport: () => setSchematicViewportResetRequest(r => r + 1),
       });
     };
 
@@ -540,18 +542,20 @@ function AppWorkspace({
         } ${showRightPanel ? "" : "is-right-panel-hidden"}`}
       >
         {activeSheet === "sheet4" ? (
-          <PdfWorkspaceShell
-            metadata={metadata}
-            symbols={symbols}
-            dinRail={dinRail}
-            circuitRows={circuitRows}
-            pdfPreviewTab={pdfPreviewTab}
-            setPdfPreviewTab={setPdfPreviewTab}
-            startPdfTabTransition={startPdfTabTransition}
-            handleMetadataChange={handleMetadataChange}
-            handleResetDocumentation={handleResetDocumentation}
-            showRightPanel={showRightPanel}
-          />
+          <Suspense fallback={<div style={{ display: "flex", flex: 1, alignItems: "center", justifyContent: "center" }}>Ładowanie modułu PDF...</div>}>
+            <PdfWorkspaceShell
+              metadata={metadata}
+              symbols={symbols}
+              dinRail={dinRail}
+              circuitRows={circuitRows}
+              pdfPreviewTab={pdfPreviewTab}
+              setPdfPreviewTab={setPdfPreviewTab}
+              startPdfTabTransition={startPdfTabTransition}
+              handleMetadataChange={handleMetadataChange}
+              handleResetDocumentation={handleResetDocumentation}
+              showRightPanel={showRightPanel}
+            />
+          </Suspense>
         ) : (
           <>
             <AppLeftPanel
@@ -591,6 +595,7 @@ function AppWorkspace({
               handleSchematicCellEdit={handleSchematicCellEdit}
               circuitRows={circuitRows}
               metadata={metadata}
+              schematicViewportResetRequest={schematicViewportResetRequest}
             />
 
             <AppRightPanel

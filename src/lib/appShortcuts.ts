@@ -4,6 +4,7 @@ export interface GlobalAppShortcutHandlers {
   openProject: () => void;
   saveProject: (asNew: boolean) => void;
   print: () => void;
+  resetSchematicViewport: () => void;
 }
 
 export type GlobalAppShortcutEvent = Pick<
@@ -69,6 +70,18 @@ export function handleGlobalAppShortcut(
   if (key === "p") {
     event.preventDefault();
     handlers.print();
+    return true;
+  }
+
+  if (key === "0" && withCommand) {
+    event.preventDefault();
+    handlers.resetSchematicViewport();
+    return true;
+  }
+
+  if (key === "home") {
+    event.preventDefault();
+    handlers.resetSchematicViewport();
     return true;
   }
 

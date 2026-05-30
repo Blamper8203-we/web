@@ -43,6 +43,7 @@ interface AppWorkspaceCanvasProps {
   handleSchematicCellEdit: (id: string, field: SchematicEditableField, value: string) => void;
   circuitRows: CircuitRow[];
   metadata?: ProjectMetadata;
+  schematicViewportResetRequest: number;
 }
 
 export function AppWorkspaceCanvas({
@@ -69,6 +70,7 @@ export function AppWorkspaceCanvas({
   handleSchematicCellEdit,
   circuitRows,
   metadata,
+  schematicViewportResetRequest,
 }: AppWorkspaceCanvasProps) {
   return (
     <div className="canvas-area">
@@ -130,6 +132,7 @@ export function AppWorkspaceCanvas({
             selectedSymbolId={selectedSymbolId}
             selectedSymbolIds={selectedSymbolIds}
             metadata={metadata}
+            resetRequest={schematicViewportResetRequest}
           />
         </div>
       )}

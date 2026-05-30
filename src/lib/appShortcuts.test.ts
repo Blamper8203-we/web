@@ -26,6 +26,7 @@ function createHandlers() {
     openProject: vi.fn(),
     saveProject: vi.fn(),
     print: vi.fn(),
+    resetSchematicViewport: vi.fn(),
   };
 }
 
@@ -130,6 +131,26 @@ describe("handleGlobalAppShortcut", () => {
 
     expect(handled).toBe(false);
     expect(handlers.openHelp).not.toHaveBeenCalled();
+  });
+
+  it("resets viewport on ctrl+0", () => {
+    const handlers = createHandlers();
+    const { event } = createEvent({ key: "0", ctrlKey: true });
+
+    const handled = handleGlobalAppShortcut(event, handlers);
+
+    expect(handled).toBe(true);
+    expect(handlers.resetSchematicViewport).toHaveBeenCalledOnce();
+  });
+
+  it("resets viewport on home", () => {
+    const handlers = createHandlers();
+    const { event } = createEvent({ key: "home" });
+
+    const handled = handleGlobalAppShortcut(event, handlers);
+
+    expect(handled).toBe(true);
+    expect(handlers.resetSchematicViewport).toHaveBeenCalledOnce();
   });
 });
 

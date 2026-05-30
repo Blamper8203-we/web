@@ -135,7 +135,7 @@ describe("buildDiscoveredModuleDefinition", () => {
     expect(loadImportedModules()).toEqual([]);
     expect(storage.has("dinboard.importedModules")).toBe(false);
     expect(storage.has("dinboard.hiddenPaletteTemplateIds")).toBe(false);
-    expect(storage.get("dinboard.importedModules.catalogVersion")).toBe("new-svg-models-2026-05-24-rcd-visible");
+    expect(storage.get("dinboard.importedModules.catalogVersion")).toBe("new-svg-models-2026-05-30-fr-1p-fix");
 
     saveImportedModules([]);
     expect(storage.get("dinboard.importedModules")).toBe("[]");

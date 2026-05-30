@@ -1966,7 +1966,7 @@ button:focus-visible {
 .workspace-hud--top-right {
   top: auto;
   right: 14px;
-  bottom: 14px;
+  bottom: 48px;
   gap: 6px;
   padding: 8px;
   flex-direction: column;
@@ -2316,7 +2316,7 @@ button:focus-visible {
 .schematic-zoom-dock {
   position: absolute;
   right: 14px;
-  bottom: 14px;
+  bottom: 48px;
   z-index: 16;
   display: grid;
   gap: 6px;

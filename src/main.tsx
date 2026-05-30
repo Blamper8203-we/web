@@ -19,6 +19,7 @@ import App from "./App";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { registerGlobalRuntimeDiagnostics, reportRuntimeError } from "./lib/runtimeDiagnostics";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 function registerVitePreloadErrorRecovery() {
   window.addEventListener("vite:preloadError", (event: Event) => {
@@ -41,6 +42,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <AppErrorBoundary>
       <App />
       <Analytics />
+      <SpeedInsights />
     </AppErrorBoundary>
   </React.StrictMode>,
 );

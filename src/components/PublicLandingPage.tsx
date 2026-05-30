@@ -1,4 +1,5 @@
 import "./PublicLandingPage.css";
+import { AdSenseSlot } from "./AdSenseSlot";
 
 interface PublicLandingPageProps {
   onOpenNewProject: () => void;
@@ -13,7 +14,13 @@ export function PublicLandingPage({
 }: PublicLandingPageProps) {
 
   return (
-    <main className="landing">
+    <div className="landing-layout">
+      {/* Lewa reklama (np. wieżowiec/skyscrapper) */}
+      <aside className="landing-sidebar landing-sidebar--left" aria-label="Reklama lewa">
+        <AdSenseSlot adSlot="placeholder-left" adFormat="vertical" />
+      </aside>
+
+      <main className="landing">
       <section className="landing__hero">
         <div className="landing__hero-content">
           <p className="landing__eyebrow">DINBoard Web</p>
@@ -102,5 +109,11 @@ export function PublicLandingPage({
         </div>
       </footer>
     </main>
+
+      {/* Prawa reklama (np. wieżowiec/skyscrapper) */}
+      <aside className="landing-sidebar landing-sidebar--right" aria-label="Reklama prawa">
+        <AdSenseSlot adSlot="placeholder-right" adFormat="vertical" />
+      </aside>
+    </div>
   );
 }
