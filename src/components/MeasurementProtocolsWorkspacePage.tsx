@@ -257,7 +257,7 @@ export function MeasurementProtocolsWorkspacePage({
                           {columnItems.map((item, itemIndex) => {
                             const absoluteIndex = columnIndex * TITLE_WORK_SCOPE_COLUMN_SIZE + itemIndex;
                             return (
-                              <label key={absoluteIndex} className="flex items-start gap-2 cursor-pointer relative group border-b border-gray-100 pb-1.5 border-dashed">
+                              <label key={absoluteIndex} className="flex items-start gap-2 cursor-pointer relative group border-b border-gray-100 pb-1.5">
                                 <input 
                                   type="checkbox" 
                                   style={{ display: "none" }}
@@ -322,7 +322,7 @@ export function MeasurementProtocolsWorkspacePage({
                       {titleAttachmentColumns.map((columnItems, columnIndex) => (
                         <div key={columnIndex} className="flex flex-col gap-1.5">
                           {columnItems.map((item, itemIndex) => (
-                            <div key={`${columnIndex}-${itemIndex}`} className="flex items-start gap-2 border-b border-gray-100 pb-1.5 border-dashed">
+                            <div key={`${columnIndex}-${itemIndex}`} className="flex items-start gap-2 border-b border-gray-100 pb-1.5">
                               <div className="w-4 h-4 rounded border border-brand flex items-center justify-center bg-transparent shrink-0 mt-0.5">
                                 <span className="text-brand text-[10px] font-bold leading-none">✓</span>
                               </div>
