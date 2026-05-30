@@ -245,8 +245,9 @@ function drawDevice(ctx: CanvasRenderingContext2D, node: SchematicNode, page: Pa
 
 function drawGroupedMainBreaker(ctx: CanvasRenderingContext2D, breaker: SchematicNode, page: PageInfo): void {
   const cx = breaker.x + MODULE_WIDTH / 2;
+  const displayPhase = (breaker.phaseCount === 1 && breaker.phase === "L1 L2 L3") ? "L1" : breaker.phase;
 
-  drawFrSupplyConnection(ctx, page, cx, symbolTopY(breaker.y), breaker.phaseCount, breaker.phase);
+  drawFrSupplyConnection(ctx, page, cx, symbolTopY(breaker.y), breaker.phaseCount, displayPhase);
   symFr(ctx, cx, breaker.y + MODULE_HEIGHT / 2, COLORS.fr);
   text(ctx, breaker.designation, cx + 12, breaker.y + 25, 9, COLORS.textDes, true);
   textRight(ctx, breaker.protection, cx - 18, breaker.y + MODULE_HEIGHT / 2 + 5, 7.5, COLORS.textDim);
@@ -268,7 +269,7 @@ function drawGroupedMainBreaker(ctx: CanvasRenderingContext2D, breaker: Schemati
 
   if (useMainBusAsDistribution) {
     drawWireLine(ctx, cx, symbolBottomY(breaker.y), mainBusY, COLORS.wire, 1.2);
-    phaseMarks(ctx, cx, symbolBottomY(breaker.y) + (mainBusY - symbolBottomY(breaker.y)) / 2, breaker.phaseCount, breaker.phase);
+    phaseMarks(ctx, cx, symbolBottomY(breaker.y) + (mainBusY - symbolBottomY(breaker.y)) / 2, breaker.phaseCount, displayPhase);
     drawDot(ctx, cx, mainBusY, COLORS.wire, 2.5);
     drawDistributionBlockLabel(ctx, breaker.distributionBlockLabel, firstX - MODULE_WIDTH / 2 + 4, mainBusY - 10);
   } else if (hasDistributionBlock) {
@@ -278,12 +279,12 @@ function drawGroupedMainBreaker(ctx: CanvasRenderingContext2D, breaker: Schemati
     const blockLeft = cx - blockWidth / 2;
 
     drawWireLine(ctx, cx, symbolBottomY(breaker.y), blockTop, COLORS.wire, 1.2);
-    phaseMarks(ctx, cx, symbolBottomY(breaker.y) + (blockTop - symbolBottomY(breaker.y)) / 2, breaker.phaseCount, breaker.phase);
+    phaseMarks(ctx, cx, symbolBottomY(breaker.y) + (blockTop - symbolBottomY(breaker.y)) / 2, breaker.phaseCount, displayPhase);
     drawDistributionBlock(ctx, breaker.distributionBlockLabel, blockLeft, blockTop, blockWidth, blockHeight);
     wireDot(ctx, cx, blockTop + blockHeight, groupY);
   } else {
     wireDot(ctx, cx, symbolBottomY(breaker.y), groupY);
-    phaseMarks(ctx, cx, symbolBottomY(breaker.y) + (groupY - symbolBottomY(breaker.y)) / 2, breaker.phaseCount, breaker.phase);
+    phaseMarks(ctx, cx, symbolBottomY(breaker.y) + (groupY - symbolBottomY(breaker.y)) / 2, breaker.phaseCount, displayPhase);
   }
 
   if (!useMainBusAsDistribution) {
@@ -305,9 +306,10 @@ function drawFrSupplyConnection(
 ): void {
   const supplyY = y(page, Y_SUPPLY + FR_SUPPLY_CONNECTION_Y_OFFSET);
   const labelY = supplyY + (targetY - supplyY) / 2;
+  const displayPhase = (phaseCount === 1 && phase === "L1 L2 L3") ? "L1" : phase;
 
   drawWireLine(ctx, cx, supplyY, targetY, COLORS.fr, 1.8);
-  phaseMarks(ctx, cx, labelY, phaseCount, phase, true);
+  phaseMarks(ctx, cx, labelY, phaseCount, displayPhase, true);
   text(ctx, supplyLabel(phaseCount), cx - 38, labelY - 2, 8, COLORS.textDim);
 }
 

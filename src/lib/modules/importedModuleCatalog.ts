@@ -5,7 +5,7 @@ import { reportRuntimeError } from "../runtimeDiagnostics";
 
 const IMPORTED_MODULES_STORAGE_KEY = "dinboard.importedModules";
 const IMPORTED_MODULES_CATALOG_VERSION_KEY = "dinboard.importedModules.catalogVersion";
-const IMPORTED_MODULES_CATALOG_VERSION = "new-svg-models-2026-05-29-zlacza";
+const IMPORTED_MODULES_CATALOG_VERSION = "new-svg-models-2026-05-30-fr-1p-fix";
 const HIDDEN_PALETTE_TEMPLATE_IDS_STORAGE_KEY = "dinboard.hiddenPaletteTemplateIds";
 
 const CATEGORY_DEFAULT_HEIGHT_MM: Record<string, number> = {
@@ -278,15 +278,15 @@ function detectPhase(category: string, fileName = ""): PhaseAssignment {
   switch (category) {
     case "RCD":
     case "MCB":
-      {
-        const poleCount = detectExplicitPoleCount(fileName);
-        if (poleCount !== null && poleCount >= 3) {
-          return "L1+L2+L3";
-        }
-        return "L1";
-      }
     case "FR":
     case "SPD":
+      {
+        const poleCount = detectExplicitPoleCount(fileName);
+        if (poleCount !== null && poleCount < 3) {
+          return "L1";
+        }
+        return "L1+L2+L3";
+      }
     case "Listwy zaciskowe":
     case "Z\u0142\u0105cza":
       return "L1+L2+L3";

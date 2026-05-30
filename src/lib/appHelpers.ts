@@ -222,11 +222,19 @@ export function getPaletteDescription(template: PaletteTemplate): string {
   if (template.deviceKind === "mcb" || template.deviceKind === "rcd") {
     const poleCount = detectExplicitPoleCount(template.label) || template.modules;
     phaseText = `${poleCount}P`;
-  } else if (template.category === "Blok rozdzielczy") {
+  } else if (
+    template.category === "Blok rozdzielczy" ||
+    template.deviceKind === "fr" ||
+    template.deviceKind === "spd" ||
+    template.deviceKind === "phaseIndicator"
+  ) {
     phaseText = "";
   }
 
-  const parts = [`${template.modules}M`, phaseText];
+  const parts = [`${template.modules}M`];
+  if (phaseText) {
+    parts.push(phaseText);
+  }
   const normalizedLabel = template.label.trim().toLocaleLowerCase("pl");
   const normalizedCode = template.code.trim().toLocaleLowerCase("pl");
 
@@ -254,7 +262,7 @@ export function getPaletteDescription(template: PaletteTemplate): string {
     parts.push(template.spdType);
   }
 
-  return parts.join(" · ");
+  return parts.filter(Boolean).join(" · ");
 }
 
 export function createDragPreviewAssetSource(visualNode: HTMLElement | null): string | null {
