@@ -60,29 +60,33 @@ export function PublicLandingPage({
 
       <section className="landing__grid" aria-label="Kluczowe funkcje">
         <article className="landing__card">
-          <h2>Dane wykonania</h2>
-          <p>Dane obiektu, wykonawcy, elektryka z uprawnieniami SEP oraz dokumentacji odbiorczej.</p>
+          <h2>Rysowanie szyny DIN</h2>
+          <p>Proste i szybkie układanie aparatów metodą przeciągnij i upuść. Błyskawicznie zaprojektujesz wygląd rozdzielnicy.</p>
         </article>
         <article className="landing__card">
-          <h2>Schemat i rozdzielnica</h2>
-          <p>Canvas A4, rozmieszczanie modułów i generator szyny DIN z obsługą przeciągania.</p>
+          <h2>Schemat jednokreskowy</h2>
+          <p>Aplikacja automatycznie buduje schemat elektryczny na podstawie ułożonych aparatów. Koniec z ręcznym rysowaniem!</p>
         </article>
         <article className="landing__card">
           <h2>Dokumentacja PDF</h2>
-          <p>Podgląd i eksport dokumentacji powykonawczej PDF bezpośrednio z aplikacji.</p>
+          <p>Generuj profesjonalne protokoły pomiarowe i estetyczną dokumentację powykonawczą gotową do wydruku w kilka sekund.</p>
         </article>
         <article className="landing__card">
-          <h2>Dane zlecenia</h2>
+          <h2>Prywatność i bezpieczeństwo</h2>
           <p>
-            Zlecenia są edytowane lokalnie w przeglądarce i zapisywane jako pliki `.dinboard`.
-            Nie wysyłaj dokumentacji na serwer bez świadomej decyzji użytkownika.
+            Twoje projekty są w 100% bezpieczne. Aplikacja działa całkowicie w Twojej przeglądarce, a pliki zapisujesz lokalnie na własnym dysku.
           </p>
         </article>
         <article className="landing__card">
-          <h2>Weryfikacja</h2>
+          <h2>Inteligentna weryfikacja</h2>
           <p>
-            Walidacje i obliczenia wspierają wykonanie i odbiór instalacji, ale wynik dokumentacji
-            powinien zostać sprawdzony przez osobę z właściwymi uprawnieniami.
+            Wbudowane walidacje na bieżąco analizują obwody, pilnują bilansu faz i pomagają uniknąć krytycznych błędów projektowych.
+          </p>
+        </article>
+        <article className="landing__card">
+          <h2>Baza własnych aparatów</h2>
+          <p>
+            Korzystaj z wbudowanej biblioteki symboli i z łatwością importuj własne pliki wektorowe SVG prosto z katalogów producentów.
           </p>
         </article>
       </section>
