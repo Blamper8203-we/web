@@ -134,8 +134,8 @@ const styles = StyleSheet.create({
   logoImage: { width: "100%", height: "100%", objectFit: "contain" },
   logoPlaceholderText: { color: "#9AA3B4", fontSize: 8, fontWeight: "bold" },
   
-  checkboxContainer: { width: 14, height: 14, borderRadius: 3, backgroundColor: "#0D79F2", justifyContent: "center", alignItems: "center", marginTop: 1, marginRight: 8 },
-  checkboxChecked: { color: "#FFFFFF", fontSize: 10, fontWeight: "bold" },
+  checkboxContainer: { width: 14, height: 14, borderRadius: 3, backgroundColor: "transparent", borderWidth: 1, borderColor: "#0D79F2", borderStyle: "solid", justifyContent: "center", alignItems: "center", marginRight: 8 },
+  checkboxChecked: { color: "#0D79F2", fontSize: 10, fontWeight: "bold" },
   
   tableCellHeader: {
     padding: 4,
@@ -369,7 +369,7 @@ export function PdfProtocolDocument({
                     {columnItems.map((item, itemIndex) => {
                       const absoluteIndex = columnIndex * TITLE_WORK_SCOPE_COLUMN_SIZE + itemIndex;
                       return (
-                        <View key={absoluteIndex} style={[styles.flexRow, styles.mb25]}>
+                        <View key={absoluteIndex} style={[styles.flexRow, styles.itemsCenter, styles.mb2]}>
                           <View style={styles.checkboxContainer}>
                             {item.isChecked ? <Text style={styles.checkboxChecked}>✓</Text> : null}
                           </View>
@@ -387,7 +387,7 @@ export function PdfProtocolDocument({
                 {titleAttachmentColumns.map((columnItems, columnIndex) => (
                   <View key={columnIndex} style={titleAttachmentColumns.length > 1 ? styles.grid2Col : undefined}>
                     {columnItems.map((item, itemIndex) => (
-                      <View key={`${columnIndex}-${itemIndex}`} style={[styles.flexRow, styles.mb2]}>
+                      <View key={`${columnIndex}-${itemIndex}`} style={[styles.flexRow, styles.itemsCenter, styles.mb2]}>
                         <View style={styles.checkboxContainer}>
                           <Text style={styles.checkboxChecked}>✓</Text>
                         </View>
@@ -401,14 +401,14 @@ export function PdfProtocolDocument({
           </View>
 
           <View style={[styles.grid2, styles.mb2]}>
-            <View style={[styles.border, styles.roundedXl, styles.p3, styles.grid2Col]}>
+            <View style={[styles.border, styles.roundedXl, styles.p3, styles.grid2Col, styles.justifyCenter]}>
               <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb1]}>Wykonawca / Instalator</Text>
-              <Text style={[styles.textSm, styles.fontBold, styles.textGray950, styles.mt1]}>{contractorName}</Text>
+              <Text style={[styles.textSm, styles.fontBold, styles.textGray950, styles.mt2]}>{contractorName}</Text>
               <Text style={[styles.textXs, styles.textGray400, styles.mt1]}>Podmiot odpowiedzialny za montaż instalacji</Text>
             </View>
-            <View style={[styles.border, styles.roundedXl, styles.p3, styles.grid2Col]}>
+            <View style={[styles.border, styles.roundedXl, styles.p3, styles.grid2Col, styles.justifyCenter]}>
               <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb1]}>Uprawnienia SEP (Kwalifikacyjne)</Text>
-              <View style={styles.flexCol}>
+              <View style={[styles.flexCol, styles.mt1]}>
                 <View style={[styles.flexRow, styles.mb1]}>
                   <Text style={[styles.fontSemiBold, styles.textGray700, styles.textSm, { width: 110 }]}>Eksploatacja (E):</Text>
                   <Text style={[styles.fontBold, styles.textGray950, styles.textSm, styles.flex1]}>{sepE}</Text>
@@ -421,9 +421,9 @@ export function PdfProtocolDocument({
             </View>
           </View>
 
-          <View style={[styles.bgGray950, styles.roundedXl, styles.p3, styles.mb3, styles.textCenter]}>
-            <Text style={[styles.textSm, styles.fontBold, styles.textBlue400, styles.uppercase, styles.mb1]}>Pełna treść oświadczenia wykonawcy</Text>
-            <Text style={[styles.textSm, styles.fontLight, styles.textGray200, { lineHeight: 1.5 }]}>
+          <View style={[styles.bgWhite, styles.border, { borderColor: "#0D79F2" }, styles.roundedXl, styles.p3, styles.mb3, styles.textCenter]}>
+            <Text style={[styles.textSm, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb2]}>Pełna treść oświadczenia wykonawcy</Text>
+            <Text style={[styles.textSm, styles.fontNormal, styles.textGray800, { lineHeight: 1.5 }]}>
               Oświadczam, że instalacja elektryczna w wyżej wymienionym obiekcie została wykonana zgodnie z przepisami ustawy Prawo Budowlane, obowiązującymi normami technicznymi (w tym PN-HD 60364-6) oraz sztuką budowlaną. Przeprowadzone pomiary odbiorcze wykazały skuteczność zastosowanych środków ochrony przeciwporażeniowej.
             </Text>
           </View>

@@ -257,8 +257,10 @@ export function MeasurementProtocolsWorkspacePage({
                           {columnItems.map((item, itemIndex) => {
                             const absoluteIndex = columnIndex * TITLE_WORK_SCOPE_COLUMN_SIZE + itemIndex;
                             return (
-                              <label key={absoluteIndex} className="flex items-start gap-2.5 cursor-pointer">
-                                <input type="checkbox" checked={item.isChecked} readOnly className="mt-0.5 w-4 h-4 rounded border-gray-300 mp-check-input" />
+                              <label key={absoluteIndex} className="flex items-center gap-2.5 cursor-pointer">
+                                <div className="w-4 h-4 rounded border border-brand flex items-center justify-center bg-transparent shrink-0">
+                                  {item.isChecked ? <span className="text-brand text-[10px] font-bold leading-none">✓</span> : null}
+                                </div>
                                 <span className="text-[11px] font-medium text-gray-700 leading-tight flex-1">{item.text}</span>
                               </label>
                             );
@@ -276,8 +278,10 @@ export function MeasurementProtocolsWorkspacePage({
                       {titleAttachmentColumns.map((columnItems, columnIndex) => (
                         <div key={columnIndex} className="flex flex-col gap-2.5">
                           {columnItems.map((item, itemIndex) => (
-                              <label key={`${columnIndex}-${itemIndex}`} className="flex items-start gap-2.5 cursor-pointer">
-                                <input type="checkbox" checked={true} readOnly className="mt-0.5 w-4 h-4 rounded border-gray-300 mp-check-input" />
+                              <label key={`${columnIndex}-${itemIndex}`} className="flex items-center gap-2.5 cursor-pointer">
+                                <div className="w-4 h-4 rounded border border-brand flex items-center justify-center bg-transparent shrink-0">
+                                  <span className="text-brand text-[10px] font-bold leading-none">✓</span>
+                                </div>
                                 <span className="text-[11px] font-medium text-gray-700 leading-tight flex-1">{item}</span>
                               </label>
                           ))}
@@ -289,18 +293,18 @@ export function MeasurementProtocolsWorkspacePage({
               </div>
 
               <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="border border-gray-200 rounded-xl p-4 flex flex-col justify-between">
+                <div className="border border-gray-200 rounded-xl p-4 flex flex-col justify-center">
                   <div>
                     <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-2">Wykonawca / Instalator</h3>
-                    <input className="mp-editable text-xs font-bold text-gray-950 mt-1" value={metadata.contractor || ""} placeholder="................................" onChange={(e) => onChange({ ...metadata, contractor: e.target.value })} />
-                    <p className="text-[9px] text-gray-400 mt-1">Podmiot odpowiedzialny za montaż instalacji</p>
+                    <input className="mp-editable text-xs font-bold text-gray-950 mt-2" value={metadata.contractor || ""} placeholder="................................" onChange={(e) => onChange({ ...metadata, contractor: e.target.value })} />
+                    <p className="text-[9px] text-gray-400 mt-1.5">Podmiot odpowiedzialny za montaż instalacji</p>
                   </div>
                 </div>
 
-                <div className="border border-gray-200 rounded-xl p-4 flex flex-col justify-between">
+                <div className="border border-gray-200 rounded-xl p-4 flex flex-col justify-center">
                   <div>
                     <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-2">Uprawnienia SEP (Kwalifikacyjne)</h3>
-                    <div className="text-xs flex flex-col gap-1 mt-1">
+                    <div className="text-xs flex flex-col gap-2 mt-2">
                       <div className="flex items-baseline">
                         <span className="font-semibold text-gray-700 w-[110px]">Eksploatacja (E):</span>
                         <input className="mp-editable text-gray-950 font-bold ml-1 flex-grow" value={metadata.designerId || ""} placeholder="................................" onChange={(e) => onChange({ ...metadata, designerId: e.target.value })} />
@@ -314,10 +318,10 @@ export function MeasurementProtocolsWorkspacePage({
                 </div>
               </div>
 
-              <div className="bg-gray-950 text-white rounded-xl p-4 mb-6 text-center shadow-sm">
-                <p className="text-[10px] uppercase font-bold text-blue-400 tracking-wider mb-1">Pełna treść oświadczenia wykonawcy</p>
-                <p className="text-[10px] leading-relaxed font-light text-gray-200">
-                  Oświadczam, że instalacja elektryczna w wyżej wymienionym obiekcie została wykonana zgodnie z przepisami ustawy Prawo Budowlane, obowiązującymi normami technicznymi (w tym <span className="font-bold text-white">PN-HD 60364-6</span>) oraz sztuką budowlaną. Przeprowadzone pomiary odbiorcze wykazały skuteczność zastosowanych środków ochrony przeciwporażeniowej.
+              <div className="bg-white border border-brand text-gray-800 rounded-xl p-4 mb-6 text-center shadow-sm">
+                <p className="text-[10px] uppercase font-bold text-brand tracking-wider mb-2">Pełna treść oświadczenia wykonawcy</p>
+                <p className="text-[10px] leading-relaxed font-normal text-gray-800">
+                  Oświadczam, że instalacja elektryczna w wyżej wymienionym obiekcie została wykonana zgodnie z przepisami ustawy Prawo Budowlane, obowiązującymi normami technicznymi (w tym <span className="font-bold text-gray-950">PN-HD 60364-6</span>) oraz sztuką budowlaną. Przeprowadzone pomiary odbiorcze wykazały skuteczność zastosowanych środków ochrony przeciwporażeniowej.
                 </p>
               </div>
             </div>
