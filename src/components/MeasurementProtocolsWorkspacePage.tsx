@@ -17,6 +17,7 @@ import {
 import { buildCircuitListTableRows } from "../lib/circuitRows";
 import { exportDinRailToDataURL } from "../lib/export/dinRailSnapshotService";
 import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
+import { AppIcon } from "./AppIcon";
 import "./MeasurementProtocolsWorkspacePage.css";
 const UNIFIED_ROWS_PER_PAGE = 7;
 const CIRCUIT_LIST_ROWS_PER_PAGE = 10;
@@ -248,10 +249,16 @@ export function MeasurementProtocolsWorkspacePage({
               </div>
 
               <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="border border-gray-200 rounded-xl p-4 flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-xs text-left font-bold text-white bg-brand uppercase tracking-widest mb-4 py-2 px-3 rounded shadow-sm">Zakres prac</h3>
-                    <div className={titleWorkScopeColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-3" : "flex flex-col gap-3"}>
+                <div className="border border-gray-200 rounded-xl flex flex-col justify-between overflow-hidden">
+                  <div className="flex flex-col h-full">
+                    <div className="bg-brand text-white px-4 py-3 flex items-center gap-2 mb-4 shrink-0">
+                      <div className="bg-white/20 p-1 rounded flex items-center justify-center">
+                        <AppIcon name="list" size={16} />
+                      </div>
+                      <h3 className="text-xs font-bold uppercase tracking-widest m-0">Zakres prac</h3>
+                    </div>
+                    <div className="px-4 pb-4 flex-grow flex flex-col">
+                      <div className={titleWorkScopeColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-3" : "flex flex-col gap-3"}>
                       {titleWorkScopeColumns.map((columnItems, columnIndex) => (
                         <div key={columnIndex} className="flex flex-col gap-3">
                           {columnItems.map((item, itemIndex) => {
@@ -312,13 +319,20 @@ export function MeasurementProtocolsWorkspacePage({
                         + Dodaj kolejny punkt
                       </button>
                     )}
+                    </div>
                   </div>
                 </div>
 
-                <div className="border border-gray-200 rounded-xl p-4 flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-xs text-left font-bold text-white bg-brand uppercase tracking-widest mb-4 py-2 px-3 rounded shadow-sm">Załączniki do protokołu</h3>
-                    <div className={titleAttachmentColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-3" : "flex flex-col gap-3"}>
+                <div className="border border-gray-200 rounded-xl flex flex-col justify-between overflow-hidden">
+                  <div className="flex flex-col h-full">
+                    <div className="bg-brand text-white px-4 py-3 flex items-center gap-2 mb-4 shrink-0">
+                      <div className="bg-white/20 p-1 rounded flex items-center justify-center">
+                        <AppIcon name="file" size={16} />
+                      </div>
+                      <h3 className="text-xs font-bold uppercase tracking-widest m-0">Załączniki do protokołu</h3>
+                    </div>
+                    <div className="px-4 pb-4 flex-grow flex flex-col">
+                      <div className={titleAttachmentColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-3" : "flex flex-col gap-3"}>
                       {titleAttachmentColumns.map((columnItems, columnIndex) => (
                         <div key={columnIndex} className="flex flex-col gap-3">
                           {columnItems.map((item, itemIndex) => (
@@ -333,6 +347,7 @@ export function MeasurementProtocolsWorkspacePage({
                           ))}
                         </div>
                       ))}
+                      </div>
                     </div>
                   </div>
                 </div>
