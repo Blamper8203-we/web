@@ -6,8 +6,9 @@ import { buildSchematicLayout } from "../lib/schematic/schematicLayoutEngine";
 import { renderSchematic, SCHEMATIC_BODY_Y_OFFSET } from "../lib/schematic/schematicRenderer";
 import {
   createDefaultViewport,
+  resetViewport,
+  constrainPan,
   zoomAtPoint,
-  panBy,
   screenToWorld,
   worldToScreen,
   type ViewportState,
@@ -140,17 +141,42 @@ export function SchematicCanvas({
     return () => window.removeEventListener("resize", handleResize);
   }, [handleResize]);
 
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+  // Constrain viewport when layout/zoom changes
+  useEffect(() => {
+    if (!layout || !canvasRef.current) return;
     const canvas = canvasRef.current;
-    if (!canvas) {
-      return;
-    }
+    
+    setViewport(vp =>
+      constrainPan(vp, canvas.width, canvas.height, layout.totalWidth, layout.totalHeight)
+    );
+  }, [layout, viewport.zoom]);
 
-    const [canvasX, canvasY] = getCanvasPoint(canvas, e.clientX, e.clientY);
-    setViewport((vp) => zoomAtPoint(vp, canvasX, canvasY, factor));
-  }, []);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const handleNativeWheel = (e: WheelEvent) => {
+      e.preventDefault(); // Blocks browser zoom (passive: false is required)
+
+      if (e.ctrlKey || e.metaKey) {
+        const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+        const [canvasX, canvasY] = getCanvasPoint(canvas, e.clientX, e.clientY);
+        setViewport((vp) => zoomAtPoint(vp, canvasX, canvasY, factor));
+      } else {
+        setViewport((vp) => {
+          const dx = e.shiftKey ? e.deltaY : e.deltaX;
+          const dy = e.shiftKey ? 0 : e.deltaY;
+          const panned = { ...vp, panX: vp.panX - dx, panY: vp.panY - dy };
+          return layout
+            ? constrainPan(panned, canvas.width, canvas.height, layout.totalWidth, layout.totalHeight)
+            : panned;
+        });
+      }
+    };
+
+    canvas.addEventListener('wheel', handleNativeWheel, { passive: false });
+    return () => canvas.removeEventListener('wheel', handleNativeWheel);
+  }, [layout]);
 
   const beginCellEdit = useCallback(
     (hit: NonNullable<ReturnType<typeof findSchematicCellAt>>) => {
@@ -274,7 +300,16 @@ export function SchematicCanvas({
       if (isPanning) {
         const dx = e.clientX - lastPointer.current.x;
         const dy = e.clientY - lastPointer.current.y;
-        setViewport((vp) => panBy(vp, dx, dy));
+        
+        setViewport((vp) => {
+          const panned = { ...vp, panX: vp.panX + dx, panY: vp.panY + dy };
+          const canvas = canvasRef.current;
+          if (layout && canvas) {
+            return constrainPan(panned, canvas.width, canvas.height, layout.totalWidth, layout.totalHeight);
+          }
+          return panned;
+        });
+        
         lastPointer.current = { x: e.clientX, y: e.clientY };
         return;
       }
@@ -334,7 +369,12 @@ export function SchematicCanvas({
     const rect = canvas.getBoundingClientRect();
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
-    setViewport((vp) => zoomAtPoint(vp, centerX, centerY, factor));
+    setViewport((vp) => {
+      const zoomed = zoomAtPoint(vp, centerX, centerY, factor);
+      return layout
+        ? constrainPan(zoomed, canvas.width, canvas.height, layout.totalWidth, layout.totalHeight)
+        : zoomed;
+    });
   };
 
   const editorPosition = editingCell ? getEditorPosition(editingCell.rect, viewport) : null;
@@ -414,7 +454,11 @@ export function SchematicCanvas({
           className="workspace-tool-btn"
           title="Dopasuj do widoku"
           aria-label="Dopasuj do widoku"
-          onClick={() => setViewport(createDefaultViewport())}
+          onClick={() => {
+            const canvas = canvasRef.current;
+            if (!canvas || !layout) return;
+            setViewport(resetViewport(canvas.width, canvas.height, layout.totalWidth, layout.totalHeight));
+          }}
         >
           <AppIcon name="zoomFit" size={17} />
         </button>
@@ -430,18 +474,27 @@ export function SchematicCanvas({
         <div className="schematic-zoom-badge">{Math.round(viewport.zoom * 100)}%</div>
       </div>
 
-      <canvas
-        ref={canvasRef}
-        className="schematic-canvas"
-        style={{
-          cursor: isPanning ? "grabbing" : isDragging ? "move" : "default",
-          touchAction: "none",
-        }}
-        onWheel={handleWheel}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
+        <canvas
+          ref={canvasRef}
+          className="schematic-canvas"
+          style={{
+            position: "sticky",
+            top: 0,
+            left: 0,
+            display: "block",
+            cursor: isPanning ? "grabbing" : isDragging ? "move" : "default",
+            touchAction: "none",
+          }}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+        />
+
+      <CustomScrollbars 
+        viewport={viewport} 
+        layout={layout} 
+        canvasRef={canvasRef} 
       />
 
       {editingCell && editorPosition && (
@@ -577,3 +630,63 @@ function getRootNodes(nodes: SchematicNode[]): SchematicNode[] {
   const childIds = new Set(nodes.flatMap((node) => node.children.map((child) => child.id)));
   return nodes.filter((node) => !childIds.has(node.id));
 }
+
+function CustomScrollbars({
+  viewport,
+  layout,
+  canvasRef,
+}: {
+  viewport: ViewportState;
+  layout: SchematicLayout | null;
+  canvasRef: React.RefObject<HTMLCanvasElement | null>;
+}) {
+  if (!layout || !canvasRef.current) return null;
+
+  const canvasWidth = canvasRef.current.width;
+  const canvasHeight = canvasRef.current.height;
+
+  const contentWidth = layout.totalWidth * viewport.zoom;
+  const contentHeight = layout.totalHeight * viewport.zoom;
+
+  const showX = contentWidth > canvasWidth;
+  const showY = contentHeight > canvasHeight;
+
+  const thumbWidth = Math.max(30, (canvasWidth / contentWidth) * canvasWidth);
+  const thumbHeight = Math.max(30, (canvasHeight / contentHeight) * canvasHeight);
+
+  const maxPanX = contentWidth - canvasWidth;
+  const progressX = maxPanX > 0 ? Math.min(1, Math.max(0, -viewport.panX / maxPanX)) : 0;
+  const thumbX = progressX * (canvasWidth - thumbWidth);
+
+  const maxPanY = contentHeight - canvasHeight;
+  const progressY = maxPanY > 0 ? Math.min(1, Math.max(0, -viewport.panY / maxPanY)) : 0;
+  const thumbY = progressY * (canvasHeight - thumbHeight);
+
+  return (
+    <>
+      {showY && (
+        <div style={{
+          position: "absolute", right: 2, top: 0, bottom: showX ? 14 : 0, width: 10,
+          background: "rgba(0,0,0,0.05)", borderRadius: 5, zIndex: 10, pointerEvents: "none"
+        }}>
+          <div style={{
+            position: "absolute", top: thumbY, width: "100%", height: thumbHeight,
+            background: "rgba(0,0,0,0.3)", borderRadius: 5
+          }} />
+        </div>
+      )}
+      {showX && (
+        <div style={{
+          position: "absolute", left: 0, bottom: 2, right: showY ? 14 : 0, height: 10,
+          background: "rgba(0,0,0,0.05)", borderRadius: 5, zIndex: 10, pointerEvents: "none"
+        }}>
+          <div style={{
+            position: "absolute", left: thumbX, height: "100%", width: thumbWidth,
+            background: "rgba(0,0,0,0.3)", borderRadius: 5
+          }} />
+        </div>
+      )}
+    </>
+  );
+}
+

@@ -74,6 +74,46 @@ export function worldToScreen(viewport: ViewportState, worldX: number, worldY: n
   ];
 }
 
+/**
+ * Constrain pan so the content stays visible.
+ * When content is smaller than the canvas it is centered;
+ * otherwise pan is clamped with a small overscroll margin.
+ */
+export function constrainPan(
+  vp: ViewportState,
+  canvasWidth: number,
+  canvasHeight: number,
+  contentWidth: number,
+  contentHeight: number,
+  margin = 50,
+): ViewportState {
+  const scaledW = contentWidth * vp.zoom;
+  const scaledH = contentHeight * vp.zoom;
+
+  let panX = vp.panX;
+  let panY = vp.panY;
+
+  if (scaledW < canvasWidth) {
+    panX = (canvasWidth - scaledW) / 2;
+  } else {
+    const maxPanX = scaledW - canvasWidth;
+    panX = Math.min(margin, Math.max(-maxPanX - margin, panX));
+  }
+
+  if (scaledH < canvasHeight) {
+    panY = (canvasHeight - scaledH) / 2;
+  } else {
+    const maxPanY = scaledH - canvasHeight;
+    panY = Math.min(margin, Math.max(-maxPanY - margin, panY));
+  }
+
+  if (panX === vp.panX && panY === vp.panY) {
+    return vp;
+  }
+
+  return { ...vp, panX, panY };
+}
+
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }

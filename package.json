@@ -21,6 +21,7 @@
   "dependencies": {
     "@pixi/react": "^8.0.5",
     "@react-pdf/renderer": "^4.5.1",
+    "@vercel/analytics": "^2.0.1",
     "buffer": "^6.0.3",
     "dompurify": "^3.4.7",
     "pixi.js": "^8.18.1",
