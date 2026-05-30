@@ -219,17 +219,7 @@ export function PdfDocumentationPage({
                 <div className="pd-card__body">
                   <h3 className="pd-card-title">Nagłówek dokumentu</h3>
                   <div className="pd-stack">
-                    <label className="pd-field">
-                      <span>Styl raportu pomiarowego</span>
-                      <select
-                        value={metadata.measurementProtocolStyle}
-                        onChange={(e) => updateMetadata({ measurementProtocolStyle: e.target.value as "separate" | "unified" })}
-                        style={{ padding: "8px", borderRadius: "4px", background: "#1B1D21", color: "white", border: "1px solid #3c3c3c" }}
-                      >
-                        <option value="unified">Tabela zbiorcza wyników</option>
-                        <option value="separate">Protokoły rozdzielone (klasyczne)</option>
-                      </select>
-                    </label>
+
                     <Field
                       label="Nr protokołu"
                       value={metadata.projectNumber ?? ""}
