@@ -304,6 +304,17 @@ export function AppHeader({
         >
           Pomoc
         </button>
+
+        <a
+          href="https://suppi.pl/dinboard"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="toolbar-menu-btn"
+          style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#FFB020", textDecoration: "none" }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"></path><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"></path><line x1="6" y1="2" x2="6" y2="4"></line><line x1="10" y1="2" x2="10" y2="4"></line><line x1="14" y1="2" x2="14" y2="4"></line></svg>
+          Postaw kawę
+        </a>
       </div>
 
       {activeSheet !== "sheet4" ? (
