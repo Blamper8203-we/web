@@ -52,7 +52,7 @@ export function AdSenseSlot({
       <ins
         className="adsbygoogle"
         style={{ display: "block", width: "100%", height: "100%" }}
-        data-ad-client="ca-pub-XXXXXXXXXXXXX" // Tu należy później wkleić swoje ID
+        data-ad-client="ca-pub-3277911929620177"
         data-ad-slot={adSlot}
         data-ad-format={adFormat}
         data-full-width-responsive={fullWidthResponsive ? "true" : "false"}
