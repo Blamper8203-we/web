@@ -260,7 +260,7 @@ export function MeasurementProtocolsWorkspacePage({
                               <label key={absoluteIndex} className="flex items-center gap-2.5 cursor-pointer">
                                 <input 
                                   type="checkbox" 
-                                  className="hidden" 
+                                  style={{ display: "none" }}
                                   checked={item.isChecked}
                                   onChange={(e) => {
                                     const nextItems = [...workScopeItems];
@@ -271,22 +271,51 @@ export function MeasurementProtocolsWorkspacePage({
                                 <div className="w-4 h-4 rounded border border-brand flex items-center justify-center bg-transparent shrink-0">
                                   {item.isChecked ? <span className="text-brand text-[10px] font-bold leading-none">✓</span> : null}
                                 </div>
-                                <input
+                                <textarea
                                   className="mp-editable text-[11px] font-medium text-gray-900 leading-tight flex-1"
                                   value={item.text}
                                   placeholder="Wpisz punkt zakresu prac..."
+                                  rows={1}
+                                  onInput={(e) => {
+                                    e.currentTarget.style.height = 'auto';
+                                    e.currentTarget.style.height = e.currentTarget.scrollHeight + 'px';
+                                  }}
                                   onChange={(e) => {
                                     const nextItems = [...workScopeItems];
                                     nextItems[absoluteIndex] = { ...nextItems[absoluteIndex], text: e.target.value };
                                     onChange({ ...metadata, titlePageWorkScopeItems: nextItems });
                                   }}
                                 />
+                                <button
+                                  type="button"
+                                  className="mp-delete-btn shrink-0"
+                                  title="Usuń punkt"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    const nextItems = [...workScopeItems];
+                                    nextItems.splice(absoluteIndex, 1);
+                                    onChange({ ...metadata, titlePageWorkScopeItems: nextItems });
+                                  }}
+                                >
+                                  ✕
+                                </button>
                               </label>
                             );
                           })}
                         </div>
                       ))}
                     </div>
+                    {workScopeItems.length < TITLE_WORK_SCOPE_MAX_ITEMS && (
+                      <button
+                        type="button"
+                        className="mt-3 text-[10px] text-brand font-semibold text-left opacity-70 hover:opacity-100 flex items-center gap-1"
+                        onClick={() => {
+                          onChange({ ...metadata, titlePageWorkScopeItems: [...workScopeItems, { text: "", isChecked: true }] });
+                        }}
+                      >
+                        + Dodaj kolejny punkt
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -304,22 +333,51 @@ export function MeasurementProtocolsWorkspacePage({
                                   <div className="w-4 h-4 rounded border border-brand flex items-center justify-center bg-transparent shrink-0">
                                     <span className="text-brand text-[10px] font-bold leading-none">✓</span>
                                   </div>
-                                  <input
+                                  <textarea
                                     className="mp-editable text-[11px] font-medium text-gray-900 leading-tight flex-1"
                                     value={item}
                                     placeholder="Wpisz nazwę załącznika..."
+                                    rows={1}
+                                    onInput={(e) => {
+                                      e.currentTarget.style.height = 'auto';
+                                      e.currentTarget.style.height = e.currentTarget.scrollHeight + 'px';
+                                    }}
                                     onChange={(e) => {
                                       const nextItems = [...titleAttachmentItems];
                                       nextItems[absoluteIndex] = e.target.value;
                                       onChange({ ...metadata, titlePageAttachmentItems: nextItems });
                                     }}
                                   />
+                                  <button
+                                    type="button"
+                                    className="mp-delete-btn shrink-0"
+                                    title="Usuń załącznik"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      const nextItems = [...titleAttachmentItems];
+                                      nextItems.splice(absoluteIndex, 1);
+                                      onChange({ ...metadata, titlePageAttachmentItems: nextItems });
+                                    }}
+                                  >
+                                    ✕
+                                  </button>
                                 </label>
                               );
                           })}
                         </div>
                       ))}
                     </div>
+                    {titleAttachmentItems.length < 12 && (
+                      <button
+                        type="button"
+                        className="mt-3 text-[10px] text-brand font-semibold text-left opacity-70 hover:opacity-100 flex items-center gap-1"
+                        onClick={() => {
+                          onChange({ ...metadata, titlePageAttachmentItems: [...titleAttachmentItems, ""] });
+                        }}
+                      >
+                        + Dodaj załącznik
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

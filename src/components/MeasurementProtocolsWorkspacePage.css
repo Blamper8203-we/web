@@ -352,3 +352,29 @@ table thead th { background-color: rgba(249, 250, 251, 0.8); }
 .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
 .cursor-pointer { cursor: pointer; }
 .normal-case { text-transform: none; }
+
+.mp-page textarea.mp-editable {
+  resize: none;
+  overflow: hidden;
+  line-height: 1.4;
+}
+
+.mp-delete-btn {
+  opacity: 0;
+  transition: opacity 0.2s;
+  color: #9ca3af;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  margin-top: 2px;
+}
+.mp-delete-btn:hover {
+  color: #ef4444;
+  background-color: #fef2f2;
+}
+label:hover .mp-delete-btn {
+  opacity: 1;
+}
