@@ -321,28 +321,16 @@ export function MeasurementProtocolsWorkspacePage({
                     <div className={titleAttachmentColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-1.5" : "flex flex-col gap-1.5"}>
                       {titleAttachmentColumns.map((columnItems, columnIndex) => (
                         <div key={columnIndex} className="flex flex-col gap-1.5">
-                          {columnItems.map((item, itemIndex) => {
-                              const chunkSize = titleAttachmentItems.length > 3 ? Math.ceil(titleAttachmentItems.length / 2) : titleAttachmentItems.length;
-                              const absoluteIndex = columnIndex * chunkSize + itemIndex;
-                              return (
-                                <label key={`${columnIndex}-${itemIndex}`} className="flex items-start gap-2 cursor-pointer relative group">
-                                  <div className="w-4 h-4 rounded border border-brand flex items-center justify-center bg-transparent shrink-0 mt-0.5">
-                                    <span className="text-brand text-[10px] font-bold leading-none">✓</span>
-                                  </div>
-                                  <span
-                                    className="mp-editable text-[11px] font-medium text-gray-900 leading-tight flex-1 outline-none break-words min-h-[16px]"
-                                    contentEditable
-                                    suppressContentEditableWarning
-                                    onBlur={(e) => {
-                                      const nextItems = [...titleAttachmentItems];
-                                      nextItems[absoluteIndex] = e.currentTarget.innerText;
-                                      onChange({ ...metadata, titlePageAttachmentItems: nextItems });
-                                    }}
-                                    dangerouslySetInnerHTML={{ __html: item || "..." }}
-                                  />
-                                </label>
-                              );
-                          })}
+                          {columnItems.map((item, itemIndex) => (
+                            <div key={`${columnIndex}-${itemIndex}`} className="flex items-start gap-2">
+                              <div className="w-4 h-4 rounded border border-brand flex items-center justify-center bg-transparent shrink-0 mt-0.5">
+                                <span className="text-brand text-[10px] font-bold leading-none">✓</span>
+                              </div>
+                              <span className="text-[11px] font-medium text-gray-900 leading-tight flex-1 break-words">
+                                {item}
+                              </span>
+                            </div>
+                          ))}
                         </div>
                       ))}
                     </div>
