@@ -1,15 +1,16 @@
-import type { MouseEvent } from "react";
 import "./PublicLandingPage.css";
 
 interface PublicLandingPageProps {
-  onOpenWorkspace: () => void;
+  onOpenLastProject: () => void;
+  onOpenNewProject: () => void;
+  onOpenProjectFile: () => void;
 }
 
-export function PublicLandingPage({ onOpenWorkspace }: PublicLandingPageProps) {
-  const handleOpenWorkspace = (event: MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault();
-    onOpenWorkspace();
-  };
+export function PublicLandingPage({ 
+  onOpenLastProject,
+  onOpenNewProject,
+  onOpenProjectFile,
+}: PublicLandingPageProps) {
 
   return (
     <main className="landing">
@@ -41,9 +42,15 @@ export function PublicLandingPage({ onOpenWorkspace }: PublicLandingPageProps) {
           </span>
         </div>
         <div className="landing__actions">
-          <a className="landing__button" href="/app" onClick={handleOpenWorkspace}>
-            Otwórz aplikację
-          </a>
+          <button className="landing__button" onClick={onOpenLastProject}>
+            Ostatni projekt
+          </button>
+          <button className="landing__button landing__button--secondary" onClick={onOpenProjectFile}>
+            Otwórz projekt
+          </button>
+          <button className="landing__button landing__button--secondary" onClick={onOpenNewProject}>
+            Nowy projekt
+          </button>
         </div>
       </section>
 

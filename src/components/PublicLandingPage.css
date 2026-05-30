@@ -85,6 +85,20 @@
   transform: translateY(-1px);
 }
 
+.landing__button--secondary {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #c9d1d9;
+  box-shadow: none;
+}
+
+.landing__button--secondary:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
 .landing__grid {
   width: min(840px, 100%);
   display: grid;

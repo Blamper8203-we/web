@@ -69,7 +69,16 @@ function loadUiTheme(): AppUiTheme {
 
 
 
-function AppWorkspace() {
+import type { ProjectFileData } from "./lib/projectFile";
+import { openProjectFile } from "./lib/projectFile";
+
+function AppWorkspace({ 
+  initialAction, 
+  initialData 
+}: { 
+  initialAction: "new" | "last" | "load_data" | null;
+  initialData: ProjectFileData | null;
+}) {
   // ── Core state ───────────────────────────────────────────────────────────────
   const [metadata, setMetadata] = useState<ProjectMetadata>(() => loadProjectMetadata());
   const [symbols, setSymbols] = useState<SymbolItem[]>(() => {
@@ -164,7 +173,7 @@ function AppWorkspace() {
   });
 
   const {
-    handleNewProject, handleOpenProject, handleSaveProject, handleExportPdf, handleExportBom, handleExportPng,
+    handleNewProject, handleOpenProject, handleLoadProjectData, handleSaveProject, handleExportPdf, handleExportBom, handleExportPng,
     handleExportDinRailPngWithDescriptionsNoBrackets,
     handleAutoBalance, handleApplyPhaseMoveSuggestion, handleOpenDinRailGenerator, handleRailGenerated,
     handleMetadataChange, handleResetDocumentation,
@@ -181,6 +190,19 @@ function AppWorkspace() {
     executeSymbolsCommand: history.executeSymbolsCommand,
     showTemporaryStatus,
   });
+
+  const [didHandleInitialAction, setDidHandleInitialAction] = useState(false);
+
+  useEffect(() => {
+    if (!didHandleInitialAction && initialAction) {
+      setDidHandleInitialAction(true);
+      if (initialAction === "new") {
+        handleNewProject();
+      } else if (initialAction === "load_data" && initialData) {
+        handleLoadProjectData(initialData);
+      }
+    }
+  }, [initialAction, initialData, didHandleInitialAction, handleNewProject, handleLoadProjectData]);
 
   const triggerNewProject = useCallback(() => {
     if (hasUnsavedChanges) {
@@ -642,6 +664,8 @@ function AppWorkspace() {
 
 function App() {
   const [routePath, setRoutePath] = useState<"/" | "/app">(() => normalizeRoutePath(window.location.pathname));
+  const [initialAction, setInitialAction] = useState<"new" | "last" | "load_data" | null>(null);
+  const [initialData, setInitialData] = useState<ProjectFileData | null>(null);
 
   useEffect(() => {
     const handlePopState = () => {
@@ -652,18 +676,47 @@ function App() {
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
-  const handleOpenWorkspace = useCallback(() => {
+  const navigateToApp = useCallback(() => {
     if (routePath !== APP_ROUTE_PATH) {
       window.history.pushState({}, "", APP_ROUTE_PATH);
       setRoutePath(APP_ROUTE_PATH);
     }
   }, [routePath]);
 
+  const handleOpenLastProject = useCallback(() => {
+    setInitialAction("last");
+    navigateToApp();
+  }, [navigateToApp]);
+
+  const handleOpenNewProject = useCallback(() => {
+    setInitialAction("new");
+    navigateToApp();
+  }, [navigateToApp]);
+
+  const handleOpenProjectFile = useCallback(async () => {
+    try {
+      const data = await openProjectFile();
+      if (data) {
+        setInitialData(data);
+        setInitialAction("load_data");
+        navigateToApp();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [navigateToApp]);
+
   if (routePath !== APP_ROUTE_PATH) {
-    return <PublicLandingPage onOpenWorkspace={handleOpenWorkspace} />;
+    return (
+      <PublicLandingPage 
+        onOpenLastProject={handleOpenLastProject} 
+        onOpenNewProject={handleOpenNewProject}
+        onOpenProjectFile={handleOpenProjectFile}
+      />
+    );
   }
 
-  return <AppWorkspace />;
+  return <AppWorkspace initialAction={initialAction} initialData={initialData} />;
 }
 
 export default App;

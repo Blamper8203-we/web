@@ -4,7 +4,7 @@ import {
   normalizeProjectMetadata,
   resetDocumentationFields,
 } from '../lib/projectMetadata';
-import { openProjectFile, saveProjectFile } from '../lib/projectFile';
+import { openProjectFile, saveProjectFile, type ProjectFileData } from '../lib/projectFile';
 import { exportToPdf } from '../lib/export/pdfExportService';
 import { exportDinRailToBlobWithOptions } from '../lib/export/dinRailSnapshotService';
 import {
@@ -188,35 +188,28 @@ export function useProjectActions({
     showTemporaryStatus,
   ]);
 
-  const handleOpenProject = useCallback(async () => {
-    try {
-      const data = await openProjectFile();
-      if (!data) return;
-
-      const normalizedSymbols = normalizeDinRailModuleOrdering(
-        normalizeGroupConsistency(
-          normalizePaletteAssetDimensions(data.symbols, paletteTemplateMap),
-        ),
-      );
-      setMetadata(normalizeProjectMetadata(data.metadata));
-      setSymbols(normalizedSymbols);
-      setCurrentFilePath(data.path ?? null);
-      resetProjectState();
-      if (data.rail?.isVisible) {
-        setDinRail({
-          config: { rows: data.rail.rows, modulesPerRow: data.rail.modulesPerRow },
-          svg: data.rail.svg,
-          width: data.rail.width,
-          height: data.rail.height,
-          isVisible: true,
-        });
-      } else {
-        applyRailFromSymbols(normalizedSymbols);
-      }
-      showTemporaryStatus('Otwarto zlecenie', 3000);
-    } catch (e) {
-      showTemporaryStatus(`Błąd: ${e instanceof Error ? e.message : 'Nieznany'}`, 5000);
+  const handleLoadProjectData = useCallback((data: ProjectFileData) => {
+    const normalizedSymbols = normalizeDinRailModuleOrdering(
+      normalizeGroupConsistency(
+        normalizePaletteAssetDimensions(data.symbols, paletteTemplateMap),
+      ),
+    );
+    setMetadata(normalizeProjectMetadata(data.metadata));
+    setSymbols(normalizedSymbols);
+    setCurrentFilePath(data.path ?? null);
+    resetProjectState();
+    if (data.rail?.isVisible) {
+      setDinRail({
+        config: { rows: data.rail.rows, modulesPerRow: data.rail.modulesPerRow },
+        svg: data.rail.svg,
+        width: data.rail.width,
+        height: data.rail.height,
+        isVisible: true,
+      });
+    } else {
+      applyRailFromSymbols(normalizedSymbols);
     }
+    showTemporaryStatus('Otwarto zlecenie', 3000);
   }, [
     applyRailFromSymbols,
     paletteTemplateMap,
@@ -226,6 +219,16 @@ export function useProjectActions({
     setSymbols,
     showTemporaryStatus,
   ]);
+
+  const handleOpenProject = useCallback(async () => {
+    try {
+      const data = await openProjectFile();
+      if (!data) return;
+      handleLoadProjectData(data);
+    } catch (e) {
+      showTemporaryStatus(`Błąd: ${e instanceof Error ? e.message : 'Nieznany'}`, 5000);
+    }
+  }, [handleLoadProjectData, showTemporaryStatus]);
 
   const handleExportPdf = useCallback(async () => {
     try {
@@ -479,6 +482,7 @@ export function useProjectActions({
   return {
     handleNewProject,
     handleOpenProject,
+    handleLoadProjectData,
     handleSaveProject,
     handleExportPdf,
     handleExportBom,
