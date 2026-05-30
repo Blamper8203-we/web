@@ -250,7 +250,7 @@ export function MeasurementProtocolsWorkspacePage({
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="border border-gray-200 rounded-xl p-4 flex flex-col justify-between">
                   <div>
-                    <h3 className="text-xs text-left font-bold text-white bg-blue-600 uppercase tracking-widest mb-4 py-2 px-3 rounded shadow-sm">Zakres prac</h3>
+                    <h3 className="text-xs text-left font-bold text-white bg-brand uppercase tracking-widest mb-4 py-2 px-3 rounded shadow-sm">Zakres prac</h3>
                     <div className={titleWorkScopeColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-3" : "flex flex-col gap-3"}>
                       {titleWorkScopeColumns.map((columnItems, columnIndex) => (
                         <div key={columnIndex} className="flex flex-col gap-3">
@@ -317,7 +317,7 @@ export function MeasurementProtocolsWorkspacePage({
 
                 <div className="border border-gray-200 rounded-xl p-4 flex flex-col justify-between">
                   <div>
-                    <h3 className="text-xs text-left font-bold text-white bg-blue-600 uppercase tracking-widest mb-4 py-2 px-3 rounded shadow-sm">Załączniki do protokołu</h3>
+                    <h3 className="text-xs text-left font-bold text-white bg-brand uppercase tracking-widest mb-4 py-2 px-3 rounded shadow-sm">Załączniki do protokołu</h3>
                     <div className={titleAttachmentColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-3" : "flex flex-col gap-3"}>
                       {titleAttachmentColumns.map((columnItems, columnIndex) => (
                         <div key={columnIndex} className="flex flex-col gap-3">
