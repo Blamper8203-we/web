@@ -340,36 +340,12 @@ export function MeasurementProtocolsWorkspacePage({
                                     }}
                                     dangerouslySetInnerHTML={{ __html: item || "..." }}
                                   />
-                                  <button
-                                    type="button"
-                                    className="mp-delete-btn shrink-0 mt-0.5"
-                                    title="Usuń załącznik"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      const nextItems = [...titleAttachmentItems];
-                                      nextItems.splice(absoluteIndex, 1);
-                                      onChange({ ...metadata, titlePageAttachmentItems: nextItems });
-                                    }}
-                                  >
-                                    ✕
-                                  </button>
                                 </label>
                               );
                           })}
                         </div>
                       ))}
                     </div>
-                    {titleAttachmentItems.length < 12 && (
-                      <button
-                        type="button"
-                        className="mt-3 text-[10px] text-brand font-semibold text-left opacity-70 hover:opacity-100 flex items-center gap-1"
-                        onClick={() => {
-                          onChange({ ...metadata, titlePageAttachmentItems: [...titleAttachmentItems, ""] });
-                        }}
-                      >
-                        + Dodaj załącznik
-                      </button>
-                    )}
                   </div>
                 </div>
               </div>
