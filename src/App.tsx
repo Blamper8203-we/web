@@ -1,3 +1,4 @@
+import { App as CapApp } from "@capacitor/app";
 import { useEffect, useState, useCallback, useMemo, useTransition, Suspense, lazy } from "react";
 import type { PdfDocumentationPreviewTab } from "./lib/pdfDocumentation";
 import type { DinRailCanvasRail } from "./components/DinRailCanvasPixi";
@@ -73,11 +74,11 @@ function loadUiTheme(): AppUiTheme {
 import type { ProjectFileData } from "./lib/projectFile";
 import { openProjectFile } from "./lib/projectFile";
 
-function AppWorkspace({ 
-  initialAction, 
+function AppWorkspace({
+  initialAction,
   initialData,
   onOpenFeedback
-}: { 
+}: {
   initialAction: "new" | "last" | "load_data" | null;
   initialData: ProjectFileData | null;
   onOpenFeedback: () => void;
@@ -110,6 +111,7 @@ function AppWorkspace({
   });
   const [activeRightTab, setActiveRightTab] = useState<RightTab>("balance");
   const [showRightPanel, setShowRightPanel] = useState(() => window.innerWidth > 768);
+  const [showLeftPanel, setShowLeftPanel] = useState(() => window.innerWidth > 768);
   const [highlightedCircuitEditTarget, setHighlightedCircuitEditTarget] = useState<{
     symbolId: string;
     fieldKey: string;
@@ -353,8 +355,33 @@ function AppWorkspace({
     };
 
     window.addEventListener("keydown", handleGlobalKeyDown);
-    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
-  }, [triggerNewProject, triggerOpenProject, handleSaveProject]);
+
+    // Native Back Button Handling
+    const backListener = CapApp.addListener('backButton', () => {
+      if (isRcdManagerOpen) {
+        setIsRcdManagerOpen(false);
+      } else if (isHelpOpen) {
+        setIsHelpOpen(false);
+      } else if (unsavedChangesActionType) {
+        setUnsavedChangesActionType(null);
+      } else if (svgImportDialogOpen) {
+        setSvgImportDialogOpen(false);
+      } else if (importedModulesManagerOpen) {
+        setImportedModulesManagerOpen(false);
+      } else if (paletteContextMenu) {
+        setPaletteContextMenu(null);
+      } else if (pendingPaletteRemoval) {
+        setPendingPaletteRemoval(null);
+      } else {
+        // Here we could also try to close the mobile menu if we had access to its state
+      }
+    });
+
+    return () => {
+      window.removeEventListener("keydown", handleGlobalKeyDown);
+      backListener.then(l => l.remove());
+    };
+  }, [triggerNewProject, triggerOpenProject, handleSaveProject, isRcdManagerOpen, isHelpOpen, unsavedChangesActionType, svgImportDialogOpen, importedModulesManagerOpen, paletteContextMenu, pendingPaletteRemoval]);
 
   useEffect(() => {
     setSymbols((prev) => normalizeGroupConsistency(normalizePaletteAssetDimensions(prev, paletteTemplateMap)));
@@ -539,7 +566,7 @@ function AppWorkspace({
       <div
         className={`main-content ${activeRightTab === "circuitEdit" ? "is-circuit-editing" : ""} ${
           activeSheet === "sheet4" ? "is-pdf-workspace" : ""
-        } ${showRightPanel ? "" : "is-right-panel-hidden"}`}
+        } ${showRightPanel ? "" : "is-right-panel-hidden"} ${showLeftPanel ? "" : "is-left-panel-hidden"}`}
       >
         {activeSheet === "sheet4" ? (
           <Suspense fallback={<div style={{ display: "flex", flex: 1, alignItems: "center", justifyContent: "center" }}>Ładowanie modułu PDF...</div>}>
@@ -559,6 +586,8 @@ function AppWorkspace({
         ) : (
           <>
             <AppLeftPanel
+              showLeftPanel={showLeftPanel}
+              onClose={() => setShowLeftPanel(false)}
               activeSheet={activeSheet}
               metadata={metadata}
               handleMetadataChange={handleMetadataChange}
@@ -625,7 +654,12 @@ function AppWorkspace({
           </>
         )}
 
-        <AppSheetTabs activeSheet={activeSheet} onChangeSheet={setActiveSheet} />
+        <AppSheetTabs
+          activeSheet={activeSheet}
+          onChangeSheet={setActiveSheet}
+          showLeftPanel={showLeftPanel}
+          onOpenLeftPanel={() => setShowLeftPanel(true)}
+        />
       </div>
 
       <AppStatusBar
@@ -714,7 +748,7 @@ export default function App() {
   if (routePath !== APP_ROUTE_PATH) {
     return (
       <>
-        <PublicLandingPage 
+        <PublicLandingPage
           onOpenNewProject={handleOpenNewProject}
           onOpenProjectFile={handleOpenProjectFile}
           onOpenFeedback={() => setIsFeedbackModalOpen(true)}
@@ -726,9 +760,9 @@ export default function App() {
 
   return (
     <>
-      <AppWorkspace 
-        initialAction={initialAction} 
-        initialData={initialData} 
+      <AppWorkspace
+        initialAction={initialAction}
+        initialData={initialData}
         onOpenFeedback={() => setIsFeedbackModalOpen(true)}
       />
       {isFeedbackModalOpen && <FeedbackModal onClose={() => setIsFeedbackModalOpen(false)} />}

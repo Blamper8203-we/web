@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import { useCallback, type MutableRefObject } from 'react';
 import {
   createEmptyProjectMetadata,
@@ -10,7 +11,7 @@ import { exportDinRailToBlobWithOptions } from '../lib/export/dinRailSnapshotSer
 import {
   applyBalancePlan,
   autoBalancePhases,
-  calculateTotalDistribution, 
+  calculateTotalDistribution,
   type BalanceMode,
   type BalanceScope,
 } from '../lib/phaseDistribution/phaseDistributionCalculator';
@@ -232,8 +233,24 @@ export function useProjectActions({
 
   const handleExportPdf = useCallback(async () => {
     try {
-      await exportToPdf(metadata, symbols, dinRail);
+      const blob = await exportToPdf(metadata, symbols, dinRail);
       showTemporaryStatus('Eksport PDF', 3000);
+
+      if (Capacitor.isNativePlatform() && blob) {
+        // Handle native sharing
+        const fileName = `${metadata.projectNumber?.trim() || "zlecenie"}.pdf`;
+        const file = new File([blob], fileName, { type: 'application/pdf' });
+
+        // Note: Capacitor Share needs a file path or base64 usually,
+        // but for now let's try the Web Share API which Capacitor polyfills.
+        if (navigator.share) {
+          await navigator.share({
+            files: [file],
+            title: 'Dokumentacja DINBoard',
+            text: `Zlecenie: ${metadata.projectNumber || 'Bez numeru'}`,
+          });
+        }
+      }
     } catch (e) {
       showTemporaryStatus(`Błąd: ${e instanceof Error ? e.message : 'Nieznany'}`, 5000);
     }

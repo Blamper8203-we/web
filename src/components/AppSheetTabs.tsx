@@ -5,6 +5,8 @@ import { AppIcon, type AppIconName } from "./AppIcon";
 interface AppSheetTabsProps {
   activeSheet: SheetType;
   onChangeSheet: (sheet: SheetType) => void;
+  showLeftPanel?: boolean;
+  onOpenLeftPanel?: () => void;
 }
 
 const SHEET_TABS: Array<{
@@ -18,7 +20,7 @@ const SHEET_TABS: Array<{
   { sheet: "sheet4", icon: "pdf", label: "Podgląd PDF" },
 ];
 
-export function AppSheetTabs({ activeSheet, onChangeSheet }: AppSheetTabsProps) {
+export function AppSheetTabs({ activeSheet, onChangeSheet, showLeftPanel, onOpenLeftPanel }: AppSheetTabsProps) {
   return (
     <div className="sheet-tabs-bar">
       {SHEET_TABS.map((tab) => (
@@ -32,6 +34,17 @@ export function AppSheetTabs({ activeSheet, onChangeSheet }: AppSheetTabsProps) 
           <span>{tab.label}</span>
         </button>
       ))}
+      {!showLeftPanel && onOpenLeftPanel && (
+        <button 
+          className="sheet-tab mobile-only-tab" 
+          type="button" 
+          onClick={onOpenLeftPanel} 
+          style={{ marginLeft: "auto", color: "var(--accent-primary)", borderColor: "var(--accent-primary)", padding: "10px 12px" }}
+        >
+          <AppIcon className="sheet-tab-icon" name="plus" />
+          <span>Dodaj Moduł</span>
+        </button>
+      )}
     </div>
   );
 }

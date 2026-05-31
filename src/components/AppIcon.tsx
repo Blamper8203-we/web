@@ -4,6 +4,7 @@ export type AppIconName =
   | "balance"
   | "busbar"
   | "check"
+  | "close"
   | "cog"
   | "delete"
   | "dockRight"
@@ -22,6 +23,7 @@ export type AppIconName =
   | "palette"
   | "pdf"
   | "pencil"
+  | "plus"
   | "power"
   | "print"
   | "redo"
@@ -32,7 +34,10 @@ export type AppIconName =
   | "validation"
   | "zoomFit"
   | "zoomIn"
-  | "zoomOut";
+  | "zoomOut"
+  | "menu"
+  | "feedback"
+  | "coffee";
 
 type AppIconProps = SVGProps<SVGSVGElement> & {
   name: AppIconName;
@@ -43,6 +48,7 @@ const paths: Record<AppIconName, string[]> = {
   balance: ["M4 19V9", "M10 19V5", "M16 19v-7", "M22 19H2"],
   busbar: ["M5 7h14", "M5 12h14", "M5 17h14", "M8 5v14", "M16 5v14"],
   check: ["M20 6 9 17l-5-5"],
+  close: ["M18 6 6 18", "M6 6l12 12"],
   cog: [
     "M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z",
     "M19.4 15a1.7 1.7 0 0 0 .34 1.87l.04.04a2 2 0 0 1-2.83 2.83l-.04-.04a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.04 1.56V21a2 2 0 0 1-4 0v-.08a1.7 1.7 0 0 0-1.04-1.56 1.7 1.7 0 0 0-1.87.34l-.04.04a2 2 0 1 1-2.83-2.83l.04-.04A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.04H3a2 2 0 0 1 0-4h.04A1.7 1.7 0 0 0 4.6 8a1.7 1.7 0 0 0-.34-1.87l-.04-.04a2 2 0 1 1 2.83-2.83l.04.04A1.7 1.7 0 0 0 8.96 3a1.7 1.7 0 0 0 1.04-1.56V1a2 2 0 0 1 4 0v.44A1.7 1.7 0 0 0 15.04 3a1.7 1.7 0 0 0 1.87-.34l.04-.04a2 2 0 1 1 2.83 2.83l-.04.04A1.7 1.7 0 0 0 19.4 8c.13.43.47.78.9.94.22.08.45.12.7.12h.04a2 2 0 0 1 0 4H21a1.7 1.7 0 0 0-1.6 1.94Z",
@@ -69,6 +75,7 @@ const paths: Record<AppIconName, string[]> = {
   palette: ["M4 5h16v14H4z", "M8 5v14", "M16 5v14", "M4 11h16"],
   pdf: ["M6 3h8l4 4v14H6z", "M14 3v5h5", "M8 16h2.5a1.5 1.5 0 0 0 0-3H8v5", "M13 13v5h1.5a2.5 2.5 0 0 0 0-5H13", "M18 13h3", "M18 15.5h2"],
   pencil: ["M4 20h4l11-11-4-4L4 16v4Z", "M13.5 6.5l4 4"],
+  plus: ["M5 12h14", "M12 5v14"],
   power: ["M13 2 4 14h7l-1 8 10-13h-7l1-7Z"],
   print: ["M7 8V3h10v5", "M6 17H4v-7h16v7h-2", "M7 14h10v7H7z"],
   redo: ["M21 7v6h-6", "M20 13a8 8 0 1 1-2.4-5.7L21 10.7"],
@@ -80,6 +87,9 @@ const paths: Record<AppIconName, string[]> = {
   zoomFit: ["M4 9V4h5", "M20 9V4h-5", "M4 15v5h5", "M20 15v5h-5"],
   zoomIn: ["M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z", "M21 21l-5-5", "M11 8v6", "M8 11h6"],
   zoomOut: ["M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z", "M21 21l-5-5", "M8 11h6"],
+  menu: ["M3 12h18", "M3 6h18", "M3 18h18"],
+  feedback: ["M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-12.7 8.19 8.19 0 0 1 4.9 1.7L21 3.5v8.5Z"],
+  coffee: ["M17 8h1a4 4 0 1 1 0 8h-1", "M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z", "M6 2v2", "M10 2v2", "M14 2v2"],
 };
 
 export function AppIcon({ name, size = 16, className, ...props }: AppIconProps) {

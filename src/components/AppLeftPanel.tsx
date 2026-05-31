@@ -20,6 +20,8 @@ export interface AppLeftPanelProps {
   setActivePaletteGroupTitle: (title: string) => void;
   setPaletteContextMenu: (menu: { templateId: string; label: string; x: number; y: number } | null) => void;
   handleOpenDinRailGenerator: () => void;
+  showLeftPanel?: boolean;
+  onClose?: () => void;
 }
 
 export function AppLeftPanel({
@@ -34,6 +36,7 @@ export function AppLeftPanel({
   setActivePaletteGroupTitle,
   setPaletteContextMenu,
   handleOpenDinRailGenerator,
+  onClose,
 }: AppLeftPanelProps) {
   const activePaletteGroup =
     paletteGroups.find((g) => g.title === activePaletteGroupTitle) ??
@@ -58,9 +61,16 @@ export function AppLeftPanel({
         )}
         {activeSheet === "sheet1" && (
           <div className="palette-browser">
-            <div className="panel-title-strip">
-              <AppIcon className="panel-title-icon" name="palette" size={18} />
-              <strong>MODUŁY</strong>
+            <div className="panel-title-strip" style={{ justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <AppIcon className="panel-title-icon" name="palette" size={18} />
+                <strong>MODUŁY</strong>
+              </div>
+              {onClose && (
+                <button type="button" className="toolbar-icon-btn mobile-only-tab" onClick={onClose} style={{ border: 0, background: "transparent", cursor: "pointer", color: "var(--text-main)" }}>
+                  <AppIcon name="close" size={16} />
+                </button>
+              )}
             </div>
             <div className="panel-divider" />
             <div className="palette-tabs" aria-label="Kategorie modułów">

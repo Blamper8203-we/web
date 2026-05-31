@@ -20,6 +20,12 @@ import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { registerGlobalRuntimeDiagnostics, reportRuntimeError } from "./lib/runtimeDiagnostics";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { polyfill } from "mobile-drag-drop";
+import { scrollBehaviourDragImageTranslateOverride } from "mobile-drag-drop/scroll-behaviour";
+
+polyfill({
+  dragImageTranslateOverride: scrollBehaviourDragImageTranslateOverride
+});
 
 function registerVitePreloadErrorRecovery() {
   window.addEventListener("vite:preloadError", (event: Event) => {
@@ -37,12 +43,16 @@ function registerVitePreloadErrorRecovery() {
 registerGlobalRuntimeDiagnostics();
 registerVitePreloadErrorRecovery();
 
+import { Capacitor } from "@capacitor/core";
+
+const isNative = Capacitor.isNativePlatform();
+
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <AppErrorBoundary>
       <App />
-      <Analytics />
-      <SpeedInsights />
+      {!isNative && <Analytics />}
+      {!isNative && <SpeedInsights />}
     </AppErrorBoundary>
   </React.StrictMode>,
 );

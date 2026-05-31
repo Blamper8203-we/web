@@ -1,3 +1,5 @@
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { Capacitor } from '@capacitor/core';
 import { useCallback, useEffect, useState } from 'react';
 import {
   findDinRailSnapTarget,
@@ -123,8 +125,8 @@ export function usePaletteActions({
           !templateIdentity.includes("3P") &&
           (template.modules <= 2 || templateIdentity.includes("2P") || templateIdentity.includes("1P"));
         if (isSinglePhaseRcd) {
-          const existingSinglePhaseRcds = symbols.filter((s) => 
-            s.deviceKind === 'rcd' && 
+          const existingSinglePhaseRcds = symbols.filter((s) =>
+            s.deviceKind === 'rcd' &&
             !`${s.type} ${s.label} ${s.moduleRef} ${s.visualPath}`.toUpperCase().includes("4P") &&
             !`${s.type} ${s.label} ${s.moduleRef} ${s.visualPath}`.toUpperCase().includes("3P")
           );
@@ -285,6 +287,10 @@ export function usePaletteActions({
         { symbols: nextSymbols, selectedSymbolId: nextSymbol.id, selectedSymbolIds: [nextSymbol.id] },
         statusMessage,
       );
+
+      if (Capacitor.isNativePlatform()) {
+        Haptics.impact({ style: ImpactStyle.Medium });
+      }
     },
     [
       dinRail.isVisible,

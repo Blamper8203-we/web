@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AppIcon } from "./AppIcon";
 import type { SheetType } from "../lib/appHelpers";
 import type { AppUiTheme } from "../App";
+import { Capacitor } from "@capacitor/core";
 
 interface AppHeaderProps {
   projectFileName: string;
@@ -76,6 +77,9 @@ export function AppHeader({
   const [viewMenuOpen, setViewMenuOpen] = useState(false);
   const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const isNative = Capacitor.isNativePlatform();
 
   const fileMenuRef = useRef<HTMLDivElement>(null);
 
@@ -85,6 +89,7 @@ export function AppHeader({
       setViewMenuOpen(false);
       setToolsMenuOpen(false);
       setSettingsMenuOpen(false);
+      setMobileMenuOpen(false);
     };
 
     const handleEscape = (event: KeyboardEvent) => {
@@ -93,6 +98,7 @@ export function AppHeader({
         setViewMenuOpen(false);
         setToolsMenuOpen(false);
         setSettingsMenuOpen(false);
+        setMobileMenuOpen(false);
       }
     };
 
@@ -105,234 +111,252 @@ export function AppHeader({
   }, []);
 
   return (
-    <header className={`toolbar-shell ${activeSheet === "sheet4" ? "toolbar-shell--compact" : ""}`}>
+    <header className={`toolbar-shell ${activeSheet === "sheet4" ? "toolbar-shell--compact" : ""} ${isNative ? "is-native" : ""}`}>
       <div className="toolbar-left">
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginRight: "12px", marginLeft: "8px", width: "24px", height: "24px", borderRadius: "4px", overflow: "hidden", opacity: 0.9, cursor: "default" }}>
-          <img src="/favicon-192.png" alt="DinBoard Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-        </div>
-        <div style={{ position: "relative" }} ref={fileMenuRef}>
+        {isNative ? (
           <button
             type="button"
-            className={`toolbar-menu-btn ${fileMenuOpen ? "active" : ""}`}
+            className="toolbar-menu-btn mobile-hamburger"
             onClick={(e) => {
               e.stopPropagation();
-              setFileMenuOpen(!fileMenuOpen);
-              setViewMenuOpen(false);
-              setToolsMenuOpen(false);
-              setSettingsMenuOpen(false);
+              setMobileMenuOpen(!mobileMenuOpen);
             }}
           >
-            Plik
+            <AppIcon name="menu" size={24} />
           </button>
-          {fileMenuOpen && (
-            <div
-              className="flyout-menu"
-              onClick={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-            >
-              <span className="flyout-section">Zlecenie</span>
-              <button className="flyout-item" onClick={() => { setFileMenuOpen(false); onNewProject(); }}>
-                <AppIcon className="flyout-icon" name="file" />
-                <span className="flyout-label">Nowe zlecenie</span>
-                {hasUnsavedChanges && <span className="flyout-alert-dot" />}
-                <span className="flyout-shortcut">Ctrl+N</span>
-              </button>
-              <button className="flyout-item" onClick={() => { setFileMenuOpen(false); onOpenProject(); }}>
-                <AppIcon className="flyout-icon" name="folderOpen" />
-                <span className="flyout-label">Otwórz</span>
-                <span className="flyout-shortcut">Ctrl+O</span>
-              </button>
-              <button className="flyout-item" onClick={() => { setFileMenuOpen(false); onSaveProject(false); }}>
-                <AppIcon className="flyout-icon" name="save" />
-                <span className="flyout-label">Zapisz</span>
-                <span className="flyout-shortcut">Ctrl+S</span>
-              </button>
-              <button className="flyout-item" onClick={() => { setFileMenuOpen(false); onSaveProject(true); }}>
-                <AppIcon className="flyout-icon" name="saveEdit" />
-                <span className="flyout-label">Zapisz jako</span>
-              </button>
-              <span className="flyout-divider" />
-              <span className="flyout-section">Eksport</span>
-              <button className="flyout-item" onClick={() => { setFileMenuOpen(false); window.print(); }}>
-                <AppIcon className="flyout-icon" name="print" />
-                <span className="flyout-label">Drukuj</span>
-                <span className="flyout-shortcut">Ctrl+P</span>
-              </button>
-              <button className="flyout-item" onClick={() => { setFileMenuOpen(false); onExportPdf(); }}>
-                <AppIcon className="flyout-icon" name="pdf" />
-                <span className="flyout-label">Eksport PDF</span>
-              </button>
+        ) : (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginRight: "12px", marginLeft: "8px", width: "24px", height: "24px", borderRadius: "4px", overflow: "hidden", opacity: 0.9, cursor: "default" }}>
+            <img src="/favicon-192.png" alt="DinBoard Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+          </div>
+        )}
+
+        {!isNative && (
+          <>
+            <div style={{ position: "relative" }} ref={fileMenuRef}>
               <button
-                className="flyout-item"
-                onClick={() => { setFileMenuOpen(false); onExportPng(false); }}
+                type="button"
+                className={`toolbar-menu-btn ${fileMenuOpen ? "active" : ""}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFileMenuOpen(!fileMenuOpen);
+                  setViewMenuOpen(false);
+                  setToolsMenuOpen(false);
+                  setSettingsMenuOpen(false);
+                }}
               >
-                <AppIcon className="flyout-icon" name="file" />
-                <span className="flyout-label">Eksport PNG (czysty)</span>
+                Plik
               </button>
-              <button
-                className="flyout-item"
-                onClick={() => { setFileMenuOpen(false); onExportPng(true); }}
-              >
-                <AppIcon className="flyout-icon" name="fileEdit" />
-                <span className="flyout-label">Eksport PNG (z oznaczeniami)</span>
-              </button>
-              <button
-                className="flyout-item"
-                onClick={() => { setFileMenuOpen(false); onExportDinRailPngWithDescriptionsNoBrackets(); }}
-              >
-                <AppIcon className="flyout-icon" name="fileEdit" />
-                <span className="flyout-label">Eksport PNG HQ (rozdzielnica: opis bez klamr)</span>
-              </button>
-              <button
-                className="flyout-item"
-                onClick={() => { setFileMenuOpen(false); onExportBom(); }}
-              >
-                <AppIcon className="flyout-icon" name="list" />
-                <span className="flyout-label">Eksport BOM (CSV)</span>
-              </button>
-              <span className="flyout-divider" />
-              <button
-                className="flyout-item danger"
-                onClick={() => showTemporaryStatus("Zamykanie aplikacji webowej nie jest dostępne w przeglądarce")}
-              >
-                <AppIcon className="flyout-icon" name="exit" />
-                <span className="flyout-label">Wyjdź</span>
-              </button>
+              {fileMenuOpen && (
+                <div
+                  className="flyout-menu"
+                  onClick={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                >
+                  <span className="flyout-section">Zlecenie</span>
+                  <button className="flyout-item" onClick={() => { setFileMenuOpen(false); onNewProject(); }}>
+                    <AppIcon className="flyout-icon" name="file" />
+                    <span className="flyout-label">Nowe zlecenie</span>
+                    {hasUnsavedChanges && <span className="flyout-alert-dot" />}
+                    <span className="flyout-shortcut">Ctrl+N</span>
+                  </button>
+                  <button className="flyout-item" onClick={() => { setFileMenuOpen(false); onOpenProject(); }}>
+                    <AppIcon className="flyout-icon" name="folderOpen" />
+                    <span className="flyout-label">Otwórz</span>
+                    <span className="flyout-shortcut">Ctrl+O</span>
+                  </button>
+                  <button className="flyout-item" onClick={() => { setFileMenuOpen(false); onSaveProject(false); }}>
+                    <AppIcon className="flyout-icon" name="save" />
+                    <span className="flyout-label">Zapisz</span>
+                    <span className="flyout-shortcut">Ctrl+S</span>
+                  </button>
+                  <button className="flyout-item" onClick={() => { setFileMenuOpen(false); onSaveProject(true); }}>
+                    <AppIcon className="flyout-icon" name="saveEdit" />
+                    <span className="flyout-label">Zapisz jako</span>
+                  </button>
+                  <span className="flyout-divider" />
+                  <span className="flyout-section">Eksport</span>
+                  <button className="flyout-item" onClick={() => { setFileMenuOpen(false); window.print(); }}>
+                    <AppIcon className="flyout-icon" name="print" />
+                    <span className="flyout-label">Drukuj</span>
+                    <span className="flyout-shortcut">Ctrl+P</span>
+                  </button>
+                  <button className="flyout-item" onClick={() => { setFileMenuOpen(false); onExportPdf(); }}>
+                    <AppIcon className="flyout-icon" name="pdf" />
+                    <span className="flyout-label">Eksport PDF</span>
+                  </button>
+                  <button
+                    className="flyout-item"
+                    onClick={() => { setFileMenuOpen(false); onExportPng(false); }}
+                  >
+                    <AppIcon className="flyout-icon" name="file" />
+                    <span className="flyout-label">Eksport PNG (czysty)</span>
+                  </button>
+                  <button
+                    className="flyout-item"
+                    onClick={() => { setFileMenuOpen(false); onExportPng(true); }}
+                  >
+                    <AppIcon className="flyout-icon" name="fileEdit" />
+                    <span className="flyout-label">Eksport PNG (z oznaczeniami)</span>
+                  </button>
+                  <button
+                    className="flyout-item"
+                    onClick={() => { setFileMenuOpen(false); onExportDinRailPngWithDescriptionsNoBrackets(); }}
+                  >
+                    <AppIcon className="flyout-icon" name="fileEdit" />
+                    <span className="flyout-label">Eksport PNG HQ (rozdzielnica: opis bez klamr)</span>
+                  </button>
+                  <button
+                    className="flyout-item"
+                    onClick={() => { setFileMenuOpen(false); onExportBom(); }}
+                  >
+                    <AppIcon className="flyout-icon" name="list" />
+                    <span className="flyout-label">Eksport BOM (CSV)</span>
+                  </button>
+                  <span className="flyout-divider" />
+                  <button
+                    className="flyout-item danger"
+                    onClick={() => showTemporaryStatus("Zamykanie aplikacji webowej nie jest dostępne w przeglądarce")}
+                  >
+                    <AppIcon className="flyout-icon" name="exit" />
+                    <span className="flyout-label">Wyjdź</span>
+                  </button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        <div style={{ position: "relative" }}>
-          <button
-            type="button"
-            className={`toolbar-menu-btn ${viewMenuOpen ? "active" : ""}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              setViewMenuOpen(!viewMenuOpen);
-              setFileMenuOpen(false);
-              setToolsMenuOpen(false);
-              setSettingsMenuOpen(false);
-            }}
-          >
-            Widok
-          </button>
-          {viewMenuOpen && (
-            <div
-              className="flyout-menu wide"
-              onClick={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-            >
-              <span className="flyout-section">Wyświetlanie</span>
-              <button className="flyout-item" onClick={() => { setViewMenuOpen(false); onToggleRightPanel(); }}>
-                <AppIcon className="flyout-icon" name="dockRight" />
-                <span className="flyout-label">Panel prawy</span>
-                {showRightPanel && <AppIcon className="flyout-check-icon" name="check" />}
-              </button>
-              <button className="flyout-item" onClick={() => { setViewMenuOpen(false); onToggleDinRailGroups(); }}>
-                <AppIcon className="flyout-icon" name="group" />
-                <span className="flyout-label">{showDinRailGroups ? "Ukryj grupy" : "Pokaż grupy"}</span>
-                {showDinRailGroups && <AppIcon className="flyout-check-icon" name="check" />}
-              </button>
-              <span className="flyout-divider" />
-              <span className="flyout-section">Arkusze</span>
-              <button className="flyout-item" onClick={() => { setViewMenuOpen(false); onChangeSheet("sheet1"); }}>
-                <AppIcon className="flyout-icon" name="grid" />
-                <span className="flyout-label">Szyna DIN</span>
-                {activeSheet === "sheet1" && <AppIcon className="flyout-check-icon" name="check" />}
-              </button>
-              <button className="flyout-item" onClick={() => { setViewMenuOpen(false); onChangeSheet("sheet2"); }}>
-                <AppIcon className="flyout-icon" name="fileTree" />
-                <span className="flyout-label">Schemat jednokreskowy</span>
-                {activeSheet === "sheet2" && <AppIcon className="flyout-check-icon" name="check" />}
-              </button>
-              <button className="flyout-item" onClick={() => { setViewMenuOpen(false); onChangeSheet("sheet3"); }}>
-                <AppIcon className="flyout-icon" name="list" />
-                <span className="flyout-label">Lista obwodów</span>
-                {activeSheet === "sheet3" && <AppIcon className="flyout-check-icon" name="check" />}
-              </button>
-              <button className="flyout-item" onClick={() => { setViewMenuOpen(false); onChangeSheet("sheet4"); }}>
-                <AppIcon className="flyout-icon" name="pdf" />
-                <span className="flyout-label">Podgląd PDF</span>
-                {activeSheet === "sheet4" && <AppIcon className="flyout-check-icon" name="check" />}
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div style={{ position: "relative" }}>
-          <button
-            type="button"
-            className={`toolbar-menu-btn ${toolsMenuOpen ? "active" : ""}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              setToolsMenuOpen(!toolsMenuOpen);
-              setFileMenuOpen(false);
-              setViewMenuOpen(false);
-              setSettingsMenuOpen(false);
-            }}
-          >
-            Narzędzia
-          </button>
-          {toolsMenuOpen && (
-            <div
-              className="flyout-menu wide"
-              onClick={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-            >
-              <span className="flyout-section">Narzędzia</span>
-              <button className="flyout-item" onClick={() => { setToolsMenuOpen(false); onOpenDinRailGenerator(); }}>
-                <AppIcon className="flyout-icon accent-blue" name="module" />
-                <span className="flyout-label">Szyna DIN</span>
-              </button>
+            <div style={{ position: "relative" }}>
               <button
-                className="flyout-item"
-                onClick={() => { setToolsMenuOpen(false); onOpenSvgImport(); }}
+                type="button"
+                className={`toolbar-menu-btn ${viewMenuOpen ? "active" : ""}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setViewMenuOpen(!viewMenuOpen);
+                  setFileMenuOpen(false);
+                  setToolsMenuOpen(false);
+                  setSettingsMenuOpen(false);
+                }}
               >
-                <AppIcon className="flyout-icon" name="import" />
-                <span className="flyout-label">Import SVG</span>
+                Widok
               </button>
-              <button
-                className="flyout-item"
-                onClick={() => { setToolsMenuOpen(false); onOpenImportedModulesManager(); }}
-              >
-                <AppIcon className="flyout-icon" name="list" />
-                <span className="flyout-label">Zarządzaj importem SVG</span>
-              </button>
+              {viewMenuOpen && (
+                <div
+                  className="flyout-menu wide"
+                  onClick={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                >
+                  <span className="flyout-section">Wyświetlanie</span>
+                  <button className="flyout-item" onClick={() => { setViewMenuOpen(false); onToggleRightPanel(); }}>
+                    <AppIcon className="flyout-icon" name="dockRight" />
+                    <span className="flyout-label">Panel prawy</span>
+                    {showRightPanel && <AppIcon className="flyout-check-icon" name="check" />}
+                  </button>
+                  <button className="flyout-item" onClick={() => { setViewMenuOpen(false); onToggleDinRailGroups(); }}>
+                    <AppIcon className="flyout-icon" name="group" />
+                    <span className="flyout-label">{showDinRailGroups ? "Ukryj grupy" : "Pokaż grupy"}</span>
+                    {showDinRailGroups && <AppIcon className="flyout-check-icon" name="check" />}
+                  </button>
+                  <span className="flyout-divider" />
+                  <span className="flyout-section">Arkusze</span>
+                  <button className="flyout-item" onClick={() => { setViewMenuOpen(false); onChangeSheet("sheet1"); }}>
+                    <AppIcon className="flyout-icon" name="grid" />
+                    <span className="flyout-label">Szyna DIN</span>
+                    {activeSheet === "sheet1" && <AppIcon className="flyout-check-icon" name="check" />}
+                  </button>
+                  <button className="flyout-item" onClick={() => { setViewMenuOpen(false); onChangeSheet("sheet2"); }}>
+                    <AppIcon className="flyout-icon" name="fileTree" />
+                    <span className="flyout-label">Schemat jednokreskowy</span>
+                    {activeSheet === "sheet2" && <AppIcon className="flyout-check-icon" name="check" />}
+                  </button>
+                  <button className="flyout-item" onClick={() => { setViewMenuOpen(false); onChangeSheet("sheet3"); }}>
+                    <AppIcon className="flyout-icon" name="list" />
+                    <span className="flyout-label">Lista obwodów</span>
+                    {activeSheet === "sheet3" && <AppIcon className="flyout-check-icon" name="check" />}
+                  </button>
+                  <button className="flyout-item" onClick={() => { setViewMenuOpen(false); onChangeSheet("sheet4"); }}>
+                    <AppIcon className="flyout-icon" name="pdf" />
+                    <span className="flyout-label">Podgląd PDF</span>
+                    {activeSheet === "sheet4" && <AppIcon className="flyout-check-icon" name="check" />}
+                  </button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        <button
-          type="button"
-          className="toolbar-menu-btn"
-          onClick={onOpenHelp}
-        >
-          Pomoc
-        </button>
+            <div style={{ position: "relative" }}>
+              <button
+                type="button"
+                className={`toolbar-menu-btn ${toolsMenuOpen ? "active" : ""}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setToolsMenuOpen(!toolsMenuOpen);
+                  setFileMenuOpen(false);
+                  setViewMenuOpen(false);
+                  setSettingsMenuOpen(false);
+                }}
+              >
+                Narzędzia
+              </button>
+              {toolsMenuOpen && (
+                <div
+                  className="flyout-menu wide"
+                  onClick={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                >
+                  <span className="flyout-section">Narzędzia</span>
+                  <button className="flyout-item" onClick={() => { setToolsMenuOpen(false); onOpenDinRailGenerator(); }}>
+                    <AppIcon className="flyout-icon accent-blue" name="module" />
+                    <span className="flyout-label">Szyna DIN</span>
+                  </button>
+                  <button
+                    className="flyout-item"
+                    onClick={() => { setToolsMenuOpen(false); onOpenSvgImport(); }}
+                  >
+                    <AppIcon className="flyout-icon" name="import" />
+                    <span className="flyout-label">Import SVG</span>
+                  </button>
+                  <button
+                    className="flyout-item"
+                    onClick={() => { setToolsMenuOpen(false); onOpenImportedModulesManager(); }}
+                  >
+                    <AppIcon className="flyout-icon" name="list" />
+                    <span className="flyout-label">Zarządzaj importem SVG</span>
+                  </button>
+                </div>
+              )}
+            </div>
 
-        <button
-          type="button"
-          className="toolbar-menu-btn"
-          style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#e8eaef" }}
-          onClick={onOpenFeedback}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"/><path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"/></svg>
-          Zgłoś pomysł
-        </button>
+            <button
+              type="button"
+              className="toolbar-menu-btn"
+              onClick={onOpenHelp}
+            >
+              Pomoc
+            </button>
 
-        <a
-          href="https://suppi.pl/dinboard"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="toolbar-menu-btn"
-          style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#FFB020", textDecoration: "none" }}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"></path><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"></path><line x1="6" y1="2" x2="6" y2="4"></line><line x1="10" y1="2" x2="10" y2="4"></line><line x1="14" y1="2" x2="14" y2="4"></line></svg>
-          Postaw kawę
-        </a>
+            <button
+              type="button"
+              className="toolbar-menu-btn"
+              style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#e8eaef" }}
+              onClick={onOpenFeedback}
+            >
+              <AppIcon name="feedback" size={14} />
+              Zgłoś pomysł
+            </button>
+
+            <a
+              href="https://suppi.pl/dinboard"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="toolbar-menu-btn"
+              style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#FFB020", textDecoration: "none" }}
+            >
+              <AppIcon name="coffee" size={14} />
+              Postaw kawę
+            </a>
+          </>
+        )}
       </div>
 
-      {activeSheet !== "sheet4" ? (
+      {!isNative && activeSheet !== "sheet4" ? (
       <div className="toolbar-center">
         <button
           type="button"
@@ -423,6 +447,7 @@ export function AppHeader({
               setFileMenuOpen(false);
               setViewMenuOpen(false);
               setToolsMenuOpen(false);
+              setMobileMenuOpen(false);
             }}
           >
             <AppIcon name="cog" size={16} />
@@ -475,6 +500,75 @@ export function AppHeader({
           )}
         </div>
       </div>
+
+      {mobileMenuOpen && (
+        <div
+          className="mobile-side-drawer-overlay"
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          <div className="mobile-side-drawer" onClick={(e) => e.stopPropagation()}>
+            <div className="mobile-side-drawer-header">
+              <img src="/favicon-192.png" alt="Logo" width="32" height="32" />
+              <strong>DinBoard</strong>
+              <button className="drawer-close" onClick={() => setMobileMenuOpen(false)}>
+                <AppIcon name="close" size={20} />
+              </button>
+            </div>
+
+            <div className="mobile-side-drawer-content">
+              <span className="drawer-section">PROJEKT</span>
+              <button className="drawer-item" onClick={() => { setMobileMenuOpen(false); onNewProject(); }}>
+                <AppIcon className="drawer-icon" name="file" />
+                <span>Nowe zlecenie</span>
+              </button>
+              <button className="drawer-item" onClick={() => { setMobileMenuOpen(false); onOpenProject(); }}>
+                <AppIcon className="drawer-icon" name="folderOpen" />
+                <span>Otwórz projekt</span>
+              </button>
+              <button className="drawer-item" onClick={() => { setMobileMenuOpen(false); onSaveProject(false); }}>
+                <AppIcon className="drawer-icon" name="save" />
+                <span>Zapisz zmiany</span>
+              </button>
+
+              <span className="drawer-divider" />
+              <span className="drawer-section">EKSPORT I NARZĘDZIA</span>
+              <button className="drawer-item" onClick={() => { setMobileMenuOpen(false); onExportPdf(); }}>
+                <AppIcon className="drawer-icon" name="pdf" />
+                <span>Eksportuj PDF</span>
+              </button>
+              <button className="drawer-item" onClick={() => { setMobileMenuOpen(false); onOpenDinRailGenerator(); }}>
+                <AppIcon className="drawer-icon accent-blue" name="module" />
+                <span>Generator Szyny DIN</span>
+              </button>
+              <button className="drawer-item" onClick={() => { setMobileMenuOpen(false); onOpenSvgImport(); }}>
+                <AppIcon className="drawer-icon" name="import" />
+                <span>Import modułów SVG</span>
+              </button>
+
+              <span className="drawer-divider" />
+              <span className="drawer-section">INNE</span>
+              <button className="drawer-item" onClick={() => { setMobileMenuOpen(false); onOpenHelp(); }}>
+                <AppIcon className="drawer-icon" name="help" />
+                <span>Pomoc i instrukcja</span>
+              </button>
+              <button className="drawer-item" onClick={() => { setMobileMenuOpen(false); onOpenFeedback(); }}>
+                <AppIcon className="drawer-icon" name="feedback" />
+                <span>Zgłoś pomysł / Błąd</span>
+              </button>
+              <a
+                href="https://suppi.pl/dinboard"
+                target="_blank"
+                rel="noreferrer"
+                className="drawer-item"
+                style={{ color: "#FFB020" }}
+              >
+                <AppIcon className="drawer-icon" name="coffee" />
+                <span>Postaw kawę</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

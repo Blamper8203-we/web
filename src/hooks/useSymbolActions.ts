@@ -1,3 +1,5 @@
+import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
+import { Capacitor } from '@capacitor/core';
 import { useCallback, useEffect, useRef, type MutableRefObject } from 'react';
 import {
   cloneSymbolsSnapshot,
@@ -161,6 +163,10 @@ export function useSymbolActions({
     (id: string) => {
       if (dragHistorySnapshotRef.current) return;
 
+      if (Capacitor.isNativePlatform()) {
+        Haptics.impact({ style: ImpactStyle.Light });
+      }
+
       const draggedSymbol = symbols.find((s) => s.id === id);
       const selectedIds =
         selectedSymbolIds.length > 0
@@ -262,6 +268,10 @@ export function useSymbolActions({
         { symbols: normalizedSymbols, selectedSymbolId, selectedSymbolIds },
         `Przesunięto ${label}`,
       );
+
+      if (Capacitor.isNativePlatform()) {
+        Haptics.impact({ style: ImpactStyle.Medium });
+      }
     },
     [
       dragHistorySnapshotRef,
@@ -419,6 +429,10 @@ export function useSymbolActions({
       { symbols: nextSymbols, selectedSymbolId: null, selectedSymbolIds: [] },
       `Usunięto ${label}`,
     );
+
+    if (Capacitor.isNativePlatform()) {
+      Haptics.notification({ type: NotificationType.Success });
+    }
   }, [executeSymbolsCommand, selectedSymbolId, selectedSymbolIds, symbols]);
 
   const handleDuplicateSelected = useCallback(() => {

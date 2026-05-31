@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">DinBoard</string>
+    <string name="title_activity_main">DinBoard</string>
+    <string name="package_name">com.dinboard.app</string>
+    <string name="custom_url_scheme">com.dinboard.app</string>
+</resources>

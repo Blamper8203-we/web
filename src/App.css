@@ -154,6 +154,7 @@ body {
   background: var(--app-background);
   overflow: hidden;
   position: relative;
+  padding-top: env(safe-area-inset-top);
 }
 
 /* ================================================================
@@ -2955,11 +2956,12 @@ input[type="text"].schematic-cell-editor:focus,
 
   .app-shell {
     grid-template-rows: auto 1fr 0;
+    padding-bottom: 68px; /* Room for bottom navigation */
   }
 
   .main-content {
     grid-template-columns: 1fr;
-    grid-template-rows: 44px minmax(0, 1fr) 42vh;
+    grid-template-rows: 0 minmax(0, 1fr) 0; /* Tabs are now fixed at bottom */
   }
 
   .main-content.is-right-panel-hidden {
@@ -3146,7 +3148,129 @@ input[type="text"].schematic-cell-editor:focus,
 
 }
 
-/* Pływający przycisk kasowania zaznaczonych na planszy */
+/* Mobile Side Drawer */
+.mobile-side-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  animation: fade-in 0.2s ease-out;
+}
+
+.mobile-side-drawer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 80%;
+  max-width: 320px;
+  background: var(--panel-background);
+  box-shadow: 10px 0 20px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  animation: slide-in-left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mobile-side-drawer-header {
+  padding: 24px 20px;
+  background: var(--panel-header-background);
+  border-bottom: 1px solid var(--panel-border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mobile-side-drawer-header strong {
+  font-size: 18px;
+  color: var(--text-main);
+}
+
+.drawer-close {
+  margin-left: auto;
+  background: transparent;
+  border: 0;
+  color: var(--text-secondary);
+}
+
+.mobile-side-drawer-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 0;
+}
+
+.drawer-section {
+  display: block;
+  padding: 16px 20px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  letter-spacing: 0.1em;
+}
+
+.drawer-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 20px;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  color: var(--text-main);
+  text-align: left;
+  font-size: 14px;
+  transition: background 0.2s;
+  text-decoration: none;
+}
+
+.drawer-item:active {
+  background: var(--hover-background);
+}
+
+.drawer-icon {
+  color: var(--text-secondary);
+}
+
+.drawer-divider {
+  display: block;
+  height: 1px;
+  background: var(--panel-border);
+  margin: 8px 20px;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@media (max-width: 768px) {
+  .toolbar-shell.is-native {
+    grid-template-rows: auto;
+    min-height: 56px;
+    padding: 0 12px;
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .toolbar-shell.is-native .toolbar-center {
+    display: none; /* Hide standard center icons, we can add a mini bar later */
+  }
+
+  .toolbar-shell.is-native .toolbar-right {
+    margin: 0;
+  }
+
+  .mobile-hamburger {
+    padding: 8px;
+    margin: 0;
+  }
+}
+
+/* Pływający przycisk kasowania... */
 .workspace-floating-delete-btn {
   position: absolute;
   bottom: 24px;
@@ -3186,3 +3310,19 @@ input[type="text"].schematic-cell-editor:focus,
     display: none;
   }
 }
+
+/* Przyciski i zachowania pokazywania palety modułów zoptymalizowane pod telefony */
+.mobile-only-tab {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .mobile-only-tab {
+    display: inline-flex !important;
+  }
+
+  .main-content.is-left-panel-hidden .left-panel {
+    display: none !important;
+  }
+}
+
