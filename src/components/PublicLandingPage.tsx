@@ -173,8 +173,8 @@ export function PublicLandingPage({
       <header className="sticky top-0 z-50 backdrop-blur-md bg-[#090D16]/80 border-b border-gray-800/60 transition-all">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-amber-500 to-yellow-400 flex items-center justify-center shadow-lg">
-                      <i data-lucide="zap" className="w-5 h-5 text-slate-950 stroke-[2.5]"></i>
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden drop-shadow-lg shadow-black/20">
+                      <img src="/favicon-192.png" alt="DinBoard Logo" className="w-full h-full object-contain" />
                   </div>
                   <div>
                       <span className="text-lg font-extrabold tracking-tight text-white">Din<span className="text-amber-500">Board</span></span>
@@ -415,8 +415,8 @@ export function PublicLandingPage({
       <footer className="bg-[#05080E] border-t border-gray-900 py-12 text-gray-500 text-[11px]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-6">
               <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded bg-slate-800 flex items-center justify-center">
-                      <i data-lucide="zap" className="w-4 h-4 text-amber-500"></i>
+                  <div className="w-8 h-8 rounded flex items-center justify-center overflow-hidden grayscale opacity-70">
+                      <img src="/favicon-192.png" alt="DinBoard Logo" className="w-full h-full object-contain" />
                   </div>
                   <div>
                       <span className="text-sm font-bold text-white block">DinBoard</span>
