@@ -44,7 +44,6 @@ const APP_ROUTE_PATH = "/app";
 const LOCAL_STORAGE_WRITE_DEBOUNCE_MS = 250;
 const SHOW_DIN_RAIL_GROUPS_STORAGE_KEY = "dinboard.show_din_rail_groups";
 const UI_THEME_STORAGE_KEY = "dinboard.ui_theme";
-const ACTIVE_ROUTE_STORAGE_KEY = "dinboard.active_route";
 const EMPTY_VALIDATION_RESULT: ValidationResult = {
   isValid: true,
   errors: [],
@@ -57,16 +56,6 @@ function normalizeRoutePath(pathname: string): "/" | "/app" {
   if (pathname === APP_ROUTE_PATH || pathname === `${APP_ROUTE_PATH}/`) {
     return APP_ROUTE_PATH;
   }
-
-  // On root "/", check if the user was previously in the workspace.
-  // This allows the workspace to survive a full page refresh even when
-  // the server always serves index.html at "/".
-  try {
-    if (window.localStorage.getItem(ACTIVE_ROUTE_STORAGE_KEY) === APP_ROUTE_PATH) {
-      window.history.replaceState({}, "", APP_ROUTE_PATH);
-      return APP_ROUTE_PATH;
-    }
-  } catch { /* localStorage unavailable – fall through */ }
 
   return "/";
 }
@@ -690,13 +679,7 @@ export default function App() {
 
   useEffect(() => {
     const handlePopState = () => {
-      const next = normalizeRoutePath(window.location.pathname);
-      setRoutePath(next);
-      try {
-        if (next === "/") {
-          window.localStorage.removeItem(ACTIVE_ROUTE_STORAGE_KEY);
-        }
-      } catch { /* ignore */ }
+      setRoutePath(normalizeRoutePath(window.location.pathname));
     };
 
     window.addEventListener("popstate", handlePopState);
@@ -708,9 +691,6 @@ export default function App() {
       window.history.pushState({}, "", APP_ROUTE_PATH);
       setRoutePath(APP_ROUTE_PATH);
     }
-    try {
-      window.localStorage.setItem(ACTIVE_ROUTE_STORAGE_KEY, APP_ROUTE_PATH);
-    } catch { /* ignore */ }
   }, [routePath]);
 
   const handleOpenNewProject = useCallback(() => {
