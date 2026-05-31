@@ -87,8 +87,43 @@ export function PublicLandingPage({
         </article>
       </section>
 
+      <section className="landing__seo-content" aria-labelledby="seo-heading">
+        <h2 id="seo-heading" className="landing__seo-title">Aplikacja dla elektryków – Wszystko, czego potrzebujesz do projektowania</h2>
+        
+        <div className="seo-block">
+          <h3>Projektowanie rozdzielnic</h3>
+          <p>Tworzenie nowoczesnych tablic bezpiecznikowych jeszcze nigdy nie było tak proste. Narzędzie pozwala na wizualne projektowanie rozdzielnic w oparciu o szyny DIN, swobodne przenoszenie aparatury modułowej metodą przeciągnij-i-upuść oraz tworzenie grup. Dzięki wbudowanej bibliotece, elektryk jest w stanie w kilka minut zbudować pełną architekturę i dobrać wymiary dla skrzynek podtynkowych i natynkowych w dowolnym mieszkaniu.</p>
+        </div>
+
+        <div className="seo-block">
+          <h3>Bilans mocy</h3>
+          <p>Zastanawiasz się, jak obliczyć bilans mocy dla domu jednorodzinnego czy mieszkania w bloku? Nasza aplikacja automatyzuje obliczanie bilansu mocy dla wszystkich trzech faz (L1, L2, L3). Automatycznie wyliczamy współczynniki jednoczesności, wskazując całkowite zapotrzebowanie instalacji na prąd, ułatwiając dobranie głównego wyłącznika oraz zabezpieczeń przedlicznikowych do wniosku o przyłącze.</p>
+        </div>
+
+        <div className="seo-block">
+          <h3>Zarządzanie obwodami</h3>
+          <p>Rozbudowane narzędzia edycji obwodów pozwalają na błyskawiczne przypisywanie przekrojów przewodów (np. 3x1.5mm², 3x2.5mm²), dobór odpowiedniego zabezpieczenia nadprądowego (np. B16, B10) oraz konfigurację RCD. Aplikacja dba o podział obwodów w rozdzielnicy i zrzuca całą ciężką pracę z barków projektanta, podpowiadając, gdy wykryje przeciążenia na fazach.</p>
+        </div>
+
+        <div className="seo-block">
+          <h3>Dokumentacja PDF</h3>
+          <p>Po zakończeniu prac montażowych, wygenerujesz pełną, legalną dokumentację powykonawczą instalacji elektrycznych, w tym protokoły pomiarowe oraz gotowe do wydruku zestawienia modułów i obwodów w wygodnym formacie PDF, w pełni zgodnym z polskimi normami, pozwalając na pewny odbiór instalacji.</p>
+        </div>
+      </section>
+
       <footer className="landing__footer">
         <div className="landing__footer-content">
+          <div style={{ marginBottom: '40px', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '32px' }}>
+            <h3 style={{ fontSize: '20px', color: '#fff', marginBottom: '16px' }}>Baza wiedzy</h3>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '12px' }}>
+              <li>
+                <a href="/blog/jak-obliczyc-bilans-mocy/index.html" style={{ color: 'var(--accent-blue)', textDecoration: 'none', fontSize: '15px' }}>
+                  → Jak obliczyć bilans mocy w domu jednorodzinnym
+                </a>
+              </li>
+            </ul>
+          </div>
+          
           <h3>Masz pomysł na nową funkcję lub znalazłeś błąd?</h3>
           <p>Aplikacja DINBoard jest w fazie testów i stale się rozwija. Chcesz żeby program robił coś jeszcze? Daj znać, co poprawić lub dodać!</p>
           <button 

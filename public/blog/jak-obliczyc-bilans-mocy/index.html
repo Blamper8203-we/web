@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Dowiedz się jak prawidłowo obliczyć bilans mocy w domu jednorodzinnym. Krok po kroku wyjaśniamy zasady doboru przydziału mocy.">
+    <title>Jak obliczyć bilans mocy w domu jednorodzinnym - DINBoard</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+    
+    <style>
+        :root {
+            --app-background: #0f1115;
+            --text-main: #e8eaef;
+            --text-secondary: #9a9faa;
+            --accent-primary: #2f80ed;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--app-background);
+            color: var(--text-main);
+            font-family: "Roboto", sans-serif;
+            line-height: 1.6;
+        }
+        .header {
+            padding: 20px 40px;
+            background: #191b22;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+        }
+        .header a {
+            color: var(--text-main);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 18px;
+        }
+        .article-container {
+            max-width: 760px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        h2 {
+            font-size: 24px;
+            margin-top: 40px;
+            margin-bottom: 16px;
+            color: var(--accent-primary);
+        }
+        p {
+            font-size: 16px;
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+        }
+        ul {
+            color: var(--text-secondary);
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        ul li {
+            margin-bottom: 8px;
+        }
+        .article-meta {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 40px;
+        }
+        .return-link {
+            display: inline-block;
+            margin-top: 40px;
+            padding: 10px 20px;
+            background: rgba(47, 128, 237, 0.1);
+            color: var(--accent-primary);
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+        .return-link:hover {
+            background: rgba(47, 128, 237, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <a href="/">DINBoard Web</a>
+    </header>
+
+    <main class="article-container">
+        <h1>Jak obliczyć bilans mocy w domu jednorodzinnym</h1>
+        <div class="article-meta">Opublikowano: Październik 2024 • Przeczytasz w: 4 min.</div>
+
+        <p>
+            Obliczanie bilansu mocy (zapotrzebowania na moc) to kluczowy krok przed złożeniem wniosku o warunki przyłączeniowe do operatora systemu dystrybucyjnego (OSD). Prawidłowo oszacowana moc gwarantuje bezproblemowe działanie wszystkich urządzeń elektrycznych w gospodarstwie domowym, jednocześnie pozwalając uniknąć przepłacania za zawyżony przydział.
+        </p>
+
+        <h2>Krok 1: Wypisz wszystkie odbiorniki</h2>
+        <p>
+            Pierwszym krokiem jest sporządzenie listy urządzeń o największym zapotrzebowaniu. W nowoczesnym domu jednorodzinnym kluczowymi urządzeniami wpływającymi na bilans są:
+        </p>
+        <ul>
+            <li>Płyta indukcyjna (zazwyczaj ok. 7 kW)</li>
+            <li>Pompa ciepła / Kocioł elektryczny (ok. 5-10 kW)</li>
+            <li>Piekarnik elektryczny (ok. 3 kW)</li>
+            <li>Pralka i suszarka bębnowa (razem ok. 4 kW)</li>
+            <li>Klimatyzator (ok. 2 kW)</li>
+            <li>Ładowarka do samochodu elektrycznego (ok. 11 kW)</li>
+        </ul>
+
+        <h2>Krok 2: Zastosuj współczynnik jednoczesności</h2>
+        <p>
+            Oczywiste jest, że nigdy nie uruchomisz wszystkich tych urządzeń na pełnej mocy w dokładnie tym samym ułamku sekundy. Do określenia realnego obciążenia stosuje się <strong>współczynnik jednoczesności</strong> (zwykle oznaczany jako <em>kj</em>). Dla domów jednorodzinnych bez ogrzewania elektrycznego przyjmuje się go zazwyczaj na poziomie 0,6 - 0,7. Jeśli jednak dom posiada pompę ciepła, podgrzewacze przepływowe wody czy ładowarkę EV, współczynnik ten może wzrosnąć.
+        </p>
+
+        <h2>Krok 3: Oszacowanie prądu całkowitego</h2>
+        <p>
+            Sumując moce wszystkich wypisanych urządzeń, załóżmy, że otrzymaliśmy moc zainstalowaną wynoszącą 30 kW. Mnożąc to przez współczynnik 0,6, uzyskujemy zapotrzebowanie na moc przyłączeniową równe <strong>18 kW</strong>. Na tej podstawie dobiera się wyłącznik główny (np. izolacyjny) i odpowiednie zabezpieczenie przedlicznikowe u dostawcy (w tym przypadku prawdopodobnie C32 lub większe).
+        </p>
+
+        <h2>Podsumowanie</h2>
+        <p>
+            Jeżeli boisz się pomyłki podczas robienia takich wyliczeń, możesz skorzystać z dedykowanych programów, takich jak nasza aplikacja do projektowania rozdzielnic – DINBoard, która na bieżąco, automatycznie podsumowuje obciążenia na wszystkich trzech fazach i wypluwa gotowy wynik prądu w Amperach, dając Ci spokój przy tworzeniu obwodów.
+        </p>
+
+        <a href="/" class="return-link">← Wróć do projektowania rozdzielnic</a>
+    </main>
+
+</body>
+</html>
