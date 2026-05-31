@@ -17,14 +17,12 @@
   padding: 64px 16px;
 }
 
-/* Tymczasowo wyłączone boczne panele do czasu akceptacji AdSense
 @media (min-width: 1250px) {
   .landing-sidebar {
     display: flex;
     flex-direction: column;
   }
 }
-*/
 
 .landing {
   width: 100%;
