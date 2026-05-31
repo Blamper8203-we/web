@@ -1201,6 +1201,7 @@ body {
   box-shadow: var(--shadow-sm);
   cursor: grab;
   user-select: none;
+  touch-action: pan-y;
   transition:
     background var(--transition-fast),
     border-color var(--transition-fast),
@@ -3143,4 +3144,45 @@ input[type="text"].schematic-cell-editor:focus,
     border-bottom: 1px solid var(--panel-border);
   }
 
+}
+
+/* Pływający przycisk kasowania zaznaczonych na planszy */
+.workspace-floating-delete-btn {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  background: var(--bg-panel);
+  padding: 4px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  border: 1px solid var(--border-color);
+}
+.workspace-floating-delete-btn button {
+  width: auto;
+  padding: 0 16px;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--accent-red);
+}
+
+@media (max-width: 768px) {
+  .workspace-floating-delete-btn {
+    bottom: auto;
+    top: 16px;
+    left: auto;
+    right: 16px;
+    transform: none;
+    padding: 2px;
+    border-radius: 99px;
+  }
+  .workspace-floating-delete-btn button {
+    padding: 8px;
+    gap: 0;
+  }
+  .workspace-floating-delete-btn .delete-label {
+    display: none;
+  }
 }

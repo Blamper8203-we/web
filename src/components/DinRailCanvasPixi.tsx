@@ -1089,16 +1089,15 @@ export function DinRailCanvas({
       />
 
       {rail.isVisible && selectedIds.size > 0 && onDeleteSelected && (
-        <div style={{ position: "absolute", bottom: 24, left: "50%", transform: "translateX(-50%)", zIndex: 100, display: "flex", background: "var(--bg-panel)", padding: "4px", borderRadius: "8px", boxShadow: "0 4px 12px rgba(0,0,0,0.5)", border: "1px solid var(--border-color)" }}>
+        <div className="workspace-floating-delete-btn">
           <button
             type="button"
             className="workspace-tool-btn"
             onClick={onDeleteSelected}
             title="Usuń zaznaczone (Delete)"
-            style={{ width: "auto", padding: "0 16px", gap: "8px", fontWeight: 600, color: "var(--accent-red)" }}
           >
             <AppIcon name="delete" size={16} />
-            Usuń zaznaczone ({selectedIds.size})
+            <span className="delete-label">Usuń zaznaczone ({selectedIds.size})</span>
           </button>
         </div>
       )}
