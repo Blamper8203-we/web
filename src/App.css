@@ -1897,14 +1897,17 @@ button:focus-visible {
 .din-rail-symbol-preview::after {
   content: "";
   position: absolute;
-  inset: -1px;
-  border: 2px solid var(--accent-primary);
-  border-radius: 3px;
-  box-shadow: 0 0 5px rgba(47, 128, 237, 0.4);
-  background: rgba(47, 128, 237, 0.04);
+  inset: -4px;
+  border: 3px solid #0D79F2;
+  border-radius: 6px;
+  box-shadow: 
+    0 0 0 1px rgba(0, 0, 0, 0.6),
+    0 0 12px rgba(13, 121, 242, 0.45),
+    inset 0 0 8px rgba(13, 121, 242, 0.2);
+  background: rgba(0, 0, 0, 0.12);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.15s ease-in-out;
+  transition: opacity 0.15s ease-in-out, transform 0.15s;
 }
 
 .din-rail-symbol-preview.is-selected::after {
