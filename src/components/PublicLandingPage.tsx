@@ -17,10 +17,12 @@ export function PublicLandingPage({
       <section className="landing__hero">
         <div className="landing__hero-content">
           <p className="landing__eyebrow">DINBoard Web</p>
-          <h1>Dokumentacja powykonawcza instalacji elektrycznej</h1>
+          <h1 className="landing__title">
+            Projektowanie schematu instalacji elektrycznej
+          </h1>
           <p>
-            DINBoard wspiera elektryka przy wykonaniu rozdzielnicy, opisaniu obwodów,
-            sprawdzeniu instalacji i przygotowaniu dokumentacji odbiorczej PDF.
+            DINBoard wspiera elektryka przy wykonaniu rozdzielnicy, tworzeniu czytelnego schematu instalacji, 
+            sprawdzeniu obwodów i przygotowaniu dokumentacji odbiorczej PDF.
           </p>
 
           <div className="landing__warning">
@@ -91,8 +93,8 @@ export function PublicLandingPage({
         <h2 id="seo-heading" className="landing__seo-title">Aplikacja dla elektryków – Wszystko, czego potrzebujesz do projektowania</h2>
         
         <div className="seo-block">
-          <h3>Projektowanie rozdzielnic</h3>
-          <p>Tworzenie nowoczesnych tablic bezpiecznikowych jeszcze nigdy nie było tak proste. Narzędzie pozwala na wizualne projektowanie rozdzielnic w oparciu o szyny DIN, swobodne przenoszenie aparatury modułowej metodą przeciągnij-i-upuść oraz tworzenie grup. Dzięki wbudowanej bibliotece, elektryk jest w stanie w kilka minut zbudować pełną architekturę i dobrać wymiary dla skrzynek podtynkowych i natynkowych w dowolnym mieszkaniu.</p>
+          <h3>Projektowanie schematu instalacji elektrycznej i rozdzielnic</h3>
+          <p>Tworzenie nowoczesnych schematów instalacji i tablic bezpiecznikowych jeszcze nigdy nie było tak proste. Narzędzie pozwala na wizualne projektowanie schematu instalacji elektrycznej w oparciu o szyny DIN, swobodne przenoszenie aparatury modułowej metodą przeciągnij-i-upuść oraz tworzenie grup. Dzięki wbudowanej bibliotece, elektryk jest w stanie w kilka minut zbudować pełną architekturę i dobrać wymiary dla skrzynek podtynkowych i natynkowych w dowolnym mieszkaniu czy domu.</p>
         </div>
 
         <div className="seo-block">
@@ -116,6 +118,11 @@ export function PublicLandingPage({
           <div style={{ marginBottom: '40px', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '32px' }}>
             <h3 style={{ fontSize: '20px', color: '#fff', marginBottom: '16px' }}>Baza wiedzy</h3>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '12px' }}>
+              <li>
+                <a href="/blog/projektowanie-schematu-instalacji-elektrycznej/index.html" style={{ color: 'var(--accent-blue)', textDecoration: 'none', fontSize: '15px' }}>
+                  → Projektowanie schematu instalacji elektrycznej krok po kroku
+                </a>
+              </li>
               <li>
                 <a href="/blog/jak-obliczyc-bilans-mocy/index.html" style={{ color: 'var(--accent-blue)', textDecoration: 'none', fontSize: '15px' }}>
                   → Jak obliczyć bilans mocy w domu jednorodzinnym
