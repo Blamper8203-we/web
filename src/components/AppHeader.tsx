@@ -107,8 +107,8 @@ export function AppHeader({
   return (
     <header className={`toolbar-shell ${activeSheet === "sheet4" ? "toolbar-shell--compact" : ""}`}>
       <div className="toolbar-left">
-        <div className="flex items-center justify-center mr-3 ml-2 w-7 h-7 rounded overflow-hidden opacity-90 hover:opacity-100 transition-opacity cursor-default">
-          <img src="/favicon-192.png" alt="DinBoard Logo" className="w-full h-full object-contain" />
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginRight: "12px", marginLeft: "8px", width: "24px", height: "24px", borderRadius: "4px", overflow: "hidden", opacity: 0.9, cursor: "default" }}>
+          <img src="/favicon-192.png" alt="DinBoard Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
         </div>
         <div style={{ position: "relative" }} ref={fileMenuRef}>
           <button
