@@ -43,12 +43,20 @@ export function handleGlobalAppShortcut(
     return false;
   }
 
+  const key = event.key.toLowerCase();
+
+  // Home resets the viewport without requiring Ctrl/Meta.
+  if (key === "home") {
+    event.preventDefault();
+    handlers.resetSchematicViewport();
+    return true;
+  }
+
   const withCommand = event.ctrlKey || event.metaKey;
   if (!withCommand) {
     return false;
   }
 
-  const key = event.key.toLowerCase();
   if (key === "n") {
     event.preventDefault();
     handlers.newProject();
@@ -73,13 +81,7 @@ export function handleGlobalAppShortcut(
     return true;
   }
 
-  if (key === "0" && withCommand) {
-    event.preventDefault();
-    handlers.resetSchematicViewport();
-    return true;
-  }
-
-  if (key === "home") {
+  if (key === "0") {
     event.preventDefault();
     handlers.resetSchematicViewport();
     return true;

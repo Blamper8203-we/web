@@ -300,7 +300,7 @@ export function useSymbolActions({
       setSelectedSymbolId(nextActiveId);
       if (nextActiveId) setActiveRightTab('circuitEdit');
     },
-    [selectedSymbolIds, setActiveRightTab, setSelectedSymbolId, setSelectedSymbolIds, symbols],
+    [selectedSymbolIds, setActiveRightTab, setSelectedSymbolId, setSelectedSymbolIds],
   );
 
   const handleSymbolSelectionChange = useCallback(
