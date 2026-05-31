@@ -9,21 +9,6 @@
     var(--app-background);
 }
 
-.landing-sidebar {
-  display: none;
-  flex-shrink: 0;
-  width: 250px;
-  max-width: 250px;
-  padding: 64px 16px;
-}
-
-@media (min-width: 1250px) {
-  .landing-sidebar {
-    display: flex;
-    flex-direction: column;
-  }
-}
-
 .landing {
   width: 100%;
   max-width: 1000px;
