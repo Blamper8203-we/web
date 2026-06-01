@@ -1,3 +1,4 @@
+import { useMemo, useEffect, useRef } from "react";
 import type { RightTab } from "../lib/appHelpers";
 import { normalizeSimultaneityFactor } from "../lib/projectMetadata";
 import type { ValidationResult } from "../lib/validation/electricalValidationService";
@@ -8,6 +9,92 @@ import { AppIcon } from "./AppIcon";
 import { CircuitEditPanel } from "./CircuitEditPanel";
 import { PowerBalancePage, type BalanceApplyHandler, type PhaseMoveApplyHandler } from "./PowerBalancePage";
 import { ValidationPanel } from "./ValidationPanel";
+import { buildSchematicLayout } from "../lib/schematic/schematicLayoutEngine";
+import type { SheetType } from "../lib/appHelpers";
+import { renderSchematic } from "../lib/schematic/schematicRenderer";
+import { A4_WIDTH_PX, A4_HEIGHT_PX } from "../lib/schematic/schematicLayout";
+import type { PageInfo, SchematicLayout } from "../lib/schematic/schematicLayout";
+
+function SchematicPageThumbnail({
+  page,
+  layout,
+  metadata,
+  onScrollToPage,
+}: {
+  page: PageInfo;
+  layout: SchematicLayout;
+  metadata?: ProjectMetadata;
+  onScrollToPage?: (index: number) => void;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const thumbWidth = 100;
+    const scale = thumbWidth / A4_WIDTH_PX;
+    const thumbHeight = A4_HEIGHT_PX * scale;
+
+    canvas.width = thumbWidth;
+    canvas.height = thumbHeight;
+    canvas.style.width = `${thumbWidth}px`;
+    canvas.style.height = `${thumbHeight}px`;
+
+    ctx.clearRect(0, 0, thumbWidth, thumbHeight);
+
+    renderSchematic(ctx, layout, {
+      canvasWidth: thumbWidth,
+      canvasHeight: thumbHeight,
+      zoom: scale,
+      panX: 0,
+      panY: -page.offsetY * scale,
+      activePageIndex: page.pageIndex,
+      metadata,
+    });
+  }, [page, layout, metadata]);
+
+  return (
+    <div
+      onClick={() => onScrollToPage?.(page.pageIndex)}
+      style={{
+        cursor: "pointer",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "8px",
+      }}
+    >
+      <canvas
+        ref={canvasRef}
+        style={{
+          border: "1px solid #475569",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+          backgroundColor: "#fff",
+        }}
+      />
+      <span style={{ color: "#fff", fontSize: "13px", fontWeight: 500 }}>
+        {page.pageIndex + 1}
+      </span>
+    </div>
+  );
+}
+
+function SchematicPagesList({ symbols, metadata, onScrollToPage }: { symbols: SymbolItem[], metadata?: ProjectMetadata, onScrollToPage?: (index: number) => void }) {
+  const layout = useMemo(() => buildSchematicLayout(symbols), [symbols]);
+  
+  if (layout.pages.length === 0) return null;
+
+  return (
+    <div className="pdf-right-panel-nav" style={{ padding: '16px 8px', display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center', overflowY: 'auto', height: '100%' }}>
+      {layout.pages.map((page, idx) => (
+        <SchematicPageThumbnail key={idx} page={page} layout={layout} metadata={metadata} onScrollToPage={onScrollToPage} />
+      ))}
+    </div>
+  );
+}
 
 const MAIN_BREAKER_VALUES = [25, 32, 40, 63, 80, 100, 125] as const;
 
@@ -16,6 +103,7 @@ function toMainBreakerValue(value: number): ProjectMetadata["mainBreakerA"] | nu
 }
 
 export interface AppRightPanelProps {
+  activeSheet: SheetType;
   showRightPanel: boolean;
   activeRightTab: RightTab;
   setActiveRightTab: (tab: RightTab) => void;
@@ -34,9 +122,11 @@ export interface AppRightPanelProps {
   metadata: ProjectMetadata;
   handleMetadataChange: (nextMetadata: ProjectMetadata) => void;
   handleOpenRcdManager: () => void;
+  onScrollToSchematicPage?: (pageIndex: number) => void;
 }
 
 export function AppRightPanel({
+  activeSheet,
   showRightPanel,
   activeRightTab,
   setActiveRightTab,
@@ -55,6 +145,7 @@ export function AppRightPanel({
   metadata,
   handleMetadataChange,
   handleOpenRcdManager,
+  onScrollToSchematicPage,
 }: AppRightPanelProps) {
   if (!showRightPanel) {
     return null;
@@ -81,7 +172,9 @@ export function AppRightPanel({
               <span>Edycja</span>
             </button>
           </div>
-        <div className="right-panel-content">
+        <div className="right-panel-content" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <div style={{ flex: activeSheet === "sheet2" ? "1 1 50%" : "1 1 100%", overflowY: "auto", position: "relative" }}>
+
           {activeRightTab === "balance" && (
             <PowerBalancePage
               symbols={symbols}
@@ -200,6 +293,12 @@ export function AppRightPanel({
                   <AppIcon name="cog" size={14} /><span>Zarządzaj RCD</span>
                 </button>
               </section>
+            </div>
+          )}
+          </div>
+          {activeSheet === "sheet2" && (
+            <div style={{ flex: "1 1 50%", borderTop: "1px solid #2e3238", overflowY: "auto", background: "#0B0B0D" }}>
+              <SchematicPagesList symbols={symbols} metadata={metadata} onScrollToPage={onScrollToSchematicPage} />
             </div>
           )}
         </div>

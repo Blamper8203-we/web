@@ -44,6 +44,7 @@ interface AppWorkspaceCanvasProps {
   circuitRows: CircuitRow[];
   metadata?: ProjectMetadata;
   schematicViewportResetRequest: number;
+  schematicScrollToPageRequest?: { pageIndex: number; timestamp: number } | null;
 }
 
 export function AppWorkspaceCanvas({
@@ -71,6 +72,7 @@ export function AppWorkspaceCanvas({
   circuitRows,
   metadata,
   schematicViewportResetRequest,
+  schematicScrollToPageRequest,
 }: AppWorkspaceCanvasProps) {
   return (
     <div className="canvas-area">
@@ -133,6 +135,7 @@ export function AppWorkspaceCanvas({
             selectedSymbolIds={selectedSymbolIds}
             metadata={metadata}
             resetRequest={schematicViewportResetRequest}
+            scrollToPageRequest={schematicScrollToPageRequest}
           />
         </div>
       )}

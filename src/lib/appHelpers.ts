@@ -16,7 +16,7 @@ import {
 import { AppIconName } from '../components/AppIcon';
 
 export type SheetType = "sheet1" | "sheet2" | "sheet3" | "sheet4";
-export type RightTab = "config" | "balance" | "validation" | "circuitEdit";
+export type RightTab = "config" | "balance" | "validation" | "circuitEdit" | "pages";
 
 export type { PaletteTemplate };
 

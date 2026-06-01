@@ -15,6 +15,21 @@ export function PublicLandingPage({
 }) {
 
   const [isReady, setIsReady] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const SLIDER_IMAGES = [
+    "/assets/desktop-app.png",
+    "/assets/image2.png",
+    "/assets/image3.png",
+    "/assets/image4.png",
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % SLIDER_IMAGES.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Wstrzykiwanie bezpiecznego Tailwinda bez Preflighta (tylko w obszarze Landingu)
   useEffect(() => {
@@ -273,8 +288,30 @@ export function PublicLandingPage({
                   <p className="text-sm text-gray-400 m-0">Zobacz, jak zaprojektowaliśmy przestrzeń roboczą programu DinBoard pod kątem szybkiej i wygodnej pracy instalatora.</p>
               </div>
 
-              <div className="rounded-2xl overflow-hidden shadow-2xl border border-slate-800/80 bg-slate-900">
-                  <img src="/assets/desktop-app.png" alt="Zrzut ekranu aplikacji DinBoard" draggable={false} className="w-full h-auto block pointer-events-none select-none" />
+              <div className="rounded-2xl overflow-hidden shadow-2xl border border-slate-800/80 bg-slate-900 relative aspect-[16/9]">
+                  {SLIDER_IMAGES.map((src, index) => (
+                      <img
+                          key={src}
+                          src={src}
+                          alt={`Zrzut ekranu aplikacji DinBoard ${index + 1}`}
+                          draggable={false}
+                          className={`absolute inset-0 w-full h-full object-cover pointer-events-none select-none transition-opacity duration-1000 ease-in-out ${
+                              index === currentSlide ? "opacity-100" : "opacity-0"
+                          }`}
+                      />
+                  ))}
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10 pointer-events-auto">
+                      {SLIDER_IMAGES.map((_, index) => (
+                          <button
+                              key={index}
+                              onClick={() => setCurrentSlide(index)}
+                              className={`h-2 rounded-full transition-all duration-300 ${
+                                  index === currentSlide ? "bg-blue-500 w-6" : "bg-white/30 hover:bg-white/50 w-2"
+                              }`}
+                              aria-label={`Przejdź do slajdu ${index + 1}`}
+                          />
+                      ))}
+                  </div>
               </div>
           </div>
       </section>

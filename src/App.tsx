@@ -135,6 +135,11 @@ function AppWorkspace({
   const [pdfPreviewTab, setPdfPreviewTab] = useState<PdfDocumentationPreviewTab>("title-page");
   const [, startPdfTabTransition] = useTransition();
   const [schematicViewportResetRequest, setSchematicViewportResetRequest] = useState(0);
+  const [schematicScrollToPageRequest, setSchematicScrollToPageRequest] = useState<{ pageIndex: number; timestamp: number } | null>(null);
+
+  const handleScrollToSchematicPage = useCallback((pageIndex: number) => {
+    setSchematicScrollToPageRequest({ pageIndex, timestamp: Date.now() });
+  }, []);
 
   const showTemporaryStatus = useCallback((message: string, timeoutMs = 3500) => {
     setSaveStatus(message);
@@ -625,9 +630,11 @@ function AppWorkspace({
               circuitRows={circuitRows}
               metadata={metadata}
               schematicViewportResetRequest={schematicViewportResetRequest}
+              schematicScrollToPageRequest={schematicScrollToPageRequest}
             />
 
             <AppRightPanel
+              activeSheet={activeSheet}
               showRightPanel={showRightPanel}
               activeRightTab={activeRightTab}
               setActiveRightTab={setActiveRightTab}
@@ -650,6 +657,7 @@ function AppWorkspace({
               metadata={metadata}
               handleMetadataChange={handleMetadataChange}
               handleOpenRcdManager={handleOpenRcdManager}
+              onScrollToSchematicPage={handleScrollToSchematicPage}
             />
           </>
         )}

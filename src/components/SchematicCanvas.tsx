@@ -36,6 +36,7 @@ interface SchematicCanvasProps {
   onZoomChange?: (zoomPercent: number) => void;
   metadata?: ProjectMetadata;
   resetRequest?: number;
+  scrollToPageRequest?: { pageIndex: number; timestamp: number } | null;
 }
 
 interface EditingCell {
@@ -60,6 +61,7 @@ export function SchematicCanvas({
   onZoomChange,
   metadata,
   resetRequest = 0,
+  scrollToPageRequest = null,
 }: SchematicCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const editorRef = useRef<HTMLInputElement>(null);
@@ -113,6 +115,17 @@ export function SchematicCanvas({
       resetView();
     }
   }, [resetRequest, resetView]);
+
+  useEffect(() => {
+    if (scrollToPageRequest && layout) {
+      const page = layout.pages.find((p) => p.pageIndex === scrollToPageRequest.pageIndex);
+      if (page && canvasRef.current) {
+        const targetPanY = -page.offsetY * viewport.zoom + 30; // 30px padding
+        animateViewport({ panX: viewport.panX, panY: targetPanY, zoom: viewport.zoom }, 400);
+      }
+    }
+  }, [scrollToPageRequest, layout, animateViewport]);
+  
   const [isPanning, setIsPanning] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isDropTarget, setIsDropTarget] = useState(false);
