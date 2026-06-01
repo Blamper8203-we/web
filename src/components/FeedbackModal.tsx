@@ -9,7 +9,6 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
   const [type, setType] = useState("Błąd");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
-  const [plikZdjecia, setPlikZdjecia] = useState<File | null>(null);
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -17,21 +16,20 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
     setStatus("submitting");
     
     try {
-      const formPayload = new FormData();
-      formPayload.set("access_key", "128e7269-2a2d-43ec-8c77-dda324386556");
-      formPayload.set("subject", `[DINBoard] Zgłoszenie: ${type}`);
-      formPayload.set("from_name", "DINBoard Użytkownik");
-      formPayload.set("email", email || "anonim@dinboard.pl");
-      formPayload.set("message", message);
-      formPayload.set("type", type);
-      
-      if (plikZdjecia) {
-        formPayload.set("attachment", plikZdjecia);
-      }
-
       const response = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
-        body: formPayload,
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          access_key: "128e7269-2a2d-43ec-8c77-dda324386556",
+          subject: `[DINBoard] Zgłoszenie: ${type}`,
+          from_name: "DINBoard Użytkownik",
+          email: email || "anonim@dinboard.pl",
+          message: message,
+          type: type,
+        }),
       });
       const result = await response.json();
       if (result.success) {
@@ -90,59 +88,6 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
                 value={message}
                 onChange={e => setMessage(e.target.value)}
               />
-            </div>
-
-            <div className="feedback-modal-field">
-              <label>Załącznik (np. zrzut ekranu)</label>
-              <div className="feedback-modal-file-upload">
-                <input 
-                  type="file" 
-                  accept="image/png, image/jpeg, image/webp"
-                  onChange={e => {
-                    if (e.target.files && e.target.files.length > 0) {
-                      setPlikZdjecia(e.target.files[0]);
-                    } else {
-                      setPlikZdjecia(null);
-                    }
-                  }}
-                  id="feedback-attachment"
-                  className="pd-hidden-input"
-                  style={{ display: "none" }}
-                />
-                <label htmlFor="feedback-attachment" className="feedback-file-btn" style={{ 
-                  display: "inline-flex", 
-                  alignItems: "center", 
-                  gap: "8px", 
-                  background: "var(--surface-secondary, #14171d)", 
-                  border: "1px dashed var(--surface-border, #2c313c)",
-                  padding: "10px 14px",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  fontSize: "13px",
-                  color: plikZdjecia ? "#fff" : "#9a9faa"
-                }}>
-                  <span style={{ fontSize: "16px" }}>📷</span>
-                  {plikZdjecia ? plikZdjecia.name : "Wybierz plik ze zdjęciem"}
-                </label>
-                {plikZdjecia && (
-                  <button 
-                    type="button" 
-                    onClick={() => setPlikZdjecia(null)} 
-                    title="Usuń załącznik"
-                    style={{
-                      background: "transparent",
-                      border: "none",
-                      color: "#e74c3c",
-                      cursor: "pointer",
-                      padding: "8px",
-                      marginLeft: "8px",
-                      fontSize: "14px"
-                    }}
-                  >
-                    Usuń
-                  </button>
-                )}
-              </div>
             </div>
             
             {status === "error" && (
