@@ -274,7 +274,7 @@ export function PublicLandingPage({
               </div>
 
               <div className="rounded-2xl overflow-hidden shadow-2xl border border-slate-800/80 bg-slate-900">
-                  <img src="/assets/desktop-app.png" alt="Zrzut ekranu aplikacji DinBoard" className="w-full h-auto block" />
+                  <img src="/assets/desktop-app.png" alt="Zrzut ekranu aplikacji DinBoard" draggable={false} className="w-full h-auto block pointer-events-none select-none" />
               </div>
           </div>
       </section>
