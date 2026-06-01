@@ -172,8 +172,8 @@ export function AppRightPanel({
               <span>Edycja</span>
             </button>
           </div>
-        <div className="right-panel-content" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <div style={{ flex: activeSheet === "sheet2" ? "1 1 50%" : "1 1 100%", overflowY: "auto", position: "relative" }}>
+        <div className="right-panel-content" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: activeSheet === "sheet2" ? 0 : undefined, overflowY: activeSheet === "sheet2" ? "hidden" : "auto" }}>
+          <div style={{ flex: activeSheet === "sheet2" ? "1 1 50%" : "1 1 100%", overflowY: activeSheet === "sheet2" ? "auto" : "visible", position: "relative", padding: activeSheet === "sheet2" ? "10px 12px 12px" : 0 }}>
 
           {activeRightTab === "balance" && (
             <PowerBalancePage

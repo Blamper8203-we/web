@@ -97,17 +97,21 @@
 }
 
 *::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
+  width: 8px;
+  height: 8px;
 }
+
 *::-webkit-scrollbar-track {
   background: var(--scrollbar-track);
 }
+
 *::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
-  border-radius: 6px;
-  border: 3px solid var(--scrollbar-track);
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
 }
+
 *::-webkit-scrollbar-thumb:hover {
   background: var(--scrollbar-thumb-hover);
   background-clip: padding-box;
@@ -841,8 +845,10 @@ body {
 
 .right-panel-content {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  overflow-x: hidden;
+  padding: 10px 12px 12px;
+  margin-top: 0;
   display: flex;
   flex-direction: column;
   position: relative;

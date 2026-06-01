@@ -801,13 +801,13 @@ function CustomScrollbars({
       {showY && (
         <div style={{
           position: "absolute", right: 2, top: 0, bottom: showX ? 14 : 0, width: 10,
-          background: "rgba(0,0,0,0.05)", borderRadius: 5, zIndex: 10, touchAction: "none"
+          background: "transparent", borderRadius: 5, zIndex: 10, touchAction: "none"
         }}>
           <div 
             onPointerDown={(e) => handlePointerDown(e, "y")}
             style={{
               position: "absolute", top: thumbY, width: "100%", height: thumbHeight,
-              background: "rgba(0,0,0,0.3)", borderRadius: 5, cursor: "pointer"
+              background: "var(--scrollbar-thumb)", borderRadius: 5, cursor: "pointer"
             }} 
           />
         </div>
@@ -815,13 +815,13 @@ function CustomScrollbars({
       {showX && (
         <div style={{
           position: "absolute", left: 0, bottom: 2, right: showY ? 14 : 0, height: 10,
-          background: "rgba(0,0,0,0.05)", borderRadius: 5, zIndex: 10, touchAction: "none"
+          background: "transparent", borderRadius: 5, zIndex: 10, touchAction: "none"
         }}>
           <div 
             onPointerDown={(e) => handlePointerDown(e, "x")}
             style={{
               position: "absolute", left: thumbX, height: "100%", width: thumbWidth,
-              background: "rgba(0,0,0,0.3)", borderRadius: 5, cursor: "pointer"
+              background: "var(--scrollbar-thumb)", borderRadius: 5, cursor: "pointer"
             }} 
           />
         </div>
