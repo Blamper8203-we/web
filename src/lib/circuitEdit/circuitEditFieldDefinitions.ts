@@ -20,6 +20,7 @@ type ModuleType =
   | "phaseIndicator"
   | "distributionBlock"
   | "socket"
+  | "networkSwitch"
   | "other";
 
 type ModulePoleCount = 0 | 1 | 2 | 3 | 4;
@@ -57,6 +58,7 @@ const SPD_PRESETS = [
 ];
 
 const FR_PRESETS = ["32", "40", "63", "100"];
+const NETWORK_SWITCH_PRESETS = ["40A", "63A", "80A", "100A", "125A"];
 
 const PHASE_INDICATOR_MODEL_PRESETS = [
   "3 lampki z bezpiecznikiem",
@@ -116,6 +118,8 @@ export function getCircuitEditFields(symbol: SymbolItem, symbols?: SymbolItem[])
   switch (moduleType) {
     case "switch":
       return createFrFields(symbol);
+    case "networkSwitch":
+      return createNetworkSwitchFields(symbol);
     case "phaseIndicator":
       return createPhaseIndicatorFields(symbol);
     case "rcd":
@@ -137,6 +141,14 @@ export function getCircuitEditHeader(symbol: SymbolItem): {
   const moduleType = getModuleType(symbol);
 
   switch (moduleType) {
+    case "networkSwitch":
+      return {
+        title: symbol.referenceDesignation
+          ? `${symbol.referenceDesignation} - ${symbol.label || "Przełącznik sieci"}`
+          : symbol.label || "Przełącznik sieci",
+        subtitle: "Przełącznik zasilania (I-0-II)",
+        tone: "blue",
+      };
     case "switch":
       return {
         title: symbol.label || "Rozłącznik główny",
@@ -273,6 +285,14 @@ function createFrFields(symbol: SymbolItem): CircuitEditFieldDefinition[] {
   ];
 }
 
+function createNetworkSwitchFields(symbol: SymbolItem): CircuitEditFieldDefinition[] {
+  return [
+    textField("ReferenceDesignation", "Oznaczenie", symbol.referenceDesignation),
+    textField("Label", "Etykieta", symbol.label),
+    comboField("FrRatedCurrent", "Prąd znamionowy", symbol.frRatedCurrent || "40A", NETWORK_SWITCH_PRESETS),
+  ];
+}
+
 function createPhaseIndicatorFields(symbol: SymbolItem): CircuitEditFieldDefinition[] {
   return [
     textField("ReferenceDesignation", "Oznaczenie", symbol.referenceDesignation),
@@ -372,6 +392,7 @@ function getModuleType(symbol: SymbolItem): ModuleType {
     return "distributionBlock";
   }
   if (value.includes("gniazdo") || value.includes("socket")) return "socket";
+  if (value.includes("przelacznik") && value.includes("siec")) return "networkSwitch";
   return symbol.type ? "other" : "unknown";
 }
 

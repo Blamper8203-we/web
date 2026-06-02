@@ -151,9 +151,13 @@ export async function loadPreparedSvgMarkup(
     ? decodeSvgDataUri(src)
     : await loadRawSvg(src);
   const parameterizedSvg = applyParameters(rawSvg, parameters);
-  const preparedSvg = shouldNormalizeSvgSource(src)
+  
+  const dynamicRatingText = parameters["_DYNAMIC_RATING_"];
+  
+  const preparedSvg = (shouldNormalizeSvgSource(src) || dynamicRatingText)
     ? normalizeSvgMarkup(parameterizedSvg, {
         normalizeStrokeWidths: false,
+        dynamicRatingText: dynamicRatingText,
       })
     : parameterizedSvg;
   preparedSvgMarkupCache.set(cacheKey, preparedSvg);

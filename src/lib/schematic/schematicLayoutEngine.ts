@@ -20,7 +20,13 @@ import {
   Y_FR,
   Y_MAIN_BUS,
   Y_MAIN_DEVICE,
+  Y_TOP_SWITCH,
   Y_MCB,
+  Y_FR_WITH_TOP,
+  Y_MAIN_BUS_WITH_TOP,
+  Y_MAIN_DEVICE_WITH_TOP,
+  Y_TOP_SWITCH_WITH_TOP,
+  Y_MCB_WITH_TOP,
 } from "./schematicLayout";
 
 type ModulePoleCount = 0 | 1 | 2 | 3 | 4;
@@ -73,23 +79,27 @@ function buildNodes(symbols: SymbolItem[]): BuildResult {
       return (symbolIndices.get(a.id) ?? 0) - (symbolIndices.get(b.id) ?? 0);
     });
 
-  const frIndex = standalone.findIndex((symbol) => getModuleType(symbol) === "MainBreaker");
+  const frIndex = standalone.findIndex((symbol) => getModuleType(symbol) === "MainBreaker" && !isNetworkSwitch(symbol));
   const fr = frIndex >= 0 ? standalone.splice(frIndex, 1)[0] : null;
   const standaloneRcd = standalone.filter(isRcd);
   const standaloneSpd = standalone.filter(isSpd);
   const standaloneKf = standalone.filter(isKf);
-  const standaloneMcb = standalone.filter((symbol) => !isRcd(symbol) && !isSpd(symbol) && !isKf(symbol));
+  const standaloneNetworkSwitches = standalone.filter(isNetworkSwitch);
+  const standaloneMcb = standalone.filter((symbol) => !isRcd(symbol) && !isSpd(symbol) && !isKf(symbol) && !isNetworkSwitch(symbol));
 
   let q = 1;
   let fa = 1;
   let h = 1;
   let w = 1;
+  let ws = 1;
   let standaloneMcbIdx = 1;
   let phaseIdx = 0;
   let rcdPhaseIdx = 0;
 
   const mainDevices: SchematicNode[] = [];
   const circuitDevices: SchematicNode[] = [];
+
+  const standaloneTopSwitch = standaloneNetworkSwitches.length > 0 ? standaloneNetworkSwitches.splice(0, 1)[0] : undefined;
 
   if (fr) {
     mainDevices.push(
@@ -99,16 +109,24 @@ function buildNodes(symbols: SymbolItem[]): BuildResult {
         circuitName: fr.circuitName || "Zasilanie główne",
         phase: fr.phase || "L1+L2+L3",
         phaseCount: detectPhases(fr),
+        topDevice: standaloneTopSwitch ? createNode(standaloneTopSwitch, "MainBreaker", {
+          designation: resolveDesignation(standaloneTopSwitch, `WS${ws++}`),
+          protection: standaloneTopSwitch.label || "Przełącznik sieci",
+          phase: standaloneTopSwitch.phase || "L1+L2+L3",
+          phaseCount: detectPhases(standaloneTopSwitch)
+        }) : undefined,
       }),
     );
+  } else if (standaloneTopSwitch) {
+    standaloneNetworkSwitches.unshift(standaloneTopSwitch);
   }
 
   for (const kf of standaloneKf) {
-    mainDevices.push(makeKf(kf, h++));
+    mainDevices.push(createNode(kf, "PhaseIndicator", makeKf(kf, h++)));
   }
 
   for (const spd of standaloneSpd) {
-    mainDevices.push(makeSpd(spd, fa++));
+    mainDevices.push(createNode(spd, "SPD", makeSpd(spd, fa++)));
   }
 
   for (const rcd of standaloneRcd) {
@@ -136,6 +154,7 @@ function buildNodes(symbols: SymbolItem[]): BuildResult {
     const headDevice = findGroupHead(modules);
     const groupSpds = modules.filter(isSpd);
     const groupKfs = modules.filter(isKf);
+    const groupNetworkSwitches = modules.filter((symbol) => (!headDevice || symbol.id !== headDevice.id) && isNetworkSwitch(symbol));
     const mcbs = modules
       .filter((symbol) => !headDevice || symbol.id !== headDevice.id)
       .filter(
@@ -145,6 +164,7 @@ function buildNodes(symbols: SymbolItem[]): BuildResult {
           !isDistributionBlock(symbol) &&
           !isKf(symbol) &&
           !isAuxiliaryNonCircuitSymbol(symbol) &&
+          !isNetworkSwitch(symbol) &&
           getModuleType(symbol) !== "MainBreaker",
       )
       .sort((a, b) => {
@@ -159,6 +179,18 @@ function buildNodes(symbols: SymbolItem[]): BuildResult {
     if (!headDevice) {
       for (const spd of groupSpds) {
         mainDevices.push(makeSpd(spd, fa++));
+      }
+
+      for (const sw of groupNetworkSwitches) {
+        const autoDesignation = `WS${ws++}`;
+        mainDevices.push(
+          createNode(sw, "MainBreaker", {
+            designation: resolveDesignation(sw, autoDesignation),
+            protection: sw.label || "Przełącznik sieci",
+            phase: sw.phase || "L1+L2+L3",
+            phaseCount: detectPhases(sw),
+          }),
+        );
       }
 
       let noRcdIdx = 1;
@@ -212,11 +244,34 @@ function buildNodes(symbols: SymbolItem[]): BuildResult {
     const autoHeadDesignation = isRcdHead ? `Q${q++}` : `QS${q++}`;
     const headDesignation = resolveDesignation(headDevice, autoHeadDesignation);
     const qNumber = resolveHeadCircuitNumber(headDesignation, autoHeadDesignation);
+    const groupTopSwitch = groupNetworkSwitches.length > 0 ? groupNetworkSwitches.splice(0, 1)[0] : undefined;
+
     const children: SchematicNode[] = [
-      ...groupSpds.map((spd) => makeSpd(spd, fa++)),
-      ...groupKfs.map((kf) => makeKf(kf, h++)),
+      ...(groupTopSwitch ? [] : groupSpds.map((spd) => makeSpd(spd, fa++))),
+      ...(groupTopSwitch ? [] : groupKfs.map((kf) => makeKf(kf, h++))),
       ...mcbs.map((mcb, index) => makeMcb(mcb, `F${qNumber}.${index + 1}`, w++)),
     ];
+
+    if (groupTopSwitch) {
+      for (const spd of groupSpds) {
+        mainDevices.push(createNode(spd, "SPD", makeSpd(spd, fa++)));
+      }
+      for (const kf of groupKfs) {
+        mainDevices.push(createNode(kf, "PhaseIndicator", makeKf(kf, h++)));
+      }
+    }
+
+    for (const sw of groupNetworkSwitches) {
+      const autoDesignation = `WS${ws++}`;
+      mainDevices.push(
+        createNode(sw, "MainBreaker", {
+          designation: resolveDesignation(sw, autoDesignation),
+          protection: sw.label || "Przełącznik sieci",
+          phase: sw.phase || "L1+L2+L3",
+          phaseCount: detectPhases(sw),
+        }),
+      );
+    }
 
     assignChildrenPhase(children, assignedPhase, isThreePhaseHead, poleCountMap);
 
@@ -225,6 +280,12 @@ function buildNodes(symbols: SymbolItem[]): BuildResult {
       protection: createHeadProtection(headDevice, isRcdHead, isThreePhaseHead),
       phase: assignedPhase,
       phaseCount: isThreePhaseHead ? 3 : detectPhaseText(assignedPhase),
+      topDevice: groupTopSwitch ? createNode(groupTopSwitch, "MainBreaker", {
+        designation: resolveDesignation(groupTopSwitch, `WS${ws++}`),
+        protection: groupTopSwitch.label || "Przełącznik sieci",
+        phase: groupTopSwitch.phase || "L1+L2+L3",
+        phaseCount: detectPhases(groupTopSwitch)
+      }) : undefined,
     });
 
     const maxChildrenPerHeadChunk = isRcdHead
@@ -259,6 +320,18 @@ function buildNodes(symbols: SymbolItem[]): BuildResult {
         circuitDevices.push(chunkNode);
       }
     }
+  }
+
+  for (const sw of standaloneNetworkSwitches) {
+    const autoDesignation = `WS${ws++}`;
+    mainDevices.push(
+      createNode(sw, "MainBreaker", {
+        designation: resolveDesignation(sw, autoDesignation),
+        protection: sw.label || "Przełącznik sieci",
+        phase: sw.phase || "L1+L2+L3",
+        phaseCount: detectPhases(sw),
+      }),
+    );
   }
 
   for (const mcb of standaloneMcb) {
@@ -353,18 +426,20 @@ function assignPagesAndPosition(mainDevices: SchematicNode[], circuitDevices: Sc
       offsetX = DRAW_LEFT + COLUMN_MARGIN_LEFT;
     }
 
+    const hasTopSwitch = pageDevices.some((device) => device.topDevice || device.topBusConnected);
     const pageInfo = createPageInfo(
       page,
       offsetX,
       yOffset,
       Math.max(DRAW_LEFT, offsetX - 16),
       Math.min(DRAW_RIGHT, offsetX + schematicWidth + 16),
+      hasTopSwitch,
     );
     pages.push(pageInfo);
 
     let currentX = offsetX;
     for (const device of pageDevices) {
-      positionDeviceOnPage(device, currentX, yOffset);
+      positionDeviceOnPage(device, currentX, yOffset, hasTopSwitch);
       currentX += device.cellWidth;
     }
   }
@@ -372,7 +447,18 @@ function assignPagesAndPosition(mainDevices: SchematicNode[], circuitDevices: Sc
   return pages.length > 0 ? pages : [createPageInfo(0, DRAW_LEFT + COLUMN_MARGIN_LEFT, 0, DRAW_LEFT, DRAW_RIGHT)];
 }
 
-function createPageInfo(pageIndex: number, offsetX: number, yOffset: number, busX1: number, busX2: number): PageInfo {
+function createPageInfo(
+  pageIndex: number,
+  offsetX: number,
+  yOffset: number,
+  busX1: number,
+  busX2: number,
+  hasTopSwitch = false,
+): PageInfo {
+  const mainBusY = hasTopSwitch ? Y_MAIN_BUS_WITH_TOP : Y_MAIN_BUS;
+  const mainDeviceY = hasTopSwitch ? Y_MAIN_DEVICE_WITH_TOP : Y_MAIN_DEVICE;
+  const mcbY = hasTopSwitch ? Y_MCB_WITH_TOP : Y_MCB;
+
   return {
     pageIndex,
     pageLabel: `Strona ${pageIndex + 1}`,
@@ -383,18 +469,18 @@ function createPageInfo(pageIndex: number, offsetX: number, yOffset: number, bus
     busX1,
     busX2,
     busbarX: busX1,
-    busbarY: yOffset + DRAW_TOP + Y_MAIN_BUS,
+    busbarY: yOffset + DRAW_TOP + mainBusY,
     dinRails: [
       {
         railIndex: 0,
-        y: DRAW_TOP + Y_MAIN_DEVICE,
+        y: DRAW_TOP + mainDeviceY,
         startX: busX1,
         endX: busX2,
         modulePositions: [],
       },
       {
         railIndex: 1,
-        y: DRAW_TOP + Y_MCB,
+        y: DRAW_TOP + mcbY,
         startX: busX1,
         endX: busX2,
         modulePositions: [],
@@ -416,10 +502,15 @@ function applyCellWidth(device: SchematicNode): void {
   device.cellWidth = estimateWidth(device);
 }
 
-function positionDeviceOnPage(node: SchematicNode, startX: number, yOffset: number): void {
+function positionDeviceOnPage(node: SchematicNode, startX: number, yOffset: number, hasTopSwitch = false): void {
   const yBase = yOffset + DRAW_TOP;
   const offsetQf = node.designation.startsWith("F") && !node.designation.startsWith("FA") ? 50 : 0;
   const isGroupedMainBreaker = shouldReserveHeadSlot(node);
+
+  const mainDeviceY = hasTopSwitch ? Y_MAIN_DEVICE_WITH_TOP : Y_MAIN_DEVICE;
+  const mcbY = hasTopSwitch ? Y_MCB_WITH_TOP : Y_MCB;
+  const frY = hasTopSwitch ? Y_FR_WITH_TOP : Y_FR;
+  const topSwitchY = hasTopSwitch ? Y_TOP_SWITCH_WITH_TOP : Y_TOP_SWITCH;
 
   if (node.children.length > 0) {
     const headWidth = isGroupedMainBreaker ? getHeadCellWidth(node) : 0;
@@ -431,16 +522,30 @@ function positionDeviceOnPage(node: SchematicNode, startX: number, yOffset: numb
     for (const child of node.children) {
       const childOffsetQf = child.designation.startsWith("F") && !child.designation.startsWith("FA") ? 20 : 0;
       child.x = childX + child.cellWidth / 2 - MODULE_WIDTH / 2;
-      child.y = yBase + Y_MCB - childOffsetQf;
+      child.y = yBase + mcbY - childOffsetQf;
       childX += child.cellWidth;
     }
 
-    node.y = yBase + (isGroupedMainBreaker ? Y_FR : Y_MAIN_DEVICE) - offsetQf;
+    node.y = yBase + (isGroupedMainBreaker ? frY : mainDeviceY) - offsetQf;
+    if (node.topDevice) {
+      node.topDevice.x = node.x;
+      node.topDevice.y = yBase + topSwitchY;
+    }
     return;
   }
 
   node.x = startX + node.cellWidth / 2 - MODULE_WIDTH / 2;
-  node.y = yBase + (node.nodeType === "MainBreaker" ? Y_FR : Y_MAIN_DEVICE) - offsetQf;
+
+  let targetY = mainDeviceY;
+  if (node.nodeType === "MainBreaker") {
+    targetY = frY;
+  }
+  node.y = yBase + targetY - offsetQf;
+
+  if (node.topDevice) {
+    node.topDevice.x = node.x;
+    node.topDevice.y = yBase + topSwitchY;
+  }
 }
 
 function createNode(
@@ -660,7 +765,8 @@ function getModuleType(symbol: SymbolItem): SchematicNode["nodeType"] {
     value.includes("switch") ||
     value.includes("rozlacznik") ||
     value.includes("rozłącznik") ||
-    value.includes("isolator")
+    value.includes("isolator") ||
+    value.includes("przelacznik")
   ) {
     return "MainBreaker";
   }
@@ -756,6 +862,11 @@ function hasExplicitThreePhaseRcdHint(symbol: SymbolItem): boolean {
   const value = getRcdIdentity(symbol);
   const poles = getExplicitRcdPoleHint(symbol);
   return poles === 3 || poles === 4 || value.includes("4P") || value.includes("3P");
+}
+
+function isNetworkSwitch(symbol: SymbolItem): boolean {
+  const value = getSchematicIdentity(symbol);
+  return value.includes("przelacznik") && value.includes("siec");
 }
 
 function isSpd(symbol: SymbolItem): boolean {

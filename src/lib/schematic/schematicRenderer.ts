@@ -23,6 +23,13 @@ import {
   Y_ROW_DESIGNATION,
   Y_SUPPLY,
   Y_WIRE_END,
+  Y_TOP_BUS_WITH_TOP,
+  Y_MAIN_BUS_WITH_TOP,
+  Y_GROUP_BUS_WITH_TOP,
+  Y_WIRE_END_WITH_TOP,
+  Y_LABEL_TOP_WITH_TOP,
+  Y_N_WITH_TOP,
+  Y_PE_WITH_TOP,
 } from "./schematicLayout";
 
 export interface SchematicRenderOptions {
@@ -151,25 +158,28 @@ function drawPageVectors(
     return;
   }
 
-  drawPathGuides(ctx, pageDevices, page);
+  const hasTopSwitch = pageDevices.some((node) => node.topDevice || node.topBusConnected);
+
+  drawPathGuides(ctx, pageDevices, page, hasTopSwitch);
 
   ctx.save();
   ctx.translate(0, SCHEMATIC_BODY_Y_OFFSET);
 
-  drawMainBus(ctx, page);
+  drawMainBus(ctx, page, hasTopSwitch);
+  drawTopBus(ctx, page, pageDevices);
 
   for (const device of pageDevices) {
-    drawDevice(ctx, device, page);
+    drawDevice(ctx, device, page, hasTopSwitch);
   }
 
-  drawNpe(ctx, page);
-  drawCableLabels(ctx, page, pageDevices);
+  drawNpe(ctx, page, hasTopSwitch);
+  drawCableLabels(ctx, page, pageDevices, hasTopSwitch);
 
   if (page.pageIndex < layout.pages.length - 1) {
-    drawContinuation(ctx, page, page.pageIndex + 2, true);
+    drawContinuation(ctx, page, page.pageIndex + 2, true, hasTopSwitch);
   }
   if (page.pageIndex > 0) {
-    drawContinuation(ctx, page, page.pageIndex, false);
+    drawContinuation(ctx, page, page.pageIndex, false, hasTopSwitch);
   }
 
   ctx.restore();
@@ -178,64 +188,103 @@ function drawPageVectors(
   drawLegend(ctx, page, pageDevices);
 }
 
-function drawMainBus(ctx: CanvasRenderingContext2D, page: PageInfo): void {
-  strokeLine(ctx, page.busX1, y(page, Y_MAIN_BUS), page.busX2, y(page, Y_MAIN_BUS), COLORS.bus, 3.5);
+function drawMainBus(ctx: CanvasRenderingContext2D, page: PageInfo, hasTopSwitch: boolean): void {
+  const mainBusY = hasTopSwitch ? Y_MAIN_BUS_WITH_TOP : Y_MAIN_BUS;
+  strokeLine(ctx, page.busX1, y(page, mainBusY), page.busX2, y(page, mainBusY), COLORS.bus, 3.5);
 }
 
-function drawNpe(ctx: CanvasRenderingContext2D, page: PageInfo): void {
-  strokeLine(ctx, page.busX1, y(page, Y_N), page.busX2, y(page, Y_N), COLORS.n, 1.4);
-  text(ctx, "N", page.busX1 - 16, y(page, Y_N) - 4, 9, COLORS.n, true);
+function drawTopBus(ctx: CanvasRenderingContext2D, page: PageInfo, pageDevices: SchematicNode[]): void {
+  const hasTopBus = pageDevices.some(node => node.topBusConnected);
+  if (!hasTopBus) return;
+
+  const connectedNodes = pageDevices.filter(node => node.topBusConnected || node.topDevice);
+  if (connectedNodes.length === 0) return;
+
+  const headNode = connectedNodes.find(n => n.topDevice);
+  if (!headNode) return;
+
+  const cxArr = connectedNodes.map(n => n.x + MODULE_WIDTH / 2);
+  cxArr.push(headNode.topDevice!.x + MODULE_WIDTH / 2);
+
+  const minX = Math.min(...cxArr);
+  const maxX = Math.max(...cxArr);
+  const busY = y(page, Y_TOP_BUS_WITH_TOP);
+
+  strokeLine(ctx, minX - 8, busY, maxX + 8, busY, COLORS.bus, 3.5);
+}
+
+function drawNpe(ctx: CanvasRenderingContext2D, page: PageInfo, hasTopSwitch: boolean): void {
+  const nY = hasTopSwitch ? Y_N_WITH_TOP : Y_N;
+  const peY = hasTopSwitch ? Y_PE_WITH_TOP : Y_PE;
+
+  strokeLine(ctx, page.busX1, y(page, nY), page.busX2, y(page, nY), COLORS.n, 1.4);
+  text(ctx, "N", page.busX1 - 16, y(page, nY) - 4, 9, COLORS.n, true);
 
   ctx.save();
   ctx.setLineDash([6, 3]);
-  strokeLine(ctx, page.busX1, y(page, Y_PE), page.busX2, y(page, Y_PE), COLORS.pe, 1.4);
+  strokeLine(ctx, page.busX1, y(page, peY), page.busX2, y(page, peY), COLORS.pe, 1.4);
   ctx.restore();
-  text(ctx, "PE", page.busX1 - 22, y(page, Y_PE) - 4, 9, COLORS.pe, true);
+  text(ctx, "PE", page.busX1 - 22, y(page, peY) - 4, 9, COLORS.pe, true);
 }
 
-function drawDevice(ctx: CanvasRenderingContext2D, node: SchematicNode, page: PageInfo): void {
+function drawDevice(ctx: CanvasRenderingContext2D, node: SchematicNode, page: PageInfo, hasTopSwitch = false): void {
   const cx = node.x + MODULE_WIDTH / 2;
-  const mainBusY = y(page, Y_MAIN_BUS);
+  const mainBusY = y(page, hasTopSwitch ? Y_MAIN_BUS_WITH_TOP : Y_MAIN_BUS);
 
   switch (node.nodeType) {
     case "MainBreaker":
       if (node.children.length > 0) {
-        drawGroupedMainBreaker(ctx, node, page);
+        drawGroupedMainBreaker(ctx, node, page, hasTopSwitch);
         return;
       }
 
-      drawFrSupplyConnection(ctx, page, cx, symbolTopY(node.y), node.phaseCount, node.phase);
-      symFr(ctx, cx, node.y + MODULE_HEIGHT / 2, COLORS.fr);
+      if (node.topDevice) {
+        drawFrSupplyConnection(ctx, page, cx, symbolTopY(node.topDevice.y), node.topDevice.phaseCount, node.topDevice.phase);
+        drawMainSwitch(ctx, cx, node.topDevice.y + MODULE_HEIGHT / 2, COLORS.fr, node.topDevice);
+        text(ctx, node.topDevice.designation, cx + 12, node.topDevice.y + 25, 9, COLORS.textDes, true);
+        textRight(ctx, node.topDevice.protection, cx - 18, node.topDevice.y + MODULE_HEIGHT / 2 + 5, 7.5, COLORS.textDim);
+        drawWireLine(ctx, cx, symbolBottomY(node.topDevice.y), symbolTopY(node.y), COLORS.wire, 1.8);
+        phaseMarks(ctx, cx, symbolBottomY(node.topDevice.y) + (symbolTopY(node.y) - symbolBottomY(node.topDevice.y)) / 2, node.topDevice.phaseCount, node.topDevice.phase);
+      } else {
+        drawFrSupplyConnection(ctx, page, cx, symbolTopY(node.y), node.phaseCount, node.phase);
+      }
+      
+      drawMainSwitch(ctx, cx, node.y + MODULE_HEIGHT / 2, COLORS.fr, node);
       text(ctx, node.designation, cx + 12, node.y + 25, 9, COLORS.textDes, true);
+      textRight(ctx, node.protection, cx - 18, node.y + MODULE_HEIGHT / 2 + 5, 7.5, COLORS.textDim);
       drawWireLine(ctx, cx, symbolBottomY(node.y), mainBusY, COLORS.wire, 1.2);
       phaseMarks(ctx, cx, symbolBottomY(node.y) + (mainBusY - symbolBottomY(node.y)) / 2, node.phaseCount, node.phase, true);
       drawDot(ctx, cx, mainBusY, COLORS.wire, 2.5);
       return;
 
-    case "PhaseIndicator":
-      wireDot(ctx, cx, mainBusY, symbolTopY(node.y));
-      phaseMarks(ctx, cx, mainBusY + (symbolTopY(node.y) - mainBusY) / 2, node.phaseCount, node.phase);
+    case "PhaseIndicator": {
+      const busY = node.topBusConnected ? y(page, Y_TOP_BUS_WITH_TOP) : mainBusY;
+      wireDot(ctx, cx, busY, symbolTopY(node.y));
+      phaseMarks(ctx, cx, busY + (symbolTopY(node.y) - busY) / 2, node.phaseCount, node.phase);
       symKf(ctx, cx, node.y + MODULE_HEIGHT / 2);
       text(ctx, node.designation, cx + 12, node.y + 25, 8.5, COLORS.textDes, true);
       textRight(ctx, node.protection, cx - 12, node.y + MODULE_HEIGHT / 2 + 5, 7.5, COLORS.textDim);
       return;
+    }
 
-    case "SPD":
-      wireDot(ctx, cx, mainBusY, symbolTopY(node.y));
-      phaseMarks(ctx, cx, mainBusY + (symbolTopY(node.y) - mainBusY) / 2, node.phaseCount, node.phase, true);
+    case "SPD": {
+      const busY = node.topBusConnected ? y(page, Y_TOP_BUS_WITH_TOP) : mainBusY;
+      wireDot(ctx, cx, busY, symbolTopY(node.y));
+      phaseMarks(ctx, cx, busY + (symbolTopY(node.y) - busY) / 2, node.phaseCount, node.phase, true);
       symSpd(ctx, cx, node.y + MODULE_HEIGHT / 2);
       text(ctx, node.designation, cx + 12, node.y + 25, 8.5, COLORS.textDes, true);
       textCenteredBox(ctx, node.protection, cx - 35, node.y + MODULE_HEIGHT + 24, 70, 7, COLORS.textDim);
       return;
+    }
 
     case "RCD":
-      drawRcd(ctx, node, page);
+      drawRcd(ctx, node, page, hasTopSwitch);
       return;
 
     case "MCB":
       wireDot(ctx, cx, mainBusY, symbolTopY(node.y));
       phaseMarks(ctx, cx, mainBusY + (symbolTopY(node.y) - mainBusY) / 2, node.phaseCount, node.phase);
-      drawMcb(ctx, node, node.y, page);
+      drawMcb(ctx, node, node.y, page, hasTopSwitch);
       return;
 
     case "Other":
@@ -243,12 +292,23 @@ function drawDevice(ctx: CanvasRenderingContext2D, node: SchematicNode, page: Pa
   }
 }
 
-function drawGroupedMainBreaker(ctx: CanvasRenderingContext2D, breaker: SchematicNode, page: PageInfo): void {
+function drawGroupedMainBreaker(ctx: CanvasRenderingContext2D, breaker: SchematicNode, page: PageInfo, hasTopSwitch = false): void {
   const cx = breaker.x + MODULE_WIDTH / 2;
   const displayPhase = (breaker.phaseCount === 1 && breaker.phase === "L1 L2 L3") ? "L1" : breaker.phase;
 
-  drawFrSupplyConnection(ctx, page, cx, symbolTopY(breaker.y), breaker.phaseCount, displayPhase);
-  symFr(ctx, cx, breaker.y + MODULE_HEIGHT / 2, COLORS.fr);
+  if (breaker.topDevice) {
+    const topDisplayPhase = (breaker.topDevice.phaseCount === 1 && breaker.topDevice.phase === "L1 L2 L3") ? "L1" : breaker.topDevice.phase;
+    drawFrSupplyConnection(ctx, page, cx, symbolTopY(breaker.topDevice.y), breaker.topDevice.phaseCount, topDisplayPhase);
+    drawMainSwitch(ctx, cx, breaker.topDevice.y + MODULE_HEIGHT / 2, COLORS.fr, breaker.topDevice);
+    text(ctx, breaker.topDevice.designation, cx + 12, breaker.topDevice.y + 25, 9, COLORS.textDes, true);
+    textRight(ctx, breaker.topDevice.protection, cx - 18, breaker.topDevice.y + MODULE_HEIGHT / 2 + 5, 7.5, COLORS.textDim);
+    drawWireLine(ctx, cx, symbolBottomY(breaker.topDevice.y), symbolTopY(breaker.y), COLORS.wire, 1.8);
+    phaseMarks(ctx, cx, symbolBottomY(breaker.topDevice.y) + (symbolTopY(breaker.y) - symbolBottomY(breaker.topDevice.y)) / 2, breaker.topDevice.phaseCount, topDisplayPhase);
+  } else {
+    drawFrSupplyConnection(ctx, page, cx, symbolTopY(breaker.y), breaker.phaseCount, displayPhase);
+  }
+
+  drawMainSwitch(ctx, cx, breaker.y + MODULE_HEIGHT / 2, COLORS.fr, breaker);
   text(ctx, breaker.designation, cx + 12, breaker.y + 25, 9, COLORS.textDes, true);
   textRight(ctx, breaker.protection, cx - 18, breaker.y + MODULE_HEIGHT / 2 + 5, 7.5, COLORS.textDim);
 
@@ -258,12 +318,13 @@ function drawGroupedMainBreaker(ctx: CanvasRenderingContext2D, breaker: Schemati
 
   const hasDistributionBlock = breaker.distributionBlockLabel.trim().length > 0;
   const useMainBusAsDistribution = breaker.phaseCount === 1;
-  const mainBusY = y(page, Y_MAIN_BUS);
+  const mainBusY = y(page, hasTopSwitch ? Y_MAIN_BUS_WITH_TOP : Y_MAIN_BUS);
+  const groupBusY = hasTopSwitch ? Y_GROUP_BUS_WITH_TOP : Y_GROUP_BUS;
   const groupY = useMainBusAsDistribution
     ? mainBusY
     : hasDistributionBlock
-      ? y(page, Y_GROUP_BUS + 22)
-      : y(page, Y_GROUP_BUS);
+      ? y(page, groupBusY + 22)
+      : y(page, groupBusY);
   const firstX = breaker.children[0].x + MODULE_WIDTH / 2;
   const lastX = breaker.children[breaker.children.length - 1].x + MODULE_WIDTH / 2;
 
@@ -313,9 +374,9 @@ function drawFrSupplyConnection(
   text(ctx, supplyLabel(phaseCount), cx - 38, labelY - 2, 8, COLORS.textDim);
 }
 
-function drawRcd(ctx: CanvasRenderingContext2D, rcd: SchematicNode, page: PageInfo): void {
+function drawRcd(ctx: CanvasRenderingContext2D, rcd: SchematicNode, page: PageInfo, hasTopSwitch = false): void {
   const cx = rcd.x + MODULE_WIDTH / 2;
-  const mainBusY = y(page, Y_MAIN_BUS);
+  const mainBusY = y(page, hasTopSwitch ? Y_MAIN_BUS_WITH_TOP : Y_MAIN_BUS);
   wireDot(ctx, cx, mainBusY, symbolTopY(rcd.y));
   phaseMarks(ctx, cx, mainBusY + (symbolTopY(rcd.y) - mainBusY) / 2, rcd.phaseCount, rcd.phase, true);
   symRcd(ctx, cx, rcd.y + MODULE_HEIGHT / 2);
@@ -326,7 +387,8 @@ function drawRcd(ctx: CanvasRenderingContext2D, rcd: SchematicNode, page: PageIn
     return;
   }
 
-  const groupY = y(page, Y_GROUP_BUS);
+  const groupBusY = hasTopSwitch ? Y_GROUP_BUS_WITH_TOP : Y_GROUP_BUS;
+  const groupY = y(page, groupBusY);
   const firstX = rcd.children[0].x + MODULE_WIDTH / 2;
   const lastX = rcd.children[rcd.children.length - 1].x + MODULE_WIDTH / 2;
   wireDot(ctx, cx, symbolBottomY(rcd.y), groupY);
@@ -403,7 +465,7 @@ function drawDistributionBlockLabel(
   text(ctx, label, x, y - 7, 7, COLORS.textDim, true);
 }
 
-function drawMcb(ctx: CanvasRenderingContext2D, node: SchematicNode, nodeY: number, page: PageInfo): void {
+function drawMcb(ctx: CanvasRenderingContext2D, node: SchematicNode, nodeY: number, page: PageInfo, hasTopSwitch = false): void {
   const phaseColor = phaseColorFor(node.phase);
   const cx = node.x + MODULE_WIDTH / 2;
   const cy = nodeY + MODULE_HEIGHT / 2;
@@ -415,8 +477,9 @@ function drawMcb(ctx: CanvasRenderingContext2D, node: SchematicNode, nodeY: numb
 
   symMcb(ctx, cx, cy, phaseColor);
   text(ctx, node.designation, cx + 12, nodeY + 25, 8.5, COLORS.textDes, true);
-  drawWireLine(ctx, cx, nodeY + MODULE_HEIGHT, y(page, Y_WIRE_END), COLORS.wire, 1.2);
-  phaseMarks(ctx, cx, nodeY + MODULE_HEIGHT + (y(page, Y_WIRE_END) - (nodeY + MODULE_HEIGHT)) / 2, node.phaseCount, node.phase);
+  const wireEndY = hasTopSwitch ? Y_WIRE_END_WITH_TOP : Y_WIRE_END;
+  drawWireLine(ctx, cx, nodeY + MODULE_HEIGHT, y(page, wireEndY), COLORS.wire, 1.2);
+  phaseMarks(ctx, cx, nodeY + MODULE_HEIGHT + (y(page, wireEndY) - (nodeY + MODULE_HEIGHT)) / 2, node.phaseCount, node.phase);
 }
 
 function drawCircuitTable(ctx: CanvasRenderingContext2D, page: PageInfo, rootNodes: SchematicNode[]): void {
@@ -689,7 +752,7 @@ function drawTitleBlock(
   drawTitleCell(ctx, splitX, rowTops[8], colW, rowHeights[8], "Podpis wykonawcy:", contractorSig, 5.5, 7.0);
 }
 
-function drawPathGuides(ctx: CanvasRenderingContext2D, pageDevices: SchematicNode[], page: PageInfo): void {
+function drawPathGuides(ctx: CanvasRenderingContext2D, pageDevices: SchematicNode[], page: PageInfo, hasTopSwitch = false): void {
   const display = pageDevices.flatMap((node) => displayNodes(node));
   for (const node of display) {
     const cx = node.x + MODULE_WIDTH / 2;
@@ -697,7 +760,8 @@ function drawPathGuides(ctx: CanvasRenderingContext2D, pageDevices: SchematicNod
     ctx.strokeStyle = COLORS.gridText;
     ctx.lineWidth = 0.4;
     ctx.setLineDash([2, 2]);
-    strokeLine(ctx, cx, y(page, 18), cx, y(page, Y_LABEL_TOP + SCHEMATIC_BODY_Y_OFFSET), COLORS.grid, 0.4);
+    const labelTopY = hasTopSwitch ? Y_LABEL_TOP_WITH_TOP : Y_LABEL_TOP;
+    strokeLine(ctx, cx, y(page, 18), cx, y(page, labelTopY + SCHEMATIC_BODY_Y_OFFSET), COLORS.grid, 0.4);
     ctx.restore();
   }
 }
@@ -723,18 +787,20 @@ function drawPathNumberLabels(ctx: CanvasRenderingContext2D, pageDevices: Schema
   });
 }
 
-function drawCableLabels(ctx: CanvasRenderingContext2D, page: PageInfo, pageDevices: SchematicNode[]): void {
+function drawCableLabels(ctx: CanvasRenderingContext2D, page: PageInfo, pageDevices: SchematicNode[], hasTopSwitch = false): void {
   const display = pageDevices.flatMap((node) => displayNodes(node));
   for (const node of display) {
     if (!node.cableDesig) {
       continue;
     }
-    textCentered(ctx, node.cableDesig, node.x + MODULE_WIDTH / 2, y(page, Y_WIRE_END) + 11, 8, COLORS.textDim, true);
+    const wireEndY = hasTopSwitch ? Y_WIRE_END_WITH_TOP : Y_WIRE_END;
+    textCentered(ctx, node.cableDesig, node.x + MODULE_WIDTH / 2, y(page, wireEndY) + 11, 8, COLORS.textDim, true);
   }
 }
 
-function drawContinuation(ctx: CanvasRenderingContext2D, page: PageInfo, target: number, right: boolean): void {
-  const busY = y(page, Y_MAIN_BUS);
+function drawContinuation(ctx: CanvasRenderingContext2D, page: PageInfo, target: number, right: boolean, hasTopSwitch = false): void {
+  const mainBusY = hasTopSwitch ? Y_MAIN_BUS_WITH_TOP : Y_MAIN_BUS;
+  const busY = y(page, mainBusY);
   if (right) {
     const x = page.busX2 + 4;
     strokeLine(ctx, x, busY, x + 16, busY, "#b48c1e", 1.2);
@@ -911,6 +977,67 @@ function drawTitleCell(
   ctx.font = `700 ${valueSize}px Segoe UI, sans-serif`;
   const wrappedValue = wrapText(ctx, value, width - 8).join("\n");
   text(ctx, wrappedValue, x + 4, cellY + Math.max(13, labelSize + 9), valueSize, COLORS.text, true);
+}
+
+function isNetworkSwitchNode(node: SchematicNode): boolean {
+  const desig = (node.designation || "").toUpperCase();
+  const label = (node.label || "").toLowerCase();
+  const protection = (node.protection || "").toLowerCase();
+  
+  return (
+    desig.startsWith("WS") ||
+    (label.includes("przelacznik") && label.includes("siec")) ||
+    (label.includes("przełącznik") && label.includes("sieć")) ||
+    (protection.includes("przelacznik") && protection.includes("siec")) ||
+    (protection.includes("przełącznik") && protection.includes("sieć"))
+  );
+}
+
+function drawMainSwitch(ctx: CanvasRenderingContext2D, cx: number, cy: number, color: string, node: SchematicNode): void {
+  if (isNetworkSwitchNode(node)) {
+    symNetworkSwitch(ctx, cx, cy, color);
+  } else {
+    symFr(ctx, cx, cy, color);
+  }
+}
+
+function symNetworkSwitch(ctx: CanvasRenderingContext2D, cx: number, cy: number, color: string): void {
+  const x = sx(cx);
+  const yy = sy(cy);
+  
+  // Left top line
+  strokeLine(ctx, x(130), yy(SYMBOL_TOP_LINE_START), x(130), yy(120), color, 0.85);
+  // Right top line
+  strokeLine(ctx, x(170), yy(SYMBOL_TOP_LINE_START), x(170), yy(120), color, 0.85);
+  
+  // Left contact circle
+  circle(ctx, x(130), yy(126), px(6), color, false);
+  // Right contact circle
+  circle(ctx, x(170), yy(126), px(6), color, false);
+  
+  // Bottom line
+  strokeLine(ctx, x(150), yy(180), x(150), yy(SYMBOL_BOTTOM_LINE_END), color, 0.85);
+  // Bottom hinge
+  circle(ctx, x(150), yy(180), px(3), color, true);
+  
+  // Lever (tilted towards left contact)
+  strokeLine(ctx, x(150), yy(180), x(135), yy(132), color, 0.85);
+  
+  // Labels
+  ctx.save();
+  ctx.fillStyle = COLORS.textDim;
+  ctx.font = "700 7px Segoe UI, sans-serif";
+  ctx.textBaseline = "middle";
+  
+  // Left label "SIEĆ"
+  ctx.textAlign = "right";
+  ctx.fillText("SIEĆ", x(118), yy(75));
+  
+  // Right label "AGREGAT"
+  ctx.textAlign = "left";
+  ctx.fillText("AGREGAT", x(182), yy(75));
+  
+  ctx.restore();
 }
 
 function symFr(ctx: CanvasRenderingContext2D, cx: number, cy: number, color: string): void {

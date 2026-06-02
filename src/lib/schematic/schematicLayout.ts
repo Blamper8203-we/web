@@ -30,6 +30,8 @@ export const MAX_MODULES_PER_ROW = MAX_MODULES_PER_CARD;
 export const Y_PATH_NUMBERS = 10;
 export const Y_SUPPLY = 10;
 export const Y_FR = 25;
+export const Y_TOP_SWITCH = 45;
+export const Y_TOP_BUS = 95;
 export const Y_MAIN_BUS = 135;
 export const Y_MAIN_DEVICE = 150;
 export const Y_GROUP_BUS = 255;
@@ -38,6 +40,19 @@ export const Y_WIRE_END = 415;
 export const Y_LABEL_TOP = 417;
 export const Y_N = 425;
 export const Y_PE = 440;
+
+// Shifted Y-coordinates when a top switch (WS1) is present
+export const Y_TOP_SWITCH_WITH_TOP = 25;
+export const Y_TOP_BUS_WITH_TOP = 110;
+export const Y_FR_WITH_TOP = 125;
+export const Y_MAIN_BUS_WITH_TOP = 230;
+export const Y_MAIN_DEVICE_WITH_TOP = 245;
+export const Y_GROUP_BUS_WITH_TOP = 335;
+export const Y_MCB_WITH_TOP = 355;
+export const Y_WIRE_END_WITH_TOP = 445;
+export const Y_LABEL_TOP_WITH_TOP = 447;
+export const Y_N_WITH_TOP = 455;
+export const Y_PE_WITH_TOP = 470;
 
 export const ROW_HEIGHT = 25;
 export const Y_ROW_DESIGNATION = 490;
@@ -125,6 +140,8 @@ export interface SchematicNode {
   pageIndex: number;
   cellWidth: number;
   parentRcdId: string;
+  topDevice?: SchematicNode;
+  topBusConnected?: boolean;
   children: SchematicNode[];
 }
 

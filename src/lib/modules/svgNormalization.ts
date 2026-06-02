@@ -2,6 +2,7 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 
 interface SvgNormalizationOptions {
   normalizeStrokeWidths?: boolean;
+  dynamicRatingText?: string;
 }
 
 interface RectBounds {
@@ -222,11 +223,27 @@ function normalizeStrokeWidths(svgRoot: SVGSVGElement): void {
   }
 }
 
+function applyDynamicRatingText(svgRoot: SVGSVGElement, newText: string): void {
+  if (!newText || !newText.trim()) return;
+
+  const RATING_REGEX = /^(([BCD]\d+)|(\d+A(\/\d+,\d+A)?)|(\d+A))$/i;
+
+  for (const textElement of Array.from(svgRoot.querySelectorAll("text"))) {
+    const content = textElement.textContent?.trim();
+    if (content && RATING_REGEX.test(content)) {
+      textElement.textContent = newText;
+      return; 
+    }
+  }
+}
+
 export function normalizeSvgMarkup(
   svgMarkup: string,
   options: SvgNormalizationOptions = {},
 ): string {
   const shouldNormalizeStrokes = options.normalizeStrokeWidths ?? true;
+  const dynamicRatingText = options.dynamicRatingText;
+  
   if (typeof DOMParser === "undefined" || typeof XMLSerializer === "undefined") {
     return svgMarkup;
   }
@@ -267,6 +284,10 @@ export function normalizeSvgMarkup(
 
     if (shouldNormalizeStrokes) {
       normalizeStrokeWidths(svgRoot);
+    }
+
+    if (dynamicRatingText) {
+      applyDynamicRatingText(svgRoot, dynamicRatingText);
     }
 
     svgRoot.removeAttribute("width");

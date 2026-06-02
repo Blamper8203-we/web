@@ -332,6 +332,10 @@ export const SYMBOLS_STORAGE_KEY = "dinboard-web.symbols.v1";
 export const LEGACY_SYMBOLS_STORAGE_KEY = "dinboard-tauri.symbols.v1";
 
 export function getReferencePrefix(template: PaletteTemplate): string {
+  if (template.templateId.includes("przelacznik-siec") || template.category.includes("sieci")) {
+    return "WS";
+  }
+
   switch (template.deviceKind) {
     case "fr":
       return "QS";
@@ -568,6 +572,7 @@ function resolveGroupReferenceNumber(head: SymbolItem | undefined, fallbackNumbe
 }
 
 function shouldAutoAssignGroupCircuitDesignation(symbol: SymbolItem): boolean {
+  if (symbol.moduleRef.includes("przelacznik") || symbol.visualPath.includes("przelacznik")) return false;
   return symbol.deviceKind === "mcb" || symbol.deviceKind === "rcbo";
 }
 
@@ -902,4 +907,24 @@ export function isEditableShortcutTarget(target: EventTarget | null): boolean {
 
   const tagName = target.tagName.toLowerCase();
   return target.isContentEditable || tagName === "input" || tagName === "textarea" || tagName === "select";
+}
+export function getSymbolRatingText(symbol: SymbolItem): string | undefined {
+  if (symbol.deviceKind === "mcb" || symbol.deviceKind === "rcbo") {
+    return symbol.protectionType;
+  }
+  if (symbol.deviceKind === "rcd") {
+    const mA = symbol.rcdResidualCurrent;
+    const residualStr = mA === 30 ? "0,03A" : mA === 100 ? "0,1A" : mA === 300 ? "0,3A" : `${mA}mA`;
+    return `${symbol.rcdRatedCurrent}A/${residualStr}`;
+  }
+  if (symbol.deviceKind === "fr") {
+    return symbol.frRatedCurrent;
+  }
+  
+  const value = `${symbol.type} ${symbol.label} ${symbol.visualPath}`.toLocaleLowerCase("pl-PL");
+  if (value.includes("przelacznik") && value.includes("siec")) {
+    return symbol.frRatedCurrent;
+  }
+  
+  return undefined;
 }

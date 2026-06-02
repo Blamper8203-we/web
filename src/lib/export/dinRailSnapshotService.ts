@@ -12,6 +12,7 @@ import {
   formatDinRailGroupLabel,
 } from "../dinRailSelection";
 import { loadPreparedSvgDataUri } from "../modules/svgAsset";
+import { getSymbolRatingText } from "../appHelpers";
 
 const MANUAL_REFERENCE_DESIGNATION_KEY = "ManualReferenceDesignation";
 
@@ -199,7 +200,12 @@ async function renderDinRailSnapshotCanvas(
     }
 
     try {
-      const dataUri = await loadPreparedSvgDataUri(symbol.visualPath, symbol.parameters);
+      const rating = getSymbolRatingText(symbol);
+      const parameters = rating
+        ? { ...symbol.parameters, _DYNAMIC_RATING_: rating }
+        : symbol.parameters;
+        
+      const dataUri = await loadPreparedSvgDataUri(symbol.visualPath, parameters);
       const img = await loadImage(dataUri);
       return { img, symbol };
     } catch (err) {

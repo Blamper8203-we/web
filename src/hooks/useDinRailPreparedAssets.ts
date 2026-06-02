@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { SymbolItem } from "../types/symbolItem";
 import { serializeParameters } from "../lib/modules/rasterPreview";
 import { loadPreparedSvgMarkup, shouldRenderRawModuleAsset } from "../lib/modules/svgAsset";
+import { getSymbolRatingText } from "../lib/appHelpers";
 
 interface PreparedSymbolAsset {
   imageSrc?: string;
@@ -68,10 +69,12 @@ function namespaceSvgMarkup(svgMarkup: string, prefix: string): string {
 }
 
 function buildSymbolAssetKey(symbol: SymbolItem): string {
+  const dynamicRating = getSymbolRatingText(symbol) ?? "";
   return [
     symbol.id,
     symbol.visualPath ?? "",
     serializeParameters(symbol.parameters),
+    dynamicRating,
   ].join("\u0001");
 }
 
@@ -97,7 +100,12 @@ export function useDinRailPreparedAssets(symbols: SymbolItem[]) {
           ] as const;
         }
 
-        const rawMarkup = await loadPreparedSvgMarkup(symbol.visualPath, symbol.parameters);
+        const rating = getSymbolRatingText(symbol);
+        const parameters = rating
+          ? { ...symbol.parameters, _DYNAMIC_RATING_: rating }
+          : symbol.parameters;
+        
+        const rawMarkup = await loadPreparedSvgMarkup(symbol.visualPath, parameters);
         return [
           symbol.id,
           {
