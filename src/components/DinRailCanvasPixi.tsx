@@ -1140,7 +1140,7 @@ export function DinRailCanvas({
                 <stop offset="100%" stopColor="rgba(13,121,242,0)" />
               </linearGradient>
               <filter id="svg-bracket-glow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="3" result="blur" />
+                <feGaussianBlur stdDeviation="1.5" result="blur" />
                 <feComposite in="SourceGraphic" in2="blur" operator="over" />
               </filter>
             </defs>
@@ -1151,13 +1151,12 @@ export function DinRailCanvas({
                 const screenX = group.x * scale + pan.x;
                 const screenY = group.y * scale + pan.y;
                 const screenWidth = Math.max(1, group.width * scale);
-                const isVeryLowZoom = scale < 0.15;
-                const barH = clamp(DIN_RAIL_GROUP_BRACKET_BAR_HEIGHT * scale, 4, 7);
-                const legH = clamp(DIN_RAIL_GROUP_BRACKET_LEG_HEIGHT * scale, 10, 44);
-                const labelH = clamp(DIN_RAIL_GROUP_BRACKET_LABEL_HEIGHT * scale, 10, 34);
-                const labelGap = clamp(DIN_RAIL_GROUP_BRACKET_LABEL_GAP * scale, 2, 14);
-                const labelPadX = clamp(10 * scale, 4, 16);
-                const labelFont = clamp(13 * scale, 8, 17);
+                const barH = clamp(DIN_RAIL_GROUP_BRACKET_BAR_HEIGHT * scale, 1.5, 5);
+                const legH = clamp(DIN_RAIL_GROUP_BRACKET_LEG_HEIGHT * scale, 6, 40);
+                const labelH = clamp(DIN_RAIL_GROUP_BRACKET_LABEL_HEIGHT * scale, 10, 30);
+                const labelGap = clamp(DIN_RAIL_GROUP_BRACKET_LABEL_GAP * scale, 2, 10);
+                const labelPadX = clamp(10 * scale, 4, 12);
+                const labelFont = clamp(13 * scale, 8, 16);
 
                 const topY = Math.max(4, screenY - DIN_RAIL_GROUP_BRACKET_OFFSET_Y * scale);
                 const color = isSelected
@@ -1170,19 +1169,19 @@ export function DinRailCanvas({
                 const label = formatDinRailGroupLabel(group.label, group.id);
                 const estLabelW = Math.min(label.length * labelFont * 0.65 + labelPadX * 2, 360);
                 const labelX = screenX + screenWidth / 2;
-                const labelY = isVeryLowZoom
-                  ? topY + 1
-                  : Math.max(4, topY - labelGap - labelH);
+                const labelY = Math.max(4, topY - labelGap - labelH);
                 const showTextLabel = true;
 
                 return (
-                  <g key={`svg-group-${group.id}`} filter={isSelected ? "url(#svg-bracket-glow)" : undefined}>
-                    {/* Pozioma belka */}
-                    <rect x={screenX} y={topY} width={screenWidth} height={barH} fill={color} />
-                    {/* Lewa nóżka */}
-                    <rect x={screenX} y={topY} width={barH} height={legH} fill={legGrad} />
-                    {/* Prawa nóżka */}
-                    <rect x={screenX + screenWidth - barH} y={topY} width={barH} height={legH} fill={legGrad} />
+                  <g key={`svg-group-${group.id}`}>
+                    <g filter={isSelected ? "url(#svg-bracket-glow)" : undefined}>
+                      {/* Pozioma belka */}
+                      <rect x={screenX} y={topY} width={screenWidth} height={barH} fill={color} />
+                      {/* Lewa nóżka */}
+                      <rect x={screenX} y={topY} width={barH} height={legH} fill={legGrad} />
+                      {/* Prawa nóżka */}
+                      <rect x={screenX + screenWidth - barH} y={topY} width={barH} height={legH} fill={legGrad} />
+                    </g>
                     {/* Etykieta – tło (szkło/blur) */}
                     {showTextLabel && (
                       <rect
