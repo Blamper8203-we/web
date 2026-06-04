@@ -218,7 +218,7 @@ describe("normalizePaletteAssetDimensions", () => {
     expect(normalized.find((symbol) => symbol.id === "block")).toMatchObject({
       group: "",
       rcdSymbolId: "",
-      referenceDesignation: "X2",
+      referenceDesignation: "BL1",
     });
     expect(normalized.find((symbol) => symbol.id === "mcb")?.rcdSymbolId).toBe("rcd");
   });

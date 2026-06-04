@@ -1153,10 +1153,10 @@ export function DinRailCanvas({
                 const screenWidth = Math.max(1, group.width * scale);
                 const barH = clamp(DIN_RAIL_GROUP_BRACKET_BAR_HEIGHT * scale, 4, 7);
                 const legH = clamp(DIN_RAIL_GROUP_BRACKET_LEG_HEIGHT * scale, 30, 44);
-                const labelH = clamp(DIN_RAIL_GROUP_BRACKET_LABEL_HEIGHT * scale, 24, 34);
-                const labelGap = clamp(DIN_RAIL_GROUP_BRACKET_LABEL_GAP * scale, 8, 14);
-                const labelPadX = clamp(10 * scale, 10, 16);
-                const labelFont = clamp(13 * scale, 12, 17);
+                const labelH = clamp(DIN_RAIL_GROUP_BRACKET_LABEL_HEIGHT * scale, 16, 34);
+                const labelGap = clamp(DIN_RAIL_GROUP_BRACKET_LABEL_GAP * scale, 4, 14);
+                const labelPadX = clamp(10 * scale, 8, 16);
+                const labelFont = clamp(13 * scale, 9, 17);
 
                 const topY = Math.max(4, screenY - DIN_RAIL_GROUP_BRACKET_OFFSET_Y * scale);
                 const color = isSelected
@@ -1170,6 +1170,7 @@ export function DinRailCanvas({
                 const estLabelW = Math.min(label.length * labelFont * 0.65 + labelPadX * 2, 360);
                 const labelX = screenX + screenWidth / 2;
                 const labelY = Math.max(4, topY - labelGap - labelH);
+                const showTextLabel = scale >= 0.18;
 
                 return (
                   <g key={`svg-group-${group.id}`} filter={isSelected ? "url(#svg-bracket-glow)" : undefined}>
@@ -1180,29 +1181,33 @@ export function DinRailCanvas({
                     {/* Prawa nóżka */}
                     <rect x={screenX + screenWidth - barH} y={topY} width={barH} height={legH} fill={legGrad} />
                     {/* Etykieta – tło (szkło/blur) */}
-                    <rect
-                      x={labelX - estLabelW / 2}
-                      y={labelY}
-                      width={estLabelW}
-                      height={labelH}
-                      rx={4} ry={4}
-                      fill={isSelected ? "rgba(13,121,242,0.95)" : "rgba(10, 15, 25, 0.9)"}
-                      stroke={isSelected ? "#fff" : "rgba(82,148,255,0.45)"}
-                      strokeWidth={1}
-                    />
+                    {showTextLabel && (
+                      <rect
+                        x={labelX - estLabelW / 2}
+                        y={labelY}
+                        width={estLabelW}
+                        height={labelH}
+                        rx={4} ry={4}
+                        fill={isSelected ? "rgba(13,121,242,0.95)" : "rgba(10, 15, 25, 0.9)"}
+                        stroke={isSelected ? "#fff" : "rgba(82,148,255,0.45)"}
+                        strokeWidth={1}
+                      />
+                    )}
                     {/* Etykieta – tekst */}
-                    <text
-                      x={labelX}
-                      y={labelY + labelH / 2 + 1}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      fill="#fff"
-                      fontSize={labelFont}
-                      fontWeight={700}
-                      fontFamily="Inter, system-ui, sans-serif"
-                    >
-                      {label}
-                    </text>
+                    {showTextLabel && (
+                      <text
+                        x={labelX}
+                        y={labelY + labelH / 2 + 1}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        fill="#fff"
+                        fontSize={labelFont}
+                        fontWeight={700}
+                        fontFamily="Inter, system-ui, sans-serif"
+                      >
+                        {label}
+                      </text>
+                    )}
                   </g>
                 );
             })}
@@ -1264,7 +1269,7 @@ export function DinRailCanvas({
                 symbol,
                 automaticDesignationBySymbolId,
               );
-              if (!designationLabel) {
+              if (!designationLabel || scale < 0.18) {
                 return null;
               }
 
@@ -1278,7 +1283,7 @@ export function DinRailCanvas({
                     transform: "translateX(-50%)",
                     color: "#f8fafc",
                     fontFamily: "Segoe UI, Arial, sans-serif",
-                    fontSize: `${clamp(11 * scale, 11, 15)}px`,
+                    fontSize: `${clamp(11 * scale, 8, 15)}px`,
                     fontWeight: 700,
                     lineHeight: 1.1,
                     textShadow:

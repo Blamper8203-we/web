@@ -284,9 +284,21 @@ function buildNodes(symbols: SymbolItem[]): BuildResult {
 
     assignChildrenPhase(children, assignedPhase, isThreePhaseHead, poleCountMap);
 
-    const neutralTerminal = neutralBarByGroup.get(headDevice.group);
+        const neutralTerminal = neutralBarByGroup.get(headDevice.group);
     const groupHasNeutralBar = isRcdHead && !!neutralTerminal;
-    const neutralDesignation = neutralTerminal ? resolveDesignation(neutralTerminal, `X${x++}`) : "";
+    let neutralAutoDesignation = "";
+    if (neutralTerminal) {
+      const ref = (neutralTerminal.referenceDesignation || "").trim();
+      const disp = (neutralTerminal.displayModuleNumber || "").trim();
+      if (/^N\d+/i.test(ref)) {
+        neutralAutoDesignation = ref;
+      } else if (/^N\d+/i.test(disp)) {
+        neutralAutoDesignation = disp;
+      } else {
+        neutralAutoDesignation = `N${x++}`;
+      }
+    }
+    const neutralDesignation = neutralTerminal ? resolveDesignation(neutralTerminal, neutralAutoDesignation) : "";
     const groupNeutralBarLabel = groupHasNeutralBar
       ? neutralDesignation
       : "";
@@ -908,15 +920,26 @@ function isNeutralTerminalBlock(symbol: SymbolItem): boolean {
     return false;
   }
 
-  const value = getSchematicIdentity(symbol);
-
-  // Exclude PE / protective earth terminals
-  if (value.includes("pe") || value.includes("ochronn") || value.includes("protect")) {
+  const desig = (symbol.displayModuleNumber || symbol.referenceDesignation || "").toUpperCase();
+  if (/^N\d+$/.test(desig)) {
+    return true;
+  }
+  if (/^PE\d+$/.test(desig)) {
     return false;
   }
 
-  // Match "N" as a standalone token: " n ", "-n-", "n " at end, etc., allowing optional digits or underscores
-  return /(^|[\s\-/])n[\d_]*([\s\-/]|$)/.test(value) || value.includes("neutral");
+  const text = `${symbol.type || ""} ${symbol.label || ""} ${symbol.circuitName || ""} ${symbol.circuitDescription || ""} ${symbol.visualPath || ""} ${symbol.moduleRef || ""} ${symbol.phase || ""}`.toUpperCase();
+
+  if (/(^|[\s/-])PE([\s/-]|$)/.test(text) || text.includes("ZIELON") || text.includes("OCHRON")) {
+    return false;
+  }
+
+  return (
+    /(^|[\s/-])N[\d_]*([\s/-]|$)/.test(text) ||
+    text.includes("NIEBIESK") ||
+    text.includes("NEUTRAL") ||
+    (symbol.phase as string) === "N"
+  );
 }
 
 function getPoleCount(symbol: SymbolItem): ModulePoleCount {

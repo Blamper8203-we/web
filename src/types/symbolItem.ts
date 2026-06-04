@@ -204,7 +204,9 @@ function computeDisplayLocation(symbol: SymbolItem): string {
 }
 
 function computeDisplayModuleNumber(symbol: SymbolItem): string {
-  if (isTerminalOrConnectorSymbol(symbol)) return `X${symbol.moduleNumber}`;
+  if (isTerminalOrConnectorSymbol(symbol) || isDistributionBlockSymbol(symbol)) {
+    return symbol.referenceDesignation || `X${symbol.moduleNumber}`;
+  }
   if (symbol.type.toUpperCase().includes("RCD")) return "#0";
   return `#${symbol.moduleNumber}`;
 }
