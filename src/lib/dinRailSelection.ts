@@ -1,11 +1,11 @@
 import type { SymbolItem } from "../types/symbolItem";
 
 export const DIN_RAIL_GROUP_FRAME_PADDING = 8;
-export const DIN_RAIL_GROUP_BRACKET_OFFSET_Y = 134;
-export const DIN_RAIL_GROUP_BRACKET_BAR_HEIGHT = 3.5;
-export const DIN_RAIL_GROUP_BRACKET_LEG_HEIGHT = 34;
-export const DIN_RAIL_GROUP_BRACKET_LABEL_HEIGHT = 24;
-export const DIN_RAIL_GROUP_BRACKET_LABEL_GAP = 9;
+export const DIN_RAIL_GROUP_BRACKET_OFFSET_Y = 148;
+export const DIN_RAIL_GROUP_BRACKET_BAR_HEIGHT = 2;
+export const DIN_RAIL_GROUP_BRACKET_LEG_HEIGHT = 22;
+export const DIN_RAIL_GROUP_BRACKET_LABEL_HEIGHT = 20;
+export const DIN_RAIL_GROUP_BRACKET_LABEL_GAP = 6;
 
 export interface DinRailGroupFrameData {
   anchorSymbolId: string;

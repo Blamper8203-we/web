@@ -256,6 +256,7 @@ export function DinRailCanvas({
 }: DinRailCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
   const pixiHostRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<Application | null>(null);
   const pixiWorldRef = useRef<Container | null>(null);
@@ -723,8 +724,8 @@ export function DinRailCanvas({
   }, []);
 
   useEffect(() => {
-    const surface = surfaceRef.current;
-    if (!surface) {
+    const viewport = viewportRef.current;
+    if (!viewport) {
       return;
     }
 
@@ -732,9 +733,9 @@ export function DinRailCanvas({
       handleWheel(event);
     };
 
-    surface.addEventListener("wheel", onWheelNative, { passive: false });
+    viewport.addEventListener("wheel", onWheelNative, { passive: false });
     return () => {
-      surface.removeEventListener("wheel", onWheelNative);
+      viewport.removeEventListener("wheel", onWheelNative);
     };
   }, [handleWheel]);
 
@@ -1105,6 +1106,7 @@ export function DinRailCanvas({
       )}
 
       <div
+        ref={viewportRef}
         className={`din-rail-svg-container ${isDropTarget ? "is-drop-target" : ""}`}
         style={{ cursor: rail.isVisible ? "grab" : "default" }}
         onPointerMove={handlePointerMove}
@@ -1151,30 +1153,30 @@ export function DinRailCanvas({
                 const screenX = group.x * scale + pan.x;
                 const screenY = group.y * scale + pan.y;
                 const screenWidth = Math.max(1, group.width * scale);
-                const barH = clamp(DIN_RAIL_GROUP_BRACKET_BAR_HEIGHT * scale, 1.5, 5);
-                const legH = clamp(DIN_RAIL_GROUP_BRACKET_LEG_HEIGHT * scale, 6, 40);
-                const labelH = clamp(DIN_RAIL_GROUP_BRACKET_LABEL_HEIGHT * scale, 10, 30);
-                const labelGap = clamp(DIN_RAIL_GROUP_BRACKET_LABEL_GAP * scale, 2, 10);
-                const labelPadX = clamp(10 * scale, 4, 12);
-                const labelFont = clamp(13 * scale, 8, 16);
+                const barH = clamp(DIN_RAIL_GROUP_BRACKET_BAR_HEIGHT * scale, 1, 3);
+                const legH = clamp(DIN_RAIL_GROUP_BRACKET_LEG_HEIGHT * scale, 4, 28);
+                const labelH = clamp(DIN_RAIL_GROUP_BRACKET_LABEL_HEIGHT * scale, 8, 22);
+                const labelGap = clamp(DIN_RAIL_GROUP_BRACKET_LABEL_GAP * scale, 1, 8);
+                const labelPadX = clamp(8 * scale, 3, 10);
+                const labelFont = clamp(11 * scale, 7, 14);
 
-                const topY = Math.max(4, screenY - DIN_RAIL_GROUP_BRACKET_OFFSET_Y * scale);
+                const topY = screenY - DIN_RAIL_GROUP_BRACKET_OFFSET_Y * scale;
                 const color = isSelected
                   ? "rgba(13,121,242,1)"
                   : isSingle
                     ? "rgba(82,148,255,0.5)"
-                    : "rgba(82,148,255,0.9)";
+                    : "rgba(82,148,255,0.85)";
 
                 const legGrad = isSelected ? "url(#svg-bracket-leg-selected)" : "url(#svg-bracket-leg-default)";
                 const label = formatDinRailGroupLabel(group.label, group.id);
                 const estLabelW = Math.min(label.length * labelFont * 0.65 + labelPadX * 2, 360);
                 const labelX = screenX + screenWidth / 2;
-                const labelY = Math.max(4, topY - labelGap - labelH);
+                const labelY = topY - labelGap - labelH;
                 const showTextLabel = true;
 
                 return (
                   <g key={`svg-group-${group.id}`}>
-                    <g filter={isSelected ? "url(#svg-bracket-glow)" : undefined}>
+                    <g>
                       {/* Pozioma belka */}
                       <rect x={screenX} y={topY} width={screenWidth} height={barH} fill={color} />
                       {/* Lewa nóżka */}
@@ -1275,32 +1277,18 @@ export function DinRailCanvas({
                 return null;
               }
 
-              // Find the stable index of the symbol on this rail to alternate offsets (staggering)
-              const sameRailSymbols = snappedSymbols
-                .filter((s) => Math.abs(s.y - symbol.y) < 5)
-                .sort((a, b) => a.x - b.x);
-              const indexInRail = sameRailSymbols.findIndex((s) => s.id === symbol.id);
-
-              const isStaggerZoom = scale < 0.3;
-
-              let staggerOffset = 6;
-              if (isStaggerZoom) {
-                const staggerLevels = 2;
-                staggerOffset = 6 + (indexInRail >= 0 ? indexInRail % staggerLevels : 0) * 12;
-              }
-
               return (
                 <div
                   key={`symbol-label-${symbol.id}`}
                   style={{
                     position: "absolute",
                     left: symbol.x * scale + pan.x + Math.max(symbol.width * scale, 48 * scale) / 2,
-                    top: symbol.y * scale + pan.y + symbol.height * scale + staggerOffset,
+                    top: symbol.y * scale + pan.y + symbol.height * scale + 4,
                     transform: "translateX(-50%)",
                     transformOrigin: "center",
                     color: "#f8fafc",
                     fontFamily: "Segoe UI, Arial, sans-serif",
-                    fontSize: `${clamp(11 * scale, 8, 15)}px`,
+                    fontSize: `${clamp(10 * scale, 7, 13)}px`,
                     fontWeight: 700,
                     lineHeight: 1.1,
                     textShadow:
