@@ -1151,12 +1151,13 @@ export function DinRailCanvas({
                 const screenX = group.x * scale + pan.x;
                 const screenY = group.y * scale + pan.y;
                 const screenWidth = Math.max(1, group.width * scale);
+                const isVeryLowZoom = scale < 0.15;
                 const barH = clamp(DIN_RAIL_GROUP_BRACKET_BAR_HEIGHT * scale, 4, 7);
-                const legH = clamp(DIN_RAIL_GROUP_BRACKET_LEG_HEIGHT * scale, 30, 44);
-                const labelH = clamp(DIN_RAIL_GROUP_BRACKET_LABEL_HEIGHT * scale, 16, 34);
-                const labelGap = clamp(DIN_RAIL_GROUP_BRACKET_LABEL_GAP * scale, 4, 14);
-                const labelPadX = clamp(10 * scale, 8, 16);
-                const labelFont = clamp(13 * scale, 9, 17);
+                const legH = clamp(DIN_RAIL_GROUP_BRACKET_LEG_HEIGHT * scale, 10, 44);
+                const labelH = clamp(DIN_RAIL_GROUP_BRACKET_LABEL_HEIGHT * scale, 10, 34);
+                const labelGap = clamp(DIN_RAIL_GROUP_BRACKET_LABEL_GAP * scale, 2, 14);
+                const labelPadX = clamp(10 * scale, 4, 16);
+                const labelFont = clamp(13 * scale, 8, 17);
 
                 const topY = Math.max(4, screenY - DIN_RAIL_GROUP_BRACKET_OFFSET_Y * scale);
                 const color = isSelected
@@ -1169,8 +1170,10 @@ export function DinRailCanvas({
                 const label = formatDinRailGroupLabel(group.label, group.id);
                 const estLabelW = Math.min(label.length * labelFont * 0.65 + labelPadX * 2, 360);
                 const labelX = screenX + screenWidth / 2;
-                const labelY = Math.max(4, topY - labelGap - labelH);
-                const showTextLabel = scale >= 0.18;
+                const labelY = isVeryLowZoom
+                  ? topY + 1
+                  : Math.max(4, topY - labelGap - labelH);
+                const showTextLabel = true;
 
                 return (
                   <g key={`svg-group-${group.id}`} filter={isSelected ? "url(#svg-bracket-glow)" : undefined}>
@@ -1269,8 +1272,23 @@ export function DinRailCanvas({
                 symbol,
                 automaticDesignationBySymbolId,
               );
-              if (!designationLabel || scale < 0.18) {
+              if (!designationLabel) {
                 return null;
+              }
+
+              // Find the stable index of the symbol on this rail to alternate offsets (staggering)
+              const sameRailSymbols = snappedSymbols
+                .filter((s) => Math.abs(s.y - symbol.y) < 5)
+                .sort((a, b) => a.x - b.x);
+              const indexInRail = sameRailSymbols.findIndex((s) => s.id === symbol.id);
+
+              const isRotateZoom = scale < 0.12;
+              const isStaggerZoom = scale >= 0.12 && scale < 0.3;
+
+              let staggerOffset = 6;
+              if (isStaggerZoom) {
+                const staggerLevels = 2;
+                staggerOffset = 6 + (indexInRail >= 0 ? indexInRail % staggerLevels : 0) * 12;
               }
 
               return (
@@ -1279,8 +1297,9 @@ export function DinRailCanvas({
                   style={{
                     position: "absolute",
                     left: symbol.x * scale + pan.x + Math.max(symbol.width * scale, 48 * scale) / 2,
-                    top: symbol.y * scale + pan.y + symbol.height * scale + 6,
-                    transform: "translateX(-50%)",
+                    top: symbol.y * scale + pan.y + symbol.height * scale + staggerOffset,
+                    transform: isRotateZoom ? "rotate(90deg)" : "translateX(-50%)",
+                    transformOrigin: isRotateZoom ? "left center" : "center",
                     color: "#f8fafc",
                     fontFamily: "Segoe UI, Arial, sans-serif",
                     fontSize: `${clamp(11 * scale, 8, 15)}px`,
