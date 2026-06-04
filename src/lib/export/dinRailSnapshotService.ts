@@ -3,8 +3,6 @@ import { isAuxiliaryNonCircuitSymbol, type SymbolItem } from "../../types/symbol
 import { buildSchematicLayout } from "../schematic/schematicLayoutEngine";
 import {
   DIN_RAIL_GROUP_BRACKET_BAR_HEIGHT,
-  DIN_RAIL_GROUP_BRACKET_LABEL_GAP,
-  DIN_RAIL_GROUP_BRACKET_LABEL_HEIGHT,
   DIN_RAIL_GROUP_BRACKET_LEG_HEIGHT,
   DIN_RAIL_GROUP_BRACKET_OFFSET_Y,
   DIN_RAIL_GROUP_FRAME_PADDING,
@@ -73,9 +71,15 @@ function drawGroupFrame(
   ctx.fillRect(group.x + group.width - barHeight, topY, barHeight, legHeight);
 
   const label = formatDinRailGroupLabel(group.label, group.id);
-  ctx.font = "600 12px 'Inter', 'Segoe UI', Arial, sans-serif";
-  const labelWidth = clamp(Math.ceil(ctx.measureText(label).width) + 20, 44, 300);
-  const labelHeight = DIN_RAIL_GROUP_BRACKET_LABEL_HEIGHT;
+  const fontSize = 32;
+  const labelGap = 20;
+  const labelHeight = 60;
+  const labelPaddingX = 36;
+  const labelRadius = 8;
+
+  ctx.font = `600 ${fontSize}px 'Inter', 'Segoe UI', Arial, sans-serif`;
+  const measuredWidth = Math.ceil(ctx.measureText(label).width);
+  const labelWidth = clamp(measuredWidth + labelPaddingX * 2, 120, 800);
   const labelX = clamp(
     group.x + group.width / 2 - labelWidth / 2,
     4,
@@ -83,21 +87,21 @@ function drawGroupFrame(
   );
   const labelY = Math.max(
     4,
-    topY - DIN_RAIL_GROUP_BRACKET_LABEL_GAP - DIN_RAIL_GROUP_BRACKET_LABEL_HEIGHT,
+    topY - labelGap - labelHeight,
   );
 
-  ctx.fillStyle = "rgba(10, 15, 25, 0.85)";
+  ctx.fillStyle = "rgba(10, 15, 25, 0.9)";
   ctx.beginPath();
-  ctx.roundRect(labelX, labelY, labelWidth, labelHeight, 4);
+  ctx.roundRect(labelX, labelY, labelWidth, labelHeight, labelRadius);
   ctx.fill();
-  ctx.strokeStyle = "rgba(82, 148, 255, 0.4)";
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = "rgba(82, 148, 255, 0.6)";
+  ctx.lineWidth = 2;
   ctx.stroke();
 
   ctx.fillStyle = "#ffffff";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(label, labelX + labelWidth / 2, labelY + labelHeight / 2 + 1, labelWidth - 8);
+  ctx.fillText(label, labelX + labelWidth / 2, labelY + labelHeight / 2 + 1, labelWidth - 16);
   ctx.restore();
 }
 
