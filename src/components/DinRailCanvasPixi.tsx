@@ -1282,8 +1282,7 @@ export function DinRailCanvas({
                 .sort((a, b) => a.x - b.x);
               const indexInRail = sameRailSymbols.findIndex((s) => s.id === symbol.id);
 
-              const isRotateZoom = scale < 0.12;
-              const isStaggerZoom = scale >= 0.12 && scale < 0.3;
+              const isStaggerZoom = scale < 0.3;
 
               let staggerOffset = 6;
               if (isStaggerZoom) {
@@ -1298,8 +1297,8 @@ export function DinRailCanvas({
                     position: "absolute",
                     left: symbol.x * scale + pan.x + Math.max(symbol.width * scale, 48 * scale) / 2,
                     top: symbol.y * scale + pan.y + symbol.height * scale + staggerOffset,
-                    transform: isRotateZoom ? "rotate(90deg)" : "translateX(-50%)",
-                    transformOrigin: isRotateZoom ? "left center" : "center",
+                    transform: "translateX(-50%)",
+                    transformOrigin: "center",
                     color: "#f8fafc",
                     fontFamily: "Segoe UI, Arial, sans-serif",
                     fontSize: `${clamp(11 * scale, 8, 15)}px`,
