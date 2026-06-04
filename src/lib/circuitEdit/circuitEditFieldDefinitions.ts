@@ -19,6 +19,7 @@ type ModuleType =
   | "switch"
   | "phaseIndicator"
   | "distributionBlock"
+  | "terminalBlock"
   | "socket"
   | "networkSwitch"
   | "other";
@@ -126,6 +127,10 @@ export function getCircuitEditFields(symbol: SymbolItem, symbols?: SymbolItem[])
       return createRcdFields(symbol);
     case "spd":
       return createSpdFields(symbol);
+    case "terminalBlock":
+      return createTerminalBlockFields(symbol);
+    case "distributionBlock":
+      return createDistributionBlockFields(symbol);
     case "socket":
       return createSocketFields(symbol, getPoleCount(symbol), locationOptions);
     default:
@@ -174,6 +179,22 @@ export function getCircuitEditHeader(symbol: SymbolItem): {
           : symbol.label || "SPD",
         subtitle: "Ogranicznik przepiec (SPD)",
         tone: "orange",
+      };
+    case "terminalBlock":
+      return {
+        title: symbol.referenceDesignation
+          ? `${symbol.referenceDesignation} - ${symbol.label || "Listwa zaciskowa"}`
+          : symbol.label || "Listwa zaciskowa",
+        subtitle: "Listwa zaciskowa / terminal",
+        tone: "blue",
+      };
+    case "distributionBlock":
+      return {
+        title: symbol.referenceDesignation
+          ? `${symbol.referenceDesignation} - ${symbol.label || "Blok rozdzielczy"}`
+          : symbol.label || "Blok rozdzielczy",
+        subtitle: "Blok rozdzielczy / złącze",
+        tone: "blue",
       };
     default:
       return {
@@ -276,6 +297,20 @@ export function applyCircuitEditValues(
   );
 }
 
+function createTerminalBlockFields(symbol: SymbolItem): CircuitEditFieldDefinition[] {
+  return [
+    textField("ReferenceDesignation", "Oznaczenie", symbol.referenceDesignation),
+    textField("Label", "Etykieta", symbol.label),
+  ];
+}
+
+function createDistributionBlockFields(symbol: SymbolItem): CircuitEditFieldDefinition[] {
+  return [
+    textField("ReferenceDesignation", "Oznaczenie", symbol.referenceDesignation),
+    textField("Label", "Etykieta", symbol.label),
+  ];
+}
+
 function createFrFields(symbol: SymbolItem): CircuitEditFieldDefinition[] {
   return [
     textField("ReferenceDesignation", "Oznaczenie", symbol.referenceDesignation),
@@ -373,7 +408,7 @@ function getModuleType(symbol: SymbolItem): ModuleType {
   if (symbol.deviceKind === "spd") return "spd";
   if (symbol.deviceKind === "fr") return "switch";
   if (symbol.deviceKind === "phaseIndicator") return "phaseIndicator";
-  if (symbol.deviceKind === "terminalBlock") return "other";
+  if (symbol.deviceKind === "terminalBlock") return "terminalBlock";
 
   const value = `${symbol.type} ${symbol.label} ${symbol.visualPath}`.toLocaleLowerCase("pl-PL");
   if (value.includes("rcd")) return "rcd";
@@ -387,6 +422,14 @@ function getModuleType(symbol: SymbolItem): ModuleType {
     value.includes("sygnalizat")
   ) {
     return "phaseIndicator";
+  }
+  if (
+    value.includes("złączk") ||
+    value.includes("zlacze") ||
+    value.includes("terminal") ||
+    value.includes("listwa zacisk")
+  ) {
+    return "terminalBlock";
   }
   if (value.includes("blok") || value.includes("block") || value.includes("rozdz")) {
     return "distributionBlock";
