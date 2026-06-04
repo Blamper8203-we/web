@@ -142,6 +142,8 @@ export interface SchematicNode {
   parentRcdId: string;
   topDevice?: SchematicNode;
   topBusConnected?: boolean;
+  hasNeutralBar?: boolean;
+  neutralBarLabel?: string;
   children: SchematicNode[];
 }
 

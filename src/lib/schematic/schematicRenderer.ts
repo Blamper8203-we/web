@@ -88,6 +88,11 @@ const PATH_NUMBER_LABEL_Y = 10;
 const FR_SUPPLY_CONNECTION_Y_OFFSET = 12;
 export const SCHEMATIC_BODY_Y_OFFSET = 12;
 const EMPTY_SCHEMATIC_TABLE_VALUE = "Brak";
+const RCD_NEUTRAL_BUS_OFFSET_Y = -22;
+const RCD_BUS_MARGIN = 12;
+const CABLE_TERMINAL_CELL_WIDTH = 12;
+const CABLE_TERMINAL_CELL_HEIGHT = 11;
+const CABLE_TERMINAL_GAP = 1;
 
 export function renderSchematic(
   ctx: CanvasRenderingContext2D,
@@ -260,10 +265,21 @@ function drawDevice(ctx: CanvasRenderingContext2D, node: SchematicNode, page: Pa
     case "PhaseIndicator": {
       const busY = node.topBusConnected ? y(page, Y_TOP_BUS_WITH_TOP) : mainBusY;
       wireDot(ctx, cx, busY, symbolTopY(node.y));
-      phaseMarks(ctx, cx, busY + (symbolTopY(node.y) - busY) / 2, node.phaseCount, node.phase);
+      
+      const phaseText = node.phase.replace("+N", "").replace("N", "");
+      phaseMarks(ctx, cx, busY + (symbolTopY(node.y) - busY) / 2, Math.min(3, node.phaseCount), phaseText);
+      
       symKf(ctx, cx, node.y + MODULE_HEIGHT / 2);
       text(ctx, node.designation, cx + 12, node.y + 25, 8.5, COLORS.textDes, true);
       textRight(ctx, node.protection, cx - 12, node.y + MODULE_HEIGHT / 2 + 5, 7.5, COLORS.textDim);
+      
+      const nY = y(page, node.topBusConnected ? Y_N_WITH_TOP : Y_N);
+      ctx.save();
+      ctx.setLineDash([4, 3]);
+      strokeLine(ctx, cx, symbolBottomY(node.y), cx, nY, COLORS.n, 1.2);
+      drawDot(ctx, cx, nY, COLORS.n, 2.2);
+      ctx.restore();
+
       return;
     }
 
@@ -273,7 +289,23 @@ function drawDevice(ctx: CanvasRenderingContext2D, node: SchematicNode, page: Pa
       phaseMarks(ctx, cx, busY + (symbolTopY(node.y) - busY) / 2, node.phaseCount, node.phase, true);
       symSpd(ctx, cx, node.y + MODULE_HEIGHT / 2);
       text(ctx, node.designation, cx + 12, node.y + 25, 8.5, COLORS.textDes, true);
-      textCenteredBox(ctx, node.protection, cx - 35, node.y + MODULE_HEIGHT + 24, 70, 7, COLORS.textDim);
+      
+      const spdBottom = node.y + MODULE_HEIGHT / 2 + 32;
+      const nY = y(page, node.topBusConnected ? Y_N_WITH_TOP : Y_N);
+      const peY = y(page, node.topBusConnected ? Y_PE_WITH_TOP : Y_PE);
+      
+      ctx.save();
+      ctx.setLineDash([4, 3]);
+      
+      // N path
+      strokeLine(ctx, cx - 8, spdBottom, cx - 8, nY, COLORS.n, 1.2);
+      drawDot(ctx, cx - 8, nY, COLORS.n, 2.2);
+
+      // PE path
+      strokeLine(ctx, cx + 8, spdBottom, cx + 8, peY, COLORS.pe, 1.2);
+      drawDot(ctx, cx + 8, peY, COLORS.pe, 2.2);
+      
+      ctx.restore();
       return;
     }
 
@@ -381,27 +413,105 @@ function drawRcd(ctx: CanvasRenderingContext2D, rcd: SchematicNode, page: PageIn
   phaseMarks(ctx, cx, mainBusY + (symbolTopY(rcd.y) - mainBusY) / 2, rcd.phaseCount, rcd.phase, true);
   symRcd(ctx, cx, rcd.y + MODULE_HEIGHT / 2);
   text(ctx, rcd.designation, cx + 12, rcd.y + 25, 9, COLORS.textDes, true);
-  textRight(ctx, rcd.protection, cx - 18, rcd.y + MODULE_HEIGHT / 2 + 6, 8.4, COLORS.rcd, 110);
+  textRight(ctx, rcd.protection, cx - 18, rcd.y + MODULE_HEIGHT / 2 + 6, 8.4, COLORS.rcd, false, 110);
 
   if (rcd.children.length === 0) {
     return;
   }
 
   const groupBusY = hasTopSwitch ? Y_GROUP_BUS_WITH_TOP : Y_GROUP_BUS;
-  const groupY = y(page, groupBusY);
+  const phaseBusY = y(page, groupBusY);
+  const nBusY = phaseBusY + RCD_NEUTRAL_BUS_OFFSET_Y;
+
   const firstX = rcd.children[0].x + MODULE_WIDTH / 2;
   const lastX = rcd.children[rcd.children.length - 1].x + MODULE_WIDTH / 2;
-  wireDot(ctx, cx, symbolBottomY(rcd.y), groupY);
-  phaseMarks(ctx, cx, symbolBottomY(rcd.y) + (groupY - symbolBottomY(rcd.y)) / 2, rcd.phaseCount, rcd.phase, true);
-  strokeLine(ctx, firstX - 8, groupY, lastX + 8, groupY, COLORS.wire, 2.2);
+  const busMargin = RCD_BUS_MARGIN;
+  const phaseBusX1 = Math.min(cx, firstX) - busMargin;
+  const phaseBusX2 = Math.max(cx, lastX) + busMargin;
 
+  const mcbChildren = rcd.children.filter((c) => c.nodeType === "MCB");
+
+  let phaseTextOffsetX = -8; // Move text to the left side
+
+  // Vertical wire from RCD bottom to the phase bus
+  wireDot(ctx, cx, symbolBottomY(rcd.y), phaseBusY);
+  drawDot(ctx, cx, phaseBusY, COLORS.wire, 2.2);
+  phaseMarks(ctx, cx, symbolBottomY(rcd.y) + (phaseBusY - symbolBottomY(rcd.y)) / 2, rcd.phaseCount, rcd.phase, true, phaseTextOffsetX);
+
+  if (rcd.hasNeutralBar) {
+    const nRcdX = cx + 18; // Offset to the right for the incoming N line
+
+    // Determine where the short N bus should be placed
+    // It will be at verticalNX if there are MCBs, otherwise at nRcdX
+    let shortBusCenterX = nRcdX;
+    let verticalNX = nRcdX;
+    
+    if (mcbChildren.length > 0) {
+      verticalNX = lastX + 18; // Go up to the right of the last MCB
+      shortBusCenterX = verticalNX;
+    }
+
+    // The short N bus itself
+    const shortBusWidth = 24;
+    const shortBusX1 = shortBusCenterX - shortBusWidth / 2;
+    const shortBusX2 = shortBusCenterX + shortBusWidth / 2;
+    strokeLine(ctx, shortBusX1, nBusY, shortBusX2, nBusY, COLORS.n, 2.2);
+
+    // Label for the N bus
+    const nLabel = rcd.neutralBarLabel || `X${rcd.designation}`;
+    textCentered(ctx, nLabel, shortBusCenterX, nBusY - 12, 6.5, COLORS.textDim, true);
+
+    // Draw horizontal collector for N from all MCBs
+    if (mcbChildren.length > 0) {
+      const wireEndYVal = hasTopSwitch ? Y_WIRE_END_WITH_TOP : Y_WIRE_END;
+      const terminals = mcbChildren.map(c => 
+        getCableTerminalLayout(c.x + MODULE_WIDTH / 2, y(page, wireEndYVal), c.phaseCount, c.phase)
+      );
+      
+      const collectorY = terminals[0].blockY - 25;
+      const firstN = terminals[0].nCenterX!;
+
+      ctx.save();
+      ctx.setLineDash([2, 2]);
+      
+      // Horizontal line connecting all MCB N terminals
+      strokeLine(ctx, firstN, collectorY, verticalNX, collectorY, COLORS.n, 1.2);
+      
+      // Vertical drops from horizontal collector to each MCB N terminal
+      for (const term of terminals) {
+        if (term.nCenterX !== undefined) {
+          strokeLine(ctx, term.nCenterX, term.blockY, term.nCenterX, collectorY, COLORS.n, 1.2);
+          drawDot(ctx, term.nCenterX, collectorY, COLORS.n, 2.0);
+        }
+      }
+      
+      // Main vertical line from horizontal collector up to N bus
+      strokeLine(ctx, verticalNX, collectorY, verticalNX, nBusY, COLORS.n, 1.2);
+      drawDot(ctx, verticalNX, collectorY, COLORS.n, 2.0);
+      drawDot(ctx, verticalNX, nBusY, COLORS.n, 2.0);
+      ctx.restore();
+    }
+  }
+
+  // Draw phase bus (black, horizontal)
+  strokeLine(ctx, phaseBusX1, phaseBusY, phaseBusX2, phaseBusY, COLORS.wire, 2.2);
+
+  // Draw children with dual vertical lines
   for (const child of rcd.children) {
-    drawChildFromGroupBus(ctx, child, page, groupY);
+    drawChildFromGroupBus(ctx, child, page, phaseBusY, hasTopSwitch);
   }
 }
 
-function drawChildFromGroupBus(ctx: CanvasRenderingContext2D, child: SchematicNode, page: PageInfo, groupY: number): void {
+function drawChildFromGroupBus(
+  ctx: CanvasRenderingContext2D,
+  child: SchematicNode,
+  page: PageInfo,
+  groupY: number,
+  hasTopSwitch = false,
+): void {
   const childCx = child.x + MODULE_WIDTH / 2;
+
+  // Phase (L) vertical line — on center axis
   wireDot(ctx, childCx, groupY, symbolTopY(child.y));
   phaseMarks(
     ctx,
@@ -414,7 +524,7 @@ function drawChildFromGroupBus(ctx: CanvasRenderingContext2D, child: SchematicNo
 
   switch (child.nodeType) {
     case "MCB":
-      drawMcb(ctx, child, child.y, page);
+      drawMcb(ctx, child, child.y, page, hasTopSwitch);
       return;
     case "SPD":
       symSpd(ctx, childCx, child.y + MODULE_HEIGHT / 2);
@@ -476,12 +586,108 @@ function drawMcb(ctx: CanvasRenderingContext2D, node: SchematicNode, nodeY: numb
   ctx.restore();
 
   symMcb(ctx, cx, cy, phaseColor);
-  text(ctx, node.designation, cx + 12, nodeY + 25, 8.5, COLORS.textDes, true);
+  textRight(ctx, node.designation, cx - 12, nodeY + 29, 8.5, COLORS.textDes, true);
   const wireEndY = hasTopSwitch ? Y_WIRE_END_WITH_TOP : Y_WIRE_END;
-  drawWireLine(ctx, cx, nodeY + MODULE_HEIGHT, y(page, wireEndY), COLORS.wire, 1.2);
-  phaseMarks(ctx, cx, nodeY + MODULE_HEIGHT + (y(page, wireEndY) - (nodeY + MODULE_HEIGHT)) / 2, node.phaseCount, node.phase);
+  const terminal = getCableTerminalLayout(cx, y(page, wireEndY), node.phaseCount, node.phase);
+  drawWireLine(ctx, cx, symbolBottomY(nodeY), terminal.blockY, COLORS.wire, 1.2);
+  phaseMarks(ctx, cx, symbolBottomY(nodeY) + 15, node.phaseCount, node.phase);
+
+  if (terminal.peCenterX !== undefined) {
+    const peY = y(page, hasTopSwitch ? Y_PE_WITH_TOP : Y_PE);
+    ctx.save();
+    ctx.setLineDash([4, 3]);
+    strokeLine(ctx, terminal.peCenterX, peY, terminal.peCenterX, terminal.blockY + CABLE_TERMINAL_CELL_HEIGHT, COLORS.pe, 1);
+    ctx.restore();
+  }
+
+  drawCableConnectionBlock(ctx, terminal, node.cableDesig);
 }
 
+interface CableTerminalLayout {
+  labels: string[];
+  blockX: number;
+  blockY: number;
+  nCenterX?: number;
+  peCenterX?: number;
+  phaseCenterX: number;
+}
+
+function getCableTerminalLayout(cx: number, wireEndY: number, phaseCount: number, phaseStr?: string): CableTerminalLayout {
+  let phaseLabels = ["L"];
+  if (phaseStr && phaseStr !== "PENDING" && phaseStr !== "pending") {
+    phaseLabels = phaseStr.split('+').filter(p => p !== 'N' && p !== 'PE');
+  } else if (phaseCount >= 3) {
+    phaseLabels = ["L1", "L2", "L3"];
+  }
+
+  let labels: string[];
+  if (phaseLabels.length >= 3) {
+    labels = ["N", "PE", ...phaseLabels];
+  } else if (phaseLabels.length === 2) {
+    labels = ["N", "PE", ...phaseLabels];
+  } else {
+    labels = ["N", "PE", phaseLabels[0] || "L", " "];
+  }
+
+  const phaseIndex = 2; // The wire drops down to the first phase cell
+  const blockX = cx - phaseIndex * (CABLE_TERMINAL_CELL_WIDTH + CABLE_TERMINAL_GAP) - CABLE_TERMINAL_CELL_WIDTH / 2;
+  const blockY = wireEndY - CABLE_TERMINAL_CELL_HEIGHT - 6;
+  const centerOf = (label: string) => {
+    const index = labels.indexOf(label);
+    return index >= 0
+      ? blockX + index * (CABLE_TERMINAL_CELL_WIDTH + CABLE_TERMINAL_GAP) + CABLE_TERMINAL_CELL_WIDTH / 2
+      : undefined;
+  };
+  return {
+    labels,
+    blockX,
+    blockY,
+    nCenterX: centerOf("N"),
+    peCenterX: centerOf("PE"),
+    phaseCenterX: centerOf(phaseLabels[0] || "L")!,
+  };
+}
+
+function drawCableConnectionBlock(
+  ctx: CanvasRenderingContext2D,
+  layout: CableTerminalLayout,
+  cableDesig?: string,
+): void {
+  const { labels, blockX, blockY } = layout;
+  const colorMap: Record<string, string> = {
+    L1: COLORS.l1,
+    L2: COLORS.l2,
+    L3: COLORS.l3,
+    L: COLORS.l1,
+    N: COLORS.n,
+    PE: COLORS.pe,
+  };
+
+  for (let i = 0; i < labels.length; i++) {
+    const label = labels[i];
+    const x = blockX + i * (CABLE_TERMINAL_CELL_WIDTH + CABLE_TERMINAL_GAP);
+
+    ctx.fillStyle = COLORS.page;
+    ctx.fillRect(x, blockY, CABLE_TERMINAL_CELL_WIDTH, CABLE_TERMINAL_CELL_HEIGHT);
+    ctx.strokeStyle = COLORS.textDim;
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(x, blockY, CABLE_TERMINAL_CELL_WIDTH, CABLE_TERMINAL_CELL_HEIGHT);
+
+    if (label !== " ") {
+      ctx.font = "600 5.5px Segoe UI, sans-serif";
+      ctx.fillStyle = colorMap[label] || COLORS.text;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(label, x + CABLE_TERMINAL_CELL_WIDTH / 2, blockY + CABLE_TERMINAL_CELL_HEIGHT / 2);
+    }
+  }
+
+  if (cableDesig) {
+    const totalW = labels.length * CABLE_TERMINAL_CELL_WIDTH + (labels.length - 1) * CABLE_TERMINAL_GAP;
+    const arrowY = blockY + CABLE_TERMINAL_CELL_HEIGHT + 4;
+    text(ctx, `${labels.length === 5 ? "5" : "3"}x`, blockX + totalW / 2 - 6, arrowY - 2, 5.5, COLORS.textDim);
+  }
+}
 function drawCircuitTable(ctx: CanvasRenderingContext2D, page: PageInfo, rootNodes: SchematicNode[]): void {
   const nodes = rootNodes
     .filter((node) => node.pageIndex === page.pageIndex)
@@ -791,6 +997,9 @@ function drawCableLabels(ctx: CanvasRenderingContext2D, page: PageInfo, pageDevi
   const display = pageDevices.flatMap((node) => displayNodes(node));
   for (const node of display) {
     if (!node.cableDesig) {
+      continue;
+    }
+    if (node.nodeType === "MCB") {
       continue;
     }
     const wireEndY = hasTopSwitch ? Y_WIRE_END_WITH_TOP : Y_WIRE_END;
@@ -1104,6 +1313,7 @@ function phaseMarks(
   count: number,
   phaseText?: string,
   _hasNeutral = false,
+  textOffsetX = 8,
 ): void {
   const totalMarks = Math.min(3, Math.max(1, count));
   const markHeight = 4;
@@ -1116,7 +1326,11 @@ function phaseMarks(
   }
 
   if (_hasNeutral && phaseText && phaseText !== "PENDING" && phaseText !== "pending" && phaseText !== "3P") {
-    text(ctx, phaseText, cx + 8, cy - 1, 6, COLORS.textDim);
+    if (textOffsetX < 0) {
+      textRight(ctx, phaseText, cx + textOffsetX, cy + 2, 6, COLORS.textDim);
+    } else {
+      text(ctx, phaseText, cx + textOffsetX, cy - 1, 6, COLORS.textDim);
+    }
   }
 }
 
@@ -1250,13 +1464,14 @@ function textRight(
   centerY: number,
   size: number,
   color: string,
+  bold = false,
   maxWidth = 88,
 ): void {
   if (!value) {
     return;
   }
 
-  ctx.font = `${size}px Segoe UI, sans-serif`;
+  ctx.font = `${bold ? "700 " : ""}${size}px Segoe UI, sans-serif`;
   ctx.fillStyle = color;
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";

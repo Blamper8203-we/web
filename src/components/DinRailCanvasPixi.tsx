@@ -223,8 +223,10 @@ function getSymbolDesignationLabel(
     return manualDesignation;
   }
 
-  if (isAuxiliaryNonCircuitSymbol(symbol) && manualDesignation.length > 0) {
-    return manualDesignation;
+  // For terminal blocks and distribution blocks, use the pre-computed displayModuleNumber
+  // which contains the correct prefix (N1, PE1, BL1, X1)
+  if (isAuxiliaryNonCircuitSymbol(symbol)) {
+    return symbol.displayModuleNumber || manualDesignation;
   }
 
   return automaticDesignationBySymbolId.get(symbol.id) ?? "";

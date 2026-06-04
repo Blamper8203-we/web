@@ -719,4 +719,69 @@ describe("schematicLayoutEngine (Avalonia parity & stable sorting)", () => {
     expect(allChildIds).toContain("mcb-1");
     expect(allChildIds).toContain("mcb-12");
   });
+
+  it("sets hasNeutralBar when an N terminal block is in the RCD group", () => {
+    const rcd = createDefaultSymbolItem({
+      id: "rcd-n",
+      type: "RCD 2P",
+      deviceKind: "rcd",
+      group: "GN",
+      x: 100,
+    });
+    const mcb = createDefaultSymbolItem({
+      id: "mcb-n",
+      type: "MCB 1P",
+      deviceKind: "mcb",
+      group: "GN",
+      rcdSymbolId: "rcd-n",
+      x: 200,
+    });
+    const terminalN = createDefaultSymbolItem({
+      id: "term-n",
+      type: "Listwy zaciskowe",
+      label: "Listwa zaciskowa N",
+      deviceKind: "terminalBlock",
+      group: "GN",
+      x: 300,
+    });
+
+    const result = buildSchematicLayout([rcd, mcb, terminalN]);
+    const head = result.nodes.find((n) => n.id === "rcd-n");
+
+    expect(head).toBeDefined();
+    expect(head!.hasNeutralBar).toBe(true);
+    expect(head!.neutralBarLabel).toContain("N");
+  });
+
+  it("does not set hasNeutralBar for a PE terminal block in the RCD group", () => {
+    const rcd = createDefaultSymbolItem({
+      id: "rcd-pe",
+      type: "RCD 2P",
+      deviceKind: "rcd",
+      group: "GPE",
+      x: 100,
+    });
+    const mcb = createDefaultSymbolItem({
+      id: "mcb-pe",
+      type: "MCB 1P",
+      deviceKind: "mcb",
+      group: "GPE",
+      rcdSymbolId: "rcd-pe",
+      x: 200,
+    });
+    const terminalPE = createDefaultSymbolItem({
+      id: "term-pe",
+      type: "Listwy zaciskowe",
+      label: "Listwa PE",
+      deviceKind: "terminalBlock",
+      group: "GPE",
+      x: 300,
+    });
+
+    const result = buildSchematicLayout([rcd, mcb, terminalPE]);
+    const head = result.nodes.find((n) => n.id === "rcd-pe");
+
+    expect(head).toBeDefined();
+    expect(head!.hasNeutralBar).toBeFalsy();
+  });
 });

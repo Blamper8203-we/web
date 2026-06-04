@@ -91,5 +91,52 @@ describe("normalizeGroupConsistency", () => {
     const nextChild = normalized.find((symbol) => symbol.id === "rcd-child");
     expect(nextChild?.rcdSymbolId).toBe("rcd-head");
   });
+
+  it("retains group for N terminal blocks if there is an RCD head", () => {
+    const head = createDefaultSymbolItem({
+      id: "rcd-head",
+      deviceKind: "rcd",
+      group: "g1",
+      groupName: "Grupa-1",
+      rcdRatedCurrent: 40,
+    });
+    const terminalN = createDefaultSymbolItem({
+      id: "term-n",
+      deviceKind: "terminalBlock",
+      type: "terminal",
+      label: "N1",
+      visualPath: "assets/modules/terminal-n.svg",
+      group: "g1",
+      groupName: "Grupa-1",
+    });
+
+    const normalized = normalizeGroupConsistency([head, terminalN]);
+    const nextTerminal = normalized.find((symbol) => symbol.id === "term-n");
+    expect(nextTerminal?.group).toBe("g1");
+    expect(nextTerminal?.groupName).toBe("Grupa-1");
+  });
+
+  it("clears group for non-N terminal auxiliary blocks", () => {
+    const head = createDefaultSymbolItem({
+      id: "rcd-head",
+      deviceKind: "rcd",
+      group: "g1",
+      groupName: "Grupa-1",
+    });
+    const auxiliaryPE = createDefaultSymbolItem({
+      id: "aux-pe",
+      deviceKind: "terminalBlock",
+      type: "terminal",
+      label: "PE",
+      group: "g1",
+      groupName: "Grupa-1",
+    });
+
+    const normalized = normalizeGroupConsistency([head, auxiliaryPE]);
+    const nextAux = normalized.find((symbol) => symbol.id === "aux-pe");
+    expect(nextAux?.group).toBe("");
+    expect(nextAux?.groupName).toBe("");
+  });
 });
+
 

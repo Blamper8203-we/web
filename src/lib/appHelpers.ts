@@ -382,7 +382,29 @@ export function isDistributionSymbol(symbol: SymbolItem): boolean {
   return symbol.deviceKind === "mcb" || symbol.deviceKind === "rcbo";
 }
 
+function isNeutralTerminal(symbol: SymbolItem): boolean {
+  if (!isTerminalOrConnectorSymbol(symbol) && !isDistributionBlockSymbol(symbol)) {
+    return false;
+  }
+
+  const value = `${symbol.type} ${symbol.label} ${symbol.visualPath} ${symbol.moduleRef}`
+    .toLocaleLowerCase("pl-PL")
+    .replace(/ł/g, "l")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  if (value.includes("pe") || value.includes("ochronn") || value.includes("protect")) {
+    return false;
+  }
+
+  return /(^|[\s\-/])n[\d_]*([\s\-/]|$)/.test(value) || value.includes("neutral");
+}
+
 export function shouldExcludeFromAutoGrouping(symbol: SymbolItem): boolean {
+  if (isNeutralTerminal(symbol)) {
+    return false;
+  }
+
   return (
     symbol.deviceKind === "fr" ||
     symbol.deviceKind === "spd" ||
@@ -539,8 +561,8 @@ export function snapDraggedGroupToNeighborModules(
 }
 
 export function toDisplayModuleNumber(symbol: SymbolItem): string {
-  if (isTerminalOrConnectorSymbol(symbol)) {
-    return `X${symbol.moduleNumber}`;
+  if (isTerminalOrConnectorSymbol(symbol) || isDistributionBlockSymbol(symbol)) {
+    return symbol.referenceDesignation || `X${symbol.moduleNumber}`;
   }
 
   if (symbol.deviceKind === "rcd" || symbol.type.toLocaleUpperCase("pl-PL").includes("RCD")) {
@@ -580,30 +602,87 @@ function shouldUseAuxiliaryReferenceDesignation(symbol: SymbolItem): boolean {
   return isTerminalOrConnectorSymbol(symbol) || isDistributionBlockSymbol(symbol);
 }
 
+function getAuxiliaryPrefix(symbol: SymbolItem): string {
+  if (isDistributionBlockSymbol(symbol)) {
+    console.log('[AUX] BL prefix for:', symbol.label, symbol.moduleRef);
+    return "BL";
+  }
+  
+  const text = `${symbol.type} ${symbol.label} ${symbol.circuitName} ${symbol.circuitDescription} ${symbol.visualPath} ${symbol.moduleRef} ${symbol.phase}`.toUpperCase();
+  
+  console.log('[AUX] text for prefix check:', JSON.stringify(text.substring(0, 120)));
+  
+  // Match PE: standalone "PE", "OCHRONN", "ZIELON"
+  if (/(^|[\s/-])PE([\s/-]|$)/.test(text) || text.includes("ZIELON") || text.includes("OCHRON")) {
+    console.log('[AUX] PE prefix for:', symbol.label);
+    return "PE";
+  }
+  
+  // Match N: standalone "N" (optionally followed by numbers), "NEUTRAL", "NIEBIESK"
+  if (/(^|[\s/-])N[\d_]*([\s/-]|$)/.test(text) || text.includes("NIEBIESK") || text.includes("NEUTRAL")) {
+    console.log('[AUX] N prefix for:', symbol.label);
+    return "N";
+  }
+  
+  console.log('[AUX] X prefix for:', symbol.label, symbol.moduleRef);
+  return "X";
+}
+
 function assignAuxiliaryReferenceDesignations(symbols: SymbolItem[]): void {
   const auxiliarySymbols = symbols
     .filter(shouldUseAuxiliaryReferenceDesignation)
     .sort(compareDinPosition);
-  const reservedDesignations = new Set(
-    auxiliarySymbols
-      .filter(hasManualReferenceDesignation)
-      .map((symbol) => symbol.referenceDesignation.trim().toLocaleUpperCase("pl-PL")),
-  );
-  let auxiliaryCounter = 1;
 
+  const reservedDesignations = new Set<string>();
+
+  // Pass 1: Reserve manual designations
+  for (const symbol of auxiliarySymbols) {
+    if (hasManualReferenceDesignation(symbol)) {
+      reservedDesignations.add(symbol.referenceDesignation.trim().toLocaleUpperCase("pl-PL"));
+    }
+  }
+
+  // Pass 2: Reserve existing valid automatic designations to prevent jumping
   for (const symbol of auxiliarySymbols) {
     if (!hasManualReferenceDesignation(symbol)) {
-      while (reservedDesignations.has(`X${auxiliaryCounter}`)) {
-        auxiliaryCounter++;
+      const ref = symbol.referenceDesignation?.trim().toLocaleUpperCase("pl-PL");
+      const expectedPrefix = getAuxiliaryPrefix(symbol);
+      const regex = new RegExp(`^${expectedPrefix}\\d+$`);
+      
+      if (ref && regex.test(ref)) {
+        if (!reservedDesignations.has(ref)) {
+          reservedDesignations.add(ref);
+        } else {
+          // Duplicate found (e.g. copy-paste), clear it for re-assignment
+          symbol.referenceDesignation = "";
+        }
+      } else {
+        // Empty or invalid format (e.g. newly added or type changed), clear it
+        symbol.referenceDesignation = "";
       }
+    }
+  }
 
-      symbol.referenceDesignation = `X${auxiliaryCounter}`;
-      auxiliaryCounter++;
+  // Pass 3: Assign next available numbers to the rest
+  const counters = new Map<string, number>();
+  
+  for (const symbol of auxiliarySymbols) {
+    if (!hasManualReferenceDesignation(symbol) && !symbol.referenceDesignation) {
+      const prefix = getAuxiliaryPrefix(symbol);
+      let counter = counters.get(prefix) ?? 1;
+      
+      while (reservedDesignations.has(`${prefix}${counter}`)) {
+        counter++;
+      }
+      
+      symbol.referenceDesignation = `${prefix}${counter}`;
+      reservedDesignations.add(`${prefix}${counter}`);
+      counters.set(prefix, counter + 1);
     }
 
-    const referenceNumber = symbol.referenceDesignation.match(/^X(\d+)$/i);
-    if (referenceNumber) {
-      const moduleNumber = Number.parseInt(referenceNumber[1], 10);
+    const match = symbol.referenceDesignation.match(/^[A-Z]+([0-9]+)$/i);
+    if (match) {
+      const moduleNumber = Number.parseInt(match[1], 10);
       if (Number.isFinite(moduleNumber) && moduleNumber > 0) {
         symbol.moduleNumber = moduleNumber;
       }
@@ -697,6 +776,23 @@ export function normalizeDinRailModuleOrdering(symbols: SymbolItem[]): SymbolIte
   return nextSymbols;
 }
 
+function getNextPhase(current: string): PhaseAssignment {
+  const sequence: PhaseAssignment[] = ["L1", "L2", "L3"];
+  const parts = (current || "").split('+').map(p => p.trim()).filter(p => sequence.includes(p as PhaseAssignment));
+  if (parts.length === 0) return "L1";
+  const lastPhase = parts[parts.length - 1] as PhaseAssignment;
+  const lastIndex = sequence.indexOf(lastPhase);
+  return sequence[(lastIndex + 1) % 3];
+}
+
+function generatePhaseString(startPhase: PhaseAssignment, poles: number): PhaseAssignment {
+  const sequence: PhaseAssignment[] = ["L1", "L2", "L3"];
+  const startIndex = Math.max(0, sequence.indexOf(startPhase));
+  if (poles >= 3) return "L1+L2+L3" as PhaseAssignment;
+  if (poles === 2) return `${sequence[startIndex]}+${sequence[(startIndex + 1) % 3]}` as PhaseAssignment;
+  return sequence[startIndex];
+}
+
 export function normalizeGroupConsistency(symbols: SymbolItem[]): SymbolItem[] {
   const nextSymbols = symbols.map((symbol) => ({
     ...symbol,
@@ -717,6 +813,11 @@ export function normalizeGroupConsistency(symbols: SymbolItem[]): SymbolItem[] {
 
   for (const symbol of nextSymbols) {
     if (!isAuxiliaryNonCircuitSymbol(symbol)) {
+      continue;
+    }
+
+    // Allow N terminal blocks to stay in their group (they represent dedicated N busbars for RCD groups)
+    if (isNeutralTerminal(symbol) && symbol.group) {
       continue;
     }
 
@@ -819,11 +920,42 @@ export function normalizeGroupConsistency(symbols: SymbolItem[]): SymbolItem[] {
       symbol.rcdRatedCurrent = headRcd.rcdRatedCurrent;
       symbol.rcdResidualCurrent = headRcd.rcdResidualCurrent;
       symbol.rcdType = headRcd.rcdType;
+      
       if (isSinglePhaseRcd) {
         symbol.phase = headRcdPhase;
       }
     }
 
+    if (!isSinglePhaseRcd) {
+      let currentPhase: PhaseAssignment = "L1";
+      let isFirstChild = true;
+
+      const children = activeGroupSymbols
+        .filter((symbol) => symbol.id !== headRcd.id && symbol.deviceKind !== "rcd")
+        .sort((a, b) => (a.y === b.y ? a.x - b.x : a.y - b.y));
+
+      for (const symbol of children) {
+        const identity = `${symbol.type} ${symbol.label} ${symbol.moduleRef} ${symbol.visualPath}`.toUpperCase();
+        let poles = 1;
+        if (identity.includes("4P")) poles = 4;
+        else if (identity.includes("3P")) poles = 3;
+        else if (identity.includes("2P")) poles = 2;
+
+        if (isFirstChild) {
+          isFirstChild = false;
+          if (symbol.phase) {
+            currentPhase = getNextPhase(symbol.phase);
+          } else {
+            currentPhase = getNextPhase("L1");
+          }
+        } else {
+          if (!symbol.isPhaseLocked) {
+             symbol.phase = generatePhaseString(currentPhase, poles);
+          }
+          currentPhase = getNextPhase(symbol.phase);
+        }
+      }
+    }
   }
 
   return nextSymbols;

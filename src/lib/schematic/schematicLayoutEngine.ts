@@ -1,6 +1,7 @@
 import {
   isAuxiliaryNonCircuitSymbol,
   isDistributionBlockSymbol,
+  isTerminalOrConnectorSymbol,
   type SymbolItem,
 } from "../../types/symbolItem";
 import type { PageInfo, SchematicLayout, SchematicNode } from "./schematicLayout";
@@ -70,6 +71,13 @@ function buildNodes(symbols: SymbolItem[]): BuildResult {
     symbols.map((symbol) => [symbol.id, getPoleCount(symbol)])
   );
 
+  const neutralBarByGroup = new Map<string, SymbolItem>();
+  for (const s of symbols) {
+    if (s.group.trim() && isNeutralTerminalBlock(s) && !neutralBarByGroup.has(s.group)) {
+      neutralBarByGroup.set(s.group, s);
+    }
+  }
+
   const symbolIndices = new Map(symbols.map((s, idx) => [s.id, idx]));
   const grouped = groupSymbols(all.filter((symbol) => symbol.group.trim().length > 0), symbolIndices);
   const standalone = all
@@ -92,6 +100,7 @@ function buildNodes(symbols: SymbolItem[]): BuildResult {
   let h = 1;
   let w = 1;
   let ws = 1;
+  let x = 1;
   let standaloneMcbIdx = 1;
   let phaseIdx = 0;
   let rcdPhaseIdx = 0;
@@ -275,11 +284,20 @@ function buildNodes(symbols: SymbolItem[]): BuildResult {
 
     assignChildrenPhase(children, assignedPhase, isThreePhaseHead, poleCountMap);
 
+    const neutralTerminal = neutralBarByGroup.get(headDevice.group);
+    const groupHasNeutralBar = isRcdHead && !!neutralTerminal;
+    const neutralDesignation = neutralTerminal ? resolveDesignation(neutralTerminal, `X${x++}`) : "";
+    const groupNeutralBarLabel = groupHasNeutralBar
+      ? neutralDesignation
+      : "";
+
     const headNode = createNode(headDevice, isRcdHead ? "RCD" : "MainBreaker", {
       designation: headDesignation,
       protection: createHeadProtection(headDevice, isRcdHead, isThreePhaseHead),
       phase: assignedPhase,
       phaseCount: isThreePhaseHead ? 3 : detectPhaseText(assignedPhase),
+      hasNeutralBar: groupHasNeutralBar || undefined,
+      neutralBarLabel: groupNeutralBarLabel || undefined,
       topDevice: groupTopSwitch ? createNode(groupTopSwitch, "MainBreaker", {
         designation: resolveDesignation(groupTopSwitch, `WS${ws++}`),
         protection: groupTopSwitch.label || "Przełącznik sieci",
@@ -307,6 +325,8 @@ function buildNodes(symbols: SymbolItem[]): BuildResult {
         designation: headDesignation,
         protection: index === 0 ? headNode.protection : `${headNode.protection} (cd.)`,
         distributionBlockLabel: headNode.distributionBlockLabel,
+        hasNeutralBar: headNode.hasNeutralBar,
+        neutralBarLabel: headNode.neutralBarLabel,
         phase: assignedPhase,
         phaseCount: isRcdHead
           ? (isThreePhaseHead ? 3 : detectPhaseText(assignedPhase))
@@ -651,14 +671,14 @@ function assignChildrenPhase(
     if (fixedScenarioPhase) {
       childPhase = fixedScenarioPhase;
       if (childPoles === 1 || childPoles === 2) {
-        childPhaseIdx++;
+        childPhaseIdx += childPoles;
       }
     } else if (childPoles === 3 || childPoles === 4) {
       childPhase = "L1+L2+L3";
     } else if (childPoles === 2) {
       const pair = phasePairs[childPhaseIdx % 3];
       childPhase = `${pair[0]}+${pair[1]}`;
-      childPhaseIdx++;
+      childPhaseIdx += 2;
     } else {
       childPhase = phaseNames[childPhaseIdx % 3];
       childPhaseIdx++;
@@ -666,6 +686,8 @@ function assignChildrenPhase(
 
     if (isManualNodePhase(child)) {
       childPhase = child.phase || childPhase;
+    } else if (child.phase && child.phase !== "PENDING" && child.phase !== "pending") {
+      childPhase = child.phase;
     }
 
     child.phase = childPhase;
@@ -879,6 +901,22 @@ function isKf(symbol: SymbolItem): boolean {
 
 function isDistributionBlock(symbol: SymbolItem): boolean {
   return isDistributionBlockSymbol(symbol);
+}
+
+function isNeutralTerminalBlock(symbol: SymbolItem): boolean {
+  if (!isTerminalOrConnectorSymbol(symbol) && !isDistributionBlockSymbol(symbol)) {
+    return false;
+  }
+
+  const value = getSchematicIdentity(symbol);
+
+  // Exclude PE / protective earth terminals
+  if (value.includes("pe") || value.includes("ochronn") || value.includes("protect")) {
+    return false;
+  }
+
+  // Match "N" as a standalone token: " n ", "-n-", "n " at end, etc., allowing optional digits or underscores
+  return /(^|[\s\-/])n[\d_]*([\s\-/]|$)/.test(value) || value.includes("neutral");
 }
 
 function getPoleCount(symbol: SymbolItem): ModulePoleCount {
