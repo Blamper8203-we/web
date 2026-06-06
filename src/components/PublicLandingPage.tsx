@@ -18,6 +18,7 @@ export function PublicLandingPage({
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const SLIDER_IMAGES = [
+    "/assets/WKRÓTCE.png",
     "/assets/desktop-app.png",
     "/assets/image2.png",
     "/assets/image3.png",
@@ -27,7 +28,7 @@ export function PublicLandingPage({
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % SLIDER_IMAGES.length);
-    }, 4000);
+    }, 8000);
     return () => clearInterval(interval);
   }, []);
 
@@ -285,20 +286,32 @@ export function PublicLandingPage({
               <div className="text-center max-w-3xl mx-auto mb-10">
                   <span className="text-amber-500 text-xs font-bold tracking-widest uppercase font-mono block mb-2">PODGLĄD APLIKACJI</span>
                   <h2 className="text-2xl sm:text-3xl font-bold text-white m-0 pb-2">Przejrzysty i intuicyjny interfejs roboczy</h2>
-                  <p className="text-sm text-gray-400 m-0">Zobacz, jak zaprojektowaliśmy przestrzeń roboczą programu DinBoard pod kątem szybkiej i wygodnej pracy instalatora.</p>
+                  <p className="text-sm text-gray-400 m-0">Zobacz, jak zaprojektowałem przestrzeń roboczą programu DinBoard pod kątem szybkiej i wygodnej pracy instalatora.</p>
               </div>
 
               <div className="rounded-2xl overflow-hidden shadow-2xl border border-slate-800/80 bg-slate-900 relative aspect-[16/9]">
                   {SLIDER_IMAGES.map((src, index) => (
-                      <img
+                      <div 
                           key={src}
-                          src={src}
-                          alt={`Zrzut ekranu aplikacji DinBoard ${index + 1}`}
-                          draggable={false}
-                          className={`absolute inset-0 w-full h-full object-cover pointer-events-none select-none transition-opacity duration-1000 ease-in-out ${
-                              index === currentSlide ? "opacity-100" : "opacity-0"
+                          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                              index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
                           }`}
-                      />
+                      >
+                          <img
+                              src={src}
+                              alt={`Zrzut ekranu aplikacji DinBoard ${index + 1}`}
+                              draggable={false}
+                              className="w-full h-full object-cover pointer-events-none select-none"
+                          />
+                          {index === 0 && (
+                              <div className="absolute top-6 right-6">
+                                  <div className="bg-amber-500 text-slate-900 font-black px-4 py-1.5 rounded-lg text-sm tracking-widest uppercase shadow-lg shadow-amber-500/20 flex items-center gap-2">
+                                      <span className="w-2 h-2 rounded-full bg-slate-900 animate-pulse"></span>
+                                      Wkrótce
+                                  </div>
+                              </div>
+                          )}
+                      </div>
                   ))}
                   <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10 pointer-events-auto">
                       {SLIDER_IMAGES.map((_, index) => (
