@@ -304,10 +304,15 @@ export function PublicLandingPage({
                               className="w-full h-full object-cover pointer-events-none select-none"
                           />
                           {index === 0 && (
-                              <div className="absolute top-6 right-6">
-                                  <div className="bg-amber-500 text-slate-900 font-black px-4 py-1.5 rounded-lg text-sm tracking-widest uppercase shadow-lg shadow-amber-500/20 flex items-center gap-2">
-                                      <span className="w-2 h-2 rounded-full bg-slate-900 animate-pulse"></span>
-                                      Wkrótce
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                                  <div className="bg-slate-900/95 border border-amber-500/50 p-6 rounded-2xl shadow-2xl text-center max-w-md mx-4 transform transition-all">
+                                      <div className="w-14 h-14 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-500/20">
+                                          <i data-lucide="zap" className="w-7 h-7 text-amber-500"></i>
+                                      </div>
+                                      <h3 className="text-xl font-bold text-white mb-2">Rysowanie przewodów już jest!</h3>
+                                      <p className="text-sm text-gray-300 leading-relaxed">
+                                          Moduł łączenia aparatów na szynie DIN jest już dostępny. Pamiętaj, że aplikacja jest w <strong>fazie testów (BETA)</strong>.
+                                      </p>
                                   </div>
                               </div>
                           )}
