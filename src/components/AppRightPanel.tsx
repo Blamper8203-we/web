@@ -5,10 +5,12 @@ import type { ValidationResult } from "../lib/validation/electricalValidationSer
 import type { ValidationQuickFixId } from "../lib/validation/validationQuickFixes";
 import type { ProjectMetadata } from "../types/projectMetadata";
 import type { SymbolItem } from "../types/symbolItem";
+import type { ConnectionItem } from "../types/connectionItem";
 import { AppIcon } from "./AppIcon";
 import { CircuitEditPanel } from "./CircuitEditPanel";
 import { PowerBalancePage, type BalanceApplyHandler, type PhaseMoveApplyHandler } from "./PowerBalancePage";
 import { ValidationPanel } from "./ValidationPanel";
+import { ConnectionsRightPanel } from "./ConnectionsRightPanel";
 import { buildSchematicLayout } from "../lib/schematic/schematicLayoutEngine";
 import type { SheetType } from "../lib/appHelpers";
 import { renderSchematic } from "../lib/schematic/schematicRenderer";
@@ -123,6 +125,10 @@ export interface AppRightPanelProps {
   handleMetadataChange: (nextMetadata: ProjectMetadata) => void;
   handleOpenRcdManager: () => void;
   onScrollToSchematicPage?: (pageIndex: number) => void;
+  connections?: ConnectionItem[];
+  selectedConnectionId?: string | null;
+  onConnectionSelect?: (id: string | null) => void;
+  onConnectionsChange?: (newConnections: ConnectionItem[], label: string, statusMsg: string) => void;
 }
 
 export function AppRightPanel({
@@ -146,9 +152,27 @@ export function AppRightPanel({
   handleMetadataChange,
   handleOpenRcdManager,
   onScrollToSchematicPage,
+  connections = [],
+  selectedConnectionId = null,
+  onConnectionSelect = () => {},
+  onConnectionsChange = () => {},
 }: AppRightPanelProps) {
   if (!showRightPanel) {
     return null;
+  }
+
+  if (activeSheet === "sheet1_connections") {
+    return (
+      <aside className="right-panel">
+        <ConnectionsRightPanel
+          connections={connections}
+          selectedConnectionId={selectedConnectionId}
+          onConnectionSelect={onConnectionSelect}
+          onConnectionsChange={onConnectionsChange}
+          symbols={symbols}
+        />
+      </aside>
+    );
   }
 
   return (

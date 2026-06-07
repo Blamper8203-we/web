@@ -264,13 +264,7 @@ function toCircuitDeviceKind(symbol: SymbolItem): CircuitRow["deviceKind"] {
 }
 
 function firstNonEmpty(...values: Array<string | null | undefined>): string {
-  for (const value of values) {
-    if (typeof value === "string" && value.trim().length > 0) {
-      return value.trim();
-    }
-  }
-
-  return "";
+  return values.find((v) => typeof v === "string" && v.trim().length > 0)?.trim() ?? "";
 }
 
 function compareCircuitRowPosition(left: CircuitRow, right: CircuitRow): number {

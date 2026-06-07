@@ -104,7 +104,9 @@ export function getSchematicCellValue(
 ): string {
   switch (field) {
     case "Designation":
-      return symbol?.referenceDesignation ?? node.designation;
+      return symbol?.parameters[MANUAL_REFERENCE_DESIGNATION_KEY] === "true" 
+        ? symbol.referenceDesignation 
+        : node.designation;
     case "Protection":
       return symbol?.protectionType || node.protection;
     case "CircuitName":

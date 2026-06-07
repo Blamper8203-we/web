@@ -6,6 +6,7 @@ import {
   resetDocumentationFields,
 } from '../lib/projectMetadata';
 import { openProjectFile, saveProjectFile, type ProjectFileData } from '../lib/projectFile';
+import type { ConnectionItem } from '../types/connectionItem';
 import { exportToPdf } from '../lib/export/pdfExportService';
 import { exportDinRailToBlobWithOptions } from '../lib/export/dinRailSnapshotService';
 import {
@@ -57,6 +58,8 @@ interface UseProjectActionsParams {
   setMetadata: React.Dispatch<React.SetStateAction<ProjectMetadata>>;
   symbols: SymbolItem[];
   setSymbols: React.Dispatch<React.SetStateAction<SymbolItem[]>>;
+  connections: ConnectionItem[];
+  setConnections: React.Dispatch<React.SetStateAction<ConnectionItem[]>>;
   currentFilePath: string | null;
   setCurrentFilePath: React.Dispatch<React.SetStateAction<string | null>>;
   paletteTemplateMap: Map<string, PaletteTemplate>;
@@ -67,7 +70,7 @@ interface UseProjectActionsParams {
   setSelectedSymbolIds: React.Dispatch<React.SetStateAction<string[]>>;
   setDinRail: React.Dispatch<React.SetStateAction<DinRailCanvasRail>>;
   dinRail: DinRailCanvasRail;
-  setActiveSheet: React.Dispatch<React.SetStateAction<SheetType>>;
+  setActiveSheet: (tab: SheetType) => void;
   setDinRailGeneratorRequest: React.Dispatch<React.SetStateAction<number>>;
   undoRedoServiceRef: MutableRefObject<UndoRedoService>;
   dragHistorySnapshotRef: MutableRefObject<SymbolHistorySnapshot | null>;
@@ -86,6 +89,8 @@ export function useProjectActions({
   setMetadata,
   symbols,
   setSymbols,
+  connections,
+  setConnections,
   currentFilePath,
   setCurrentFilePath,
   paletteTemplateMap,
@@ -157,6 +162,7 @@ export function useProjectActions({
             isVisible: true,
           } : null,
           asNew ? undefined : currentFilePath ?? undefined,
+          connections,
         );
         if (path) {
           setCurrentFilePath(path);
@@ -170,12 +176,13 @@ export function useProjectActions({
         return false;
       }
     },
-    [currentFilePath, dinRail, metadata, setCurrentFilePath, setHasUnsavedChanges, showTemporaryStatus, symbols],
+    [currentFilePath, dinRail, metadata, setCurrentFilePath, setHasUnsavedChanges, showTemporaryStatus, symbols, connections],
   );
 
   const handleNewProject = useCallback(() => {
     setMetadata(createEmptyProjectMetadata());
     setSymbols([]);
+    setConnections([]);
     setCurrentFilePath(null);
     resetProjectState();
     setActiveSheet('sheet1');
@@ -186,6 +193,7 @@ export function useProjectActions({
     setCurrentFilePath,
     setMetadata,
     setSymbols,
+    setConnections,
     showTemporaryStatus,
   ]);
 
@@ -197,6 +205,7 @@ export function useProjectActions({
     );
     setMetadata(normalizeProjectMetadata(data.metadata));
     setSymbols(normalizedSymbols);
+    setConnections(data.connections ?? []);
     setCurrentFilePath(data.path ?? null);
     resetProjectState();
     if (data.rail?.isVisible) {
@@ -218,6 +227,7 @@ export function useProjectActions({
     setCurrentFilePath,
     setMetadata,
     setSymbols,
+    setConnections,
     showTemporaryStatus,
   ]);
 
@@ -233,7 +243,7 @@ export function useProjectActions({
 
   const handleExportPdf = useCallback(async () => {
     try {
-      const blob = await exportToPdf(metadata, symbols, dinRail);
+      const blob = await exportToPdf(metadata, symbols, dinRail, connections);
       showTemporaryStatus('Eksport PDF', 3000);
 
       if (Capacitor.isNativePlatform() && blob) {
@@ -254,7 +264,7 @@ export function useProjectActions({
     } catch (e) {
       showTemporaryStatus(`Błąd: ${e instanceof Error ? e.message : 'Nieznany'}`, 5000);
     }
-  }, [dinRail, metadata, showTemporaryStatus, symbols]);
+  }, [connections, dinRail, metadata, showTemporaryStatus, symbols]);
 
   const handleExportBom = useCallback(() => {
     const headers = [

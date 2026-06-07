@@ -38,8 +38,8 @@ interface UsePaletteActionsParams {
   selectedSymbol: SymbolItem | null;
   selectedSymbolId: string | null;
   selectedSymbolIds: string[];
-  setActiveRightTab: React.Dispatch<React.SetStateAction<RightTab>>;
-  setActiveSheet: React.Dispatch<React.SetStateAction<SheetType>>;
+  setActiveRightTab: (tab: RightTab) => void;
+  setActiveSheet: (sheet: SheetType) => void;
   executeSymbolsCommand: (
     label: string,
     before: SymbolHistorySnapshot,
@@ -113,8 +113,9 @@ export function usePaletteActions({
       const shouldLockReferenceDesignation =
         template.deviceKind === 'rcd' || template.deviceKind === 'fr';
       const moduleDimensions = getPaletteTemplateDimensions(template);
+      const isTerminalBlock = template.category === "Listwy do rozdzielnicy";
       const shouldPlaceOnDinRail =
-        options?.snapToRail === true && supportsDinRailPlacement(template);
+        options?.snapToRail === true && (supportsDinRailPlacement(template) || isTerminalBlock);
 
       let phase = template.phase;
       if (template.deviceKind === 'rcd') {
@@ -187,97 +188,140 @@ export function usePaletteActions({
         : `Dodano ${template.code} do schematu.`;
 
       if (shouldPlaceOnDinRail) {
-        const railDims = getDinRailDimensions(dinRail.config.rows, dinRail.config.modulesPerRow);
-        const snappedSymbols = symbols.filter((s) => s.isSnappedToRail);
-        const snapResult = snapModulePlacementToDinRail(
-          nextSymbol.x,
-          nextSymbol.y,
-          nextSymbol.width,
-          nextSymbol.height,
-          railDims.width,
-          railDims.rowCenters,
-          snappedSymbols,
-          undefined,
-          { forceSnapToRail: true, moduleRef: nextSymbol.moduleRef }
-        );
+        if (isTerminalBlock) {
+          const topY = -1200;
+          const rectHeight = 300;
+          const bottomY = (dinRail.config.rows - 1) * (1642.0 + 50.0) + 2400;
 
-        nextSymbol.x = snapResult.x;
-        nextSymbol.y = snapResult.y;
+          const gap = 300;
+          const railDims = getDinRailDimensions(dinRail.config.rows, dinRail.config.modulesPerRow);
+          const rectWidth = Math.min(2000, railDims.width * 0.35);
+          const centerX = railDims.width / 2;
+          const leftRectX = centerX - rectWidth - gap / 2;
+          const rightRectX = centerX + gap / 2;
+          
+          const leftCenterX = leftRectX + rectWidth / 2;
+          const rightCenterX = rightRectX + rectWidth / 2;
 
-        const snapTarget = findDinRailSnapTarget(
-          symbols,
-          nextSymbol.x,
-          nextSymbol.y,
-          nextSymbol.width,
-          nextSymbol.height,
-          nextSymbol.moduleRef,
-        );
-        const excludeFromGrouping = shouldExcludeFromAutoGrouping(nextSymbol);
+          let snapX = x;
+          const distLeft = Math.abs((x + nextSymbol.width/2) - leftCenterX);
+          const distRight = Math.abs((x + nextSymbol.width/2) - rightCenterX);
+          
+          if (distLeft < distRight && distLeft < 1500) snapX = leftCenterX - nextSymbol.width / 2;
+          else if (distRight <= distLeft && distRight < 1500) snapX = rightCenterX - nextSymbol.width / 2;
 
-        if (snapTarget && !excludeFromGrouping) {
-          if (snapTarget.group) {
-            if (nextSymbol.deviceKind !== 'spd' && nextSymbol.deviceKind !== 'rcd') {
-              nextSymbol.group = snapTarget.group;
-              nextSymbol.groupName = snapTarget.groupName;
+          const inTopZone = y >= topY - 200 && y <= topY + rectHeight + 200;
+          const inBottomZone = y >= bottomY - 200 && y <= bottomY + rectHeight + 200;
 
-              if (snapTarget.rcdSymbolId) {
-                nextSymbol.rcdSymbolId = snapTarget.rcdSymbolId;
-                nextSymbol.rcdRatedCurrent = snapTarget.rcdRatedCurrent;
-                nextSymbol.rcdResidualCurrent = snapTarget.rcdResidualCurrent;
-                nextSymbol.rcdType = snapTarget.rcdType;
-              } else if (snapTarget.deviceKind === 'rcd') {
-                nextSymbol.rcdSymbolId = snapTarget.id;
-                nextSymbol.rcdRatedCurrent = snapTarget.rcdRatedCurrent;
-                nextSymbol.rcdResidualCurrent = snapTarget.rcdResidualCurrent;
-                nextSymbol.rcdType = snapTarget.rcdType;
-              }
-
-              statusMessage = `Dodano ${template.code} do grupy ${snapTarget.groupName || snapTarget.group}.`;
-            }
+          if (inTopZone) {
+             nextSymbol.x = snapX;
+             nextSymbol.y = topY + rectHeight / 2 - nextSymbol.height / 2;
+          } else if (inBottomZone) {
+             nextSymbol.x = snapX;
+             nextSymbol.y = bottomY + rectHeight / 2 - nextSymbol.height / 2;
           } else {
-            const targetIsHead = isGroupHeadSymbol(snapTarget);
-            const newIsHead = isGroupHeadSymbol(nextSymbol);
-            const targetIsDistribution = isDistributionSymbol(snapTarget);
-            const newIsDistribution = isDistributionSymbol(nextSymbol);
+             const distTop = Math.abs(y - topY);
+             const distBottom = Math.abs(y - bottomY);
+             nextSymbol.x = snapX;
+             if (distTop < distBottom) {
+                nextSymbol.y = topY + rectHeight / 2 - nextSymbol.height / 2;
+             } else {
+                nextSymbol.y = bottomY + rectHeight / 2 - nextSymbol.height / 2;
+             }
+          }
+        } else {
+          const railDims = getDinRailDimensions(dinRail.config.rows, dinRail.config.modulesPerRow);
+          const snappedSymbols = symbols.filter((s) => s.isSnappedToRail);
+          const snapResult = snapModulePlacementToDinRail(
+            nextSymbol.x,
+            nextSymbol.y,
+            nextSymbol.width,
+            nextSymbol.height,
+            railDims.width,
+            railDims.rowCenters,
+            snappedSymbols,
+            undefined,
+            { forceSnapToRail: true, moduleRef: nextSymbol.moduleRef }
+          );
 
-            if ((targetIsHead || newIsHead) && (targetIsDistribution || newIsDistribution)) {
-              const groupId = crypto.randomUUID();
-              const groupName = getNextGroupName(symbols);
+          nextSymbol.x = snapResult.x;
+          nextSymbol.y = snapResult.y;
 
-              nextSymbol.group = groupId;
-              nextSymbol.groupName = groupName;
-              nextSymbols = nextSymbols.map((s) =>
-                s.id === snapTarget.id ? { ...s, group: groupId, groupName } : s,
-              );
+          const snapTarget = findDinRailSnapTarget(
+            symbols,
+            nextSymbol.x,
+            nextSymbol.y,
+            nextSymbol.width,
+            nextSymbol.height,
+            nextSymbol.moduleRef,
+          );
+          const excludeFromGrouping = shouldExcludeFromAutoGrouping(nextSymbol);
 
-              const rcdSymbol = targetIsHead ? snapTarget : nextSymbol;
-              const childId = targetIsHead ? nextSymbol.id : snapTarget.id;
-              nextSymbols = nextSymbols.map((s) =>
-                s.id === childId
-                  ? {
-                      ...s,
-                      rcdSymbolId: rcdSymbol.id,
-                      rcdRatedCurrent: rcdSymbol.rcdRatedCurrent,
-                      rcdResidualCurrent: rcdSymbol.rcdResidualCurrent,
-                      rcdType: rcdSymbol.rcdType,
-                    }
-                  : s,
-              );
+          if (snapTarget && !excludeFromGrouping) {
+            if (snapTarget.group) {
+              if (nextSymbol.deviceKind !== 'spd' && nextSymbol.deviceKind !== 'rcd') {
+                nextSymbol.group = snapTarget.group;
+                nextSymbol.groupName = snapTarget.groupName;
 
-              statusMessage = `Dodano ${template.code} i utworzono nowa grupe ${groupName}.`;
+                if (snapTarget.rcdSymbolId) {
+                  nextSymbol.rcdSymbolId = snapTarget.rcdSymbolId;
+                  nextSymbol.rcdRatedCurrent = snapTarget.rcdRatedCurrent;
+                  nextSymbol.rcdResidualCurrent = snapTarget.rcdResidualCurrent;
+                  nextSymbol.rcdType = snapTarget.rcdType;
+                } else if (snapTarget.deviceKind === 'rcd') {
+                  nextSymbol.rcdSymbolId = snapTarget.id;
+                  nextSymbol.rcdRatedCurrent = snapTarget.rcdRatedCurrent;
+                  nextSymbol.rcdResidualCurrent = snapTarget.rcdResidualCurrent;
+                  nextSymbol.rcdType = snapTarget.rcdType;
+                }
+
+                statusMessage = `Dodano ${template.code} do grupy ${snapTarget.groupName || snapTarget.group}.`;
+              }
+            } else {
+              const targetIsHead = isGroupHeadSymbol(snapTarget);
+              const newIsHead = isGroupHeadSymbol(nextSymbol);
+              const targetIsDistribution = isDistributionSymbol(snapTarget);
+              const newIsDistribution = isDistributionSymbol(nextSymbol);
+
+              if ((targetIsHead || newIsHead) && (targetIsDistribution || newIsDistribution)) {
+                const groupId = crypto.randomUUID();
+                const groupName = getNextGroupName(symbols);
+
+                nextSymbol.group = groupId;
+                nextSymbol.groupName = groupName;
+                nextSymbols = nextSymbols.map((s) =>
+                  s.id === snapTarget.id ? { ...s, group: groupId, groupName } : s,
+                );
+
+                const rcdSymbol = targetIsHead ? snapTarget : nextSymbol;
+                const childId = targetIsHead ? nextSymbol.id : snapTarget.id;
+                nextSymbols = nextSymbols.map((s) =>
+                  s.id === childId
+                    ? {
+                        ...s,
+                        rcdSymbolId: rcdSymbol.id,
+                        rcdRatedCurrent: rcdSymbol.rcdRatedCurrent,
+                        rcdResidualCurrent: rcdSymbol.rcdResidualCurrent,
+                        rcdType: rcdSymbol.rcdType,
+                      }
+                    : s,
+                );
+
+                statusMessage = `Dodano ${template.code} i utworzono nowa grupe ${groupName}.`;
+              }
             }
           }
-        }
 
-        if (nextSymbol.deviceKind === 'rcd' && !nextSymbol.group) {
-          const groupId = crypto.randomUUID();
-          const groupName = getNextGroupName(symbols);
-          nextSymbol.group = groupId;
-          nextSymbol.groupName = groupName;
-          statusMessage = `Dodano ${template.code} jako aparat grupowy ${groupName}.`;
-        }
+          if (nextSymbol.deviceKind === 'rcd' && !nextSymbol.group) {
+            const groupId = crypto.randomUUID();
+            const groupName = getNextGroupName(symbols);
+            nextSymbol.group = groupId;
+            nextSymbol.groupName = groupName;
+            statusMessage = `Dodano ${template.code} jako aparat grupowy ${groupName}.`;
+          }
 
-        nextSymbols = normalizeDinRailModuleOrdering(normalizeGroupConsistency(nextSymbols));
+          nextSymbols = normalizeDinRailModuleOrdering(normalizeGroupConsistency(nextSymbols));
+        }
       }
 
       setActiveRightTab('circuitEdit');

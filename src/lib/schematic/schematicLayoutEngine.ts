@@ -4,6 +4,10 @@ import {
   isTerminalOrConnectorSymbol,
   type SymbolItem,
 } from "../../types/symbolItem";
+import {
+  detectPoleCountWithFallback as getPoleCount,
+  detectPhaseCount as detectPhaseText,
+} from "../poleCount";
 import type { PageInfo, SchematicLayout, SchematicNode } from "./schematicLayout";
 import {
   A4_HEIGHT_PX,
@@ -942,44 +946,7 @@ function isNeutralTerminalBlock(symbol: SymbolItem): boolean {
   );
 }
 
-function getPoleCount(symbol: SymbolItem): ModulePoleCount {
-  const value = `${symbol.visualPath} ${symbol.type} ${symbol.label} ${symbol.moduleRef}`;
-  const normalizedValue = value
-    .toLocaleUpperCase("pl-PL")
-    .replace(/Ł/g, "L")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-  const poleMatch = normalizedValue.match(/(^|[^0-9])([1-4])\s*-?\s*(?:P|POL[A-Z]*|BIEG[A-Z]*|TOR[A-Z]*)([^A-Z0-9]|$)/);
-  if (poleMatch) {
-    const poles = Number.parseInt(poleMatch[2]!, 10);
-    if (poles >= 1 && poles <= 4) return poles as ModulePoleCount;
-  }
-
-  const sSeriesMatch = value.match(/[Ss]\s*-?\s*30(\d)/);
-  if (sSeriesMatch) {
-    const poles = Number.parseInt(sSeriesMatch[1], 10);
-    if (poles >= 1 && poles <= 4) return poles as ModulePoleCount;
-  }
-
-  const combinedLower = value.toLowerCase();
-  if (combinedLower.includes("4p")) return 4;
-  if (combinedLower.includes("3p")) return 3;
-  if (combinedLower.includes("2p")) return 2;
-  if (combinedLower.includes("1p")) return 1;
-
-  if (symbol.deviceKind === "fr" || symbol.deviceKind === "spd" || symbol.deviceKind === "phaseIndicator") return 4;
-  if (symbol.deviceKind === "rcd" && detectPhaseText(symbol.phase) >= 3) return 4;
-
-  if (symbol.height > 0) {
-    const ratio = symbol.width / symbol.height;
-    if (ratio < 0.30) return 1;
-    if (ratio < 0.55) return 2;
-    if (ratio < 0.75) return 3;
-    return 4;
-  }
-
-  return detectPhaseText(symbol.phase) >= 3 ? 4 : 1;
-}
+// getPoleCount imported from ../poleCount as detectPoleCountWithFallback
 
 
 function detectPhases(symbol: SymbolItem): number {
@@ -993,12 +960,7 @@ function detectPhases(symbol: SymbolItem): number {
   return 1;
 }
 
-function detectPhaseText(phase: string): number {
-  if (!phase || isPendingPhase(phase)) return 1;
-  if (phase === "L1+L2+L3" || phase === "3F" || phase === "3P") return 3;
-  const count = (phase.match(/L/g) ?? []).length;
-  return Math.max(1, count);
-}
+// detectPhaseText imported from ../poleCount
 
 function isPendingPhase(phase: string | null | undefined): boolean {
   return !phase || phase.toLocaleLowerCase("pl-PL") === "pending";

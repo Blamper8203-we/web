@@ -1,3 +1,4 @@
+import { devLog } from "../lib/runtimeDiagnostics";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   applyCircuitEditValues,
@@ -28,7 +29,16 @@ export function CircuitEditPanel({ symbol, symbols, highlightedFieldKey, onSave,
   const fieldsRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    setValues(Object.fromEntries(fields.map((field) => [field.key, field.value])));
+    // Ustaw wartości TYLKO dla nowych pól, nie resetuj już zmienione
+    setValues((prevValues) => {
+      const newValues = { ...prevValues };
+      fields.forEach((field) => {
+        if (!(field.key in prevValues)) {
+          newValues[field.key] = field.value;
+        }
+      });
+      return newValues;
+    });
     setIsDirty(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [symbol?.id]);
@@ -49,7 +59,15 @@ export function CircuitEditPanel({ symbol, symbols, highlightedFieldKey, onSave,
   };
 
   const handleSave = () => {
+    devLog("🟡 [CircuitEditPanel.handleSave] values:", values);
     const nextSymbol = applyCircuitEditValues(symbol, values);
+    devLog("🟡 [CircuitEditPanel.handleSave] nextSymbol FULL OBJECT:", nextSymbol);
+    devLog("🟡 [CircuitEditPanel.handleSave] nextSymbol.parameters DETAILED:", {
+      parameters: nextSymbol.parameters,
+      parametersCURRENT: nextSymbol.parameters?.CURRENT,
+      protectionType: nextSymbol.protectionType,
+      displayProtection: nextSymbol.displayProtection,
+    });
     onSave(nextSymbol);
     setIsDirty(false);
   };

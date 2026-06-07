@@ -1,3 +1,4 @@
+import { devWarn } from "../runtimeDiagnostics";
 import type { DinRailCanvasRail } from "../../components/DinRailCanvasPixi";
 import { isAuxiliaryNonCircuitSymbol, type SymbolItem } from "../../types/symbolItem";
 import { buildSchematicLayout } from "../schematic/schematicLayoutEngine";
@@ -11,6 +12,9 @@ import {
 } from "../dinRailSelection";
 import { loadPreparedSvgDataUri } from "../modules/svgAsset";
 import { getSymbolRatingText } from "../appHelpers";
+import type { ConnectionItem } from "../../types/connectionItem";
+import { getSymbolTerminals } from "../modules/moduleTerminals";
+import { calculateWirePoints, type Point } from "../routing/wireRoutingEngine";
 
 const MANUAL_REFERENCE_DESIGNATION_KEY = "ManualReferenceDesignation";
 
@@ -138,14 +142,158 @@ function getSymbolDesignationLabel(
   return automaticDesignationBySymbolId.get(symbol.id) ?? "";
 }
 
-export async function exportDinRailToDataURL(symbols: SymbolItem[], rail: DinRailCanvasRail): Promise<string[]> {
-  return exportDinRailToDataURLWithOptions(symbols, rail, {});
+const WIRE_COLORS_MAP: Record<string, { hex: string; highlight: string; dark: string }> = {
+  black: { hex: "#333333", highlight: "#666666", dark: "#000000" }, // L2
+  brown: { hex: "#8B4513", highlight: "#c4763a", dark: "#4a2007" }, // L1
+  grey: { hex: "#888888", highlight: "#bbbbbb", dark: "#555555" },  // L3
+  gray: { hex: "#888888", highlight: "#bbbbbb", dark: "#555555" },  // L3
+  blue: { hex: "#1565C0", highlight: "#4a9ed6", dark: "#0a2f6b" },  // N
+  "green-yellow": { hex: "#2e7d32", highlight: "#5ab55e", dark: "#143b16" }, // PE
+  pe: { hex: "#2e7d32", highlight: "#5ab55e", dark: "#143b16" }, // PE
+  red: { hex: "#ef4444", highlight: "#f87171", dark: "#991b1b" },
+  other: { hex: "#a855f7", highlight: "#c084fc", dark: "#6b21a8" },
+};
+
+const WIRE_THICKNESS_MAP: Record<number, number> = {
+  1.5: 24.0,
+  2.5: 30.0,
+  4.0: 36.0,
+  6.0: 42.0,
+  10.0: 48.0,
+  16.0: 54.0,
+};
+
+function drawWireOnCanvas(
+  ctx: CanvasRenderingContext2D,
+  points: Point[],
+  radius: number,
+  colorHex: string,
+  thickness: number,
+  wireColor: string,
+): void {
+  const noDups = points.filter((pt, i, arr) => {
+    if (i === 0) return true;
+    return Math.abs(pt.x - arr[i - 1].x) > 0.5 || Math.abs(pt.y - arr[i - 1].y) > 0.5;
+  });
+
+  const cleanPoints = noDups.filter((pt, i, arr) => {
+    if (i === 0 || i === arr.length - 1) return true;
+    const prev = arr[i - 1];
+    const next = arr[i + 1];
+
+    const isCollinearX = Math.abs(prev.x - pt.x) < 0.5 && Math.abs(pt.x - next.x) < 0.5;
+    const isCollinearY = Math.abs(prev.y - pt.y) < 0.5 && Math.abs(pt.y - next.y) < 0.5;
+
+    return !(isCollinearX || isCollinearY);
+  });
+
+  if (cleanPoints.length < 2) return;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(cleanPoints[0].x, cleanPoints[0].y);
+
+  if (radius <= 0 || cleanPoints.length < 3) {
+    for (let i = 1; i < cleanPoints.length; i++) {
+      ctx.lineTo(cleanPoints[i].x, cleanPoints[i].y);
+    }
+  } else {
+    for (let i = 1; i < cleanPoints.length - 1; i++) {
+      const prev = cleanPoints[i - 1];
+      const curr = cleanPoints[i];
+      const next = cleanPoints[i + 1];
+
+      const dPrev = Math.hypot(curr.x - prev.x, curr.y - prev.y);
+      const dNext = Math.hypot(next.x - curr.x, next.y - curr.y);
+
+      const maxRPrev = i === 1 ? dPrev : dPrev / 2;
+      const maxRNext = i === cleanPoints.length - 2 ? dNext : dNext / 2;
+      const maxR = Math.min(maxRPrev, maxRNext, radius);
+
+      if (maxR < 1) {
+        ctx.lineTo(curr.x, curr.y);
+        continue;
+      }
+
+      const uPrev = { x: (prev.x - curr.x) / dPrev, y: (prev.y - curr.y) / dPrev };
+      const uNext = { x: (next.x - curr.x) / dNext, y: (next.y - curr.y) / dNext };
+
+      const ptA = { x: curr.x + uPrev.x * maxR, y: curr.y + uPrev.y * maxR };
+      const ptB = { x: curr.x + uNext.x * maxR, y: curr.y + uNext.y * maxR };
+
+      ctx.lineTo(ptA.x, ptA.y);
+      ctx.quadraticCurveTo(curr.x, curr.y, ptB.x, ptB.y);
+    }
+    ctx.lineTo(cleanPoints[cleanPoints.length - 1].x, cleanPoints[cleanPoints.length - 1].y);
+  }
+
+  ctx.strokeStyle = colorHex;
+  ctx.lineWidth = thickness;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.stroke();
+
+  if (wireColor === "green-yellow") {
+    ctx.beginPath();
+    ctx.moveTo(cleanPoints[0].x, cleanPoints[0].y);
+    if (radius <= 0 || cleanPoints.length < 3) {
+      for (let i = 1; i < cleanPoints.length; i++) {
+        ctx.lineTo(cleanPoints[i].x, cleanPoints[i].y);
+      }
+    } else {
+      for (let i = 1; i < cleanPoints.length - 1; i++) {
+        const prev = cleanPoints[i - 1];
+        const curr = cleanPoints[i];
+        const next = cleanPoints[i + 1];
+
+        const dPrev = Math.hypot(curr.x - prev.x, curr.y - prev.y);
+        const dNext = Math.hypot(next.x - curr.x, next.y - curr.y);
+
+        const maxRPrev = i === 1 ? dPrev : dPrev / 2;
+        const maxRNext = i === cleanPoints.length - 2 ? dNext : dNext / 2;
+        const maxR = Math.min(maxRPrev, maxRNext, radius);
+
+        if (maxR < 1) {
+          ctx.lineTo(curr.x, curr.y);
+          continue;
+        }
+
+        const uPrev = { x: (prev.x - curr.x) / dPrev, y: (prev.y - curr.y) / dPrev };
+        const uNext = { x: (next.x - curr.x) / dNext, y: (next.y - curr.y) / dNext };
+
+        const ptA = { x: curr.x + uPrev.x * maxR, y: curr.y + uPrev.y * maxR };
+        const ptB = { x: curr.x + uNext.x * maxR, y: curr.y + uNext.y * maxR };
+
+        ctx.lineTo(ptA.x, ptA.y);
+        ctx.quadraticCurveTo(curr.x, curr.y, ptB.x, ptB.y);
+      }
+      ctx.lineTo(cleanPoints[cleanPoints.length - 1].x, cleanPoints[cleanPoints.length - 1].y);
+    }
+
+    ctx.strokeStyle = "#FFD600";
+    ctx.lineWidth = thickness;
+    ctx.lineCap = "butt";
+    ctx.lineJoin = "round";
+    ctx.setLineDash([thickness * 1.2, thickness * 1.2]);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+export async function exportDinRailToDataURL(
+  symbols: SymbolItem[],
+  rail: DinRailCanvasRail,
+  connections?: ConnectionItem[],
+): Promise<string[]> {
+  return exportDinRailToDataURLWithOptions(symbols, rail, {}, connections);
 }
 
 async function renderDinRailSnapshotCanvas(
   symbols: SymbolItem[],
   rail: DinRailCanvasRail,
   options: DinRailSnapshotExportOptions,
+  connections?: ConnectionItem[],
 ): Promise<HTMLCanvasElement | null> {
   if (!rail.isVisible || rail.width <= 0 || rail.height <= 0) {
     return null;
@@ -154,20 +302,96 @@ async function renderDinRailSnapshotCanvas(
   const includeDesignations = options.includeDesignations !== false;
   const includeGroupFrames = options.includeGroupFrames !== false;
 
+  const snappedSymbols = symbols.filter((symbol) => symbol.isSnappedToRail);
+  const groupFrames = includeGroupFrames
+    ? buildDinRailGroupFrames(snappedSymbols, DIN_RAIL_GROUP_FRAME_PADDING)
+    : [];
+
+  // Calculate bounding box of everything (rail, symbols, labels, groups, wires)
+  let minX = 0;
+  let minY = 0;
+  let maxX = rail.width;
+  let maxY = rail.height;
+
+  for (const symbol of snappedSymbols) {
+    minX = Math.min(minX, symbol.x);
+    minY = Math.min(minY, symbol.y);
+    maxX = Math.max(maxX, symbol.x + symbol.width);
+    maxY = Math.max(maxY, symbol.y + symbol.height);
+
+    if (includeDesignations) {
+      maxY = Math.max(maxY, symbol.y + symbol.height + 100);
+    }
+  }
+
+  // Include wire points in bounding box
+  if (connections && connections.length > 0) {
+    for (const conn of connections) {
+      const fromSymbol = symbols.find((s) => s.id === conn.fromSymbolId);
+      const toSymbol = symbols.find((s) => s.id === conn.toSymbolId);
+      if (!fromSymbol || !toSymbol) continue;
+
+      const fromHS = getSymbolTerminals(fromSymbol).find((h) => h.name === conn.fromTerminal);
+      const toHS = getSymbolTerminals(toSymbol).find((h) => h.name === conn.toTerminal);
+      if (!fromHS || !toHS) continue;
+
+      const fromPt = { x: fromSymbol.x + fromHS.x, y: fromSymbol.y + fromHS.y };
+      const toPt = { x: toSymbol.x + toHS.x, y: toSymbol.y + toHS.y };
+
+      const routingOpts = {
+        isFromTop: conn.isFromTop ?? fromHS.isTop,
+        isToTop: conn.isToTop ?? toHS.isTop,
+        points: conn.points,
+        customOffset: conn.customOffset,
+        customOffsetX: conn.customOffsetX,
+        customOffsetY1: conn.customOffsetY1,
+        customOffsetY2: conn.customOffsetY2,
+        customRadius: conn.customRadius ?? 0,
+      };
+
+      const pointsArr = calculateWirePoints(fromPt, toPt, routingOpts);
+      for (const pt of pointsArr) {
+        minX = Math.min(minX, pt.x);
+        minY = Math.min(minY, pt.y);
+        maxX = Math.max(maxX, pt.x);
+        maxY = Math.max(maxY, pt.y);
+      }
+    }
+  }
+
+  if (includeGroupFrames && groupFrames.length > 0) {
+    for (const group of groupFrames) {
+      minY = Math.min(minY, group.y - 120);
+    }
+  }
+
+  // Add a nice padding margin
+  const padding = 40;
+  minX -= padding;
+  minY -= padding;
+  maxX += padding;
+  maxY += padding;
+
+  const contentWidth = maxX - minX;
+  const contentHeight = maxY - minY;
+
+  const offsetX = -minX;
+  const offsetY = -minY;
+
   // Browsers enforce a hard canvas dimension limit (Chrome: 16384px, Firefox: 32767px).
   // A 24-module DIN rail is ~6120 logical units wide. At scale 4 that's 24480px — way over the limit.
   // We automatically clamp the scale so the largest dimension stays within safe bounds.
   const MAX_CANVAS_DIMENSION = 3840;
   const requestedScale = clamp(options.scale ?? 2, 1, 8);
-  const maxDimension = Math.max(rail.width, rail.height);
+  const maxDimension = Math.max(contentWidth, contentHeight);
   const safeScale = maxDimension * requestedScale > MAX_CANVAS_DIMENSION
     ? Math.floor((MAX_CANVAS_DIMENSION / maxDimension) * 100) / 100
     : requestedScale;
   const scale = Math.max(1, safeScale);
 
   const canvas = document.createElement("canvas");
-  canvas.width = Math.round(rail.width * scale);
-  canvas.height = Math.round(rail.height * scale);
+  canvas.width = Math.round(contentWidth * scale);
+  canvas.height = Math.round(contentHeight * scale);
   const ctx = canvas.getContext("2d");
 
   if (!ctx) {
@@ -179,6 +403,7 @@ async function renderDinRailSnapshotCanvas(
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
   ctx.scale(scale, scale);
+  ctx.translate(offsetX, offsetY);
 
   if (rail.svg) {
     const svgDataUri = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(rail.svg)}`;
@@ -186,14 +411,9 @@ async function renderDinRailSnapshotCanvas(
       const railImg = await loadImage(svgDataUri);
       ctx.drawImage(railImg, 0, 0, rail.width, rail.height);
     } catch (err) {
-      console.warn("Nie udalo sie narysowac tla szyny DIN:", err);
+      devWarn("Nie udalo sie narysowac tla szyny DIN:", err);
     }
   }
-
-  const snappedSymbols = symbols.filter((symbol) => symbol.isSnappedToRail);
-  const groupFrames = includeGroupFrames
-    ? buildDinRailGroupFrames(snappedSymbols, DIN_RAIL_GROUP_FRAME_PADDING)
-    : [];
   const automaticDesignationBySymbolId = includeDesignations
     ? buildAutomaticDesignationMap(symbols)
     : new Map<string, string>();
@@ -213,7 +433,7 @@ async function renderDinRailSnapshotCanvas(
       const img = await loadImage(dataUri);
       return { img, symbol };
     } catch (err) {
-      console.warn(`Nie udało się załadować grafiki dla modułu ${symbol.id}:`, err);
+      devWarn(`Nie udało się załadować grafiki dla modułu ${symbol.id}:`, err);
       return null;
     }
   });
@@ -222,6 +442,44 @@ async function renderDinRailSnapshotCanvas(
     img: HTMLImageElement;
     symbol: SymbolItem;
   }[];
+
+  // Draw wires/connections FIRST (so they appear behind modules)
+  if (connections && connections.length > 0) {
+    for (const conn of connections) {
+      const fromSymbol = symbols.find((s) => s.id === conn.fromSymbolId);
+      const toSymbol = symbols.find((s) => s.id === conn.toSymbolId);
+      if (!fromSymbol || !toSymbol) continue;
+
+      const fromHS = getSymbolTerminals(fromSymbol).find((h) => h.name === conn.fromTerminal);
+      const toHS = getSymbolTerminals(toSymbol).find((h) => h.name === conn.toTerminal);
+      if (!fromHS || !toHS) continue;
+
+      const fromPt = { x: fromSymbol.x + fromHS.x, y: fromSymbol.y + fromHS.y };
+      const toPt = { x: toSymbol.x + toHS.x, y: toSymbol.y + toHS.y };
+
+      const routingOpts = {
+        isFromTop: conn.isFromTop ?? fromHS.isTop,
+        isToTop: conn.isToTop ?? toHS.isTop,
+        points: conn.points,
+        customOffset: conn.customOffset,
+        customOffsetX: conn.customOffsetX,
+        customOffsetY1: conn.customOffsetY1,
+        customOffsetY2: conn.customOffsetY2,
+        customRadius: conn.customRadius ?? 0,
+      };
+
+      const pointsArr = calculateWirePoints(fromPt, toPt, routingOpts);
+      const wireThickness = WIRE_THICKNESS_MAP[conn.wireCrossSection] || 4.5;
+      const colors = WIRE_COLORS_MAP[conn.wireColor] || { hex: "#555", highlight: "#888", dark: "#1a1a1a" };
+
+      // 1. Dark outline (gray for black wires to prevent blending with dark background)
+      const outlineColor = conn.wireColor === "black" ? "#888888" : colors.dark;
+      drawWireOnCanvas(ctx, pointsArr, conn.customRadius ?? 0, outlineColor, wireThickness + 1.8, "");
+
+      // 2. Main color
+      drawWireOnCanvas(ctx, pointsArr, conn.customRadius ?? 0, colors.hex, wireThickness, conn.wireColor);
+    }
+  }
 
   loadedImages.sort((a, b) => {
     if (Math.abs(a.symbol.y - b.symbol.y) > 5) {
@@ -291,8 +549,9 @@ export async function exportDinRailToDataURLWithOptions(
   symbols: SymbolItem[],
   rail: DinRailCanvasRail,
   options: DinRailSnapshotExportOptions,
+  connections?: ConnectionItem[],
 ): Promise<string[]> {
-  const canvas = await renderDinRailSnapshotCanvas(symbols, rail, options);
+  const canvas = await renderDinRailSnapshotCanvas(symbols, rail, options, connections);
   if (!canvas) {
     return [];
   }
@@ -304,8 +563,9 @@ export async function exportDinRailToBlobWithOptions(
   symbols: SymbolItem[],
   rail: DinRailCanvasRail,
   options: DinRailSnapshotExportOptions,
+  connections?: ConnectionItem[],
 ): Promise<Blob | null> {
-  const canvas = await renderDinRailSnapshotCanvas(symbols, rail, options);
+  const canvas = await renderDinRailSnapshotCanvas(symbols, rail, options, connections);
   if (!canvas) {
     return null;
   }

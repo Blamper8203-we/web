@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import type { CircuitRow } from "../types/circuitRow";
 import type { SymbolItem } from "../types/symbolItem";
+import type { ConnectionItem } from "../types/connectionItem";
 import type {
   MeasurementContinuityProtocolRow,
   MeasurementInsulationProtocolRow,
@@ -33,6 +34,7 @@ type MeasurementProtocolsWorkspacePageProps = {
   circuitRows: CircuitRow[];
   onChange: (next: ProjectMetadata) => void;
   activeTab: WorkspaceTab;
+  connections: ConnectionItem[];
 };
 
 type ProtocolTableRowsMap = Pick<
@@ -97,6 +99,7 @@ export function MeasurementProtocolsWorkspacePage({
   circuitRows,
   onChange,
   activeTab,
+  connections,
 }: MeasurementProtocolsWorkspacePageProps) {
   const [dinRailPreviewUrl, setDinRailPreviewUrl] = useState<string | null>(null);
   const [dinRailPreviewError, setDinRailPreviewError] = useState<string | null>(null);
@@ -138,7 +141,7 @@ export function MeasurementProtocolsWorkspacePage({
 
     async function refreshDinRailPreview() {
       try {
-        const images = await exportDinRailToDataURL(symbols, rail);
+        const images = await exportDinRailToDataURL(symbols, rail, connections);
         if (isCancelled) {
           return;
         }
@@ -166,7 +169,7 @@ export function MeasurementProtocolsWorkspacePage({
     return () => {
       isCancelled = true;
     };
-  }, [activeTab, symbols, rail]);
+  }, [activeTab, symbols, rail, connections]);
 
   const updateProtocols = (patch: Partial<MeasurementProtocolsData>) => {
     onChange({

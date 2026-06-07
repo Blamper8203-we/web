@@ -1,7 +1,7 @@
 import type { SymbolItem } from "../types/symbolItem";
 
 export const DIN_RAIL_GROUP_FRAME_PADDING = 8;
-export const DIN_RAIL_GROUP_BRACKET_OFFSET_Y = 148;
+export const DIN_RAIL_GROUP_BRACKET_OFFSET_Y = 40;
 export const DIN_RAIL_GROUP_BRACKET_BAR_HEIGHT = 2;
 export const DIN_RAIL_GROUP_BRACKET_LEG_HEIGHT = 22;
 export const DIN_RAIL_GROUP_BRACKET_LABEL_HEIGHT = 20;

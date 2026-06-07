@@ -17,7 +17,9 @@ export type PhaseAssignment =
   | "L1+L3"
   | "L3+L1"
   | "L1+L2+L3"
-  | "3F";
+  | "3F"
+  | "PE"
+  | "N";
 
 export type CircuitTypeValue = "Oswietlenie" | "Gniazdo" | "Sila" | "Inne";
 

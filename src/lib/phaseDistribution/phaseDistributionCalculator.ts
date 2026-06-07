@@ -1,5 +1,6 @@
 import type { SymbolItem } from "../../types/symbolItem";
 import type { PhaseAssignment } from "../../types/symbolItem";
+import { detectPoleCount } from "../poleCount";
 
 export type BalanceMode = "Power" | "Current";
 export type BalanceScope = "AllSinglePhase" | "OnlyUnlocked";
@@ -118,6 +119,9 @@ export function autoBalancePhases(
   scope: BalanceScope = "OnlyUnlocked",
   voltage: number = 230,
 ): BalancePlan {
+  // Reset tie-breaker so the algorithm is deterministic for the same input.
+  minTieBreaker = 0;
+
   const plan: BalancePlan = {
     snapshot: new Map(),
     units: [],
@@ -500,28 +504,7 @@ function minIndex(loads: [number, number, number]): number {
   return picked;
 }
 
-function detectPoleCount(symbol: SymbolItem): 1 | 2 | 3 | 4 | 0 {
-  const value = `${symbol.type} ${symbol.label} ${symbol.visualPath}`.toUpperCase();
-  const poleMatch = value.match(/(\d)\s*-?\s*[Pp]/);
-  if (poleMatch) {
-    const poles = Number.parseInt(poleMatch[1], 10);
-    if (poles >= 1 && poles <= 4) return poles as 1 | 2 | 3 | 4;
-  }
-
-  if (symbol.height > 0) {
-    const ratio = symbol.width / symbol.height;
-    if (ratio < 0.30) return 1;
-    if (ratio < 0.55) return 2;
-    if (ratio < 0.75) return 3;
-    return 4;
-  }
-
-  const phase = (symbol.phase || "").toUpperCase();
-  if (phase === "L1+L2+L3" || phase === "3F") return 3;
-  if (phase === "L1+L2" || phase === "L1+L3" || phase === "L3+L1" || phase === "L2+L3") return 2;
-  if (phase === "L1" || phase === "L2" || phase === "L3") return 1;
-  return 0;
-}
+// detectPoleCount imported from ../poleCount
 
 function getScenarioFlag(symbol: SymbolItem, key: string): boolean {
   const rawValue = symbol.parameters?.[key];

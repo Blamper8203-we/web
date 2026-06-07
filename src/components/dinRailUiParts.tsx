@@ -32,6 +32,8 @@ interface DinRailZoomToolbarProps {
   onZoomOut: () => void;
   onToggleGroups?: () => void;
   showGroups?: boolean;
+  onToggleWires?: () => void;
+  showWires?: boolean;
 }
 
 export function DinRailZoomToolbar({
@@ -41,9 +43,26 @@ export function DinRailZoomToolbar({
   onZoomOut,
   onToggleGroups,
   showGroups = true,
+  onToggleWires,
+  showWires = true,
 }: DinRailZoomToolbarProps) {
   return (
     <div className="workspace-hud workspace-hud--top-right">
+      {onToggleWires && (
+        <>
+          <button
+            type="button"
+            className={`workspace-tool-btn ${showWires ? "is-active" : ""}`}
+            title={showWires ? "Ukryj przewody" : "Pokaż przewody"}
+            aria-label={showWires ? "Ukryj przewody" : "Pokaż przewody"}
+            onClick={onToggleWires}
+            disabled={!canInteract}
+          >
+            <AppIcon name="busbar" size={17} />
+          </button>
+          <div style={{ width: '20px', height: '1px', background: 'rgba(255,255,255,0.15)', margin: '4px auto' }} />
+        </>
+      )}
       {onToggleGroups && (
         <>
           <button

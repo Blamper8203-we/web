@@ -42,14 +42,7 @@ function buildComparableKey(...values: Array<string | null | undefined>): string
 }
 
 function firstNonEmpty(...values: Array<string | null | undefined>): string {
-  for (const value of values) {
-    const normalized = normalizeText(value);
-    if (normalized.length > 0) {
-      return normalized;
-    }
-  }
-
-  return "";
+  return values.find((v) => typeof v === "string" && v.trim().length > 0)?.trim() ?? "";
 }
 
 function valueOrFallback(value: string | null | undefined, fallback: string): string {

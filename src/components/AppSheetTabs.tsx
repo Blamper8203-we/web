@@ -15,6 +15,7 @@ const SHEET_TABS: Array<{
   sheet: SheetType;
 }> = [
   { sheet: "sheet1", icon: "grid", label: "Rozdzielnica" },
+  { sheet: "sheet1_connections", icon: "busbar", label: "Rozdzielnica połączenia" },
   { sheet: "sheet2", icon: "fileTree", label: "Schemat obwodów" },
   { sheet: "sheet3", icon: "list", label: "Lista obwodów" },
   { sheet: "sheet4", icon: "pdf", label: "Podgląd PDF" },

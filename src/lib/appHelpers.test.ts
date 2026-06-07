@@ -239,4 +239,118 @@ describe("normalizePaletteAssetDimensions", () => {
 
     expect(getReferencePrefix(template)).toBe("X");
   });
+
+  describe("assignAuxiliaryReferenceDesignations", () => {
+    it("assigns PE prefix to terminal blocks with PE in the label", () => {
+      const peTerminal = createDefaultSymbolItem({
+        id: "pe-terminal",
+        type: "Złącza",
+        label: "PE terminal",
+        deviceKind: "terminalBlock",
+        isSnappedToRail: true,
+        x: 100,
+        y: 0,
+        visualPath: "zlacza/zlacze.svg",
+        moduleRef: "zlacza/zlacze.svg",
+        referenceDesignation: "",
+      });
+
+      const normalized = normalizeDinRailModuleOrdering([peTerminal]);
+      const result = normalized.find((s) => s.id === "pe-terminal");
+      expect(result?.referenceDesignation).toBe("PE1");
+      expect(result?.displayModuleNumber).toBe("PE1");
+    });
+
+    it("assigns N prefix to terminal blocks with N in the label", () => {
+      const nTerminal = createDefaultSymbolItem({
+        id: "n-terminal",
+        type: "Złącza",
+        label: "N",
+        deviceKind: "terminalBlock",
+        isSnappedToRail: true,
+        x: 100,
+        y: 0,
+        visualPath: "zlacza/zlacze.svg",
+        moduleRef: "zlacza/zlacze.svg",
+        referenceDesignation: "",
+      });
+
+      const normalized = normalizeDinRailModuleOrdering([nTerminal]);
+      const result = normalized.find((s) => s.id === "n-terminal");
+      expect(result?.referenceDesignation).toBe("N1");
+      expect(result?.displayModuleNumber).toBe("N1");
+    });
+
+    it("assigns BL prefix to distribution blocks", () => {
+      const block = createDefaultSymbolItem({
+        id: "block-1",
+        type: "Blok rozdzielczy",
+        label: "Blok rozdzielczy 4 15",
+        deviceKind: "other",
+        isSnappedToRail: true,
+        x: 100,
+        y: 0,
+        visualPath: "bloki/blok.svg",
+        moduleRef: "bloki/blok.svg",
+        referenceDesignation: "",
+      });
+
+      const normalized = normalizeDinRailModuleOrdering([block]);
+      const result = normalized.find((s) => s.id === "block-1");
+      expect(result?.referenceDesignation).toBe("BL1");
+      expect(result?.displayModuleNumber).toBe("BL1");
+    });
+
+    it("increments counters for multiple terminals of the same type", () => {
+      const t1 = createDefaultSymbolItem({
+        id: "t1",
+        type: "Złącza",
+        label: "Złącze uniwersalne",
+        deviceKind: "terminalBlock",
+        isSnappedToRail: true,
+        x: 100,
+        y: 0,
+        visualPath: "zlacza/zlacze.svg",
+        moduleRef: "zlacza/zlacze.svg",
+        referenceDesignation: "",
+      });
+      const t2 = createDefaultSymbolItem({
+        id: "t2",
+        type: "Złącza",
+        label: "Złącze uniwersalne",
+        deviceKind: "terminalBlock",
+        isSnappedToRail: true,
+        x: 200,
+        y: 0,
+        visualPath: "zlacza/zlacze.svg",
+        moduleRef: "zlacza/zlacze.svg",
+        referenceDesignation: "",
+      });
+
+      const normalized = normalizeDinRailModuleOrdering([t1, t2]);
+      expect(normalized.find((s) => s.id === "t1")?.referenceDesignation).toBe("X1");
+      expect(normalized.find((s) => s.id === "t2")?.referenceDesignation).toBe("X2");
+    });
+
+    it("preserves manual auxiliary reference designations", () => {
+      const manualTerminal = createDefaultSymbolItem({
+        id: "manual-t",
+        type: "Złącza",
+        label: "PEN terminal",
+        deviceKind: "terminalBlock",
+        isSnappedToRail: true,
+        x: 100,
+        y: 0,
+        visualPath: "zlacza/zlacze.svg",
+        moduleRef: "zlacza/zlacze.svg",
+        referenceDesignation: "X5",
+        parameters: { ManualReferenceDesignation: "true" },
+      });
+
+      const normalized = normalizeDinRailModuleOrdering([manualTerminal]);
+      const result = normalized.find((s) => s.id === "manual-t");
+      expect(result?.referenceDesignation).toBe("X5");
+      expect(result?.displayModuleNumber).toBe("X5");
+    });
+  });
 });

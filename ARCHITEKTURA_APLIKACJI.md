@@ -1,6 +1,6 @@
 # Architektura aplikacji DINBoard Web
 
-> **Stan na dziś (2026-06-04):** Ten dokument jest aktualny i odzwierciedla faktyczny kod.
+> **Stan na dziś (2026-06-07):** Ten dokument jest aktualny i odzwierciedla faktyczny kod.
 > Wszystkie nieaktualne pliki dokumentacji zostały usunięte. Obowiązują tylko: `AGENTS.md`, `ARCHITEKTURA_APLIKACJI.md`, `README.md`.
 
 ## Cel aplikacji
@@ -59,7 +59,8 @@ Logika biznesowa nie siedzi bezpośrednio w `App.tsx`, tylko jest rozbita na wys
   - otwieranie i zapis,
   - eksport PDF,
   - bilans faz,
-  - reset dokumentacji.
+  - reset dokumentacji,
+  - **pokryty testami (28 testów)** ✅
 - `useSymbolActions`
   - zaznaczanie,
   - drag and drop,
@@ -67,7 +68,8 @@ Logika biznesowa nie siedzi bezpośrednio w `App.tsx`, tylko jest rozbita na wys
   - usuwanie,
   - zapis do historii.
 - `useSymbolHistory`
-  - undo/redo.
+  - undo/redo
+  - **pokryty testami (11 testów)** ✅
 - `usePaletteActions`
   - przeciąganie elementów z palety i logika palety.
 - `useImportedModules`
@@ -251,6 +253,7 @@ Folder `lib` jest właściwą warstwą aplikacyjną. Jeśli chcesz rozwijać pro
 - Dużo logiki już wyciągniętej z komponentów do `lib`.
 - Czytelny podział na 4 obszary robocze.
 - PDF ma już osobną warstwę generatora.
+- **Undo/redo obsłużone przez `UndoRedoService` (testowany) + `useSymbolHistory` (testowany).**
 
 ## Co jest dziś najsłabsze
 
@@ -258,6 +261,7 @@ Folder `lib` jest właściwą warstwą aplikacyjną. Jeśli chcesz rozwijać pro
 - Część widoków nadal miesza logikę UI z logiką dokumentu.
 - Obszar `sheet4` jest jeszcze w trakcie migracji z Avalonia i ma miejsca, gdzie układ UI oraz przepływ preview nie są jeszcze całkiem domknięte.
 - W kilku plikach nadal widać ślady problemów z kodowaniem polskich znaków.
+- **Brak testów dla `useProjectActions` i `DinRailCanvasPixi` – największe luki w pokryciu.**
 
 ## Moja rekomendacja rozwoju
 

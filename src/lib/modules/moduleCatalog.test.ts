@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { getModuleSnapAnchorRatioY, getPaletteTemplateDimensions, PALETTE_GROUPS } from "./moduleCatalog";
 import { mergePaletteGroups, type ImportedModuleDefinition } from "./importedModuleCatalog";
+import { getSymbolTerminals } from "./moduleTerminals";
+import { createDefaultSymbolItem } from "../../types/symbolItem";
 
 function createImportedRcd(label: string): ImportedModuleDefinition {
   return {
@@ -70,5 +72,34 @@ describe("module catalog groups", () => {
     expect(getModuleSnapAnchorRatioY("Listwy zaciskowe/Listwa N 12PIN.svg")).toBe(0.464);
     expect(getModuleSnapAnchorRatioY("Listwy zaciskowe/Listwa PE 12PIN.svg")).toBe(0.464);
     expect(getModuleSnapAnchorRatioY("Listwy zaciskowe/Listwa N 15PIN.svg")).toBe(0.5);
+  });
+});
+
+describe("getSymbolTerminals for 28-pin block", () => {
+  it("maps 28 terminals with correct names and phases for 7-pin block", () => {
+    const symbol = createDefaultSymbolItem({
+      type: "Blok rozdzielczy",
+      moduleRef: "Blok rozdzielczy/Blok rozdzielczy 7 pin.svg",
+      width: 840,
+      height: 1150,
+    });
+
+    const terminals = getSymbolTerminals(symbol);
+    expect(terminals.length).toBe(28);
+
+    // Verify L1 row
+    const l1_1 = terminals.find((t) => t.name === "L1-1");
+    expect(l1_1).toBeDefined();
+    expect(l1_1?.type).toBe("phase");
+    expect(l1_1?.isTop).toBe(true);
+    expect(l1_1?.y).toBe(420);
+
+    // Verify N row
+    const n_7 = terminals.find((t) => t.name === "N-7");
+    expect(n_7).toBeDefined();
+    expect(n_7?.type).toBe("neutral");
+    expect(n_7?.isTop).toBe(false);
+    expect(n_7?.y).toBe(1005);
+    expect(n_7?.x).toBe(780);
   });
 });

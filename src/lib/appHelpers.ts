@@ -1,3 +1,4 @@
+import { devLog } from "./runtimeDiagnostics";
 import { detectExplicitPoleCount } from "./modules/importedModuleCatalog";
 import {
   getModuleSnapAnchorRatioY,
@@ -13,9 +14,10 @@ import {
   type PhaseAssignment,
   type SymbolItem,
 } from '../types/symbolItem';
+import type { ConnectionItem } from '../types/connectionItem';
 import { AppIconName } from '../components/AppIcon';
 
-export type SheetType = "sheet1" | "sheet2" | "sheet3" | "sheet4";
+export type SheetType = "sheet1" | "sheet1_connections" | "sheet2" | "sheet3" | "sheet4";
 export type RightTab = "config" | "balance" | "validation" | "circuitEdit" | "pages";
 
 export type { PaletteTemplate };
@@ -604,27 +606,27 @@ function shouldUseAuxiliaryReferenceDesignation(symbol: SymbolItem): boolean {
 
 function getAuxiliaryPrefix(symbol: SymbolItem): string {
   if (isDistributionBlockSymbol(symbol)) {
-    console.log('[AUX] BL prefix for:', symbol.label, symbol.moduleRef);
+    devLog('[AUX] BL prefix for:', symbol.label, symbol.moduleRef);
     return "BL";
   }
   
   const text = `${symbol.type} ${symbol.label} ${symbol.circuitName} ${symbol.circuitDescription} ${symbol.visualPath} ${symbol.moduleRef} ${symbol.phase}`.toUpperCase();
   
-  console.log('[AUX] text for prefix check:', JSON.stringify(text.substring(0, 120)));
+  devLog('[AUX] text for prefix check:', JSON.stringify(text.substring(0, 120)));
   
   // Match PE: standalone "PE", "OCHRONN", "ZIELON"
   if (/(^|[\s/-])PE([\s/-]|$)/.test(text) || text.includes("ZIELON") || text.includes("OCHRON")) {
-    console.log('[AUX] PE prefix for:', symbol.label);
+    devLog('[AUX] PE prefix for:', symbol.label);
     return "PE";
   }
   
   // Match N: standalone "N" (optionally followed by numbers), "NEUTRAL", "NIEBIESK"
   if (/(^|[\s/-])N[\d_]*([\s/-]|$)/.test(text) || text.includes("NIEBIESK") || text.includes("NEUTRAL")) {
-    console.log('[AUX] N prefix for:', symbol.label);
+    devLog('[AUX] N prefix for:', symbol.label);
     return "N";
   }
   
-  console.log('[AUX] X prefix for:', symbol.label, symbol.moduleRef);
+  devLog('[AUX] X prefix for:', symbol.label, symbol.moduleRef);
   return "X";
 }
 
@@ -963,6 +965,7 @@ export function normalizeGroupConsistency(symbols: SymbolItem[]): SymbolItem[] {
 
 export interface SymbolHistorySnapshot {
   symbols: SymbolItem[];
+  connections?: ConnectionItem[];
   selectedSymbolId: string | null;
   selectedSymbolIds?: string[];
 }
@@ -1041,22 +1044,27 @@ export function isEditableShortcutTarget(target: EventTarget | null): boolean {
   return target.isContentEditable || tagName === "input" || tagName === "textarea" || tagName === "select";
 }
 export function getSymbolRatingText(symbol: SymbolItem): string | undefined {
-  if (symbol.deviceKind === "mcb" || symbol.deviceKind === "rcbo") {
-    return symbol.protectionType;
-  }
-  if (symbol.deviceKind === "rcd") {
+  const value = `${symbol.type} ${symbol.label} ${symbol.visualPath} ${symbol.circuitName}`.toLocaleLowerCase("pl-PL");
+
+  if (symbol.deviceKind === "rcd" || value.includes("rcd")) {
     const mA = symbol.rcdResidualCurrent;
     const residualStr = mA === 30 ? "0,03A" : mA === 100 ? "0,1A" : mA === 300 ? "0,3A" : `${mA}mA`;
     return `${symbol.rcdRatedCurrent}A/${residualStr}`;
   }
-  if (symbol.deviceKind === "fr") {
+  if (symbol.deviceKind === "fr" || /\bfr\b/.test(value) || value.includes("switch") || value.includes("rozlacznik")) {
+    // If it's FR, we return frRatedCurrent if we had one on the symbol.
+    // For now we assume fr uses frRatedCurrent.
     return symbol.frRatedCurrent;
   }
   
-  const value = `${symbol.type} ${symbol.label} ${symbol.visualPath}`.toLocaleLowerCase("pl-PL");
   if (value.includes("przelacznik") && value.includes("siec")) {
     return symbol.frRatedCurrent;
   }
-  
+
+  // If it's explicitly MCB/RCBO or it has a protectionType set, use it.
+  if (symbol.protectionType || symbol.deviceKind === "mcb" || symbol.deviceKind === "rcbo" || value.includes("mcb") || /s\s*-?\s*30\d/.test(value)) {
+    return symbol.protectionType;
+  }
+
   return undefined;
 }

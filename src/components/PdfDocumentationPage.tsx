@@ -14,12 +14,14 @@ import {
   DEFAULT_WORK_SCOPE_ITEMS,
 } from "../lib/projectMetadata";
 import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
+import type { ConnectionItem } from "../types/connectionItem";
 import "./PdfDocumentationPage.css";
 
 type PdfDocumentationPageProps = {
   metadata: ProjectMetadata;
   symbols: SymbolItem[];
   rail: DinRailCanvasRail;
+  connections: ConnectionItem[];
   onChange: (next: ProjectMetadata) => void;
   onResetDocumentation: () => void;
   selectedPreviewTab: PdfDocumentationPreviewTab;
@@ -108,6 +110,7 @@ export function PdfDocumentationPage({
   metadata,
   symbols,
   rail,
+  connections,
   onChange,
   onResetDocumentation: _onResetDocumentation,
   selectedPreviewTab,
@@ -191,7 +194,7 @@ export function PdfDocumentationPage({
     setExportError(null);
 
     try {
-      await exportToPdf(metadata, symbols, rail);
+      await exportToPdf(metadata, symbols, rail, connections);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Nie udało się przygotować eksportu PDF.";

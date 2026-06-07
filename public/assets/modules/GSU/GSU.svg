@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="600" height="80" viewBox="0 0 600 80" xmlns="http://www.w3.org/2000/svg">
+  <rect x="10" y="20" width="580" height="40" rx="5" fill="#d4af37" stroke="#b8860b" stroke-width="2"/>
+  <g stroke="#000" stroke-width="1.5">
+    <circle cx="58" cy="40" r="12" fill="#e5e7eb"/>
+    <line x1="48" y1="40" x2="68" y2="40"/>
+    <line x1="58" y1="30" x2="58" y2="50"/>
+
+    <circle cx="155" cy="40" r="12" fill="#e5e7eb"/>
+    <line x1="145" y1="40" x2="165" y2="40"/>
+    <line x1="155" y1="30" x2="155" y2="50"/>
+
+    <circle cx="251" cy="40" r="12" fill="#e5e7eb"/>
+    <line x1="241" y1="40" x2="261" y2="40"/>
+    <line x1="251" y1="30" x2="251" y2="50"/>
+
+    <circle cx="348" cy="40" r="12" fill="#e5e7eb"/>
+    <line x1="338" y1="40" x2="358" y2="40"/>
+    <line x1="348" y1="30" x2="348" y2="50"/>
+
+    <circle cx="445" cy="40" r="12" fill="#e5e7eb"/>
+    <line x1="435" y1="40" x2="455" y2="40"/>
+    <line x1="445" y1="30" x2="445" y2="50"/>
+
+    <circle cx="542" cy="40" r="12" fill="#e5e7eb"/>
+    <line x1="532" y1="40" x2="552" y2="40"/>
+    <line x1="542" y1="30" x2="542" y2="50"/>
+  </g>
+  <text x="300" y="15" font-family="Arial" font-size="14" font-weight="bold" fill="#333" text-anchor="middle">GSU</text>
+</svg>

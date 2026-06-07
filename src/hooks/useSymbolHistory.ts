@@ -7,22 +7,76 @@ import {
   type SymbolHistorySnapshot,
 } from '../lib/appHelpers';
 import type { SymbolItem } from '../types/symbolItem';
+import type { ConnectionItem } from '../types/connectionItem';
 
 interface UseSymbolHistoryParams {
+  symbols?: SymbolItem[]; // optional, kept for reference
+  connections: ConnectionItem[];
   setSymbols: React.Dispatch<React.SetStateAction<SymbolItem[]>>;
+  setConnections: React.Dispatch<React.SetStateAction<ConnectionItem[]>>;
   setSelectedSymbolId: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedSymbolIds: React.Dispatch<React.SetStateAction<string[]>>;
   setHasUnsavedChanges: (value: boolean) => void;
   showTemporaryStatus: (message: string, timeoutMs?: number) => void;
 }
 
+function areConnectionsEqual(first: ConnectionItem[] | undefined, second: ConnectionItem[] | undefined): boolean {
+  if (!first || !second) return first === second;
+  if (first.length !== second.length) return false;
+  for (let i = 0; i < first.length; i++) {
+    const a = first[i];
+    const b = second[i];
+    if (
+      a.id !== b.id ||
+      a.fromSymbolId !== b.fromSymbolId ||
+      a.fromTerminal !== b.fromTerminal ||
+      a.toSymbolId !== b.toSymbolId ||
+      a.toTerminal !== b.toTerminal ||
+      a.wireColor !== b.wireColor ||
+      a.wireCrossSection !== b.wireCrossSection ||
+      a.wireType !== b.wireType ||
+      a.routingMode !== b.routingMode ||
+      a.customOffset !== b.customOffset ||
+      a.customOffsetX !== b.customOffsetX ||
+      a.customOffsetY1 !== b.customOffsetY1 ||
+      a.customOffsetY2 !== b.customOffsetY2 ||
+      a.isFromTop !== b.isFromTop ||
+      a.isToTop !== b.isToTop ||
+      a.customRadius !== b.customRadius
+    ) {
+      return false;
+    }
+    
+    // Porównaj punkty (jeśli istnieją)
+    if (a.points && b.points) {
+      if (a.points.length !== b.points.length) return false;
+      for (let j = 0; j < a.points.length; j++) {
+        if (a.points[j].x !== b.points[j].x || a.points[j].y !== b.points[j].y) {
+          return false;
+        }
+      }
+    } else if (a.points !== b.points) {
+      // Jeden ma punkty, a drugi nie
+      return false;
+    }
+  }
+  return true;
+}
+
 export function useSymbolHistory({
+  connections,
   setSymbols,
+  setConnections,
   setSelectedSymbolId,
   setSelectedSymbolIds,
   setHasUnsavedChanges,
   showTemporaryStatus,
 }: UseSymbolHistoryParams) {
+  const connectionsRef = useRef(connections);
+  useEffect(() => {
+    connectionsRef.current = connections;
+  }, [connections]);
+
   const undoRedoServiceRef = useRef(new UndoRedoService());
   const dragHistorySnapshotRef = useRef<SymbolHistorySnapshot | null>(null);
   const draggedSymbolIdsRef = useRef<string[] | null>(null);
@@ -35,6 +89,9 @@ export function useSymbolHistory({
   const applySymbolsSnapshot = useCallback(
     (snapshot: SymbolHistorySnapshot) => {
       setSymbols(cloneSymbolsSnapshot(snapshot.symbols));
+      if (snapshot.connections) {
+        setConnections(snapshot.connections.map((c) => ({ ...c })));
+      }
       setSelectedSymbolId(snapshot.selectedSymbolId);
       setSelectedSymbolIds(
         snapshot.selectedSymbolIds ??
@@ -42,7 +99,7 @@ export function useSymbolHistory({
       );
       setHasUnsavedChanges(true);
     },
-    [setHasUnsavedChanges, setSelectedSymbolId, setSelectedSymbolIds, setSymbols],
+    [setHasUnsavedChanges, setSelectedSymbolId, setSelectedSymbolIds, setSymbols, setConnections],
   );
 
   const executeSymbolsCommand = useCallback(
@@ -52,12 +109,20 @@ export function useSymbolHistory({
       after: SymbolHistorySnapshot,
       statusMessage: string,
     ): boolean => {
-      if (areSymbolSnapshotsEqual(before.symbols, after.symbols)) {
+      const currentConnections = connectionsRef.current;
+      const effectiveBeforeConnections = before.connections ?? currentConnections;
+      const effectiveAfterConnections = after.connections ?? currentConnections;
+
+      if (
+        areSymbolSnapshotsEqual(before.symbols, after.symbols) &&
+        areConnectionsEqual(effectiveBeforeConnections, effectiveAfterConnections)
+      ) {
         return false;
       }
 
       const beforeSnapshot: SymbolHistorySnapshot = {
         symbols: cloneSymbolsSnapshot(before.symbols),
+        connections: effectiveBeforeConnections.map((c) => ({ ...c })),
         selectedSymbolId: before.selectedSymbolId,
         selectedSymbolIds:
           before.selectedSymbolIds ??
@@ -65,6 +130,7 @@ export function useSymbolHistory({
       };
       const afterSnapshot: SymbolHistorySnapshot = {
         symbols: cloneSymbolsSnapshot(after.symbols),
+        connections: effectiveAfterConnections.map((c) => ({ ...c })),
         selectedSymbolId: after.selectedSymbolId,
         selectedSymbolIds:
           after.selectedSymbolIds ??

@@ -57,7 +57,8 @@ const MODULE_HEIGHT_MM_BY_REF: Record<string, number> = {
   "MCB/MCB 1P.svg": 83,
   "MCB/MCB 2P.svg": 83,
   "MCB/MCB 3p.svg": 83,
-  "Controls/Kontrolki faz.svg": 83,
+  "Kontrolki faz/Kontrolki faz.svg": 83,
+  "GSU/GSU.svg": 84,
   "Inne/GNIAZDO SZYNA DIN.svg": 85,
 };
 
@@ -214,7 +215,7 @@ const moduleEntries: ModuleEntry[] = [
     deviceKind: "phaseIndicator",
     phase: "L1+L2+L3",
     modules: 1,
-    moduleRef: "Controls/Kontrolki faz.svg",
+    moduleRef: "Kontrolki faz/Kontrolki faz.svg",
   },
   {
     templateId: "gniazdo-szyna-din-svg",
@@ -337,6 +338,71 @@ const currentModuleEntries: ModuleEntry[] = [
     rcdResidualCurrent: 30,
     rcdType: "A",
   },
+  {
+    templateId: "listwa-15-pin-n-svg",
+    code: "Listwa 15 pin N",
+    label: "Listwa 15 pin N",
+    type: "Listwy",
+    category: "Listwy do rozdzielnicy",
+    deviceKind: "terminalBlock",
+    phase: "L1+L2+L3",
+    modules: 1,
+    moduleRef: "Listwy do rozdzielnicy/Listwa 15 pin N.svg",
+    customWidth: 1243,
+    customHeight: 175,
+  },
+  {
+    templateId: "listwa-15-pin-pe-svg",
+    code: "Listwa 15 pin PE",
+    label: "Listwa 15 pin PE",
+    type: "Listwy",
+    category: "Listwy do rozdzielnicy",
+    deviceKind: "terminalBlock",
+    phase: "L1+L2+L3",
+    modules: 1,
+    moduleRef: "Listwy do rozdzielnicy/Listwa 15 pin PE.svg",
+    customWidth: 1243,
+    customHeight: 175,
+  },
+    {
+    templateId: "modul-zabezpieczajacy-svg",
+    code: "Moduł zabezpieczający 3P",
+    label: "Moduł zabezpieczający 3P",
+    type: "Zabezpieczenia",
+    category: "Zabezpieczenia",
+    deviceKind: "other",
+    phase: "L1+L2+L3",
+    modules: 1,
+    moduleRef: "Zabezpieczenia/Moduł zabezpieczający 3P.svg",
+    customWidth: svg300DpiPx(209),
+    customHeight: svg300DpiPx(983),
+  },
+  {
+    templateId: "lampka-kontrolna-3f-svg",
+    code: "Lampka Kontrolna 3 Fazowa",
+    label: "Lampka Kontrolna 3 Fazowa",
+    type: "Controls",
+    category: "Controls",
+    deviceKind: "phaseIndicator",
+    phase: "L1+L2+L3",
+    modules: 1,
+    moduleRef: "Kontrolki faz/Lampka Kontrolna 3 Fazowa.svg",
+    customWidth: svg300DpiPx(209),
+    customHeight: svg300DpiPx(983),
+  },
+  {
+    templateId: "gsu-6-pin-svg",
+    code: "GSU 6-zaciskowa",
+    label: "GSU (Główna Szyna Uziemiająca)",
+    type: "Listwy",
+    category: "Listwy do rozdzielnicy",
+    deviceKind: "terminalBlock",
+    phase: "PE",
+    modules: 1,
+    moduleRef: "GSU/GSU.svg",
+    customWidth: 1256,
+    customHeight: 166,
+  },
 ];
 
 const groupOrder = [
@@ -346,10 +412,12 @@ const groupOrder = [
   "MCB",
   "Blok rozdzielczy",
   "Przełączniki sieci",
+  "Zabezpieczenia",
   "Controls",
   "Inne",
   "Listwy zaciskowe",
   "Z\u0142\u0105cza",
+  "Listwy do rozdzielnicy",
 ];
 
 const groupDisplayNames: Record<string, string> = {
@@ -413,11 +481,14 @@ export function getModuleSnapAnchorRatioY(moduleRef?: string): number {
   return 0.5;
 }
 
-export function supportsDinRailPlacement(_template: {
+export function supportsDinRailPlacement(template: {
   category?: string;
   deviceKind?: DeviceKind;
   moduleRef?: string;
 }): boolean {
+  if (template.category === "Listwy do rozdzielnicy") {
+    return false;
+  }
   return true;
 }
 

@@ -137,6 +137,164 @@ describe("normalizeGroupConsistency", () => {
     expect(nextAux?.group).toBe("");
     expect(nextAux?.groupName).toBe("");
   });
+
+  it("assigns L1+L2+L3 phase to children under a 3-phase RCD head and cycles single-phase children", () => {
+    const head = createDefaultSymbolItem({
+      id: "rcd-3p",
+      deviceKind: "rcd",
+      type: "RCD 4P",
+      label: "RCD 40A 4P",
+      visualPath: "RCD/RCD 4P.svg",
+      moduleRef: "RCD/RCD 4P.svg",
+      phase: "L1+L2+L3",
+      group: "g1",
+      groupName: "Grupa-1",
+      rcdRatedCurrent: 40,
+      rcdResidualCurrent: 30,
+      rcdType: "A",
+    });
+    const child1 = createDefaultSymbolItem({
+      id: "mcb-1",
+      deviceKind: "mcb",
+      type: "MCB 1P",
+      label: "MCB B16",
+      visualPath: "MCB/MCB 1P.svg",
+      moduleRef: "MCB/MCB 1P.svg",
+      group: "g1",
+      groupName: "",
+      rcdSymbolId: "",
+      x: 100,
+      y: 0,
+    });
+    const child2 = createDefaultSymbolItem({
+      id: "mcb-2",
+      deviceKind: "mcb",
+      type: "MCB 1P",
+      label: "MCB B16",
+      visualPath: "MCB/MCB 1P.svg",
+      moduleRef: "MCB/MCB 1P.svg",
+      group: "g1",
+      groupName: "",
+      rcdSymbolId: "",
+      x: 200,
+      y: 0,
+    });
+    const child3 = createDefaultSymbolItem({
+      id: "mcb-3",
+      deviceKind: "mcb",
+      type: "MCB 1P",
+      label: "MCB B16",
+      visualPath: "MCB/MCB 1P.svg",
+      moduleRef: "MCB/MCB 1P.svg",
+      group: "g1",
+      groupName: "",
+      rcdSymbolId: "",
+      x: 300,
+      y: 0,
+    });
+
+    const normalized = normalizeGroupConsistency([head, child1, child2, child3]);
+
+    expect(normalized.find((s) => s.id === "rcd-3p")?.phase).toBe("L1+L2+L3");
+    // Children inherit RCD params
+    expect(normalized.find((s) => s.id === "mcb-1")?.rcdSymbolId).toBe("rcd-3p");
+    expect(normalized.find((s) => s.id === "mcb-1")?.rcdRatedCurrent).toBe(40);
+    expect(normalized.find((s) => s.id === "mcb-1")?.rcdResidualCurrent).toBe(30);
+    // First child keeps its default phase (L1), subsequent children cycle L2, L3
+    expect(normalized.find((s) => s.id === "mcb-1")?.phase).toBe("L1");
+    expect(normalized.find((s) => s.id === "mcb-2")?.phase).toBe("L2");
+    expect(normalized.find((s) => s.id === "mcb-3")?.phase).toBe("L3");
+  });
+
+  it("preserves ManualPhase on RCD head and does not auto-assign a new phase", () => {
+    const head = createDefaultSymbolItem({
+      id: "rcd-manual",
+      deviceKind: "rcd",
+      type: "RCD 2P",
+      label: "RCD 40A 2P",
+      visualPath: "RCD/RCD 2P.svg",
+      moduleRef: "RCD/RCD 2P.svg",
+      phase: "L3",
+      isPhaseLocked: true,
+      parameters: { ManualPhase: "true" },
+      group: "g2",
+      groupName: "Grupa-2",
+    });
+    const child = createDefaultSymbolItem({
+      id: "mcb-manual-child",
+      deviceKind: "mcb",
+      type: "MCB 1P",
+      label: "MCB B16",
+      visualPath: "MCB/MCB 1P.svg",
+      moduleRef: "MCB/MCB 1P.svg",
+      group: "g2",
+      groupName: "",
+      rcdSymbolId: "",
+      x: 100,
+      y: 0,
+    });
+
+    const normalized = normalizeGroupConsistency([head, child]);
+
+    // ManualPhase RCD keeps its phase
+    expect(normalized.find((s) => s.id === "rcd-manual")?.phase).toBe("L3");
+    // Child gets the same phase as its single-phase RCD head
+    expect(normalized.find((s) => s.id === "mcb-manual-child")?.phase).toBe("L3");
+  });
+
+  it("handles empty symbols array gracefully", () => {
+    const normalized = normalizeGroupConsistency([]);
+    expect(normalized).toEqual([]);
+  });
+
+  it("handles single standalone symbol without group", () => {
+    const standalone = createDefaultSymbolItem({
+      id: "standalone",
+      deviceKind: "mcb",
+      group: "",
+      groupName: "",
+    });
+
+    const normalized = normalizeGroupConsistency([standalone]);
+    expect(normalized).toHaveLength(1);
+    expect(normalized[0].id).toBe("standalone");
+    expect(normalized[0].group).toBe("");
+  });
+
+  it("does not modify symbols that are already consistent", () => {
+    const head = createDefaultSymbolItem({
+      id: "rcd-ok",
+      deviceKind: "rcd",
+      type: "RCD 2P",
+      label: "RCD 40A",
+      phase: "L1",
+      group: "g3",
+      groupName: "Grupa-3",
+      rcdRatedCurrent: 40,
+      rcdResidualCurrent: 30,
+      rcdType: "A",
+    });
+    const child = createDefaultSymbolItem({
+      id: "mcb-ok",
+      deviceKind: "mcb",
+      type: "MCB 1P",
+      label: "MCB B16",
+      phase: "L1",
+      group: "g3",
+      groupName: "Grupa-3",
+      rcdSymbolId: "rcd-ok",
+      rcdRatedCurrent: 40,
+      rcdResidualCurrent: 30,
+      rcdType: "A",
+      x: 100,
+      y: 0,
+    });
+
+    const normalized = normalizeGroupConsistency([head, child]);
+    // Should remain unchanged
+    expect(normalized.find((s) => s.id === "mcb-ok")?.rcdSymbolId).toBe("rcd-ok");
+    expect(normalized.find((s) => s.id === "mcb-ok")?.phase).toBe("L1");
+  });
 });
 
 

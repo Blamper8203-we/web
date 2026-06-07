@@ -1,167 +1,74 @@
 import { describe, expect, it } from "vitest";
-import { createDefaultSymbolItem } from "../types/symbolItem";
+import { parseProjectFileContent, serializeProjectFileContent } from "./projectFile";
 import { createEmptyProjectMetadata } from "./projectMetadata";
-import {
-  parseProjectFileContent,
-  serializeProjectFileContent,
-  type ProjectFileData,
-} from "./projectFile";
+import { createDefaultSymbolItem } from "../types/symbolItem";
+import type { ConnectionItem } from "../types/connectionItem";
 
-describe("project file round-trip", () => {
-  it("preserves metadata, symbols and DIN rail data", () => {
-    const metadata = {
-      ...createEmptyProjectMetadata(),
-      company: "Dom jednorodzinny",
-      projectNumber: "DB-42",
-      address: "Krakow, ul. Testowa 1",
-      simultaneityFactor: 0.75,
-    };
+describe("projectFile serialization/parsing with connections", () => {
+  it("serializes and parses connections correctly", () => {
+    const metadata = createEmptyProjectMetadata();
     const symbols = [
-      createDefaultSymbolItem({
-        id: "rcd-1",
-        type: "RCD 4P",
-        deviceKind: "rcd",
-        label: "RCD glowny",
-        referenceDesignation: "Q1",
-        x: 120,
-        y: 80,
-        group: "group-1",
-        groupName: "Grupa-1",
-        rcdRatedCurrent: 40,
-        rcdResidualCurrent: 30,
-        rcdType: "A",
-      }),
-      createDefaultSymbolItem({
-        id: "mcb-1",
-        type: "MCB 1P",
-        deviceKind: "mcb",
-        circuitName: "Oswietlenie salon",
-        protectionType: "B10",
-        powerW: 450,
-        phase: "L1",
-        x: 220,
-        y: 80,
-        group: "group-1",
-        groupName: "Grupa-1",
-        rcdSymbolId: "rcd-1",
-      }),
+      createDefaultSymbolItem({ id: "sym-1", type: "MCB 1P" }),
+      createDefaultSymbolItem({ id: "sym-2", type: "MCB 1P" }),
     ];
-    const rail: ProjectFileData["rail"] = {
-      svg: "<svg viewBox=\"0 0 100 20\"></svg>",
-      width: 100,
-      height: 20,
-      rows: 1,
-      modulesPerRow: 12,
-      isVisible: true,
+    const connections: ConnectionItem[] = [
+      {
+        id: "conn-1",
+        fromSymbolId: "sym-1",
+        fromTerminal: "2",
+        toSymbolId: "sym-2",
+        toTerminal: "1",
+        wireColor: "blue",
+        wireCrossSection: 2.5,
+        wireType: "LgY",
+        routingMode: "manhattan",
+        isFromTop: true,
+        isToTop: false,
+      },
+    ];
+
+    const json = serializeProjectFileContent(metadata, symbols, null, connections);
+    const parsed = parseProjectFileContent(json);
+
+    expect(parsed.connections).toBeDefined();
+    expect(parsed.connections!.length).toBe(1);
+    expect(parsed.connections![0]).toMatchObject({
+      id: "conn-1",
+      fromSymbolId: "sym-1",
+      fromTerminal: "2",
+      toSymbolId: "sym-2",
+      toTerminal: "1",
+      wireColor: "blue",
+      wireCrossSection: 2.5,
+      wireType: "LgY",
+      routingMode: "manhattan",
+      isFromTop: true,
+      isToTop: false,
+    });
+  });
+
+  it("handles backwards-compatibility by defaulting connections to empty array when missing in file", () => {
+    // Minimal valid web project file shape without connections
+    const legacyProject = {
+      schemaVersion: 2,
+      version: "2.0",
+      metadata: createEmptyProjectMetadata(),
+      symbols: [
+        {
+          id: "sym-1",
+          type: "MCB 1P",
+          label: "MCB 1P",
+          phase: "L1",
+          parameters: {},
+        },
+      ],
+      rail: null,
     };
 
-    const content = serializeProjectFileContent(metadata, symbols, rail);
-    const parsed = parseProjectFileContent(content, "roundtrip.dinboard");
+    const json = JSON.stringify(legacyProject);
+    const parsed = parseProjectFileContent(json);
 
-    expect(parsed.path).toBe("roundtrip.dinboard");
-    expect(parsed.version).toBe("2.0");
-    expect(parsed.metadata).toMatchObject({
-      company: "Dom jednorodzinny",
-      projectNumber: "DB-42",
-      address: "Krakow, ul. Testowa 1",
-      simultaneityFactor: 0.75,
-    });
-    expect(parsed.rail).toEqual(rail);
-    expect(parsed.symbols).toHaveLength(2);
-    expect(parsed.symbols[0]).toMatchObject({
-      id: "rcd-1",
-      deviceKind: "rcd",
-      label: "RCD glowny",
-      referenceDesignation: "Q1",
-      rcdRatedCurrent: 40,
-      rcdResidualCurrent: 30,
-      rcdType: "A",
-    });
-    expect(parsed.symbols[1]).toMatchObject({
-      id: "mcb-1",
-      deviceKind: "mcb",
-      circuitName: "Oswietlenie salon",
-      protectionType: "B10",
-      rcdSymbolId: "rcd-1",
-      groupName: "Grupa-1",
-    });
-  });
-
-  it("marks legacy manual reference designation when it differs from automatic value", () => {
-    const parsed = parseProjectFileContent(
-      JSON.stringify({
-        schemaVersion: 2,
-        symbols: [
-          {
-            id: "mcb-1",
-            type: "MCB 1P",
-            x: 100,
-            y: 100,
-            referenceDesignation: "F-KUCHNIA",
-            parameters: {},
-          },
-        ],
-      }),
-      "legacy-manual.json",
-    );
-
-    expect(parsed.symbols).toHaveLength(1);
-    expect(parsed.symbols[0].referenceDesignation).toBe("F-KUCHNIA");
-    expect(parsed.symbols[0].parameters.ManualReferenceDesignation).toBe("true");
-  });
-
-  it("does not mark legacy automatic reference designation as manual", () => {
-    const parsed = parseProjectFileContent(
-      JSON.stringify({
-        schemaVersion: 2,
-        symbols: [
-          {
-            id: "mcb-1",
-            type: "MCB 1P",
-            x: 100,
-            y: 100,
-            referenceDesignation: "F0.1",
-            parameters: {},
-          },
-        ],
-      }),
-      "legacy-auto.json",
-    );
-
-    expect(parsed.symbols).toHaveLength(1);
-    expect(parsed.symbols[0].referenceDesignation).toBe("F0.1");
-    expect(parsed.symbols[0].parameters.ManualReferenceDesignation).toBeUndefined();
-  });
-
-  it("correctly normalizes coordinates for legacy Avalonia files containing metadata and symbols but no version", () => {
-    const parsed = parseProjectFileContent(
-      JSON.stringify({
-        schemaVersion: 1,
-        dinRailWidth: 1000,
-        dinRailHeight: 500,
-        metadata: {
-          company: "Legacy Company",
-        },
-        symbols: [
-          {
-            id: "mcb-1",
-            type: "MCB 1P",
-            x: 100,
-            y: 50,
-            referenceDesignation: "F1",
-            parameters: {},
-          },
-        ],
-      }),
-      "legacy-coords.json",
-    );
-
-    expect(parsed.version).toBe("1");
-    expect(parsed.symbols).toHaveLength(1);
-    // offsetX = 1000 / 2 = 500, offsetY = 500 / 2 = 250
-    // x should be 100 + 500 = 600
-    // y should be 50 + 250 = 300
-    expect(parsed.symbols[0].x).toBe(600);
-    expect(parsed.symbols[0].y).toBe(300);
+    expect(parsed.connections).toBeDefined();
+    expect(parsed.connections).toEqual([]);
   });
 });

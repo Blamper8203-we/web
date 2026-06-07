@@ -6,6 +6,7 @@ import { SchematicCanvas } from "./SchematicCanvas";
 import type { SheetType, PaletteTemplate } from "../lib/appHelpers";
 import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
 import type { SymbolItem } from "../types/symbolItem";
+import type { ConnectionItem } from "../types/connectionItem";
 import type { ProjectMetadata } from "../types/projectMetadata";
 
 import type { CircuitRow } from "../types/circuitRow";
@@ -17,6 +18,11 @@ import type { SchematicEditableField } from "../lib/schematic/schematicCellEdit"
 const DinRailCanvas = lazy(async () => {
   const module = await import("./DinRailCanvasPixi");
   return { default: module.DinRailCanvas };
+});
+
+const DinRailConnectionsCanvas = lazy(async () => {
+  const module = await import("./DinRailConnectionsCanvas");
+  return { default: module.DinRailConnectionsCanvas };
 });
 
 interface AppWorkspaceCanvasProps {
@@ -45,6 +51,12 @@ interface AppWorkspaceCanvasProps {
   metadata?: ProjectMetadata;
   schematicViewportResetRequest: number;
   schematicScrollToPageRequest?: { pageIndex: number; timestamp: number } | null;
+  connections: ConnectionItem[];
+  onConnectionsChange: (newConnections: ConnectionItem[], label: string, statusMsg: string) => void;
+  selectedConnectionId: string | null;
+  onConnectionSelect: (id: string | null) => void;
+  defaultWireSettings?: any;
+  onRequestLeftPanelTab?: (tabName: string) => void;
 }
 
 export function AppWorkspaceCanvas({
@@ -73,6 +85,12 @@ export function AppWorkspaceCanvas({
   metadata,
   schematicViewportResetRequest,
   schematicScrollToPageRequest,
+  connections,
+  onConnectionsChange,
+  selectedConnectionId,
+  onConnectionSelect,
+  defaultWireSettings,
+  onRequestLeftPanelTab,
 }: AppWorkspaceCanvasProps) {
   return (
     <div className="canvas-area">
@@ -85,9 +103,14 @@ export function AppWorkspaceCanvas({
       >
         <Suspense fallback={<div className="left-panel-empty"><strong>Ładowanie widoku szyny DIN...</strong></div>}>
           <DinRailCanvas
-            getPaletteTemplate={(templateId) => paletteTemplateMap.get(templateId)}
+            getPaletteTemplate={(idOrRef) => {
+              const template = paletteTemplateMap.get(idOrRef);
+              if (template) return template;
+              return Array.from(paletteTemplateMap.values()).find((t) => t.moduleRef === idOrRef);
+            }}
             rail={dinRail}
             symbols={symbols}
+            connections={connections}
             generatorRequest={dinRailGeneratorRequest}
             onPaletteDrop={handlePaletteDrop}
             onUnsupportedTemplateDrop={handleUnsupportedDinRailDrop}
@@ -103,7 +126,32 @@ export function AppWorkspaceCanvas({
             selectedSymbolIds={selectedSymbolIds}
             onToggleGroups={handleToggleDinRailGroups}
             showGroups={showDinRailGroups}
+            onRequestLeftPanelTab={onRequestLeftPanelTab}
           />
+        </Suspense>
+      </div>
+
+      <div
+        style={{
+          display: activeSheet === "sheet1_connections" ? "block" : "none",
+          position: "absolute",
+          inset: 0,
+        }}
+      >
+        <Suspense fallback={<div className="left-panel-empty"><strong>Ładowanie widoku połączeń...</strong></div>}>
+          {activeSheet === "sheet1_connections" && (
+            <DinRailConnectionsCanvas
+              rail={dinRail}
+              symbols={symbols}
+              connections={connections}
+              onConnectionsChange={onConnectionsChange}
+              selectedConnectionId={selectedConnectionId}
+              onConnectionSelect={onConnectionSelect}
+              setWorkspaceZoomPercent={setWorkspaceZoomPercent}
+              defaultWireSettings={defaultWireSettings}
+              onRequestLeftPanelTab={onRequestLeftPanelTab}
+            />
+          )}
         </Suspense>
       </div>
 

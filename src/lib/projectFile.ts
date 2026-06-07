@@ -1,5 +1,6 @@
 import type { ProjectMetadata } from "../types/projectMetadata";
 import { normalizeSymbolItems, type SymbolItem } from "../types/symbolItem";
+import type { ConnectionItem } from "../types/connectionItem";
 import { createEmptyProjectMetadata } from "./projectMetadata";
 import { getModuleAssetUrl } from "./modules/moduleCatalog";
 import { buildSchematicLayout } from "./schematic/schematicLayoutEngine";
@@ -12,6 +13,7 @@ const MANUAL_REFERENCE_DESIGNATION_KEY = "ManualReferenceDesignation";
 export type ProjectFileData = {
   metadata: ProjectMetadata | null;
   symbols: SymbolItem[];
+  connections?: ConnectionItem[];
   version: string;
   path?: string;
   rail?: {
@@ -27,6 +29,7 @@ export type ProjectFileData = {
 type RawProjectFileData = {
   metadata?: ProjectMetadata | null;
   symbols?: Partial<SymbolItem>[];
+  connections?: Partial<ConnectionItem>[];
   circuitRows?: Partial<SymbolItem>[];
   version?: string;
   schemaVersion?: number;
@@ -73,6 +76,17 @@ function validateWebProjectShape(raw: RawProjectFileData): void {
   for (const item of raw.symbols) {
     if (!isRecord(item)) {
       throw new Error("Element symbols ma nieprawidlowy format");
+    }
+  }
+
+  if (raw.connections !== undefined && raw.connections !== null) {
+    if (!Array.isArray(raw.connections)) {
+      throw new Error("Pole connections musi byc tablica");
+    }
+    for (const item of raw.connections) {
+      if (!isRecord(item)) {
+        throw new Error("Element connections ma nieprawidlowy format");
+      }
     }
   }
 
@@ -387,9 +401,32 @@ export function parseProjectFileContent(content: string, fileName?: string): Pro
     : symbols;
   const migratedSymbols = migrateLegacyManualReferenceDesignations(normalizedSymbols);
 
+  let connections: ConnectionItem[] = [];
+  if (hasWebShape && Array.isArray(parsed.connections)) {
+    connections = parsed.connections.map((conn: any) => ({
+      id: typeof conn.id === "string" && conn.id.trim().length > 0 ? conn.id : crypto.randomUUID(),
+      fromSymbolId: typeof conn.fromSymbolId === "string" ? conn.fromSymbolId : "",
+      fromTerminal: typeof conn.fromTerminal === "string" ? conn.fromTerminal : "",
+      toSymbolId: typeof conn.toSymbolId === "string" ? conn.toSymbolId : "",
+      toTerminal: typeof conn.toTerminal === "string" ? conn.toTerminal : "",
+      wireColor: typeof conn.wireColor === "string" ? conn.wireColor : "black",
+      wireCrossSection: typeof conn.wireCrossSection === "number" ? conn.wireCrossSection : 2.5,
+      wireType: typeof conn.wireType === "string" ? conn.wireType : "LgY",
+      routingMode: typeof conn.routingMode === "string" ? conn.routingMode : "manhattan",
+      customOffset: typeof conn.customOffset === "number" ? conn.customOffset : undefined,
+      customOffsetX: typeof conn.customOffsetX === "number" ? conn.customOffsetX : undefined,
+      customOffsetY1: typeof conn.customOffsetY1 === "number" ? conn.customOffsetY1 : undefined,
+      customOffsetY2: typeof conn.customOffsetY2 === "number" ? conn.customOffsetY2 : undefined,
+      isFromTop: typeof conn.isFromTop === "boolean" ? conn.isFromTop : undefined,
+      isToTop: typeof conn.isToTop === "boolean" ? conn.isToTop : undefined,
+      points: Array.isArray(conn.points) ? conn.points.filter((p: any) => typeof p.x === 'number' && typeof p.y === 'number') : undefined,
+    }));
+  }
+
   return {
     metadata: hasWebShape ? parsed.metadata ?? null : toProjectMetadataFromAvalonia(parsed),
     symbols: migratedSymbols,
+    connections,
     version: parsed.version ?? String(parsed.schemaVersion ?? "1.0"),
     path: fileName,
     rail: hasAvaloniaSchema ? toRailFromAvalonia(parsed) : toRailFromWeb(parsed),
@@ -400,10 +437,12 @@ export function serializeProjectFileContent(
   metadata: ProjectMetadata,
   symbols: SymbolItem[],
   rail: ProjectFileData["rail"],
+  connections?: ConnectionItem[],
 ): string {
   const data: ProjectFileData = {
     metadata,
     symbols,
+    connections: connections ?? [],
     version: "2.0",
     rail: rail?.isVisible ? rail : null,
   };
@@ -583,8 +622,9 @@ export async function saveProjectFile(
   symbols: SymbolItem[],
   rail: ProjectFileData["rail"],
   suggestedPath?: string,
+  connections?: ConnectionItem[],
 ): Promise<string | null> {
-  const content = serializeProjectFileContent(metadata, symbols, rail);
+  const content = serializeProjectFileContent(metadata, symbols, rail, connections);
   const fileName = normalizeDownloadFileName(suggestedPath ?? DEFAULT_PROJECT_FILE_NAME);
 
   try {

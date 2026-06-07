@@ -3,6 +3,7 @@ import { createElement, type ReactElement } from "react";
 import type { DinRailCanvasRail } from "../../components/DinRailCanvasPixi";
 import type { ProjectMetadata } from "../../types/projectMetadata";
 import type { SymbolItem } from "../../types/symbolItem";
+import type { ConnectionItem } from "../../types/connectionItem";
 import { buildCircuitRowsFromSymbols } from "../circuitRows";
 import { buildEditableMeasurementProtocols } from "../measurementProtocols";
 import { calculateTotalDistribution } from "../phaseDistribution/phaseDistributionCalculator";
@@ -15,7 +16,8 @@ export async function exportToPdf(
   metadata: ProjectMetadata,
   symbols: SymbolItem[],
   rail: DinRailCanvasRail,
-): Promise<void> {
+  connections?: ConnectionItem[],
+): Promise<Blob> {
   const effectiveMetadata: ProjectMetadata = {
     ...metadata,
     measurementProtocols: buildEditableMeasurementProtocols(
@@ -26,7 +28,7 @@ export async function exportToPdf(
 
   const [schematicImages, dinRailImages] = await Promise.all([
     exportSchematicToDataURL(symbols, effectiveMetadata),
-    exportDinRailToDataURL(symbols, rail),
+    exportDinRailToDataURL(symbols, rail, connections),
   ]);
 
   const documentNode = createElement(PdfProtocolDocument, {
@@ -50,4 +52,6 @@ export async function exportToPdf(
   link.click();
   link.remove();
   window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+
+  return blob;
 }

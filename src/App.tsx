@@ -1,4 +1,3 @@
-import { App as CapApp } from "@capacitor/app";
 import { useEffect, useState, useCallback, useMemo, useTransition, Suspense, lazy } from "react";
 import type { PdfDocumentationPreviewTab } from "./lib/pdfDocumentation";
 import type { DinRailCanvasRail } from "./components/DinRailCanvasPixi";
@@ -35,15 +34,19 @@ import { useSymbolActions } from "./hooks/useSymbolActions";
 import { useProjectActions } from "./hooks/useProjectActions";
 import { usePaletteActions } from "./hooks/usePaletteActions";
 import { useImportedModules } from "./hooks/useImportedModules";
+import { useSheetPanelState } from "./hooks/useSheetPanelState";
+import { useDialogState } from "./hooks/useDialogState";
+import { useSchematicState } from "./hooks/useSchematicState";
 import type { ProjectMetadata } from "./types/projectMetadata";
 import type { SymbolItem } from "./types/symbolItem";
+import type { ConnectionItem, WireColor, WireType, RoutingMode } from "./types/connectionItem";
 import { PublicLandingPage } from "./components/PublicLandingPage";
 import { FeedbackModal } from "./components/FeedbackModal";
 import "./App.css";
 
 const APP_ROUTE_PATH = "/app";
 const LOCAL_STORAGE_WRITE_DEBOUNCE_MS = 250;
-const SHOW_DIN_RAIL_GROUPS_STORAGE_KEY = "dinboard.show_din_rail_groups";
+const CONNECTIONS_STORAGE_KEY = "dinboard.connections";
 const UI_THEME_STORAGE_KEY = "dinboard.ui_theme";
 const EMPTY_VALIDATION_RESULT: ValidationResult = {
   isValid: true,
@@ -68,8 +71,6 @@ function loadUiTheme(): AppUiTheme {
     return "modern";
   }
 }
-
-
 
 import type { ProjectFileData } from "./lib/projectFile";
 import { openProjectFile } from "./lib/projectFile";
@@ -97,54 +98,57 @@ function AppWorkspace({
     } catch { /* ignore */ }
     return [];
   });
+  const [connections, setConnections] = useState<ConnectionItem[]>(() => {
+    try {
+      const raw = window.localStorage.getItem(CONNECTIONS_STORAGE_KEY);
+      if (raw) return JSON.parse(raw) as ConnectionItem[];
+    } catch { /* ignore */ }
+    return [];
+  });
+  const [defaultWireSettings, setDefaultWireSettings] = useState<{
+    wireColor: WireColor;
+    wireCrossSection: number;
+    wireType: WireType;
+    routingMode: RoutingMode;
+  }>(() => {
+    try {
+      const raw = window.localStorage.getItem("dinboard.default_wire_settings");
+      if (raw) return JSON.parse(raw);
+    } catch { /* ignore */ }
+    return {
+      wireColor: "black",
+      wireCrossSection: 2.5,
+      wireType: "LgY",
+      routingMode: "manhattan",
+    };
+  });
   const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<string>("");
   const [selectedSymbolId, setSelectedSymbolId] = useState<string | null>(null);
   const [selectedSymbolIds, setSelectedSymbolIds] = useState<string[]>([]);
+  const [selectedConnectionId, setSelectedConnectionId] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [activeSheet, setActiveSheet] = useState<SheetType>("sheet1");
-  const [workspaceZoomPercent, setWorkspaceZoomPercent] = useState(100);
   const [uiTheme, setUiTheme] = useState<AppUiTheme>(() => loadUiTheme());
   const [dinRailGeneratorRequest, setDinRailGeneratorRequest] = useState(0);
   const [dinRail, setDinRail] = useState<DinRailCanvasRail>({
     config: DEFAULT_DIN_RAIL_CONFIG, svg: "", width: 0, height: 0, isVisible: false,
   });
-  const [activeRightTab, setActiveRightTab] = useState<RightTab>("balance");
-  const [showRightPanel, setShowRightPanel] = useState(() => window.innerWidth > 768);
-  const [showLeftPanel, setShowLeftPanel] = useState(() => window.innerWidth > 768);
   const [highlightedCircuitEditTarget, setHighlightedCircuitEditTarget] = useState<{
     symbolId: string;
     fieldKey: string;
   } | null>(null);
-  const [isRcdManagerOpen, setIsRcdManagerOpen] = useState(false);
-  const [isHelpOpen, setIsHelpOpen] = useState(false);
-  const [unsavedChangesActionType, setUnsavedChangesActionType] = useState<"new" | "open" | null>(null);
-  const [showDinRailGroups, setShowDinRailGroups] = useState<boolean>(() => {
-    try {
-      const raw = window.localStorage.getItem(SHOW_DIN_RAIL_GROUPS_STORAGE_KEY);
-      if (!raw) {
-        return true;
-      }
 
-      const parsed = JSON.parse(raw);
-      return typeof parsed === "boolean" ? parsed : true;
-    } catch {
-      return true;
-    }
-  });
-  const [pdfPreviewTab, setPdfPreviewTab] = useState<PdfDocumentationPreviewTab>("title-page");
-  const [, startPdfTabTransition] = useTransition();
-  const [schematicViewportResetRequest, setSchematicViewportResetRequest] = useState(0);
-  const [schematicScrollToPageRequest, setSchematicScrollToPageRequest] = useState<{ pageIndex: number; timestamp: number } | null>(null);
-
-  const handleScrollToSchematicPage = useCallback((pageIndex: number) => {
-    setSchematicScrollToPageRequest({ pageIndex, timestamp: Date.now() });
-  }, []);
-
-  const showTemporaryStatus = useCallback((message: string, timeoutMs = 3500) => {
+    const showTemporaryStatus = useCallback((message: string, timeoutMs = 3500) => {
     setSaveStatus(message);
     window.setTimeout(() => setSaveStatus(""), timeoutMs);
   }, []);
+
+    // ── State hooks (wydzielone dla czytelności) ─────────────────────────────────
+    const sheetPanel = useSheetPanelState();
+    const dialog = useDialogState();
+    const schematic = useSchematicState();
+    const [pdfPreviewTab, setPdfPreviewTab] = useState<PdfDocumentationPreviewTab>("title-page");
+    const [, startPdfTabTransition] = useTransition();
 
   // ── Hooks ─────────────────────────────────────────────────────────────────────
   const {
@@ -152,36 +156,53 @@ function AppWorkspace({
     paletteGroups,
     paletteTemplateMap,
     importedModuleCategoryOptions,
-    activePaletteGroupTitle,
+        activePaletteGroupTitle,
     setActivePaletteGroupTitle,
-    svgImportDialogOpen,
-    setSvgImportDialogOpen,
-    importedModulesManagerOpen,
-    setImportedModulesManagerOpen,
     handleHidePaletteTemplate,
     handleSvgImportCommit,
     handleImportedModuleCategoryChange,
     handleRemoveImportedModule,
   } = useImportedModules(showTemporaryStatus);
 
-  const history = useSymbolHistory({
-    setSymbols, setSelectedSymbolId, setSelectedSymbolIds, setHasUnsavedChanges, showTemporaryStatus,
+    const history = useSymbolHistory({
+    connections,
+    setSymbols,
+    setConnections,
+    setSelectedSymbolId,
+    setSelectedSymbolIds,
+    setHasUnsavedChanges,
+    showTemporaryStatus,
   });
 
-  const {
-    handleSymbolMoveStart, handleSymbolMove, handleSymbolMoveEnd,
-    handleSymbolSelect, handleSymbolSelectionChange,
-    handleCircuitEditSave, handleSchematicCellEdit,
-    handleDeleteSelected,
-  } = useSymbolActions({
+    const selectedSymbol = symbols.find((s) => s.id === selectedSymbolId) ?? null;
+
+    const {
+      handleSymbolMoveStart, handleSymbolMove, handleSymbolMoveEnd,
+      handleSymbolSelect, handleSymbolSelectionChange,
+      handleCircuitEditSave, handleSchematicCellEdit,
+      handleDeleteSelected,
+    } = useSymbolActions({
     symbols, setSymbols,
     selectedSymbolId, setSelectedSymbolId,
-    selectedSymbolIds, setSelectedSymbolIds,
-    setActiveRightTab, setHasUnsavedChanges,
+        selectedSymbolIds, setSelectedSymbolIds,
+        setActiveRightTab: (tab: RightTab) => sheetPanel.setActiveRightTab(tab), setHasUnsavedChanges,
     executeSymbolsCommand: history.executeSymbolsCommand,
     dragHistorySnapshotRef: history.dragHistorySnapshotRef,
     draggedSymbolIdsRef: history.draggedSymbolIdsRef,
   });
+
+  const handleConnectionsChange = useCallback((
+    nextConnections: ConnectionItem[],
+    label: string,
+    statusMessage: string
+  ) => {
+    history.executeSymbolsCommand(
+      label,
+      { symbols, connections, selectedSymbolId, selectedSymbolIds },
+      { symbols, connections: nextConnections, selectedSymbolId, selectedSymbolIds },
+      statusMessage
+    );
+  }, [history.executeSymbolsCommand, symbols, connections, selectedSymbolId, selectedSymbolIds]);
 
   const {
     handleNewProject, handleOpenProject, handleLoadProjectData, handleSaveProject, handleExportPdf, handleExportBom, handleExportPng,
@@ -190,16 +211,29 @@ function AppWorkspace({
     handleMetadataChange, handleResetDocumentation,
   } = useProjectActions({
     metadata, setMetadata, symbols, setSymbols,
+    connections, setConnections,
     currentFilePath, setCurrentFilePath, paletteTemplateMap,
     setHasUnsavedChanges,
     selectedSymbolId, selectedSymbolIds,
     setSelectedSymbolId, setSelectedSymbolIds,
-    setDinRail, dinRail, setActiveSheet, setDinRailGeneratorRequest,
+    setDinRail, dinRail, setActiveSheet: (sheet: SheetType) => sheetPanel.setActiveSheet(sheet), setDinRailGeneratorRequest,
     undoRedoServiceRef: history.undoRedoServiceRef,
     dragHistorySnapshotRef: history.dragHistorySnapshotRef,
     refreshHistoryState: history.refreshHistoryState,
     executeSymbolsCommand: history.executeSymbolsCommand,
-    showTemporaryStatus,
+        showTemporaryStatus,
+  });
+
+  const { paletteContextMenu, setPaletteContextMenu,
+        pendingPaletteRemoval, setPendingPaletteRemoval,
+        handlePaletteDrop, handleUnsupportedDinRailDrop, handleConfirmPaletteRemoval,
+  } = usePaletteActions({
+        symbols, paletteTemplateMap, dinRail, activeSheet: sheetPanel.activeSheet,
+        selectedSymbol, selectedSymbolId, selectedSymbolIds,
+            setActiveRightTab: (tab: RightTab) => sheetPanel.setActiveRightTab(tab),
+        setActiveSheet: (sheet: SheetType) => sheetPanel.setActiveSheet(sheet),
+        executeSymbolsCommand: history.executeSymbolsCommand,
+        showTemporaryStatus, handleOpenDinRailGenerator, handleHidePaletteTemplate,
   });
 
   const [didHandleInitialAction, setDidHandleInitialAction] = useState(false);
@@ -217,7 +251,7 @@ function AppWorkspace({
 
   const triggerNewProject = useCallback(() => {
     if (hasUnsavedChanges) {
-      setUnsavedChangesActionType("new");
+      dialog.setUnsavedChangesActionType("new");
     } else {
       handleNewProject();
     }
@@ -225,7 +259,7 @@ function AppWorkspace({
 
   const triggerOpenProject = useCallback(() => {
     if (hasUnsavedChanges) {
-      setUnsavedChangesActionType("open");
+      dialog.setUnsavedChangesActionType("open");
     } else {
       handleOpenProject();
     }
@@ -234,44 +268,30 @@ function AppWorkspace({
   const handleSaveUnsavedChanges = useCallback(async () => {
     const saved = await handleSaveProject();
     if (saved) {
-      const pendingAction = unsavedChangesActionType;
-      setUnsavedChangesActionType(null);
+      const pendingAction = dialog.unsavedChangesActionType;
+      dialog.setUnsavedChangesActionType(null);
       if (pendingAction === "new") {
         handleNewProject();
       } else if (pendingAction === "open") {
         handleOpenProject();
       }
     }
-  }, [unsavedChangesActionType, handleSaveProject, handleNewProject, handleOpenProject]);
+  }, [dialog.unsavedChangesActionType, handleSaveProject, handleNewProject, handleOpenProject]);
 
   const handleDiscardUnsavedChanges = useCallback(() => {
-    const pendingAction = unsavedChangesActionType;
-    setUnsavedChangesActionType(null);
+    const pendingAction = dialog.unsavedChangesActionType;
+    dialog.setUnsavedChangesActionType(null);
     setHasUnsavedChanges(false);
     if (pendingAction === "new") {
       handleNewProject();
     } else if (pendingAction === "open") {
       handleOpenProject();
     }
-  }, [unsavedChangesActionType, handleNewProject, handleOpenProject, setHasUnsavedChanges]);
+  }, [dialog.unsavedChangesActionType, handleNewProject, handleOpenProject, setHasUnsavedChanges]);
 
   const handleCancelUnsavedChanges = useCallback(() => {
-    setUnsavedChangesActionType(null);
-  }, []);
-
-  const selectedSymbol = symbols.find((s) => s.id === selectedSymbolId) ?? null;
-
-  const {
-    paletteContextMenu, setPaletteContextMenu,
-    pendingPaletteRemoval, setPendingPaletteRemoval,
-    handlePaletteDrop, handleUnsupportedDinRailDrop, handleConfirmPaletteRemoval,
-  } = usePaletteActions({
-    symbols, paletteTemplateMap, dinRail, activeSheet,
-    selectedSymbol, selectedSymbolId, selectedSymbolIds,
-    setActiveRightTab, setActiveSheet,
-    executeSymbolsCommand: history.executeSymbolsCommand,
-    showTemporaryStatus, handleOpenDinRailGenerator, handleHidePaletteTemplate,
-  });
+    dialog.setUnsavedChangesActionType(null);
+    }, []);
 
   // ── Persistence ───────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -305,9 +325,23 @@ function AppWorkspace({
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       try {
+        window.localStorage.setItem(CONNECTIONS_STORAGE_KEY, JSON.stringify(connections));
+      } catch (error) {
+        reportRuntimeError(error, {
+          source: "unhandled-error",
+        });
+      }
+    }, LOCAL_STORAGE_WRITE_DEBOUNCE_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [connections]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      try {
         window.localStorage.setItem(
-          SHOW_DIN_RAIL_GROUPS_STORAGE_KEY,
-          JSON.stringify(showDinRailGroups),
+          "dinboard.default_wire_settings",
+          JSON.stringify(defaultWireSettings)
         );
       } catch (error) {
         reportRuntimeError(error, {
@@ -317,7 +351,24 @@ function AppWorkspace({
     }, LOCAL_STORAGE_WRITE_DEBOUNCE_MS);
 
     return () => window.clearTimeout(timeoutId);
-  }, [showDinRailGroups]);
+  }, [defaultWireSettings]);
+
+    useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      try {
+        window.localStorage.setItem(
+          "dinboard.show_din_rail_groups",
+          JSON.stringify(sheetPanel.showDinRailGroups),
+        );
+      } catch (error) {
+        reportRuntimeError(error, {
+          source: "unhandled-error",
+        });
+      }
+    }, LOCAL_STORAGE_WRITE_DEBOUNCE_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [sheetPanel.showDinRailGroups]);
 
   useEffect(() => {
     try {
@@ -330,8 +381,8 @@ function AppWorkspace({
   }, [uiTheme]);
 
   useEffect(() => {
-    if (activeSheet === "sheet3" || activeSheet === "sheet4") setWorkspaceZoomPercent(100);
-  }, [activeSheet]);
+        if (sheetPanel.activeSheet === "sheet3" || sheetPanel.activeSheet === "sheet4") sheetPanel.setWorkspaceZoomPercent(100);
+  }, [sheetPanel.activeSheet]);
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -350,43 +401,21 @@ function AppWorkspace({
   useEffect(() => {
     const handleGlobalKeyDown = (event: KeyboardEvent) => {
       handleGlobalAppShortcut(event, {
-        openHelp: () => setIsHelpOpen(true),
+                openHelp: () => dialog.setIsHelpOpen(true),
         newProject: triggerNewProject,
         openProject: triggerOpenProject,
         saveProject: handleSaveProject,
         print: () => window.print(),
-        resetSchematicViewport: () => setSchematicViewportResetRequest(r => r + 1),
+        resetSchematicViewport: () => schematic.requestViewportReset(),
       });
     };
 
     window.addEventListener("keydown", handleGlobalKeyDown);
 
-    // Native Back Button Handling
-    const backListener = CapApp.addListener('backButton', () => {
-      if (isRcdManagerOpen) {
-        setIsRcdManagerOpen(false);
-      } else if (isHelpOpen) {
-        setIsHelpOpen(false);
-      } else if (unsavedChangesActionType) {
-        setUnsavedChangesActionType(null);
-      } else if (svgImportDialogOpen) {
-        setSvgImportDialogOpen(false);
-      } else if (importedModulesManagerOpen) {
-        setImportedModulesManagerOpen(false);
-      } else if (paletteContextMenu) {
-        setPaletteContextMenu(null);
-      } else if (pendingPaletteRemoval) {
-        setPendingPaletteRemoval(null);
-      } else {
-        // Here we could also try to close the mobile menu if we had access to its state
-      }
-    });
-
     return () => {
       window.removeEventListener("keydown", handleGlobalKeyDown);
-      backListener.then(l => l.remove());
     };
-  }, [triggerNewProject, triggerOpenProject, handleSaveProject, isRcdManagerOpen, isHelpOpen, unsavedChangesActionType, svgImportDialogOpen, importedModulesManagerOpen, paletteContextMenu, pendingPaletteRemoval]);
+  }, [triggerNewProject, triggerOpenProject, handleSaveProject, dialog]);
 
   useEffect(() => {
     setSymbols((prev) => normalizeGroupConsistency(normalizePaletteAssetDimensions(prev, paletteTemplateMap)));
@@ -431,17 +460,17 @@ function AppWorkspace({
     [symbols],
   );
 
-  const handleOpenRcdManager = useCallback(() => {
+    const handleOpenRcdManager = useCallback(() => {
     if (rcdManagerEntries.length === 0) {
       showTemporaryStatus("Brak modułów RCD do konfiguracji", 3200);
       return;
     }
 
-    setIsRcdManagerOpen(true);
+    dialog.setIsRcdManagerOpen(true);
   }, [rcdManagerEntries.length, showTemporaryStatus]);
 
   const handleToggleDinRailGroups = useCallback(() => {
-    setShowDinRailGroups((previous) => !previous);
+    sheetPanel.setShowDinRailGroups((previous: boolean) => !previous);
   }, []);
 
   const handleSaveRcdManager = useCallback(
@@ -487,19 +516,19 @@ function AppWorkspace({
         "Zapisano ustawienia RCD",
       );
 
-      if (!changed) {
+            if (!changed) {
         showTemporaryStatus("Brak zmian w ustawieniach RCD", 2600);
       }
 
-      setIsRcdManagerOpen(false);
+      dialog.setIsRcdManagerOpen(false);
     },
     [history, selectedSymbolId, selectedSymbolIds, showTemporaryStatus, symbols],
   );
 
-  const handleValidationSymbolSelect = useCallback(
+    const handleValidationSymbolSelect = useCallback(
     (symbolId: string) => {
       setHighlightedCircuitEditTarget(null);
-      setActiveSheet("sheet1");
+      sheetPanel.setActiveSheet("sheet1");
       handleSymbolSelectionChange([symbolId], symbolId);
     },
     [handleSymbolSelectionChange],
@@ -508,7 +537,7 @@ function AppWorkspace({
   const handleValidationFieldEdit = useCallback(
     (symbolId: string, fieldKey: string) => {
       setHighlightedCircuitEditTarget({ symbolId, fieldKey });
-      setActiveSheet("sheet1");
+      sheetPanel.setActiveSheet("sheet1");
       handleSymbolSelectionChange([symbolId], symbolId);
     },
     [handleSymbolSelectionChange],
@@ -524,13 +553,13 @@ function AppWorkspace({
       const nextSymbol = applyValidationQuickFix(symbol, fixId);
       setHighlightedCircuitEditTarget(null);
       handleCircuitEditSave(nextSymbol);
-      setActiveSheet("sheet1");
+      sheetPanel.setActiveSheet("sheet1");
       handleSymbolSelectionChange([symbolId], symbolId);
     },
     [handleCircuitEditSave, handleSymbolSelectionChange, symbols],
   );
 
-  // ── Render ────────────────────────────────────────────────────────────────────
+    // ── Render ────────────────────────────────────────────────────────────────────
   return (
     <main className={`app-shell ui-theme-${uiTheme}`}>
       <AppHeader
@@ -540,9 +569,9 @@ function AppWorkspace({
         canRedo={history.canRedo}
         undoLabel={history.undoLabel}
         redoLabel={history.redoLabel}
-        showRightPanel={showRightPanel}
-        activeSheet={activeSheet}
-        workspaceZoomPercent={workspaceZoomPercent}
+        showRightPanel={sheetPanel.showRightPanel}
+        activeSheet={sheetPanel.activeSheet}
+        workspaceZoomPercent={sheetPanel.workspaceZoomPercent}
         hasSelectedSymbol={Boolean(selectedSymbol)}
         onNewProject={triggerNewProject}
         onOpenProject={triggerOpenProject}
@@ -555,45 +584,46 @@ function AppWorkspace({
         onRedo={history.handleRedo}
         onDeleteSelected={handleDeleteSelected}
         onOpenDinRailGenerator={handleOpenDinRailGenerator}
-        onOpenSvgImport={() => setSvgImportDialogOpen(true)}
-        onOpenImportedModulesManager={() => setImportedModulesManagerOpen(true)}
-        onOpenHelp={() => setIsHelpOpen(true)}
-        onToggleRightPanel={() => setShowRightPanel(!showRightPanel)}
-        showDinRailGroups={showDinRailGroups}
+        onOpenSvgImport={() => dialog.setSvgImportDialogOpen(true)}
+        onOpenImportedModulesManager={() => dialog.setImportedModulesManagerOpen(true)}
+        onOpenHelp={() => dialog.setIsHelpOpen(true)}
+        onToggleRightPanel={() => sheetPanel.setShowRightPanel(!sheetPanel.showRightPanel)}
+        showDinRailGroups={sheetPanel.showDinRailGroups}
         uiTheme={uiTheme}
         onChangeUiTheme={setUiTheme}
         onToggleDinRailGroups={handleToggleDinRailGroups}
-        onChangeSheet={setActiveSheet}
+        onChangeSheet={sheetPanel.setActiveSheet}
         showTemporaryStatus={showTemporaryStatus}
         onOpenFeedback={onOpenFeedback}
       />
 
       <div
-        className={`main-content ${activeRightTab === "circuitEdit" ? "is-circuit-editing" : ""} ${
-          activeSheet === "sheet4" ? "is-pdf-workspace" : ""
-        } ${showRightPanel ? "" : "is-right-panel-hidden"} ${showLeftPanel ? "" : "is-left-panel-hidden"}`}
+        className={`main-content ${sheetPanel.activeRightTab === "circuitEdit" ? "is-circuit-editing" : ""} ${
+          sheetPanel.activeSheet === "sheet4" ? "is-pdf-workspace" : ""
+        } ${sheetPanel.showRightPanel ? "" : "is-right-panel-hidden"} ${sheetPanel.showLeftPanel ? "" : "is-left-panel-hidden"}`}
       >
-        {activeSheet === "sheet4" ? (
+        {sheetPanel.activeSheet === "sheet4" ? (
           <Suspense fallback={<div style={{ display: "flex", flex: 1, alignItems: "center", justifyContent: "center" }}>Ładowanie modułu PDF...</div>}>
             <PdfWorkspaceShell
               metadata={metadata}
               symbols={symbols}
               dinRail={dinRail}
               circuitRows={circuitRows}
+              connections={connections}
               pdfPreviewTab={pdfPreviewTab}
               setPdfPreviewTab={setPdfPreviewTab}
               startPdfTabTransition={startPdfTabTransition}
               handleMetadataChange={handleMetadataChange}
               handleResetDocumentation={handleResetDocumentation}
-              showRightPanel={showRightPanel}
+              showRightPanel={sheetPanel.showRightPanel}
             />
           </Suspense>
         ) : (
           <>
             <AppLeftPanel
-              showLeftPanel={showLeftPanel}
-              onClose={() => setShowLeftPanel(false)}
-              activeSheet={activeSheet}
+              showLeftPanel={sheetPanel.showLeftPanel}
+              onClose={() => sheetPanel.setShowLeftPanel(false)}
+              activeSheet={sheetPanel.activeSheet}
               metadata={metadata}
               handleMetadataChange={handleMetadataChange}
               handleExportPdf={handleExportPdf}
@@ -603,17 +633,22 @@ function AppWorkspace({
               setActivePaletteGroupTitle={setActivePaletteGroupTitle}
               setPaletteContextMenu={setPaletteContextMenu}
               handleOpenDinRailGenerator={handleOpenDinRailGenerator}
+              defaultWireSettings={defaultWireSettings}
+              onChangeDefaultWireSettings={setDefaultWireSettings}
+              selectedConnectionId={selectedConnectionId}
+              connections={connections}
+              onConnectionsChange={handleConnectionsChange}
             />
 
             <AppWorkspaceCanvas
-              activeSheet={activeSheet}
+              activeSheet={sheetPanel.activeSheet}
               paletteTemplateMap={paletteTemplateMap}
               dinRail={dinRail}
               symbols={symbols}
               dinRailGeneratorRequest={dinRailGeneratorRequest}
               handlePaletteDrop={handlePaletteDrop}
               handleUnsupportedDinRailDrop={handleUnsupportedDinRailDrop}
-              setWorkspaceZoomPercent={setWorkspaceZoomPercent}
+              setWorkspaceZoomPercent={sheetPanel.setWorkspaceZoomPercent}
               handleRailGenerated={handleRailGenerated}
               handleSymbolMoveStart={handleSymbolMoveStart}
               handleSymbolMove={handleSymbolMove}
@@ -624,20 +659,32 @@ function AppWorkspace({
               selectedSymbolId={selectedSymbolId}
               selectedSymbolIds={selectedSymbolIds}
               handleToggleDinRailGroups={handleToggleDinRailGroups}
-              showDinRailGroups={showDinRailGroups}
+              showDinRailGroups={sheetPanel.showDinRailGroups}
               canShowSchematicAndCircuitList={canShowSchematicAndCircuitList}
               handleSchematicCellEdit={handleSchematicCellEdit}
               circuitRows={circuitRows}
               metadata={metadata}
-              schematicViewportResetRequest={schematicViewportResetRequest}
-              schematicScrollToPageRequest={schematicScrollToPageRequest}
+              schematicViewportResetRequest={schematic.schematicViewportResetRequest}
+              schematicScrollToPageRequest={schematic.schematicScrollToPageRequest}
+              connections={connections}
+              onConnectionsChange={handleConnectionsChange}
+              selectedConnectionId={selectedConnectionId}
+              onConnectionSelect={setSelectedConnectionId}
+              defaultWireSettings={defaultWireSettings}
+              onRequestLeftPanelTab={(tabName) => {
+                sheetPanel.setShowLeftPanel(true);
+                setActivePaletteGroupTitle(tabName);
+                if (sheetPanel.activeSheet !== "sheet1") {
+                  sheetPanel.setActiveSheet("sheet1");
+                }
+              }}
             />
 
             <AppRightPanel
-              activeSheet={activeSheet}
-              showRightPanel={showRightPanel}
-              activeRightTab={activeRightTab}
-              setActiveRightTab={setActiveRightTab}
+              activeSheet={sheetPanel.activeSheet}
+              showRightPanel={sheetPanel.showRightPanel}
+              activeRightTab={sheetPanel.activeRightTab}
+              setActiveRightTab={sheetPanel.setActiveRightTab}
               symbols={symbols}
               handleAutoBalance={handleAutoBalance}
               handleApplyPhaseMoveSuggestion={handleApplyPhaseMoveSuggestion}
@@ -657,16 +704,20 @@ function AppWorkspace({
               metadata={metadata}
               handleMetadataChange={handleMetadataChange}
               handleOpenRcdManager={handleOpenRcdManager}
-              onScrollToSchematicPage={handleScrollToSchematicPage}
+              onScrollToSchematicPage={schematic.handleScrollToSchematicPage}
+              connections={connections}
+              selectedConnectionId={selectedConnectionId}
+              onConnectionSelect={setSelectedConnectionId}
+              onConnectionsChange={handleConnectionsChange}
             />
           </>
         )}
 
         <AppSheetTabs
-          activeSheet={activeSheet}
-          onChangeSheet={setActiveSheet}
-          showLeftPanel={showLeftPanel}
-          onOpenLeftPanel={() => setShowLeftPanel(true)}
+          activeSheet={sheetPanel.activeSheet}
+          onChangeSheet={sheetPanel.setActiveSheet}
+          showLeftPanel={sheetPanel.showLeftPanel}
+          onOpenLeftPanel={() => sheetPanel.setShowLeftPanel(true)}
         />
       </div>
 
@@ -674,7 +725,7 @@ function AppWorkspace({
         projectFileName={projectFileName}
         hasUnsavedChanges={hasUnsavedChanges}
         saveStatus={saveStatus}
-        workspaceZoomPercent={workspaceZoomPercent}
+        workspaceZoomPercent={sheetPanel.workspaceZoomPercent}
         totalPower={totalPower}
         groupCount={groupCount}
         symbolCount={symbols.length}
@@ -685,26 +736,26 @@ function AppWorkspace({
       <AppDialogsLayer
         importedModuleCategoryOptions={importedModuleCategoryOptions}
         importedModules={importedModules}
-        importedModulesManagerOpen={importedModulesManagerOpen}
-        isHelpOpen={isHelpOpen}
-        isRcdManagerOpen={isRcdManagerOpen}
+        importedModulesManagerOpen={dialog.importedModulesManagerOpen}
+        isHelpOpen={dialog.isHelpOpen}
+        isRcdManagerOpen={dialog.isRcdManagerOpen}
         paletteContextMenu={paletteContextMenu}
         pendingPaletteRemoval={pendingPaletteRemoval}
         rcdManagerEntries={rcdManagerEntries}
-        svgImportDialogOpen={svgImportDialogOpen}
+        svgImportDialogOpen={dialog.svgImportDialogOpen}
         onCancelPaletteRemoval={() => setPendingPaletteRemoval(null)}
-        onCloseHelp={() => setIsHelpOpen(false)}
-        onCloseImportedModulesManager={() => setImportedModulesManagerOpen(false)}
+        onCloseHelp={() => dialog.setIsHelpOpen(false)}
+        onCloseImportedModulesManager={() => dialog.setImportedModulesManagerOpen(false)}
         onClosePaletteContextMenu={() => setPaletteContextMenu(null)}
-        onCloseRcdManager={() => setIsRcdManagerOpen(false)}
-        onCloseSvgImport={() => setSvgImportDialogOpen(false)}
+        onCloseRcdManager={() => dialog.setIsRcdManagerOpen(false)}
+        onCloseSvgImport={() => dialog.setSvgImportDialogOpen(false)}
         onConfirmPaletteRemoval={handleConfirmPaletteRemoval}
         onImportedModuleCategoryChange={handleImportedModuleCategoryChange}
         onRemoveImportedModule={handleRemoveImportedModule}
         onRequestPaletteRemoval={setPendingPaletteRemoval}
         onSaveRcdManager={handleSaveRcdManager}
         onSvgImportCommit={handleSvgImportCommit}
-        unsavedChangesActionType={unsavedChangesActionType}
+        unsavedChangesActionType={dialog.unsavedChangesActionType}
         onSaveUnsavedChanges={handleSaveUnsavedChanges}
         onDiscardUnsavedChanges={handleDiscardUnsavedChanges}
         onCancelUnsavedChanges={handleCancelUnsavedChanges}

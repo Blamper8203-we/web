@@ -226,7 +226,7 @@ function normalizeStrokeWidths(svgRoot: SVGSVGElement): void {
 function applyDynamicRatingText(svgRoot: SVGSVGElement, newText: string): void {
   if (!newText || !newText.trim()) return;
 
-  const RATING_REGEX = /^(([BCD]\d+)|(\d+A(\/\d+,\d+A)?)|(\d+A))$/i;
+  const RATING_REGEX = /^(([BCD]\s*\d+)|(\d+\s*A(\/\d+,\d+\s*A)?)|(\d+\s*A))$/i;
 
   for (const textElement of Array.from(svgRoot.querySelectorAll("text"))) {
     const content = textElement.textContent?.trim();

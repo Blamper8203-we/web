@@ -7,12 +7,14 @@ import { calculateTotalDistribution } from "../lib/phaseDistribution/phaseDistri
 import { validateProject } from "../lib/validation/electricalValidationService";
 import type { ProjectMetadata } from "../types/projectMetadata";
 import type { SymbolItem } from "../types/symbolItem";
+import type { ConnectionItem } from "../types/connectionItem";
 import "./PdfPreviewWorkspace.css";
 
 type PdfPreviewWorkspaceProps = {
   metadata: ProjectMetadata;
   symbols: SymbolItem[];
   rail: DinRailCanvasRail;
+  connections?: ConnectionItem[];
   activeTab?: string;
 };
 
@@ -22,6 +24,7 @@ export function PdfPreviewWorkspace({
   metadata,
   symbols,
   rail,
+  connections,
   activeTab = "title-page",
 }: PdfPreviewWorkspaceProps) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
@@ -67,7 +70,7 @@ export function PdfPreviewWorkspace({
         }
 
         const dinRailImages = activeTab === "din-rail"
-          ? await exportDinRailToDataURL(symbols, rail)
+          ? await exportDinRailToDataURL(symbols, rail, connections)
           : [];
 
         if (cancelled || currentRequestId !== requestIdRef.current) {
@@ -122,7 +125,7 @@ export function PdfPreviewWorkspace({
         window.clearTimeout(debounceTimer);
       }
     };
-  }, [metadata, symbols, rail, phaseDistribution, validationResult, activeTab]);
+  }, [activeTab, metadata, phaseDistribution, rail, symbols, validationResult, connections]);
 
   useEffect(() => {
     return () => {

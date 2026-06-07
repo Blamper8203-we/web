@@ -2,9 +2,11 @@
 import { AppIcon } from "./AppIcon";
 import { ModuleAssetPreview } from "./ModuleAssetPreview";
 import { ProjectPropertiesPage } from "./ProjectPropertiesPage";
+import { ConnectionsLeftPanel } from "./ConnectionsLeftPanel";
 import { getPaletteTemplateDimensions, type PaletteGroup } from "../lib/modules/moduleCatalog";
 import { getPaletteIconName, getPaletteDescription, createPaletteDragPreview, type SheetType } from "../lib/appHelpers";
 import type { ProjectMetadata } from "../types/projectMetadata";
+import type { ConnectionItem } from "../types/connectionItem";
 
 import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
 
@@ -22,6 +24,11 @@ export interface AppLeftPanelProps {
   handleOpenDinRailGenerator: () => void;
   showLeftPanel?: boolean;
   onClose?: () => void;
+  defaultWireSettings?: any;
+  onChangeDefaultWireSettings?: (settings: any) => void;
+  selectedConnectionId?: string | null;
+  connections?: ConnectionItem[];
+  onConnectionsChange?: (newConnections: ConnectionItem[], label: string, statusMsg: string) => void;
 }
 
 export function AppLeftPanel({
@@ -37,6 +44,11 @@ export function AppLeftPanel({
   setPaletteContextMenu,
   handleOpenDinRailGenerator,
   onClose,
+  defaultWireSettings,
+  onChangeDefaultWireSettings,
+  selectedConnectionId = null,
+  connections = [],
+  onConnectionsChange,
 }: AppLeftPanelProps) {
   const activePaletteGroup =
     paletteGroups.find((g) => g.title === activePaletteGroupTitle) ??
@@ -46,6 +58,15 @@ export function AppLeftPanel({
   return (
     <aside className="left-panel">
       <div className="panel-content">
+        {activeSheet === "sheet1_connections" && defaultWireSettings && onChangeDefaultWireSettings && (
+          <ConnectionsLeftPanel
+            defaultWireSettings={defaultWireSettings}
+            onChangeDefaultWireSettings={onChangeDefaultWireSettings}
+            selectedConnectionId={selectedConnectionId}
+            connections={connections}
+            onConnectionsChange={onConnectionsChange}
+          />
+        )}
         {activeSheet === "sheet2" && (
           <ProjectPropertiesPage
             metadata={metadata}

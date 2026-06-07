@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Application, Container, Text, TextStyle } from "pixi.js";
 import { isAuxiliaryNonCircuitSymbol, type SymbolItem } from "../types/symbolItem";
+import type { ConnectionItem } from "../types/connectionItem";
+import { getSymbolTerminals } from "../lib/modules/moduleTerminals";
+import { calculateWirePath } from "../lib/routing/wireRoutingEngine";
 import {
   generateDinRailSvg,
   getDinRailDimensions,
@@ -9,9 +12,7 @@ import {
 import { buildSchematicLayout } from "../lib/schematic/schematicLayoutEngine";
 import {
   DIN_RAIL_GROUP_FRAME_PADDING,
-  DIN_RAIL_GROUP_BRACKET_BAR_HEIGHT,
   DIN_RAIL_GROUP_BRACKET_LABEL_GAP,
-  DIN_RAIL_GROUP_BRACKET_LABEL_HEIGHT,
   DIN_RAIL_GROUP_BRACKET_LEG_HEIGHT,
   DIN_RAIL_GROUP_BRACKET_OFFSET_Y,
   buildDinRailGroupFrames,
@@ -61,6 +62,7 @@ interface DinRailCanvasProps {
   } | undefined;
   rail: DinRailCanvasRail;
   symbols: SymbolItem[];
+  connections?: ConnectionItem[];
   generatorRequest?: number;
   selectedSymbolId?: string | null;
   selectedSymbolIds?: string[];
@@ -86,6 +88,7 @@ interface DinRailCanvasProps {
   onZoomChange?: (zoomPercent: number) => void;
   onToggleGroups?: () => void;
   showGroups?: boolean;
+  onRequestLeftPanelTab?: (tabName: string) => void;
 }
 
 interface WorldRect {
@@ -130,6 +133,27 @@ const MAX_SCALE = 5;
 const PIXI_MAX_RESOLUTION = 2;
 const PIXI_LABEL_SYMBOL_LIMIT = 64;
 const MANUAL_REFERENCE_DESIGNATION_KEY = "ManualReferenceDesignation";
+
+const WIRE_COLORS_MAP: Record<string, { hex: string; highlight: string; dark: string }> = {
+  black: { hex: "#1a1a1a", highlight: "#555555", dark: "#000000" }, // L2
+  brown: { hex: "#8B4513", highlight: "#c4763a", dark: "#4a2007" }, // L1
+  grey: { hex: "#888888", highlight: "#bbbbbb", dark: "#555555" },  // L3
+  gray: { hex: "#888888", highlight: "#bbbbbb", dark: "#555555" },  // L3
+  blue: { hex: "#1565C0", highlight: "#4a9ed6", dark: "#0a2f6b" },  // N
+  "green-yellow": { hex: "#2e7d32", highlight: "#5ab55e", dark: "#143b16" }, // PE
+  pe: { hex: "#2e7d32", highlight: "#5ab55e", dark: "#143b16" }, // PE
+  red: { hex: "#ef4444", highlight: "#f87171", dark: "#991b1b" },
+  other: { hex: "#a855f7", highlight: "#c084fc", dark: "#6b21a8" },
+};
+
+const WIRE_THICKNESS_MAP: Record<number, number> = {
+  1.5: 24.0,
+  2.5: 30.0,
+  4.0: 36.0,
+  6.0: 42.0,
+  10.0: 50.0,
+  16.0: 60.0,
+};
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(value, Math.max(min, max)));
@@ -238,6 +262,7 @@ export function DinRailCanvas({
   getPaletteTemplate,
   rail,
   symbols,
+  connections = [],
   generatorRequest = 0,
   selectedSymbolId,
   selectedSymbolIds = selectedSymbolId ? [selectedSymbolId] : [],
@@ -253,6 +278,7 @@ export function DinRailCanvas({
   onZoomChange,
   onToggleGroups,
   showGroups = true,
+  onRequestLeftPanelTab,
 }: DinRailCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
@@ -266,6 +292,8 @@ export function DinRailCanvas({
   const scaleRef = useRef(1);
   const lastGeneratorRequest = useRef(generatorRequest);
   const measuredNodesRef = useRef(new Map<string, HTMLDivElement>());
+
+  const [showWires, setShowWires] = useState(true);
 
   const viewportSize = useElementSize(containerRef);
   const [scale, setScale] = useState(1);
@@ -305,6 +333,65 @@ export function DinRailCanvas({
 
     return map;
   }, [symbols]);
+
+  const groupedWiredPaths = useMemo(() => {
+    const keyCounts: Record<string, number> = {};
+    const keyIndices: Record<string, number> = {};
+
+    return connections.map((conn) => {
+      const fromSymbol = symbols.find((s) => s.id === conn.fromSymbolId);
+      const toSymbol = symbols.find((s) => s.id === conn.toSymbolId);
+      
+      if (!fromSymbol || !toSymbol) return null;
+
+      const fromHS = getSymbolTerminals(fromSymbol).find((h) => h.name === conn.fromTerminal);
+      const toHS = getSymbolTerminals(toSymbol).find((h) => h.name === conn.toTerminal);
+
+      if (!fromHS || !toHS) return null;
+
+      const fromPt = { x: fromSymbol.x + fromHS.x, y: fromSymbol.y + fromHS.y };
+      const toPt = { x: toSymbol.x + toHS.x, y: toSymbol.y + toHS.y };
+
+      // Compute sorting key for parallel offsets
+      const key = [conn.fromSymbolId, conn.toSymbolId].sort().join(":");
+      const totalCount = keyCounts[key] || 0;
+      keyCounts[key] = totalCount + 1;
+
+      return {
+        connection: conn,
+        fromPt,
+        toPt,
+        fromHS,
+        toHS,
+        key,
+      };
+    }).filter(Boolean).map((d) => {
+      if (!d) return null;
+      const index = keyIndices[d.key] || 0;
+      keyIndices[d.key] = index + 1;
+
+      const path = calculateWirePath(d.fromPt, d.toPt, {
+        isFromTop: d.connection.isFromTop ?? d.fromHS.isTop,
+        isToTop: d.connection.isToTop ?? d.toHS.isTop,
+        parallelIndex: index,
+        parallelCount: keyCounts[d.key],
+        customOffset: d.connection.customOffset,
+        customOffsetX: d.connection.customOffsetX,
+        customOffsetY1: d.connection.customOffsetY1,
+        customOffsetY2: d.connection.customOffsetY2,
+        points: d.connection.points,
+        customRadius: d.connection.customRadius ?? 0,
+      });
+
+      return {
+        ...d,
+        pathData: path,
+        parallelIndex: index,
+        parallelCount: keyCounts[d.key],
+      };
+    });
+  }, [connections, symbols]);
+
   const assetMap = useDinRailPreparedAssets(snappedSymbols);
   const interactiveRects = useMemo(() => {
     const nextMap = new Map<string, WorldRect>();
@@ -505,18 +592,56 @@ export function DinRailCanvas({
         isCurrentlySnapped?: boolean;
         moduleRef?: string;
       },
-    ) => snapModulePlacementToDinRail(
-      x,
-      y,
-      width,
-      height,
-      rail.width,
-      rowCenters,
-      snappedSymbols,
-      dragSymbolId,
-      options,
-    ),
-    [rail.width, rowCenters, snappedSymbols],
+    ) => {
+      const template = getPaletteTemplate?.(options?.moduleRef ?? "");
+      const isTerminalBlock = template?.category === "Listwy do rozdzielnicy";
+
+      if (isTerminalBlock) {
+         const topY = -1200;
+         const rectHeight = 300;
+         const bottomY = (rail.config.rows - 1) * (1642.0 + 50.0) + 2400;
+
+         const gap = 300;
+         const rectWidth = Math.min(2000, rail.width * 0.35);
+         const centerX = rail.width / 2;
+         const leftRectX = centerX - rectWidth - gap / 2;
+         const rightRectX = centerX + gap / 2;
+         
+         const leftCenterX = leftRectX + rectWidth / 2;
+         const rightCenterX = rightRectX + rectWidth / 2;
+
+         let snapX = x;
+         const distLeft = Math.abs((x + width/2) - leftCenterX);
+         const distRight = Math.abs((x + width/2) - rightCenterX);
+         
+         if (distLeft < distRight && distLeft < 1500) snapX = leftCenterX - width / 2;
+         else if (distRight <= distLeft && distRight < 1500) snapX = rightCenterX - width / 2;
+
+         const inTopZone = y >= topY - 200 && y <= topY + rectHeight + 200;
+         const inBottomZone = y >= bottomY - 200 && y <= bottomY + rectHeight + 200;
+
+         if (inTopZone) return { x: snapX, y: topY + rectHeight / 2 - height / 2 };
+         if (inBottomZone) return { x: snapX, y: bottomY + rectHeight / 2 - height / 2 };
+         
+         const distTop = Math.abs(y - topY);
+         const distBottom = Math.abs(y - bottomY);
+         if (distTop < distBottom) return { x: snapX, y: topY + rectHeight / 2 - height / 2 };
+         return { x: snapX, y: bottomY + rectHeight / 2 - height / 2 };
+      }
+
+      return snapModulePlacementToDinRail(
+        x,
+        y,
+        width,
+        height,
+        rail.width,
+        rowCenters,
+        snappedSymbols,
+        dragSymbolId,
+        options,
+      );
+    },
+    [getPaletteTemplate, rail.config.rows, rail.width, rowCenters, snappedSymbols],
   );
 
   const openGenerator = useCallback(() => {
@@ -692,7 +817,7 @@ export function DinRailCanvas({
           style: new TextStyle({
             fill: "#f8fafc",
             fontFamily: "Segoe UI, Arial, sans-serif",
-            fontSize: 11,
+            fontSize: 14,
             fontWeight: "700",
             align: "center",
             stroke: { color: "#111827", width: 2, join: "round" },
@@ -972,6 +1097,19 @@ export function DinRailCanvas({
     }
 
     if (!supportsDinRailPlacement(template)) {
+      if (template.category === "Listwy do rozdzielnicy") {
+        event.preventDefault();
+        const world = screenToWorld(event.clientX, event.clientY);
+        const size = getPaletteTemplateDimensions(template);
+        const snapped = snapModulePlacement(world.x, world.y, size.width, size.height, undefined, {
+          forceSnapToRail: true,
+          moduleRef: template.moduleRef,
+        });
+        onPaletteDrop?.(templateId, snapped.x, snapped.y, { snapToRail: true });
+        setIsDropTarget(false);
+        return;
+      }
+
       event.preventDefault();
       setIsDropTarget(false);
       onUnsupportedTemplateDrop?.(templateId);
@@ -1075,6 +1213,93 @@ export function DinRailCanvas({
     zIndex: 5,
   };
 
+  const renderListwyPlaceholders = () => {
+    if (!rail.isVisible) return null;
+    
+    const rectWidth = Math.min(2000, rail.width * 0.35);
+    const rectHeight = 300;
+    const gap = 300;
+    
+    const centerX = rail.width / 2;
+    const leftRectX = centerX - rectWidth - gap / 2;
+    const rightRectX = centerX + gap / 2;
+    
+    const topY = -1200;
+    const bottomY = (rail.config.rows - 1) * (1642.0 + 50.0) + 2400;
+
+    const baseStyle: React.CSSProperties = {
+      position: "absolute",
+      width: `${rectWidth}px`,
+      height: `${rectHeight}px`,
+      border: "12px dashed #475569", // slate-600
+      borderRadius: "24px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      cursor: "pointer",
+      pointerEvents: "auto",
+      backgroundColor: "rgba(15, 23, 42, 0.4)", // slate-900 with opacity
+      boxSizing: "border-box",
+      transition: "border-color 0.2s, background-color 0.2s",
+    };
+
+    const textStyle: React.CSSProperties = {
+      fontSize: "80px",
+      fontWeight: "bold",
+      color: "#94a3b8", // slate-400
+      fontFamily: "system-ui, sans-serif",
+      textTransform: "uppercase",
+      letterSpacing: "4px",
+      pointerEvents: "none",
+    };
+
+    const createPlaceholder = (x: number, y: number, key: string) => (
+      <div
+        key={key}
+        style={{ ...baseStyle, left: `${x}px`, top: `${y}px` }}
+        onClick={() => onRequestLeftPanelTab?.("Listwy do rozdzielnicy")}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = "#94a3b8";
+          e.currentTarget.style.backgroundColor = "rgba(30, 41, 59, 0.6)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = "#475569";
+          e.currentTarget.style.backgroundColor = "rgba(15, 23, 42, 0.4)";
+        }}
+      >
+        <span style={textStyle}>DODAJ LISTWY</span>
+      </div>
+    );
+
+    const isZoneOccupied = (zoneX: number, zoneY: number) => {
+      return snappedSymbols.some((s) => {
+        const template = getPaletteTemplate?.(s.moduleRef);
+        const isListwa = template?.category === "Listwy do rozdzielnicy" || s.moduleRef?.includes("Listwy do rozdzielnicy");
+        if (!isListwa) return false;
+        const sCenterX = s.x + s.width / 2;
+        const sCenterY = s.y + s.height / 2;
+        const zoneCenterX = zoneX + rectWidth / 2;
+        const zoneCenterY = zoneY + rectHeight / 2;
+        return Math.abs(sCenterX - zoneCenterX) < rectWidth * 0.8 && Math.abs(sCenterY - zoneCenterY) < rectHeight * 0.8;
+      });
+    };
+
+    return (
+      <div
+        className="din-rail-listwy-placeholders"
+        style={{
+          ...worldLayerBaseStyle,
+          zIndex: 2,
+        }}
+      >
+        {!isZoneOccupied(leftRectX, topY) && createPlaceholder(leftRectX, topY, "top-left")}
+        {!isZoneOccupied(rightRectX, topY) && createPlaceholder(rightRectX, topY, "top-right")}
+        {!isZoneOccupied(leftRectX, bottomY) && createPlaceholder(leftRectX, bottomY, "bottom-left")}
+        {!isZoneOccupied(rightRectX, bottomY) && createPlaceholder(rightRectX, bottomY, "bottom-right")}
+      </div>
+    );
+  };
+
   return (
     <div className="din-rail-canvas" ref={containerRef}>
       <DinRailViewportHud
@@ -1089,6 +1314,8 @@ export function DinRailCanvas({
         onZoomOut={zoomOut}
         onToggleGroups={onToggleGroups}
         showGroups={showGroups}
+        onToggleWires={() => setShowWires((w) => !w)}
+        showWires={showWires}
       />
 
       {rail.isVisible && selectedIds.size > 0 && onDeleteSelected && (
@@ -1119,6 +1346,192 @@ export function DinRailCanvas({
             style={railSvgStyle}
             dangerouslySetInnerHTML={{ __html: rail.svg }}
           />
+        )}
+        {renderListwyPlaceholders()}
+        {rail.isVisible && showWires && connections && connections.length > 0 && (
+          <svg
+            className="din-rail-wires-layer"
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              left: 0,
+              top: 0,
+              width: `${rail.width}px`,
+              height: `${rail.height}px`,
+              transform: worldTransform,
+              transformOrigin: "top left",
+              pointerEvents: "none",
+              zIndex: 1.5,
+              overflow: "visible",
+            }}
+          >
+            <defs>
+              <pattern
+                id="green-yellow-stripe"
+                width="24"
+                height="24"
+                patternUnits="userSpaceOnUse"
+                patternTransform="rotate(45)"
+              >
+                <rect width="12" height="24" fill="#FFD600" />
+                <rect x="12" width="12" height="24" fill="#2e7d32" />
+              </pattern>
+              <filter id="shadow-blur" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="3.0" />
+              </filter>
+              <filter id="wire-soft-shadow" x="-50%" y="-50%" width="200%" height="200%">
+                <feOffset dx="1.5" dy="2.0" result="offset" />
+                <feGaussianBlur in="offset" stdDeviation="1.5" />
+              </filter>
+              <filter id="wire-soft-highlight" x="-50%" y="-50%" width="200%" height="200%">
+                <feOffset dx="-1.5" dy="-2.0" result="offset" />
+                <feGaussianBlur in="offset" stdDeviation="1.5" />
+              </filter>
+              <filter id="wire-sharp-highlight" x="-50%" y="-50%" width="200%" height="200%">
+                <feOffset dx="-2.0" dy="-3.0" result="offset" />
+                <feGaussianBlur in="offset" stdDeviation="0.6" />
+              </filter>
+            </defs>
+
+            {groupedWiredPaths.map((w) => {
+              if (!w) return null;
+              const wireThickness = WIRE_THICKNESS_MAP[w.connection.wireCrossSection] || 4.5;
+              
+              const offsetDistance = 6;
+              const parallelCount = w.parallelCount || 1;
+              const offset = parallelCount > 1 ? (w.parallelIndex - (parallelCount - 1) / 2) * offsetDistance : 0;
+              const x1 = w.fromPt.x + (w.fromHS.isTop ? offset : -offset);
+              const x2 = w.toPt.x + (w.toHS.isTop ? offset : -offset);
+
+              const ferruleExtension = Math.max(16, Math.round(wireThickness * 0.4));
+              const ferruleLength = 115 + ferruleExtension;
+              const FERRULE_INSET = 22; // Offset od środka śruby do krawędzi plastiku
+
+              const fromY1 = w.fromPt.y + (w.fromHS.isTop ? -FERRULE_INSET : FERRULE_INSET);
+              const fromY2 = w.fromPt.y + (w.fromHS.isTop ? -(ferruleLength + FERRULE_INSET) : (ferruleLength + FERRULE_INSET));
+
+              const toY1 = w.toPt.y + (w.toHS.isTop ? -FERRULE_INSET : FERRULE_INSET);
+              const toY2 = w.toPt.y + (w.toHS.isTop ? -(ferruleLength + FERRULE_INSET) : (ferruleLength + FERRULE_INSET));
+
+              return (
+                <g key={w.connection.id}>
+                  <line
+                    x1={x1}
+                    y1={fromY1}
+                    x2={x1}
+                    y2={fromY2}
+                    stroke="#000000"
+                    strokeWidth={wireThickness + 3.0}
+                    strokeLinecap="butt"
+                  />
+                  <line
+                    x1={x2}
+                    y1={toY1}
+                    x2={x2}
+                    y2={toY2}
+                    stroke="#000000"
+                    strokeWidth={wireThickness + 3.0}
+                    strokeLinecap="butt"
+                  />
+                  {/* Drop shadow */}
+                  <path
+                    d={w.pathData}
+                    fill="none"
+                    stroke="rgba(0, 0, 0, 0.4)"
+                    strokeWidth={wireThickness}
+                    strokeLinecap="butt"
+                    strokeLinejoin="round"
+                    transform="translate(1, 4)"
+                    filter="url(#shadow-blur)"
+                  />
+                  {/* 1. Dark outline base */}
+                  <path
+                    d={w.pathData}
+                    fill="none"
+                    stroke={WIRE_COLORS_MAP[w.connection.wireColor]?.dark || "#1a1a1a"}
+                    strokeWidth={wireThickness + 1.8}
+                    strokeLinecap="butt"
+                    strokeLinejoin="round"
+                  />
+                  {/* 2. Main color (Midtone) */}
+                  <path
+                    d={w.pathData}
+                    fill="none"
+                    stroke={
+                      w.connection.wireColor === "green-yellow"
+                        ? "#2e7d32"
+                        : (WIRE_COLORS_MAP[w.connection.wireColor]?.hex || "#555")
+                    }
+                    strokeWidth={wireThickness}
+                    strokeLinecap="butt"
+                    strokeLinejoin="round"
+                  />
+                  {/* 2.5 Yellow stripes overlay for PE */}
+                  {w.connection.wireColor === "green-yellow" && (
+                    <path
+                      d={w.pathData}
+                      fill="none"
+                      stroke="#FFD600"
+                      strokeWidth={wireThickness}
+                      strokeDasharray={`${wireThickness * 1.2} ${wireThickness * 1.2}`}
+                      strokeLinecap="butt"
+                      strokeLinejoin="round"
+                    />
+                  )}
+                  {/* 3. Soft bottom-right cylindrical shadow */}
+                  <path
+                    d={w.pathData}
+                    fill="none"
+                    stroke="#000000"
+                    strokeWidth={wireThickness * 0.65}
+                    strokeLinecap="butt"
+                    strokeLinejoin="round"
+                    filter="url(#wire-soft-shadow)"
+                    opacity={0.35}
+                  />
+                  {/* 4. Soft top-left cylindrical highlight */}
+                  <path
+                    d={w.pathData}
+                    fill="none"
+                    stroke={
+                      w.connection.wireColor === "green-yellow"
+                        ? "#ffffff"
+                        : (WIRE_COLORS_MAP[w.connection.wireColor]?.highlight || "rgba(255,255,255,0.4)")
+                    }
+                    strokeWidth={wireThickness * 0.55}
+                    strokeLinecap="butt"
+                    strokeLinejoin="round"
+                    filter="url(#wire-soft-highlight)"
+                    opacity={
+                      w.connection.wireColor === "green-yellow"
+                        ? 0.22
+                        : 0.8
+                    }
+                  />
+                  {/* 5. Sharp glossy top-left reflection */}
+                  <path
+                    d={w.pathData}
+                    fill="none"
+                    stroke="rgba(255, 255, 255, 0.25)"
+                    strokeWidth={wireThickness * 0.2}
+                    strokeLinecap="butt"
+                    strokeLinejoin="round"
+                    filter="url(#wire-sharp-highlight)"
+                  />
+                  {/* 6. Super sharp glossy top-left reflection */}
+                  <path
+                    d={w.pathData}
+                    fill="none"
+                    stroke="rgba(255, 255, 255, 0.5)"
+                    strokeWidth={wireThickness * 0.08}
+                    strokeLinecap="butt"
+                    strokeLinejoin="round"
+                    filter="url(#wire-sharp-highlight)"
+                  />
+                </g>
+              );
+            })}
+          </svg>
         )}
         {rail.isVisible && showGroups && (
           <svg
@@ -1153,12 +1566,12 @@ export function DinRailCanvas({
                 const screenX = group.x * scale + pan.x;
                 const screenY = group.y * scale + pan.y;
                 const screenWidth = Math.max(1, group.width * scale);
-                const barH = clamp(DIN_RAIL_GROUP_BRACKET_BAR_HEIGHT * scale, 1, 3);
+                const barH = clamp(1 * scale, 1, 2);
                 const legH = clamp(DIN_RAIL_GROUP_BRACKET_LEG_HEIGHT * scale, 4, 28);
-                const labelH = clamp(DIN_RAIL_GROUP_BRACKET_LABEL_HEIGHT * scale, 8, 22);
+                const labelH = clamp(22 * scale, 12, 26);
                 const labelGap = clamp(DIN_RAIL_GROUP_BRACKET_LABEL_GAP * scale, 1, 8);
-                const labelPadX = clamp(8 * scale, 3, 10);
-                const labelFont = clamp(11 * scale, 7, 14);
+                const labelPadX = clamp(10 * scale, 4, 12);
+                const labelFont = clamp(12.5 * scale, 8, 16);
 
                 const topY = screenY - DIN_RAIL_GROUP_BRACKET_OFFSET_Y * scale;
                 const color = isSelected
@@ -1288,7 +1701,7 @@ export function DinRailCanvas({
                     transformOrigin: "center",
                     color: "#f8fafc",
                     fontFamily: "Segoe UI, Arial, sans-serif",
-                    fontSize: `${clamp(10 * scale, 7, 13)}px`,
+                    fontSize: `${clamp(13.5 * scale, 10, 18)}px`,
                     fontWeight: 700,
                     lineHeight: 1.1,
                     textShadow:

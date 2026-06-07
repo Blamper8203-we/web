@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { createDefaultSymbolItem, isAuxiliaryNonCircuitSymbol } from "./symbolItem";
+import {
+  createDefaultSymbolItem,
+  isAuxiliaryNonCircuitSymbol,
+  isTerminalOrConnectorSymbol,
+  isDistributionBlockSymbol,
+} from "./symbolItem";
 import { toDisplayModuleNumber } from "../lib/appHelpers";
 
 describe("createDefaultSymbolItem (Avalonia parity)", () => {
@@ -76,5 +81,32 @@ describe("toDisplayModuleNumber", () => {
     });
 
     expect(toDisplayModuleNumber(symbol)).toBe("#0");
+  });
+});
+
+describe("isTerminalOrConnectorSymbol and isDistributionBlockSymbol", () => {
+  it("identifies GSU and distribution block symbols correctly", () => {
+    const gsu = createDefaultSymbolItem({
+      label: "GSU (Główna Szyna Uziemiająca)",
+      type: "Listwy",
+      deviceKind: "terminalBlock",
+      moduleRef: "GSU/GSU.svg",
+    });
+
+    const distBlock = createDefaultSymbolItem({
+      type: "Blok rozdzielczy",
+      label: "Blok rozdzielczy 4x15",
+    });
+
+    const mcb = createDefaultSymbolItem({
+      type: "MCB 1P",
+      deviceKind: "mcb",
+    });
+
+    expect(isTerminalOrConnectorSymbol(gsu)).toBe(true);
+    expect(isTerminalOrConnectorSymbol(distBlock)).toBe(false);
+    expect(isDistributionBlockSymbol(distBlock)).toBe(true);
+    expect(isTerminalOrConnectorSymbol(mcb)).toBe(false);
+    expect(isDistributionBlockSymbol(mcb)).toBe(false);
   });
 });

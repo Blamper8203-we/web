@@ -91,6 +91,10 @@ export default defineConfig({
   optimizeDeps: {
     include: ['@react-pdf/renderer'],
   },
+  test: {
+    environment: "jsdom",
+    globals: true,
+  },
   build: {
     rollupOptions: {
       output: {

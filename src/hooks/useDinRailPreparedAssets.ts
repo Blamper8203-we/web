@@ -1,3 +1,4 @@
+import { devLog } from "../lib/runtimeDiagnostics";
 import { useEffect, useState } from "react";
 import type { SymbolItem } from "../types/symbolItem";
 import { serializeParameters } from "../lib/modules/rasterPreview";
@@ -84,6 +85,9 @@ export function useDinRailPreparedAssets(symbols: SymbolItem[]) {
     .filter((symbol) => symbol.visualPath)
     .map(buildSymbolAssetKey)
     .join("\u0002");
+
+  devLog("🔷 [useDinRailPreparedAssets] assetRequestKey changed, reloading assets. symbols count:", symbols.length);
+  devLog("🔷 [useDinRailPreparedAssets] assetRequestKey:", assetRequestKey);
 
   useEffect(() => {
     let cancelled = false;

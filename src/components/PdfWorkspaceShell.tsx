@@ -5,6 +5,7 @@ import type { ProjectMetadata } from "../types/projectMetadata";
 import type { SymbolItem } from "../types/symbolItem";
 import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
 import type { CircuitRow } from "../types/circuitRow";
+import type { ConnectionItem } from "../types/connectionItem";
 
 const PdfDocumentationPage = lazy(async () => {
   const module = await import("./PdfDocumentationPage");
@@ -21,6 +22,7 @@ export interface PdfWorkspaceShellProps {
   symbols: SymbolItem[];
   dinRail: DinRailCanvasRail;
   circuitRows: CircuitRow[];
+  connections: ConnectionItem[];
   pdfPreviewTab: PdfDocumentationPreviewTab;
   setPdfPreviewTab: (tab: PdfDocumentationPreviewTab) => void;
   startPdfTabTransition: TransitionStartFunction;
@@ -34,6 +36,7 @@ export function PdfWorkspaceShell({
   symbols,
   dinRail,
   circuitRows,
+  connections,
   pdfPreviewTab,
   setPdfPreviewTab,
   startPdfTabTransition,
@@ -58,6 +61,7 @@ export function PdfWorkspaceShell({
               metadata={effectiveMetadata}
               symbols={symbols}
               rail={dinRail}
+              connections={connections}
               onChange={handleMetadataChange}
               onResetDocumentation={handleResetDocumentation}
               selectedPreviewTab={pdfPreviewTab}
@@ -82,6 +86,7 @@ export function PdfWorkspaceShell({
                 symbols={symbols}
                 rail={dinRail}
                 circuitRows={circuitRows}
+                connections={connections}
                 onChange={handleMetadataChange}
                 activeTab={pdfPreviewTab}
               />

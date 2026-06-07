@@ -616,6 +616,12 @@ function calculateCircuitPhaseCurrents(
   let l2PowerW = 0;
   let l3PowerW = 0;
 
+  // Pomijamy FR, SPD i phaseIndicator, bo:
+  // - FR (rozłącznik izolacyjny) i SPD (ochrona przepięciowa) nie pobierają mocy
+  //   ani nie generują obciążenia – są to aparaty łączeniowe/ochronne.
+  // - phaseIndicator (kontrolki faz) ma znikomy pobór mocy, nieistotny dla
+  //   bilansu obciążenia i walidacji przeciążenia zabezpieczenia głównego.
+  // Uwzględniamy tylko MCB i RCBO, które reprezentują rzeczywiste obwody odbiorcze.
   for (const symbol of symbols) {
     if (symbol.deviceKind !== "mcb" && symbol.deviceKind !== "rcbo") continue;
 

@@ -1,4 +1,6 @@
+import { devLog } from "../../lib/runtimeDiagnostics";
 import { createDefaultSymbolItem, type PhaseAssignment, type SymbolItem } from "../../types/symbolItem";
+import { detectPoleCount as getPoleCount } from "../../lib/poleCount";
 
 export type CircuitEditFieldKind = "text" | "number" | "combo" | "checkbox";
 
@@ -81,6 +83,13 @@ function textField(
   options?: string[],
 ): CircuitEditFieldDefinition {
   return { key, label, kind: "text", value, placeholder, options };
+}
+
+function getManualReferenceDesignation(symbol: SymbolItem): string {
+  if (symbol.parameters[MANUAL_REFERENCE_DESIGNATION_KEY] === "true") {
+    return symbol.referenceDesignation;
+  }
+  return "";
 }
 
 function numberField(
@@ -229,12 +238,17 @@ export function applyCircuitEditValue(
       next.circuitType = normalizeCircuitType(value);
       break;
     case "ProtectionType":
+      devLog("🔵 [applyCircuitEditValue] ProtectionType BEFORE:", { symbolId: symbol.id, currentValue: symbol.protectionType, newValue: value });
       next.protectionType = value;
+      devLog("🔵 [applyCircuitEditValue] ProtectionType AFTER:", { symbolId: next.id, protectionType: next.protectionType, parametersCURRENT: next.parameters.CURRENT });
+      syncVisibleModuleParameters(next);
+      devLog("🔵 [applyCircuitEditValue] After syncVisibleModuleParameters:", { protectionType: next.protectionType, parametersCURRENT: next.parameters.CURRENT });
       break;
     case "PowerW":
       applyNumber(value, (numberValue) => {
         next.powerW = numberValue;
       });
+      syncVisibleModuleParameters(next);
       break;
     case "Phase":
       next.phase = normalizePhase(value);
@@ -255,25 +269,32 @@ export function applyCircuitEditValue(
       break;
     case "RcdPreset":
       applyRcdPreset(next, value);
+      syncVisibleModuleParameters(next);
       break;
     case "SpdPreset":
       applySpdPreset(next, value);
+      syncVisibleModuleParameters(next);
       break;
     case "Label":
       next.label = value;
+      syncVisibleModuleParameters(next);
       break;
     case "FrType":
       next.frType = value;
       next.frRatedCurrent = `${value}A`;
+      syncVisibleModuleParameters(next);
       break;
     case "FrRatedCurrent":
       next.frRatedCurrent = value;
+      syncVisibleModuleParameters(next);
       break;
     case "PhaseIndicatorModel":
       next.phaseIndicatorModel = value;
+      syncVisibleModuleParameters(next);
       break;
     case "PhaseIndicatorFuseRating":
       next.phaseIndicatorFuseRating = value;
+      syncVisibleModuleParameters(next);
       break;
     case "ReferenceDesignation":
       applyReferenceDesignation(next, value);
@@ -299,38 +320,40 @@ export function applyCircuitEditValues(
 
 function createTerminalBlockFields(symbol: SymbolItem): CircuitEditFieldDefinition[] {
   return [
-    textField("ReferenceDesignation", "Oznaczenie", symbol.referenceDesignation),
+    textField("ReferenceDesignation", "Oznaczenie", getManualReferenceDesignation(symbol)),
     textField("Label", "Etykieta", symbol.label),
   ];
 }
 
 function createDistributionBlockFields(symbol: SymbolItem): CircuitEditFieldDefinition[] {
   return [
-    textField("ReferenceDesignation", "Oznaczenie", symbol.referenceDesignation),
+    textField("ReferenceDesignation", "Oznaczenie", getManualReferenceDesignation(symbol)),
     textField("Label", "Etykieta", symbol.label),
   ];
 }
 
 function createFrFields(symbol: SymbolItem): CircuitEditFieldDefinition[] {
   return [
-    textField("ReferenceDesignation", "Oznaczenie", symbol.referenceDesignation),
+    textField("ReferenceDesignation", "Oznaczenie", getManualReferenceDesignation(symbol)),
     textField("Label", "Etykieta", symbol.label),
     comboField("FrType", "Typ FR", symbol.frType || "63", FR_PRESETS),
-    textField("FrRatedCurrent", "Prąd znamionowy", symbol.frRatedCurrent || "63A"),
+    comboField("FrRatedCurrent", "Prąd znamionowy", symbol.frRatedCurrent || "63A", FR_PRESETS.map((p) => `${p}A`)),
+    comboField("Phase", "Faza", getDisplayPhase(symbol.phase), getPhaseOptions(getPoleCount(symbol))),
   ];
 }
 
 function createNetworkSwitchFields(symbol: SymbolItem): CircuitEditFieldDefinition[] {
   return [
-    textField("ReferenceDesignation", "Oznaczenie", symbol.referenceDesignation),
+    textField("ReferenceDesignation", "Oznaczenie", getManualReferenceDesignation(symbol)),
     textField("Label", "Etykieta", symbol.label),
     comboField("FrRatedCurrent", "Prąd znamionowy", symbol.frRatedCurrent || "40A", NETWORK_SWITCH_PRESETS),
+    comboField("Phase", "Faza", getDisplayPhase(symbol.phase), getPhaseOptions(getPoleCount(symbol))),
   ];
 }
 
 function createPhaseIndicatorFields(symbol: SymbolItem): CircuitEditFieldDefinition[] {
   return [
-    textField("ReferenceDesignation", "Oznaczenie", symbol.referenceDesignation),
+    textField("ReferenceDesignation", "Oznaczenie", getManualReferenceDesignation(symbol)),
     textField("Label", "Etykieta", symbol.label),
     comboField(
       "PhaseIndicatorModel",
@@ -349,7 +372,7 @@ function createPhaseIndicatorFields(symbol: SymbolItem): CircuitEditFieldDefinit
 
 function createRcdFields(symbol: SymbolItem): CircuitEditFieldDefinition[] {
   return [
-    textField("ReferenceDesignation", "Oznaczenie", symbol.referenceDesignation),
+    textField("ReferenceDesignation", "Oznaczenie", getManualReferenceDesignation(symbol)),
     comboField(
       "RcdPreset",
       "Typ RCD",
@@ -361,7 +384,7 @@ function createRcdFields(symbol: SymbolItem): CircuitEditFieldDefinition[] {
 
 function createSpdFields(symbol: SymbolItem): CircuitEditFieldDefinition[] {
   return [
-    textField("ReferenceDesignation", "Oznaczenie", symbol.referenceDesignation),
+    textField("ReferenceDesignation", "Oznaczenie", getManualReferenceDesignation(symbol)),
     comboField(
       "SpdPreset",
       "Typ SPD",
@@ -377,7 +400,7 @@ function createSocketFields(
   locationOptions: string[],
 ): CircuitEditFieldDefinition[] {
   return [
-    textField("ReferenceDesignation", "Oznaczenie", symbol.referenceDesignation),
+    textField("ReferenceDesignation", "Oznaczenie", getManualReferenceDesignation(symbol)),
     textField("CircuitName", "Nazwa obwodu", symbol.circuitName, "np. Gniazdo serwisowe"),
     textField("Location", "Lokalizacja", symbol.location, "np. Rozdzielnica", locationOptions),
     comboField("Phase", "Faza", getDisplayPhase(symbol.phase), getPhaseOptions(poleCount)),
@@ -387,7 +410,7 @@ function createSocketFields(
 
 function createMcbFields(symbol: SymbolItem, poleCount: ModulePoleCount, locationOptions: string[]): CircuitEditFieldDefinition[] {
   return [
-    textField("ReferenceDesignation", "Oznaczenie", symbol.referenceDesignation),
+    textField("ReferenceDesignation", "Oznaczenie", getManualReferenceDesignation(symbol)),
     textField("CircuitName", "Nazwa obwodu", symbol.circuitName, "np. Oświetlenie salon"),
     textField("Location", "Lokalizacja", symbol.location, "np. Piętro 1, Kuchnia", locationOptions),
     comboField("CircuitType", "Typ obwodu", symbol.circuitType || "Gniazdo", CIRCUIT_TYPE_PRESETS),
@@ -439,34 +462,7 @@ function getModuleType(symbol: SymbolItem): ModuleType {
   return symbol.type ? "other" : "unknown";
 }
 
-function getPoleCount(symbol: SymbolItem): ModulePoleCount {
-  const value = `${symbol.visualPath} ${symbol.type}`;
-  const poleMatch = value.match(/(\d)\s*-?\s*[Pp]/);
-  if (poleMatch) {
-    const poles = Number.parseInt(poleMatch[1], 10);
-    if (poles >= 1 && poles <= 4) {
-      return poles as ModulePoleCount;
-    }
-  }
-
-  const sSeriesMatch = value.match(/[Ss]\s*-?\s*30(\d)/);
-  if (sSeriesMatch) {
-    const poles = Number.parseInt(sSeriesMatch[1], 10);
-    if (poles >= 1 && poles <= 4) {
-      return poles as ModulePoleCount;
-    }
-  }
-
-  if (symbol.height > 0) {
-    const ratio = symbol.width / symbol.height;
-    if (ratio < 0.3) return 1;
-    if (ratio < 0.55) return 2;
-    if (ratio < 0.75) return 3;
-    return 4;
-  }
-
-  return 0;
-}
+// getPoleCount imported from ../poleCount (detectPoleCount)
 
 function getDisplayPhase(phase: string): string {
   return !phase || phase.toLocaleLowerCase("pl-PL") === "pending" ? "L1" : phase;
@@ -564,4 +560,25 @@ function applySpdPreset(symbol: SymbolItem, preset: string): void {
   symbol.spdType = match[1];
   symbol.spdVoltage = Number.parseInt(match[2], 10);
   symbol.spdDischargeCurrent = Number.parseFloat(match[3]);
+}
+
+function syncVisibleModuleParameters(symbol: SymbolItem): void {
+  const moduleType = getModuleType(symbol);
+  const label =
+    moduleType === "switch" || moduleType === "networkSwitch"
+      ? symbol.frType || symbol.label
+      : moduleType === "phaseIndicator"
+        ? symbol.phaseIndicatorModel || symbol.label
+        : symbol.protectionType || symbol.label;
+
+  symbol.parameters.LABEL = label;
+  symbol.parameters.CURRENT =
+    moduleType === "rcd"
+      ? `${symbol.rcdRatedCurrent}A`
+      : moduleType === "switch" || moduleType === "networkSwitch"
+        ? symbol.frRatedCurrent
+        : moduleType === "phaseIndicator"
+          ? symbol.phaseIndicatorFuseRating
+          : symbol.protectionType || "";
+  symbol.parameters.POWER = String(symbol.powerW);
 }
