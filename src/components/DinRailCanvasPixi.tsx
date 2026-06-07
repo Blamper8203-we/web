@@ -135,7 +135,7 @@ const PIXI_LABEL_SYMBOL_LIMIT = 64;
 const MANUAL_REFERENCE_DESIGNATION_KEY = "ManualReferenceDesignation";
 
 const WIRE_COLORS_MAP: Record<string, { hex: string; highlight: string; dark: string }> = {
-  black: { hex: "#1a1a1a", highlight: "#555555", dark: "#000000" }, // L2
+  black: { hex: "#333333", highlight: "#666666", dark: "#000000" }, // L2
   brown: { hex: "#8B4513", highlight: "#c4763a", dark: "#4a2007" }, // L1
   grey: { hex: "#888888", highlight: "#bbbbbb", dark: "#555555" },  // L3
   gray: { hex: "#888888", highlight: "#bbbbbb", dark: "#555555" },  // L3
@@ -1433,22 +1433,15 @@ export function DinRailCanvas({
                     strokeWidth={wireThickness + 3.0}
                     strokeLinecap="butt"
                   />
-                  {/* Drop shadow */}
-                  <path
-                    d={w.pathData}
-                    fill="none"
-                    stroke="rgba(0, 0, 0, 0.4)"
-                    strokeWidth={wireThickness}
-                    strokeLinecap="butt"
-                    strokeLinejoin="round"
-                    transform="translate(1, 4)"
-                    filter="url(#shadow-blur)"
-                  />
                   {/* 1. Dark outline base */}
                   <path
                     d={w.pathData}
                     fill="none"
-                    stroke={WIRE_COLORS_MAP[w.connection.wireColor]?.dark || "#1a1a1a"}
+                    stroke={
+                      w.connection.wireColor === "black"
+                        ? "#888888"
+                        : (WIRE_COLORS_MAP[w.connection.wireColor]?.dark || "#1a1a1a")
+                    }
                     strokeWidth={wireThickness + 1.8}
                     strokeLinecap="butt"
                     strokeLinejoin="round"
@@ -1466,7 +1459,7 @@ export function DinRailCanvas({
                     strokeLinecap="butt"
                     strokeLinejoin="round"
                   />
-                  {/* 2.5 Yellow stripes overlay for PE */}
+                  {/* 3. Yellow stripes overlay for PE */}
                   {w.connection.wireColor === "green-yellow" && (
                     <path
                       d={w.pathData}
@@ -1478,56 +1471,6 @@ export function DinRailCanvas({
                       strokeLinejoin="round"
                     />
                   )}
-                  {/* 3. Soft bottom-right cylindrical shadow */}
-                  <path
-                    d={w.pathData}
-                    fill="none"
-                    stroke="#000000"
-                    strokeWidth={wireThickness * 0.65}
-                    strokeLinecap="butt"
-                    strokeLinejoin="round"
-                    filter="url(#wire-soft-shadow)"
-                    opacity={0.35}
-                  />
-                  {/* 4. Soft top-left cylindrical highlight */}
-                  <path
-                    d={w.pathData}
-                    fill="none"
-                    stroke={
-                      w.connection.wireColor === "green-yellow"
-                        ? "#ffffff"
-                        : (WIRE_COLORS_MAP[w.connection.wireColor]?.highlight || "rgba(255,255,255,0.4)")
-                    }
-                    strokeWidth={wireThickness * 0.55}
-                    strokeLinecap="butt"
-                    strokeLinejoin="round"
-                    filter="url(#wire-soft-highlight)"
-                    opacity={
-                      w.connection.wireColor === "green-yellow"
-                        ? 0.22
-                        : 0.8
-                    }
-                  />
-                  {/* 5. Sharp glossy top-left reflection */}
-                  <path
-                    d={w.pathData}
-                    fill="none"
-                    stroke="rgba(255, 255, 255, 0.25)"
-                    strokeWidth={wireThickness * 0.2}
-                    strokeLinecap="butt"
-                    strokeLinejoin="round"
-                    filter="url(#wire-sharp-highlight)"
-                  />
-                  {/* 6. Super sharp glossy top-left reflection */}
-                  <path
-                    d={w.pathData}
-                    fill="none"
-                    stroke="rgba(255, 255, 255, 0.5)"
-                    strokeWidth={wireThickness * 0.08}
-                    strokeLinecap="butt"
-                    strokeLinejoin="round"
-                    filter="url(#wire-sharp-highlight)"
-                  />
                 </g>
               );
             })}
