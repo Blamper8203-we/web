@@ -1,5 +1,8 @@
 # Architektura aplikacji DINBoard Web
 
+> **Stan na dziś (2026-06-04):** Ten dokument jest aktualny i odzwierciedla faktyczny kod.
+> Wszystkie nieaktualne pliki dokumentacji zostały usunięte. Obowiązują tylko: `AGENTS.md`, `ARCHITEKTURA_APLIKACJI.md`, `README.md`.
+
 ## Cel aplikacji
 
 `DINBoard Web` to desktopowo-webowa aplikacja do projektowania rozdzielnicy, edycji schematu obwodów, budowy listy obwodów, bilansu mocy oraz przygotowania dokumentacji PDF z podglądem i eksportem.
