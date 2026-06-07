@@ -304,7 +304,7 @@ export function PublicLandingPage({
                               className="w-full h-full object-cover pointer-events-none select-none"
                           />
                           {index === 0 && (
-                              <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                                   <div className="bg-slate-900/95 border border-amber-500/50 p-6 rounded-2xl shadow-2xl text-center max-w-md mx-4 transform transition-all">
                                       <div className="w-14 h-14 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-500/20">
                                           <i data-lucide="zap" className="w-7 h-7 text-amber-500"></i>
