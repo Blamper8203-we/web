@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { VitePWA } from "vite-plugin-pwa";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -64,6 +65,70 @@ function readModuleAssetManifest(): { modules: ModuleAssetManifestEntry[] } {
 export default defineConfig({
   plugins: [
     react(),
+    VitePWA({
+      registerType: "autoUpdate",
+      includeAssets: ["favicon-192.png", "dinboard.svg"],
+      manifest: {
+        name: "DINBoard Web",
+        short_name: "DINBoard",
+        description:
+          "Profesjonalna aplikacja dla elektryków do projektowania rozdzielnic, obwodów i dokumentacji PDF.",
+        start_url: "/app",
+        scope: "/",
+        display: "standalone",
+        display_override: ["window-controls-override", "standalone"],
+        background_color: "#0e0f11",
+        theme_color: "#111214",
+        lang: "pl",
+        icons: [
+          {
+            src: "/favicon-192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "any maskable",
+          },
+        ],
+      },
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,json}"],
+        runtimeCaching: [
+          {
+            urlPattern: /^\/assets\/modules\/.*\.svg$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "din-module-svgs",
+              expiration: {
+                maxEntries: 200,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+            },
+          },
+          {
+            urlPattern: /^\/assets\/modules\/module-manifest\.json$/,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "din-module-manifest",
+              expiration: {
+                maxEntries: 1,
+                maxAgeSeconds: 60 * 60 * 24,
+              },
+            },
+          },
+          {
+            urlPattern:
+              /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "google-fonts",
+              expiration: {
+                maxEntries: 20,
+                maxAgeSeconds: 60 * 60 * 24 * 365,
+              },
+            },
+          },
+        ],
+      },
+    }),
     {
       name: "dinboard-module-asset-manifest",
       configureServer(server) {
