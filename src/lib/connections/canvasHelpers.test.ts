@@ -11,9 +11,6 @@ import type { TerminalHotspot } from "../modules/moduleTerminals";
 
 function makeHotspot(overrides: Partial<TerminalHotspot> = {}): TerminalHotspot {
   return {
-    symbolId: "s1",
-    absX: 0,
-    absY: 0,
     name: "1",
     x: 0,
     y: 0,

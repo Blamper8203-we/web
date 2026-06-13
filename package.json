@@ -31,11 +31,8 @@
     "@pixi/react": "^8.0.5",
     "@react-pdf/renderer": "^4.5.1",
     "buffer": "^6.0.3",
-    "dompurify": "^3.4.7",
-    "lucide-react": "^1.17.0",
     "mobile-drag-drop": "^3.0.0-rc.0",
     "pixi.js": "^8.18.1",
-    "process": "^0.11.10",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
   },

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Application, Container, Text, TextStyle } from "pixi.js";
-import { isAuxiliaryNonCircuitSymbol, type SymbolItem } from "../types/symbolItem";
+import { type SymbolItem } from "../types/symbolItem";
 import type { ConnectionItem } from "../types/connectionItem";
 import { getSymbolTerminals } from "../lib/modules/moduleTerminals";
 import { calculateWirePath } from "../lib/routing/wireRoutingEngine";

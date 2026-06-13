@@ -14,7 +14,6 @@ import { getFerruleLength, isTerminalZlaczka } from "../lib/connections/connecti
 import {
   checkConnectionWarning,
   findConnectedComponent,
-  getHotspotPhase,
   getSymbolAssetUrl,
 } from "../lib/connections/canvasHelpers";
 import {
