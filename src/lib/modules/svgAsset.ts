@@ -1,3 +1,4 @@
+import { Capacitor } from "@capacitor/core";
 import { normalizeSvgMarkup } from "./svgNormalization";
 
 const rawSvgCache = new Map<string, string>();
@@ -66,6 +67,27 @@ export async function loadRawSvg(src: string): Promise<string> {
   }
 
   const performFetch = async (targetUrl: string): Promise<string> => {
+    // Na Capacitor (Android/iOS) asset URL-e moga wymagac specjalnego traktowania.
+    // Niektore serwery lokalne nie obsluguja poprawnie znakow diakrytycznych w URL.
+    if (Capacitor.isNativePlatform()) {
+      // Na natywnej platformie proba fetch moze nie dzialac dla lokalnych assetow.
+      // Uzywamy XMLHttpRequest zamiast fetch dla lepszej kompatybilnosci.
+      return new Promise<string>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", targetUrl, true);
+        xhr.overrideMimeType("image/svg+xml");
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(xhr.responseText);
+          } else {
+            reject(new Error(`XHR ${xhr.status}`));
+          }
+        };
+        xhr.onerror = () => reject(new Error("XHR network error"));
+        xhr.send();
+      });
+    }
+
     const response = await fetch(targetUrl);
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);

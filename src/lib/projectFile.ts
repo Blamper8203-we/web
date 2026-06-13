@@ -412,6 +412,7 @@ export function parseProjectFileContent(content: string, fileName?: string): Pro
       wireColor: typeof conn.wireColor === "string" ? conn.wireColor : "black",
       wireCrossSection: typeof conn.wireCrossSection === "number" ? conn.wireCrossSection : 2.5,
       wireType: typeof conn.wireType === "string" ? conn.wireType : "LgY",
+      ferruleColor: typeof conn.ferruleColor === "string" ? conn.ferruleColor : undefined,
       routingMode: typeof conn.routingMode === "string" ? conn.routingMode : "manhattan",
       customOffset: typeof conn.customOffset === "number" ? conn.customOffset : undefined,
       customOffsetX: typeof conn.customOffsetX === "number" ? conn.customOffsetX : undefined,

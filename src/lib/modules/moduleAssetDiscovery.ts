@@ -93,21 +93,13 @@ const FALLBACK_MODULE_ASSETS: DiscoveredModuleAsset[] = [
     fileName: "SPD.svg",
     moduleRef: "SPD/SPD.svg",
   },
-  {
-    category: "Złącza",
-    fileName: "Złączka rozdzielcza 1P, 2-zaciskowa.svg",
-    moduleRef: "Złącza/Złączka rozdzielcza 1P, 2-zaciskowa.svg",
-  },
+
   {
     category: "Złącza",
     fileName: "Złączka 5-torowa (L1-L2-L3-N-PE).svg",
     moduleRef: "Złącza/Złączka 5-torowa (L1-L2-L3-N-PE).svg",
   },
-  {
-    category: "Złącza",
-    fileName: "Złączka rozdzielcza 1P, 3-zaciskowa.svg",
-    moduleRef: "Złącza/Złączka rozdzielcza 1P, 3-zaciskowa.svg",
-  },
+
   {
     category: "Złącza",
     fileName: "Złączka N 1-zaciskowa.svg",

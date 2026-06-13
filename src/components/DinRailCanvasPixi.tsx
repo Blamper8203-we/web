@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Application, Container, Text, TextStyle } from "pixi.js";
-import { isAuxiliaryNonCircuitSymbol, type SymbolItem } from "../types/symbolItem";
+import { type SymbolItem } from "../types/symbolItem";
 import type { ConnectionItem } from "../types/connectionItem";
 import { getSymbolTerminals } from "../lib/modules/moduleTerminals";
 import { calculateWirePath } from "../lib/routing/wireRoutingEngine";
@@ -27,7 +27,11 @@ import {
   getPaletteTemplateDimensions,
   supportsDinRailPlacement,
 } from "../lib/modules/moduleCatalog";
+import { useDinRailForegroundSvgs } from "../hooks/useDinRailForegroundSvgs";
+import { DinRailConnectionsForegroundLayer } from "./canvasLayers/DinRailConnectionsForegroundLayer";
+import { isTerminalZlaczka } from "../lib/connections/connectionsLogic";
 import { useDinRailPreparedAssets } from "../hooks/useDinRailPreparedAssets";
+import { useSvgTerminalsPreloader } from "../hooks/useSvgTerminalsPreloader";
 import { useElementSize } from "../hooks/useElementSize";
 import {
   DinRailEmptyState,
@@ -37,11 +41,35 @@ import {
   DinRailZoomToolbar,
 } from "./dinRailUiParts";
 import { AppIcon } from "./AppIcon";
-
-const DIN_RAIL_PREVIEW_CANVAS_WIDTH = 360;
-const DIN_RAIL_PREVIEW_CANVAS_HEIGHT = 280;
-const DIN_RAIL_PREVIEW_MARGIN_X = 40;
-const DIN_RAIL_PREVIEW_MARGIN_Y = 28;
+import {
+  DEFAULT_CONFIG,
+  DIN_RAIL_PREVIEW_CANVAS_WIDTH,
+  DIN_RAIL_PREVIEW_CANVAS_HEIGHT,
+  DIN_RAIL_PREVIEW_MARGIN_X,
+  DIN_RAIL_PREVIEW_MARGIN_Y,
+  MAX_INITIAL_SCALE,
+  MAX_SCALE,
+  MIN_SCALE,
+  PIXI_LABEL_SYMBOL_LIMIT,
+  PIXI_MAX_RESOLUTION,
+  WIRE_COLORS_MAP,
+  WIRE_THICKNESS_MAP,
+} from "../lib/dinRailCanvas/constants";
+import {
+  buildWorldRectStyle,
+  clamp,
+  expandRect,
+  getSymbolDesignationLabel,
+  measureSvgNormalizedRect,
+  sameNormalizedRect,
+  worldRectFromNormalizedRect,
+} from "../lib/dinRailCanvas/geometry";
+import type {
+  InteractionState,
+  NormalizedRect,
+  WorldPoint,
+  WorldRect,
+} from "../lib/dinRailCanvas/types";
 
 export interface DinRailCanvasRail {
   config: DinRailConfig;
@@ -91,181 +119,14 @@ interface DinRailCanvasProps {
   onRequestLeftPanelTab?: (tabName: string) => void;
 }
 
-interface WorldRect {
-  height: number;
-  width: number;
-  x: number;
-  y: number;
-}
-
-interface WorldPoint {
-  x: number;
-  y: number;
-}
-
-interface NormalizedRect {
-  height: number;
-  width: number;
-  x: number;
-  y: number;
-}
-
-type InteractionState =
-  | { mode: "idle" }
-  | { lastX: number; lastY: number; mode: "pan" }
-  | {
-    anchorWorld: WorldPoint;
-    mode: "select";
-  }
-  | {
-    anchorId: string;
-    anchorRectStart: WorldRect;
-    dragIds: string[];
-    mode: "drag";
-    pointerWorldStart: WorldPoint;
-    startPositions: Map<string, WorldPoint>;
-  };
-
-const DEFAULT_CONFIG: DinRailConfig = { rows: 1, modulesPerRow: 24 };
-const MAX_INITIAL_SCALE = 0.25;
-const MIN_SCALE = 0.1;
-const MAX_SCALE = 5;
-const PIXI_MAX_RESOLUTION = 2;
-const PIXI_LABEL_SYMBOL_LIMIT = 64;
-const MANUAL_REFERENCE_DESIGNATION_KEY = "ManualReferenceDesignation";
-
-const WIRE_COLORS_MAP: Record<string, { hex: string; highlight: string; dark: string }> = {
-  black: { hex: "#333333", highlight: "#666666", dark: "#000000" }, // L2
-  brown: { hex: "#8B4513", highlight: "#c4763a", dark: "#4a2007" }, // L1
-  grey: { hex: "#888888", highlight: "#bbbbbb", dark: "#555555" },  // L3
-  gray: { hex: "#888888", highlight: "#bbbbbb", dark: "#555555" },  // L3
-  blue: { hex: "#1565C0", highlight: "#4a9ed6", dark: "#0a2f6b" },  // N
-  "green-yellow": { hex: "#2e7d32", highlight: "#5ab55e", dark: "#143b16" }, // PE
-  pe: { hex: "#2e7d32", highlight: "#5ab55e", dark: "#143b16" }, // PE
-  red: { hex: "#ef4444", highlight: "#f87171", dark: "#991b1b" },
-  other: { hex: "#a855f7", highlight: "#c084fc", dark: "#6b21a8" },
-};
-
-const WIRE_THICKNESS_MAP: Record<number, number> = {
-  1.5: 24.0,
-  2.5: 30.0,
-  4.0: 36.0,
-  6.0: 42.0,
-  10.0: 50.0,
-  16.0: 60.0,
-};
-
-function clamp(value: number, min: number, max: number) {
-  return Math.max(min, Math.min(value, Math.max(min, max)));
-}
-
-function buildWorldRectStyle(rect: WorldRect): React.CSSProperties {
-  return {
-    position: "absolute",
-    left: `${rect.x}px`,
-    top: `${rect.y}px`,
-    width: `${rect.width}px`,
-    height: `${rect.height}px`,
-  };
-}
-
-function expandRect(rect: WorldRect, padding: number): WorldRect {
-  return {
-    x: rect.x - padding,
-    y: rect.y - padding,
-    width: rect.width + padding * 2,
-    height: rect.height + padding * 2,
-  };
-}
-
-function measureSvgNormalizedRect(node: HTMLDivElement): NormalizedRect | null {
-  const svg = node.querySelector("svg");
-  if (!(svg instanceof SVGSVGElement)) {
-    return null;
-  }
-
-  const viewBox = svg.viewBox?.baseVal;
-  if (!viewBox || viewBox.width <= 0 || viewBox.height <= 0) {
-    return null;
-  }
-
-  try {
-    const bbox = svg.getBBox();
-    if (bbox.width <= 0 || bbox.height <= 0) {
-      return null;
-    }
-
-    const normalized: NormalizedRect = {
-      x: (bbox.x - viewBox.x) / viewBox.width,
-      y: (bbox.y - viewBox.y) / viewBox.height,
-      width: bbox.width / viewBox.width,
-      height: bbox.height / viewBox.height,
-    };
-
-    if (
-      !Number.isFinite(normalized.x)
-      || !Number.isFinite(normalized.y)
-      || !Number.isFinite(normalized.width)
-      || !Number.isFinite(normalized.height)
-      || normalized.width <= 0
-      || normalized.height <= 0
-    ) {
-      return null;
-    }
-
-    return normalized;
-  } catch {
-    return null;
-  }
-}
-
-function worldRectFromNormalizedRect(symbol: SymbolItem, normalized: NormalizedRect): WorldRect {
-  return {
-    x: symbol.x + normalized.x * symbol.width,
-    y: symbol.y + normalized.y * symbol.height,
-    width: normalized.width * symbol.width,
-    height: normalized.height * symbol.height,
-  };
-}
-
-function sameNormalizedRect(left: NormalizedRect, right: NormalizedRect): boolean {
-  return left.x === right.x
-    && left.y === right.y
-    && left.width === right.width
-    && left.height === right.height;
-}
-
-function getSymbolDesignationLabel(
-  symbol: SymbolItem,
-  automaticDesignationBySymbolId: Map<string, string>,
-): string {
-  const manualDesignation = symbol.referenceDesignation.trim();
-  const isManualDesignation =
-    symbol.parameters[MANUAL_REFERENCE_DESIGNATION_KEY]?.toLocaleLowerCase("pl-PL") === "true";
-
-  if (isManualDesignation && manualDesignation.length > 0) {
-    return manualDesignation;
-  }
-
-  // For terminal blocks and distribution blocks, use the pre-computed displayModuleNumber
-  // which contains the correct prefix (N1, PE1, BL1, X1)
-  if (isAuxiliaryNonCircuitSymbol(symbol)) {
-    return symbol.displayModuleNumber || manualDesignation;
-  }
-
-  return automaticDesignationBySymbolId.get(symbol.id) ?? "";
-}
-
-
-
 export function DinRailCanvas({
   getPaletteTemplate,
   rail,
   symbols,
   connections = [],
-  generatorRequest = 0,
+  generatorRequest,
   selectedSymbolId,
-  selectedSymbolIds = selectedSymbolId ? [selectedSymbolId] : [],
+  selectedSymbolIds,
   onPaletteDrop,
   onUnsupportedTemplateDrop,
   onRailGenerated,
@@ -280,6 +141,9 @@ export function DinRailCanvas({
   showGroups = true,
   onRequestLeftPanelTab,
 }: DinRailCanvasProps) {
+  // --- PRELOADER TERMINALI SVG ---
+  useSvgTerminalsPreloader(symbols);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -293,7 +157,7 @@ export function DinRailCanvas({
   const lastGeneratorRequest = useRef(generatorRequest);
   const measuredNodesRef = useRef(new Map<string, HTMLDivElement>());
 
-  const [showWires, setShowWires] = useState(true);
+  const [showWires, setShowWires] = useState(false);
 
   const viewportSize = useElementSize(containerRef);
   const [scale, setScale] = useState(1);
@@ -380,7 +244,7 @@ export function DinRailCanvas({
         customOffsetY1: d.connection.customOffsetY1,
         customOffsetY2: d.connection.customOffsetY2,
         points: d.connection.points,
-        customRadius: d.connection.customRadius ?? 0,
+        customRadius: d.connection.customRadius,
       });
 
       return {
@@ -393,6 +257,8 @@ export function DinRailCanvas({
   }, [connections, symbols]);
 
   const assetMap = useDinRailPreparedAssets(snappedSymbols);
+  const foregroundUrls = useDinRailForegroundSvgs(snappedSymbols);
+
   const interactiveRects = useMemo(() => {
     const nextMap = new Map<string, WorldRect>();
 
@@ -1186,7 +1052,7 @@ export function DinRailCanvas({
     transform: worldTransform,
     transformOrigin: "top left",
     pointerEvents: "none",
-    zIndex: 1,
+    zIndex: 10,
   };
   const worldLayerBaseStyle: React.CSSProperties = {
     position: "absolute",
@@ -1200,17 +1066,17 @@ export function DinRailCanvas({
   };
   const hitboxLayerStyle: React.CSSProperties = {
     ...worldLayerBaseStyle,
-    zIndex: 6,
+    zIndex: 60,
   };
   const overlayLayerStyle: React.CSSProperties = {
     ...worldLayerBaseStyle,
-    zIndex: 7,
+    zIndex: 70,
   };
   const labelOverlayStyle: React.CSSProperties = {
     position: "absolute",
     inset: 0,
     pointerEvents: "none",
-    zIndex: 5,
+    zIndex: 50,
   };
 
   const renderListwyPlaceholders = () => {
@@ -1289,7 +1155,7 @@ export function DinRailCanvas({
         className="din-rail-listwy-placeholders"
         style={{
           ...worldLayerBaseStyle,
-          zIndex: 2,
+          zIndex: 20,
         }}
       >
         {!isZoneOccupied(leftRectX, topY) && createPlaceholder(leftRectX, topY, "top-left")}
@@ -1361,7 +1227,7 @@ export function DinRailCanvas({
               transform: worldTransform,
               transformOrigin: "top left",
               pointerEvents: "none",
-              zIndex: 1.5,
+              zIndex: 15,
               overflow: "visible",
             }}
           >
@@ -1485,7 +1351,7 @@ export function DinRailCanvas({
               inset: 0,
               pointerEvents: "none",
               overflow: "visible",
-              zIndex: 10,
+              zIndex: 100,
             }}
           >
             <defs>
@@ -1575,6 +1441,8 @@ export function DinRailCanvas({
         )}
 
         {rail.isVisible && snappedSymbols.map((symbol) => {
+          const isListwa = symbol.deviceKind === "terminalBlock" && !isTerminalZlaczka(symbol.moduleRef);
+
           const asset = assetMap.get(symbol.id);
           if (!asset) {
             return null;
@@ -1595,7 +1463,7 @@ export function DinRailCanvas({
                 transform: `translate(${symbol.x * scale + pan.x}px, ${symbol.y * scale + pan.y}px) scale(${scale})`,
                 transformOrigin: "top left",
                 pointerEvents: "none",
-                zIndex: 2,
+                zIndex: isListwa ? 12 : 20,
               }}
               dangerouslySetInnerHTML={
                 asset.namespacedMarkup
@@ -1609,12 +1477,36 @@ export function DinRailCanvas({
             </div>
           );
         })}
-        <div
-          ref={pixiHostRef}
+                  {/* Foreground parts of terminal blocks */}
+          {rail.isVisible && snappedSymbols.some(s => s.deviceKind === "terminalBlock" && !isTerminalZlaczka(s.moduleRef)) && (
+            <svg
+              className="din-rail-foreground-layer"
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                left: 0,
+                top: 0,
+                width: `${rail.width}px`,
+                height: `${rail.height}px`,
+                transform: worldTransform,
+                transformOrigin: "top left",
+                pointerEvents: "none",
+                zIndex: 25,
+                overflow: "visible",
+              }}
+            >
+              <DinRailConnectionsForegroundLayer
+                symbols={snappedSymbols.filter(s => s.deviceKind === "terminalBlock" && !isTerminalZlaczka(s.moduleRef))}
+                foregroundUrls={foregroundUrls}
+              />
+            </svg>
+          )}
+          <div
+            ref={pixiHostRef}
           style={{
             position: "absolute",
             inset: 0,
-            zIndex: 3,
+            zIndex: 30,
             pointerEvents: "none",
             display: shouldRenderPixiLabels ? "block" : "none",
           }}
@@ -1691,7 +1583,7 @@ export function DinRailCanvas({
           onDragOver={handleDragOver}
           onDrop={handleDrop}
           onPointerDown={handleSurfacePointerDown}
-          style={{ position: "absolute", inset: 0, zIndex: 4 }}
+          style={{ position: "absolute", inset: 0, zIndex: 40 }}
         />
         {(selectedBoundsStyle || selectionRectStyle) && (
           <div aria-hidden="true" style={overlayLayerStyle}>

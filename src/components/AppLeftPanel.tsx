@@ -22,6 +22,7 @@ export interface AppLeftPanelProps {
   setActivePaletteGroupTitle: (title: string) => void;
   setPaletteContextMenu: (menu: { templateId: string; label: string; x: number; y: number } | null) => void;
   handleOpenDinRailGenerator: () => void;
+  onPaletteItemTap?: (templateId: string) => void;
   showLeftPanel?: boolean;
   onClose?: () => void;
   defaultWireSettings?: any;
@@ -43,6 +44,7 @@ export function AppLeftPanel({
   setActivePaletteGroupTitle,
   setPaletteContextMenu,
   handleOpenDinRailGenerator,
+  onPaletteItemTap,
   onClose,
   defaultWireSettings,
   onChangeDefaultWireSettings,
@@ -126,6 +128,12 @@ export function AppLeftPanel({
                     onContextMenu={(event) => {
                       event.preventDefault();
                       setPaletteContextMenu({ templateId: item.templateId, label: item.label, x: event.clientX, y: event.clientY });
+                    }}
+                    onTouchStart={(event) => {
+                      // Na dotyk: tap-to-place zamiast DnD
+                      // preventDefault blokuje przewijanie strony i long-press menu
+                      event.preventDefault();
+                      onPaletteItemTap?.(item.templateId);
                     }}
                     onDragStart={(event) => {
                       const moduleDimensions = getPaletteTemplateDimensions(item);

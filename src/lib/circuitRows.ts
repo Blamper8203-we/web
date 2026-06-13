@@ -1,3 +1,4 @@
+import { safeGetItemSync } from "./storageService";
 import type { CircuitRow } from "../types/circuitRow";
 import {
   isAuxiliaryNonCircuitSymbol,
@@ -349,8 +350,8 @@ export function loadCircuitRows(): CircuitRow[] {
   }
 
   const raw =
-    window.localStorage.getItem(CIRCUIT_ROWS_STORAGE_KEY) ??
-    window.localStorage.getItem(LEGACY_CIRCUIT_ROWS_STORAGE_KEY);
+    safeGetItemSync(CIRCUIT_ROWS_STORAGE_KEY) ??
+    safeGetItemSync(LEGACY_CIRCUIT_ROWS_STORAGE_KEY);
 
   if (!raw) {
     return createDemoCircuitRows();

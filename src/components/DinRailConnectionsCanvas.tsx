@@ -1,11 +1,7 @@
 import React, { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import type { ConnectionItem, WireColor, WireType, RoutingMode, FerruleColor } from "../types/connectionItem";
 import { createDefaultConnection } from "../types/connectionItem";
-import {
-  type SymbolItem,
-  isTerminalOrConnectorSymbol,
-  isDistributionBlockSymbol,
-} from "../types/symbolItem";
+import { type SymbolItem } from "../types/symbolItem";
 import { getSymbolTerminals, type TerminalHotspot, findTerminalByName } from "../lib/modules/moduleTerminals";
 import { calculateWirePath, calculateWirePoints, getOrthoExit, pointsToRoundedPath, type Point } from "../lib/routing/wireRoutingEngine";
 import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
@@ -14,6 +10,16 @@ import { useElementSize } from "../hooks/useElementSize";
 import { useDinRailForegroundSvgs } from "../hooks/useDinRailForegroundSvgs";
 import { DinRailConnectionsForegroundLayer } from "./canvasLayers/DinRailConnectionsForegroundLayer";
 import { FerruleGraphic } from "./canvasLayers/FerruleGraphic";
+import { getFerruleLength, isTerminalZlaczka } from "../lib/connections/connectionsLogic";
+import {
+  checkConnectionWarning,
+  findConnectedComponent,
+  getSymbolAssetUrl,
+} from "../lib/connections/canvasHelpers";
+import {
+  WIRE_COLORS_MAP,
+  WIRE_THICKNESS_MAP,
+} from "../lib/dinRailCanvas/constants";
 
 interface DinRailConnectionsCanvasProps {
   rail: DinRailCanvasRail;
@@ -30,148 +36,6 @@ interface DinRailConnectionsCanvasProps {
     routingMode: RoutingMode;
   };
   onRequestLeftPanelTab?: (tabName: string) => void;
-}
-
-const WIRE_COLORS_MAP: Record<string, { hex: string; highlight: string; dark: string }> = {
-  black: { hex: "#333333", highlight: "#666666", dark: "#000000" }, // L2
-  brown: { hex: "#8B4513", highlight: "#c4763a", dark: "#4a2007" }, // L1
-  grey: { hex: "#888888", highlight: "#bbbbbb", dark: "#555555" },  // L3
-  gray: { hex: "#888888", highlight: "#bbbbbb", dark: "#555555" },  // L3
-  blue: { hex: "#1565C0", highlight: "#4a9ed6", dark: "#0a2f6b" },  // N
-  "green-yellow": { hex: "#2e7d32", highlight: "#5ab55e", dark: "#143b16" }, // PE
-  pe: { hex: "#2e7d32", highlight: "#5ab55e", dark: "#143b16" }, // PE
-  red: { hex: "#ef4444", highlight: "#f87171", dark: "#991b1b" },
-  other: { hex: "#a855f7", highlight: "#c084fc", dark: "#6b21a8" },
-};
-
-// Ultra bold wire thicknesses for maximum clarity and engineering detailing
-const WIRE_THICKNESS_MAP: Record<number, number> = {
-  1.5: 24.0,
-  2.5: 30.0,
-  4.0: 36.0,
-  6.0: 42.0,
-  10.0: 50.0,
-  16.0: 60.0,
-};
-
-// Helper to trace connected components for path highlighting
-function findConnectedComponent(
-  connections: ConnectionItem[],
-  startSymbolId: string,
-  startTerminal: string,
-  startIsTop?: boolean
-): { terminalKeys: Set<string>; connectionIds: Set<string> } {
-  const terminalKeys: Set<string> = new Set();
-  const connectionIds: Set<string> = new Set();
-  const queue: Array<{ symbolId: string; terminal: string; isTop?: boolean }> = [{ symbolId: startSymbolId, terminal: startTerminal, isTop: startIsTop }];
-  const startKey = `${startSymbolId}:${startTerminal}:${startIsTop ? 'T' : 'B'}`;
-  terminalKeys.add(startKey);
-
-  let iterations = 0;
-  while (queue.length > 0 && iterations < 1000) {
-    iterations++;
-    const current = queue.shift()!;
-    const currentKey = `${current.symbolId}:${current.terminal}:${current.isTop ? 'T' : 'B'}`;
-
-    for (const conn of connections) {
-      const fromKey = `${conn.fromSymbolId}:${conn.fromTerminal}:${conn.isFromTop ? 'T' : 'B'}`;
-      const toKey = `${conn.toSymbolId}:${conn.toTerminal}:${conn.isToTop ? 'T' : 'B'}`;
-
-      if (fromKey === currentKey && !terminalKeys.has(toKey)) {
-        terminalKeys.add(toKey);
-        connectionIds.add(conn.id);
-        queue.push({ symbolId: conn.toSymbolId, terminal: conn.toTerminal, isTop: conn.isToTop });
-      } else if (toKey === currentKey && !terminalKeys.has(fromKey)) {
-        terminalKeys.add(fromKey);
-        connectionIds.add(conn.id);
-        queue.push({ symbolId: conn.fromSymbolId, terminal: conn.fromTerminal, isTop: conn.isFromTop });
-      }
-    }
-  }
-
-  return { terminalKeys, connectionIds };
-}
-
-// Helper to determine the specific electrical phase/line of a terminal hotspot
-function getHotspotPhase(symbol: SymbolItem, hs: TerminalHotspot): "L1" | "L2" | "L3" | "N" | "PE" | "unknown" {
-  if (hs.type === "pe") return "PE";
-  if (hs.type === "neutral") return "N";
-  if (hs.type !== "phase") return "unknown";
-
-  const phaseStr = (symbol.phase || "L1").toUpperCase();
-  if (phaseStr === "L1") return "L1";
-  if (phaseStr === "L2") return "L2";
-  if (phaseStr === "L3") return "L3";
-
-  // Multi-phase device (L1+L2+L3, 3F, L1+L2, etc.)
-  const name = hs.name;
-  if (name === "1" || name === "2" || name.startsWith("L1") || name.toLowerCase().includes("in1") || name.toLowerCase().includes("out1")) return "L1";
-  if (name === "3" || name === "4" || name.startsWith("L2") || name.toLowerCase().includes("in2") || name.toLowerCase().includes("out2")) return "L2";
-  if (name === "5" || name === "6" || name.startsWith("L3") || name.toLowerCase().includes("in3") || name.toLowerCase().includes("out3")) return "L3";
-  if (name === "N") return "N";
-  if (name === "PE" || name === "PE2") return "PE";
-
-  return "L1"; // Fallback to first phase
-}
-
-// Helper to distinguish standard Złączki from Listwy do rozdzielnicy
-export const isTerminalZlaczka = (moduleRef?: string | null) => {
-  if (!moduleRef) return false;
-  const normalized = moduleRef.toLowerCase().replace(/ł/g, "l").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  return normalized.includes("zlacz") && !normalized.includes("rozlacz");
-};
-
-// Helper to validate connection safety
-function checkConnectionWarning(
-  fromSymbol: SymbolItem,
-  fromHS: TerminalHotspot,
-  toSymbol: SymbolItem,
-  toHS: TerminalHotspot
-): string | null {
-  const fromPhase = getHotspotPhase(fromSymbol, fromHS);
-  const toPhase = getHotspotPhase(toSymbol, toHS);
-
-  if (fromPhase === "unknown" || toPhase === "unknown") return null;
-  if (fromPhase === toPhase) return null; // Safe
-
-  // PE to Phase/N warnings
-  if (fromPhase === "PE" || toPhase === "PE") {
-    const otherPhase = fromPhase === "PE" ? toPhase : fromPhase;
-
-    // Wyjątek dla podziału PEN: połączenie PE z N jest dozwolone,
-    // jeśli oba elementy są listwami zaciskowymi (terminalBlock) lub blokami rozdzielczymi
-    if (otherPhase === "N") {
-      const isFromBlock = isTerminalOrConnectorSymbol(fromSymbol) || isDistributionBlockSymbol(fromSymbol);
-      const isToBlock = isTerminalOrConnectorSymbol(toSymbol) || isDistributionBlockSymbol(toSymbol);
-      if (isFromBlock && isToBlock) {
-        return null; // Dozwolony podział PEN
-      }
-    }
-
-    return `Ostrzeżenie: Próba połączenia uziemienia (PE) z ${otherPhase}!`;
-  }
-
-  // N to Phase warnings
-  if (fromPhase === "N" || toPhase === "N") {
-    const otherPhase = fromPhase === "N" ? toPhase : fromPhase;
-    return `Niebezpieczeństwo: Zwarcie fazy ${otherPhase} z przewodem neutralnym (N)!`;
-  }
-
-  // Phase to Phase warnings
-  const isPhase = (p: string) => p === "L1" || p === "L2" || p === "L3";
-  if (isPhase(fromPhase) && isPhase(toPhase)) {
-    return `Niebezpieczeństwo: Zwarcie międzyfazowe (${fromPhase} ↔ ${toPhase})!`;
-  }
-
-  return null;
-}
-
-function getSymbolAssetUrl(symbol: SymbolItem): string {
-  let path = symbol.visualPath || "";
-  if (!path.startsWith("/") && !path.startsWith("http")) {
-    path = "/" + path;
-  }
-  return path;
 }
 
 export function DinRailConnectionsCanvas({
@@ -853,6 +717,15 @@ export function DinRailConnectionsCanvas({
       const index = keyIndices[d.key] || 0;
       keyIndices[d.key] = index + 1;
 
+      const hasFerrule = d.connection.ferruleColor && d.connection.ferruleColor !== "none";
+      const customRadius = d.connection.customRadius ?? 52;
+      
+      const fromFerruleLen = getFerruleLength(d.fromDeviceKind, d.fromModuleRef);
+      const toFerruleLen = getFerruleLength(d.toDeviceKind, d.toModuleRef);
+
+      const fromExitOffsetVal = hasFerrule ? Math.max(d.fromHS.exitOffset ?? 40, fromFerruleLen) + customRadius : (d.fromHS.exitOffset ?? 40) + customRadius;
+      const toExitOffsetVal = hasFerrule ? Math.max(d.toHS.exitOffset ?? 40, toFerruleLen) + customRadius : (d.toHS.exitOffset ?? 40) + customRadius;
+
       const routingOpts = {
         isFromTop: d.connection.isFromTop ?? d.fromHS.isTop,
         isToTop: d.connection.isToTop ?? d.toHS.isTop,
@@ -861,12 +734,13 @@ export function DinRailConnectionsCanvas({
         customOffsetX: d.connection.customOffsetX,
         customOffsetY1: d.connection.customOffsetY1,
         customOffsetY2: d.connection.customOffsetY2,
-        customRadius: d.connection.customRadius ?? 0,
+        customRadius,
         fromDirection: d.fromHS.direction,
         toDirection: d.toHS.direction,
         fromVisualInset: d.fromHS.visualInset,
         toVisualInset: d.toHS.visualInset,
-        exitOffset: Math.max(d.fromHS.exitOffset ?? 40, d.toHS.exitOffset ?? 40),
+        fromExitOffset: fromExitOffsetVal,
+        toExitOffset: toExitOffsetVal,
       };
 
       const pointsArr = calculateWirePoints(d.fromPt, d.toPt, routingOpts);
@@ -917,6 +791,8 @@ export function DinRailConnectionsCanvas({
         actualToDir,
         parallelIndex: index,
         parallelCount: keyCounts[d.key],
+        fromExitOffset: fromExitOffsetVal,
+        toExitOffset: toExitOffsetVal,
       };
     });
   }, [localConnections, symbols]);
@@ -1377,7 +1253,7 @@ export function DinRailConnectionsCanvas({
             </g>
           ))}
 
-          {/* 2.5 Hotspot circles layered under wires */}
+          {/* 2.8 Visual Hotspot circles layered UNDER wires */}
           {hotspotsData.map((d) => {
             return d.hotspots.map((hs) => {
               const isTargetHovered = hoveredHotspot?.symbolId === d.symbolId && hoveredHotspot?.terminalName === hs.name && hoveredHotspot?.isTop === hs.isTop;
@@ -1392,8 +1268,8 @@ export function DinRailConnectionsCanvas({
 
                   const isListwa = d.moduleRef && d.moduleRef.toLowerCase().includes("listwy do rozdzielnicy");
                   const isZlaczka = !isListwa && (d.symbol.isTerminalBlock || (d.moduleRef && (d.moduleRef.toLowerCase().includes("złącz") || d.moduleRef.toLowerCase().replace(/ł/g, "l").normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("zlacz"))));
-                  const hitRadius = isListwa ? 38 : isZlaczka ? 56 : 46;
-                  const visualRadius = isListwa ? 28.0 : isZlaczka ? 52.0 : 31.3;
+                  const defaultVisualRadius = isListwa ? 28.0 : isZlaczka ? 52.0 : 31.3;
+                  const visualRadius = hs.radius ?? defaultVisualRadius;
 
                   return (
                     <g
@@ -1401,15 +1277,6 @@ export function DinRailConnectionsCanvas({
                        transform={`translate(${hs.absX}, ${hs.absY})`}
                        style={{ transition: "opacity 0.2s ease" }}
                     >
-                       {/* Invisible pointer hit target (wide for touch/easy mouse) */}
-                       <circle
-                         r={hitRadius}
-                         fill="transparent"
-                         style={{ cursor: drawingState ? "crosshair" : "pointer", pointerEvents: "all" }}
-                         onPointerDown={(e) => handleHotspotPointerDown(e, { ...hs, symbolId: d.symbolId, absX: hs.absX, absY: hs.absY })}
-                         onPointerEnter={() => setHoveredHotspot({ symbolId: d.symbolId, terminalName: hs.name, absX: hs.absX, absY: hs.absY, isTop: hs.isTop, type: hs.type, direction: hs.direction })}
-                         onPointerLeave={() => setHoveredHotspot(null)}
-                       />
                        {/* Outer glow ring for currently drawing/hovered */}
                        {(isTargetHovered || isStartPoint) && (
                          <circle
@@ -1445,36 +1312,10 @@ export function DinRailConnectionsCanvas({
                             transition: "all 0.2s ease"
                           }}
                         />
-                        
-                        {/* Terminal Name Text Overlay (Only show if hovered target or start point, to keep it clean) */}
-                        <g style={{ pointerEvents: "none", opacity: (isTargetHovered || isStartPoint) ? 1 : 0, transition: "opacity 0.2s" }}>
-                          <rect
-                            x={-12}
-                            y={hs.isTop ? -32 : 16}
-                            width={24}
-                            height={16}
-                            rx={3}
-                            fill="#1e293b"
-                            stroke="#475569"
-                            strokeWidth={1}
-                          />
-                          <text
-                            x={0}
-                            y={hs.isTop ? -20 : 28}
-                            textAnchor="middle"
-                            fill="#f8fafc"
-                            fontSize={10}
-                            fontWeight={800}
-                            fontFamily="Inter, Roboto, sans-serif"
-                          >
-                            {hs.name}
-                          </text>
-                        </g>
-                      </g>
+                    </g>
                   );
             });
           })}
-
           {/* 3. Render connection wires */}
           {groupedWiredPaths.map((w) => {
             if (!w) return null;
@@ -1591,7 +1432,9 @@ export function DinRailConnectionsCanvas({
                         
                         const startDir = w.connection.fromDirection || (w.fromHS.isTop ? "top" : "bottom");
                         const endDir = w.connection.toDirection || (w.toHS.isTop ? "top" : "bottom");
-                        const clearance = 60; // Dystans uwzględniający promień zaokrąglenia i długość tulejki
+                        const bendRadius = w.connection.customRadius ?? 52;
+                        const startClearance = (w.fromExitOffset ?? 30) + 40 + bendRadius; 
+                        const endClearance = (w.toExitOffset ?? 30) + 40 + bendRadius;
 
                         if (!w.connection.points || w.connection.points.length === 0) {
                           // Auto routed: use draggingHandle
@@ -1601,29 +1444,29 @@ export function DinRailConnectionsCanvas({
                           if (w.pointsArr.length === 6) {
                             if (i === 2) {
                               if (isHorizontal) {
-                                if (startDir === "bottom") minBound = Math.max(minBound ?? -Infinity, w.fromPt.y + clearance);
-                                if (startDir === "top") maxBound = Math.min(maxBound ?? Infinity, w.fromPt.y - clearance);
-                                if (endDir === "bottom") minBound = Math.max(minBound ?? -Infinity, w.toPt.y + clearance);
-                                if (endDir === "top") maxBound = Math.min(maxBound ?? Infinity, w.toPt.y - clearance);
+                                if (startDir === "bottom") minBound = Math.max(minBound ?? -Infinity, w.fromPt.y + startClearance);
+                                if (startDir === "top") maxBound = Math.min(maxBound ?? Infinity, w.fromPt.y - startClearance);
+                                if (endDir === "bottom") minBound = Math.max(minBound ?? -Infinity, w.toPt.y + endClearance);
+                                if (endDir === "top") maxBound = Math.min(maxBound ?? Infinity, w.toPt.y - endClearance);
                                 setDraggingHandle({ connectionId: w.connection.id, type: "Y", defaultChannelY: (w.pointsArr[1].y + w.pointsArr[4].y) / 2, minBound, maxBound });
                               } else {
-                                if (startDir === "right") minBound = Math.max(minBound ?? -Infinity, w.fromPt.x + clearance);
-                                if (startDir === "left") maxBound = Math.min(maxBound ?? Infinity, w.fromPt.x - clearance);
-                                if (endDir === "right") minBound = Math.max(minBound ?? -Infinity, w.toPt.x + clearance);
-                                if (endDir === "left") maxBound = Math.min(maxBound ?? Infinity, w.toPt.x - clearance);
+                                if (startDir === "right") minBound = Math.max(minBound ?? -Infinity, w.fromPt.x + startClearance);
+                                if (startDir === "left") maxBound = Math.min(maxBound ?? Infinity, w.fromPt.x - startClearance);
+                                if (endDir === "right") minBound = Math.max(minBound ?? -Infinity, w.toPt.x + endClearance);
+                                if (endDir === "left") maxBound = Math.min(maxBound ?? Infinity, w.toPt.x - endClearance);
                                 setDraggingHandle({ connectionId: w.connection.id, type: "X", baseX: (w.pointsArr[1].x + w.pointsArr[4].x) / 2, minBound, maxBound });
                               }
                             }
                           } else if (w.pointsArr.length === 8) {
                             if (i === 2) {
-                              if (startDir === "bottom") minBound = w.fromPt.y + clearance;
-                              if (startDir === "top") maxBound = w.fromPt.y - clearance;
+                              if (startDir === "bottom") minBound = w.fromPt.y + startClearance;
+                              if (startDir === "top") maxBound = w.fromPt.y - startClearance;
                               setDraggingHandle({ connectionId: w.connection.id, type: "Y1", exitY: w.pointsArr[1].y, minBound, maxBound });
                             }
                             else if (i === 3) setDraggingHandle({ connectionId: w.connection.id, type: "X", baseX: (w.pointsArr[1].x + w.pointsArr[6].x) / 2 });
                             else if (i === 4) {
-                              if (endDir === "bottom") minBound = w.toPt.y + clearance;
-                              if (endDir === "top") maxBound = w.toPt.y - clearance;
+                              if (endDir === "bottom") minBound = w.toPt.y + endClearance;
+                              if (endDir === "top") maxBound = w.toPt.y - endClearance;
                               setDraggingHandle({ connectionId: w.connection.id, type: "Y2", enterY: w.pointsArr[6].y, minBound, maxBound });
                             }
                           }
@@ -1638,21 +1481,21 @@ export function DinRailConnectionsCanvas({
 
                           if (isHorizontal) {
                              if (indexA === 0 || indexB === 0) {
-                                if (startDir === "bottom") minBound = Math.max(minBound ?? -Infinity, w.fromPt.y + clearance);
-                                if (startDir === "top") maxBound = Math.min(maxBound ?? Infinity, w.fromPt.y - clearance);
+                                if (startDir === "bottom") minBound = Math.max(minBound ?? -Infinity, w.fromPt.y + startClearance);
+                                if (startDir === "top") maxBound = Math.min(maxBound ?? Infinity, w.fromPt.y - startClearance);
                              }
                              if (indexA === basePoints.length - 1 || indexB === basePoints.length - 1) {
-                                if (endDir === "bottom") minBound = Math.max(minBound ?? -Infinity, w.toPt.y + clearance);
-                                if (endDir === "top") maxBound = Math.min(maxBound ?? Infinity, w.toPt.y - clearance);
+                                if (endDir === "bottom") minBound = Math.max(minBound ?? -Infinity, w.toPt.y + endClearance);
+                                if (endDir === "top") maxBound = Math.min(maxBound ?? Infinity, w.toPt.y - endClearance);
                              }
                           } else {
                              if (indexA === 0 || indexB === 0) {
-                                if (startDir === "right") minBound = Math.max(minBound ?? -Infinity, w.fromPt.x + clearance);
-                                if (startDir === "left") maxBound = Math.min(maxBound ?? Infinity, w.fromPt.x - clearance);
+                                if (startDir === "right") minBound = Math.max(minBound ?? -Infinity, w.fromPt.x + startClearance);
+                                if (startDir === "left") maxBound = Math.min(maxBound ?? Infinity, w.fromPt.x - startClearance);
                              }
                              if (indexA === basePoints.length - 1 || indexB === basePoints.length - 1) {
-                                if (endDir === "right") minBound = Math.max(minBound ?? -Infinity, w.toPt.x + clearance);
-                                if (endDir === "left") maxBound = Math.min(maxBound ?? Infinity, w.toPt.x - clearance);
+                                if (endDir === "right") minBound = Math.max(minBound ?? -Infinity, w.toPt.x + endClearance);
+                                if (endDir === "left") maxBound = Math.min(maxBound ?? Infinity, w.toPt.x - endClearance);
                              }
                           }
 
@@ -2016,6 +1859,64 @@ export function DinRailConnectionsCanvas({
             symbols={symbols.filter(s => s.deviceKind === "terminalBlock" && !isTerminalZlaczka(s.moduleRef))}
             foregroundUrls={foregroundUrls}
           />
+
+          {/* 6. Invisible Hotspot Hit Targets layered on top of everything to ensure they are interactive */}
+          {hotspotsData.map((d) => {
+            return d.hotspots.map((hs) => {
+                  const isListwa = d.moduleRef && d.moduleRef.toLowerCase().includes("listwy do rozdzielnicy");
+                  const isZlaczka = !isListwa && (d.symbol.isTerminalBlock || (d.moduleRef && (d.moduleRef.toLowerCase().includes("złącz") || d.moduleRef.toLowerCase().replace(/ł/g, "l").normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("zlacz"))));
+                  const defaultHitRadius = isListwa ? 38 : isZlaczka ? 56 : 46;
+                  const hitRadius = hs.radius ? hs.radius + 10 : defaultHitRadius;
+
+                  return (
+                    <g
+                       key={`${d.symbolId}-${hs.name}-${hs.isTop ? 'top' : 'bottom'}`}
+                       transform={`translate(${hs.absX}, ${hs.absY})`}
+                    >
+                       {/* Invisible pointer hit target (wide for touch/easy mouse) */}
+                       <circle
+                         r={hitRadius}
+                         fill="transparent"
+                         style={{ cursor: drawingState ? "crosshair" : "pointer", pointerEvents: "all" }}
+                         onPointerDown={(e) => handleHotspotPointerDown(e, { ...hs, symbolId: d.symbolId, absX: hs.absX, absY: hs.absY })}
+                         onPointerEnter={() => setHoveredHotspot({ symbolId: d.symbolId, terminalName: hs.name, absX: hs.absX, absY: hs.absY, isTop: hs.isTop, type: hs.type, direction: hs.direction })}
+                         onPointerLeave={() => setHoveredHotspot(null)}
+                       />
+
+                       {/* Terminal Name Text Overlay (Only show if hovered target or start point, to keep it clean) */}
+                       {(() => {
+                         const isTargetHovered = hoveredHotspot?.symbolId === d.symbolId && hoveredHotspot?.terminalName === hs.name && hoveredHotspot?.isTop === hs.isTop;
+                         const isStartPoint = drawingState?.startSymbolId === d.symbolId && drawingState?.startTerminal === hs.name && drawingState?.isTop === hs.isTop;
+                         return (
+                           <g style={{ pointerEvents: "none", opacity: (isTargetHovered || isStartPoint) ? 1 : 0, transition: "opacity 0.2s" }}>
+                             <rect
+                               x={-12}
+                               y={hs.isTop ? -32 : 16}
+                               width={24}
+                               height={16}
+                               rx={3}
+                               fill="#1e293b"
+                               stroke="#475569"
+                               strokeWidth={1}
+                             />
+                             <text
+                               x={0}
+                               y={hs.isTop ? -20 : 28}
+                               textAnchor="middle"
+                               fill="#f8fafc"
+                               fontSize={10}
+                               fontWeight={800}
+                               fontFamily="Inter, Roboto, sans-serif"
+                             >
+                               {hs.name}
+                             </text>
+                           </g>
+                         );
+                       })()}
+                    </g>
+                  );
+            });
+          })}
 
 
         </g>

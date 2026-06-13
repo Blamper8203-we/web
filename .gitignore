@@ -20,3 +20,12 @@ yarn-error.log*
 pnpm-debug.log*
 vite-dev.err.log
 vite-dev.out.log
+
+# One-off debug scripts kept locally but never tracked
+scripts/debug/
+
+# One-off scratch SVGs / Python helpers from SVG import sessions
+/rrrrrr.svg
+/testt.svg
+/jesdt.svg
+/parse_svg.py

@@ -8,6 +8,8 @@ export interface WireRoutingOptions {
   isDrawing?: boolean;      // Flaga: true, jeśli użytkownik jest w trakcie rysowania przewodu
   mousePos?: Point | null;  // Aktualna pozycja kursora (używana do wykrywania kierunku podczas rysowania)
   exitOffset?: number;      // Długość "sztywnego" wyjścia z zacisku (domyślnie 40px)
+  fromExitOffset?: number;  // Specyficzny exitOffset dla startu
+  toExitOffset?: number;    // Specyficzny exitOffset dla końca
   customOffset?: number;    // Offset dla 3-segmentowej trasy
   customOffsetX?: number;   // Offset X dla 5-segmentowej trasy
   customOffsetY1?: number;  // Offset Y1 dla 5-segmentowej trasy
@@ -15,8 +17,12 @@ export interface WireRoutingOptions {
   customRadius?: number;    // Promień zaokrąglenia rogów
   isFromTop?: boolean;
   isToTop?: boolean;
+  fromDirection?: "top" | "bottom" | "left" | "right" | "auto-horizontal" | "auto-vertical";
+  toDirection?: "top" | "bottom" | "left" | "right" | "auto-horizontal" | "auto-vertical";
   parallelIndex?: number;
   parallelCount?: number;
+  fromVisualInset?: number; // O ile px przewód ma zostać 'skrócony' wizualnie przy starcie
+  toVisualInset?: number;   // O ile px przewód ma zostać 'skrócony' wizualnie przy końcu
 }
 
 /**
@@ -54,29 +60,71 @@ export function calculateWirePoints(from: Point, to: Point, options: WireRouting
     exitOffset = 40
   } = options;
 
+  const startExitOffset = options.fromExitOffset ?? exitOffset;
+  const endExitOffset = options.toExitOffset ?? exitOffset;
+
   let firstTarget = to;
   if (explicitPoints.length > 0) firstTarget = explicitPoints[0];
   else if (isDrawing && mousePos) firstTarget = mousePos;
 
-  let startExitY = from.y + (options.isFromTop ? -exitOffset : exitOffset);
-  if (options.isFromTop !== undefined && firstTarget) {
-      if (options.isFromTop && firstTarget.y < from.y) startExitY = firstTarget.y;
-      if (!options.isFromTop && firstTarget.y > from.y) startExitY = firstTarget.y;
-  }
-  const startExit = options.isFromTop !== undefined
-      ? { x: from.x, y: startExitY, axis: 'y' as const }
-      : getOrthoExit(from, firstTarget, exitOffset);
+  // Domyślny inset to 10px, ale możemy przekazać specyficzny z konfiguracji terminala
+  const fromInset = options.fromVisualInset ?? 10;
+  const toInset = options.toVisualInset ?? 10;
 
-  // Przesunięcie wizualne przewodu, żeby nie rysował się po środku śruby tylko wsuwał się "pod" krawędź plastiku/otworu.
-  // Ucinamy przewód idealnie 22px przed śrubą (końcówka przewodu będzie renderowana z strokeLinecap="butt", aby ucinało się płasko)
-  const VISUAL_INSET = 22;
-  const startVis = options.isFromTop !== undefined 
-      ? { x: from.x, y: from.y + (options.isFromTop ? -VISUAL_INSET : VISUAL_INSET) } 
-      : { x: from.x, y: from.y };
-  
-  const endVis = options.isToTop !== undefined 
-      ? { x: to.x, y: to.y + (options.isToTop ? -VISUAL_INSET : VISUAL_INSET) } 
-      : { x: to.x, y: to.y };
+  let startDir = options.fromDirection;
+  if (!startDir && options.isFromTop !== undefined) {
+    startDir = options.isFromTop ? "top" : "bottom";
+  }
+
+  if (startDir === "auto-horizontal") {
+    const dx = (firstTarget ? firstTarget.x : from.x) - from.x;
+    startDir = dx < 0 ? "left" : "right";
+  } else if (startDir === "auto-vertical") {
+    const dy = (firstTarget ? firstTarget.y : from.y) - from.y;
+    startDir = dy < 0 ? "top" : "bottom";
+  }
+
+  let startExit: { x: number, y: number, axis: 'x' | 'y' };
+  let startVis: { x: number, y: number };
+
+  if (startDir) {
+    if (startDir === "top" || startDir === "bottom") {
+      let startExitY = from.y + (startDir === "top" ? -startExitOffset : startExitOffset);
+      if (firstTarget) {
+        if (startDir === "top" && firstTarget.y < from.y) startExitY = Math.min(firstTarget.y, from.y - startExitOffset);
+        if (startDir === "bottom" && firstTarget.y > from.y) startExitY = Math.max(firstTarget.y, from.y + startExitOffset);
+      }
+      startExit = { x: from.x, y: startExitY, axis: 'y' as const };
+      startVis = { x: from.x, y: from.y + (startDir === "top" ? -fromInset : fromInset) };
+    } else {
+      let startExitX = from.x + (startDir === "left" ? -startExitOffset : startExitOffset);
+      if (firstTarget) {
+        if (startDir === "left" && firstTarget.x < from.x) startExitX = Math.min(firstTarget.x, from.x - startExitOffset);
+        if (startDir === "right" && firstTarget.x > from.x) startExitX = Math.max(firstTarget.x, from.x + startExitOffset);
+      }
+      startExit = { x: startExitX, y: from.y, axis: 'x' as const };
+      // VISUAL_INSET: przewód zatrzymuje się przed środkiem terminala
+      startVis = { x: from.x + (startDir === "left" ? -fromInset : fromInset), y: from.y };
+    }
+  } else {
+    startExit = getOrthoExit(from, firstTarget, startExitOffset);
+    startVis = { x: from.x, y: from.y };
+  }
+
+  let endDir = options.toDirection;
+  if (!endDir && options.isToTop !== undefined) {
+    endDir = options.isToTop ? "top" : "bottom";
+  }
+
+  if (endDir === "auto-horizontal") {
+    const lastP = explicitPoints.length > 0 ? explicitPoints[explicitPoints.length - 1] : startExit;
+    const dx = to.x - (lastP ? lastP.x : to.x);
+    endDir = dx > 0 ? "left" : "right";
+  } else if (endDir === "auto-vertical") {
+    const lastP = explicitPoints.length > 0 ? explicitPoints[explicitPoints.length - 1] : startExit;
+    const dy = to.y - (lastP ? lastP.y : to.y);
+    endDir = dy > 0 ? "top" : "bottom";
+  }
 
   if (isDrawing || explicitPoints.length > 0) {
     const p: Point[] = [];
@@ -85,42 +133,76 @@ export function calculateWirePoints(from: Point, to: Point, options: WireRouting
 
     explicitPoints.forEach(ep => p.push(ep));
 
-    if (!isDrawing) {
-      const lastP = explicitPoints.length > 0 ? explicitPoints[explicitPoints.length - 1] : startExit;
-      
-      let endEntryY = to.y + (options.isToTop ? -exitOffset : exitOffset);
-      if (options.isToTop !== undefined && lastP) {
-          if (options.isToTop && lastP.y < to.y) endEntryY = lastP.y;
-          if (!options.isToTop && lastP.y > to.y) endEntryY = lastP.y;
-      }
-      const endEntry = options.isToTop !== undefined
-          ? { x: to.x, y: endEntryY, axis: 'y' as const }
-          : getOrthoExit(to, lastP, exitOffset);
-      
-      const corner = endEntry.axis === 'y' 
-          ? { x: endEntry.x, y: lastP.y } 
-          : { x: lastP.x, y: endEntry.y };
-          
-      p.push(corner);
-      p.push({ x: endEntry.x, y: endEntry.y });
-      if (!isDrawing) {
-        p.push({ x: endVis.x, y: endVis.y });
+    const lastP = explicitPoints.length > 0 ? explicitPoints[explicitPoints.length - 1] : startExit;
+    
+    let endEntry: { x: number, y: number, axis: 'x' | 'y' };
+    let endVisInner: { x: number, y: number };
+
+    if (endDir) {
+      if (endDir === "top" || endDir === "bottom") {
+        let endEntryY = to.y + (endDir === "top" ? -endExitOffset : endExitOffset);
+        if (lastP) {
+          if (endDir === "top" && lastP.y < to.y) endEntryY = Math.min(lastP.y, to.y - endExitOffset);
+          if (endDir === "bottom" && lastP.y > to.y) endEntryY = Math.max(lastP.y, to.y + endExitOffset);
+        }
+        endEntry = { x: to.x, y: endEntryY, axis: 'y' as const };
+        endVisInner = { x: to.x, y: to.y + (endDir === "top" ? -toInset : toInset) };
       } else {
-        p.push({ x: to.x, y: to.y }); // Podczas rysowania do samego kursora
+        let endEntryX = to.x + (endDir === "left" ? -endExitOffset : endExitOffset);
+        if (lastP) {
+          if (endDir === "left" && lastP.x < to.x) endEntryX = Math.min(lastP.x, to.x - endExitOffset);
+          if (endDir === "right" && lastP.x > to.x) endEntryX = Math.max(lastP.x, to.x + endExitOffset);
+        }
+        endEntry = { x: endEntryX, y: to.y, axis: 'x' as const };
+        endVisInner = { x: to.x + (endDir === "left" ? -toInset : toInset), y: to.y };
       }
+    } else {
+      endEntry = getOrthoExit(to, lastP, endExitOffset);
+      endVisInner = { x: to.x, y: to.y };
+    }
+    
+    const corner = endEntry.axis === 'y' 
+        ? { x: endEntry.x, y: lastP.y } 
+        : { x: lastP.x, y: endEntry.y };
+        
+    p.push(corner);
+    p.push({ x: endEntry.x, y: endEntry.y });
+    if (!isDrawing) {
+      p.push({ x: endVisInner.x, y: endVisInner.y });
+    } else {
+      p.push({ x: to.x, y: to.y }); // Podczas rysowania do samego kursora
     }
 
     return p;
   }
 
-  let fallbackEndEntryY = to.y + (options.isToTop ? -exitOffset : exitOffset);
-  if (options.isToTop !== undefined && from) {
-      if (options.isToTop && from.y < to.y) fallbackEndEntryY = from.y;
-      if (!options.isToTop && from.y > to.y) fallbackEndEntryY = from.y;
+  let fallbackEndEntry: { x: number, y: number, axis: 'x' | 'y' };
+  let endVisFallback: { x: number, y: number };
+
+  if (endDir) {
+    if (endDir === "top" || endDir === "bottom") {
+      let fallbackEndEntryY = to.y + (endDir === "top" ? -endExitOffset : endExitOffset);
+      if (from) {
+        if (endDir === "top" && from.y < to.y) fallbackEndEntryY = Math.min(from.y, to.y - endExitOffset);
+        if (endDir === "bottom" && from.y > to.y) fallbackEndEntryY = Math.max(from.y, to.y + endExitOffset);
+      }
+      fallbackEndEntry = { x: to.x, y: fallbackEndEntryY, axis: 'y' as const };
+      endVisFallback = { x: to.x, y: to.y + (endDir === "top" ? -toInset : toInset) };
+    } else {
+      let fallbackEndEntryX = to.x + (endDir === "left" ? -endExitOffset : endExitOffset);
+      if (from) {
+        if (endDir === "left" && from.x < to.x) fallbackEndEntryX = Math.min(from.x, to.x - endExitOffset);
+        if (endDir === "right" && from.x > to.x) fallbackEndEntryX = Math.max(from.x, to.x + endExitOffset);
+      }
+      fallbackEndEntry = { x: fallbackEndEntryX, y: to.y, axis: 'x' as const };
+      endVisFallback = { x: to.x + (endDir === "left" ? -toInset : toInset), y: to.y };
+    }
+  } else {
+    fallbackEndEntry = getOrthoExit(to, from, endExitOffset);
+    endVisFallback = { x: to.x, y: to.y };
   }
-  const endEntry = options.isToTop !== undefined
-      ? { x: to.x, y: fallbackEndEntryY, axis: 'y' as const }
-      : getOrthoExit(to, from, exitOffset);
+  
+  const endEntry = fallbackEndEntry;
       
   const p: Point[] = [
     { x: startVis.x, y: startVis.y },
@@ -151,14 +233,17 @@ export function calculateWirePoints(from: Point, to: Point, options: WireRouting
           p.push({ x: midX, y: startExit.y }, { x: midX, y: endEntry.y });
       }
   } else {
-      const corner = startExit.axis === 'y' 
+      // When fromDirection is explicitly horizontal (left/right), prefer short horizontal then vertical
+      const preferVerticalFirst = startExit.axis === 'y' ||
+          options.fromDirection === 'left' || options.fromDirection === 'right';
+      const corner = preferVerticalFirst
           ? { x: startExit.x, y: endEntry.y } 
           : { x: endEntry.x, y: startExit.y };
       p.push(corner);
   }
 
   p.push({ x: endEntry.x, y: endEntry.y });
-  p.push({ x: endVis.x, y: endVis.y });
+  p.push({ x: endVisFallback.x, y: endVisFallback.y });
 
   return p;
 }
@@ -224,7 +309,7 @@ export function pointsToRoundedPath(points: Point[], radius: number): string {
  */
 export function calculateWirePath(from: Point, to: Point, options: WireRoutingOptions = {}): string {
   const p = calculateWirePoints(from, to, options);
-  const radius = options.customRadius ?? 0;
+  const radius = options.customRadius ?? 52;
   return pointsToRoundedPath(p, radius);
 }
 

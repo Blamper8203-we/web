@@ -1,4 +1,4 @@
-import type { WireColor, WireType, RoutingMode } from "../types/connectionItem";
+import type { WireColor, WireType, RoutingMode, FerruleColor } from "../types/connectionItem";
 
 interface ConnectionsLeftPanelProps {
   defaultWireSettings: {
@@ -6,12 +6,14 @@ interface ConnectionsLeftPanelProps {
     wireCrossSection: number;
     wireType: WireType;
     routingMode: RoutingMode;
+    ferruleColor?: FerruleColor;
   };
   onChangeDefaultWireSettings: (settings: {
     wireColor: WireColor;
     wireCrossSection: number;
     wireType: WireType;
     routingMode: RoutingMode;
+    ferruleColor?: FerruleColor;
   }) => void;
   selectedConnectionId?: string | null;
   connections?: import("../types/connectionItem").ConnectionItem[];
@@ -25,6 +27,18 @@ const WIRE_COLORS: Array<{ value: WireColor; label: string; hex: string }> = [
   { value: "blue", label: "Niebieski (N)", hex: "#3b82f6" },
   { value: "green-yellow", label: "Żółto-Zielony (PE)", hex: "repeating-linear-gradient(45deg, #eab308, #eab308 10px, #22c55e 10px, #22c55e 20px)" },
   { value: "red", label: "Czerwony (Sterowanie)", hex: "#ef4444" },
+];
+
+const FERRULE_COLORS: Array<{ value: FerruleColor; label: string; hex: string }> = [
+  { value: "none", label: "Brak", hex: "transparent" },
+  { value: "auto", label: "Auto (DIN)", hex: "linear-gradient(45deg, #171717, #1d4ed8, #b91c1c)" },
+  { value: "white", label: "Biała", hex: "#dddddd" },
+  { value: "grey", label: "Szara", hex: "#666666" },
+  { value: "red", label: "Czerwona", hex: "#b91c1c" },
+  { value: "blue", label: "Niebieska", hex: "#1d4ed8" },
+  { value: "yellow", label: "Żółta", hex: "#eab308" },
+  { value: "black", label: "Czarna", hex: "#171717" },
+  { value: "brown", label: "Brązowa", hex: "#6b3410" },
 ];
 
 const WIRE_CROSS_SECTIONS = [1.5, 2.5, 4.0, 6.0, 10.0, 16.0];
@@ -73,7 +87,7 @@ export function ConnectionsLeftPanel({
   };
 
   return (
-    <div className="palette-sidebar" style={{ display: "flex", flexDirection: "column", gap: "20px", padding: "16px" }}>
+    <div className="palette-sidebar" style={{ display: "flex", flexDirection: "column", flex: 1, gap: "20px", padding: "16px", overflowY: "auto" }}>
       
       {/* NAGŁÓWEK PANELU (TRYB PRZEWODNIKA) */}
       <div style={{ display: "flex", flexDirection: "column", gap: "4px", paddingBottom: "16px", borderBottom: "1px solid var(--panel-border)" }}>
@@ -106,12 +120,12 @@ export function ConnectionsLeftPanel({
                 min="0"
                 max="200"
                 step="4"
-                value={selectedConnection.customRadius ?? 0}
+                value={selectedConnection.customRadius ?? 52}
                 onChange={(e) => handleUpdateSelected("customRadius", parseInt(e.target.value, 10))}
                 style={{ flex: 1 }}
               />
               <span style={{ fontSize: "11px", color: "var(--text-secondary)", width: "30px", textAlign: "right" }}>
-                {selectedConnection.customRadius ?? 0}
+                {selectedConnection.customRadius ?? 52}
               </span>
             </div>
           </div>
@@ -200,6 +214,58 @@ export function ConnectionsLeftPanel({
                 />
                 <span style={{ fontSize: "10px", color: "var(--text-main)", textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>
                   {color.value === "green-yellow" ? "Żół-Ziel" : color.label.split(" ")[0]}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <hr style={{ border: "none", borderTop: "1px solid var(--panel-border)", margin: "4px 0" }} />
+
+      {/* Kolor tulejki */}
+      <div className="sidebar-section">
+        <label style={{ display: "block", fontSize: "12px", fontWeight: 600, marginBottom: "8px", color: "var(--text-main)" }}>
+          Kolor tulejki (LgY)
+        </label>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
+          {FERRULE_COLORS.map((color) => {
+            const isSelected = (defaultWireSettings.ferruleColor || "none") === color.value;
+            return (
+              <button
+                key={color.value}
+                type="button"
+                onClick={() => updateSetting("ferruleColor", color.value)}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "8px 4px",
+                  borderRadius: "6px",
+                  background: isSelected ? "var(--accent-primary-soft)" : "var(--bg-card)",
+                  border: isSelected ? "1px solid var(--accent-primary)" : "1px solid var(--panel-border)",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <div
+                  style={{
+                    width: "16px",
+                    height: "16px",
+                    borderRadius: "50%",
+                    background: color.hex,
+                    marginBottom: "4px",
+                    border: color.value === "none" || color.value === "white" ? "1px solid #ccc" : "none",
+                    position: "relative"
+                  }}
+                >
+                  {color.value === "none" && (
+                    <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%) rotate(45deg)", width: "18px", height: "1px", background: "#ff4444" }} />
+                  )}
+                </div>
+                <span style={{ fontSize: "10px", fontWeight: 500, color: isSelected ? "var(--accent-primary)" : "var(--text-secondary)", textAlign: "center", lineHeight: 1.1 }}>
+                  {color.label}
                 </span>
               </button>
             );

@@ -945,6 +945,23 @@ describe("resolveReleasedDinRailGrouping", () => {
     expect(nextMcb?.referenceDesignation).toBe("F2.1");
   });
 
+  it("creates a new RCD group when an ungrouped RCD is released next to an ungrouped MCB", () => {
+    const rcd = makeRcdItem();
+    const mcb = makeMcbItem();
+
+    // Symulujemy zwolnienie RCD (rcd-1) obok MCB (mcb-1)
+    const next = resolveReleasedDinRailGrouping([rcd, mcb], "rcd-1");
+    const nextRcd = next.find((symbol) => symbol.id === "rcd-1");
+    const nextMcb = next.find((symbol) => symbol.id === "mcb-1");
+
+    expect(nextRcd?.group).toBeTruthy();
+    expect(nextMcb?.group).toBe(nextRcd?.group);
+    expect(nextMcb?.groupName).toBe(nextRcd?.groupName);
+    expect(nextMcb?.rcdSymbolId).toBe("rcd-1");
+    expect(nextMcb?.rcdRatedCurrent).toBe(40);
+    expect(nextMcb?.rcdResidualCurrent).toBe(30);
+  });
+
   it("does not create a group when two non-head, non-distribution symbols are next to each other", () => {
     // Two MCBs side by side – neither is a group head (RCD) nor distribution block
     const mcbA = makeMcbItem({ id: "mcb-a", x: 100, y: 100 });

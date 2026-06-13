@@ -103,7 +103,7 @@ export function AppWorkspaceCanvas({
       >
         <Suspense fallback={<div className="left-panel-empty"><strong>Ładowanie widoku szyny DIN...</strong></div>}>
           <DinRailCanvas
-            getPaletteTemplate={(idOrRef) => {
+            getPaletteTemplate={(idOrRef: string) => {
               const template = paletteTemplateMap.get(idOrRef);
               if (template) return template;
               return Array.from(paletteTemplateMap.values()).find((t) => t.moduleRef === idOrRef);

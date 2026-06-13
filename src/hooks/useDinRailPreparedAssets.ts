@@ -93,43 +93,42 @@ export function useDinRailPreparedAssets(symbols: SymbolItem[]) {
     let cancelled = false;
     const nextSymbols = symbols.filter((symbol) => symbol.visualPath);
 
-    Promise.all<readonly [string, PreparedSymbolAsset]>(
-      nextSymbols.map(async (symbol) => {
-        if (shouldRenderRawModuleAsset(symbol.visualPath)) {
-          return [
-            symbol.id,
-            {
-              imageSrc: symbol.visualPath,
-            },
-          ] as const;
-        }
+    const loadAssets = async () => {
+      const entries: Array<readonly [string, PreparedSymbolAsset]> = [];
 
-        const rating = getSymbolRatingText(symbol);
-        const parameters = rating
-          ? { ...symbol.parameters, _DYNAMIC_RATING_: rating }
-          : symbol.parameters;
-        
-        const rawMarkup = await loadPreparedSvgMarkup(symbol.visualPath, parameters);
-        return [
-          symbol.id,
-          {
-            namespacedMarkup: namespaceSvgMarkup(rawMarkup, `din-${symbol.id}`),
-          },
-        ] as const;
-      }),
-    )
-      .then((entries) => {
-        if (cancelled) {
-          return;
-        }
+      for (const symbol of nextSymbols) {
+        if (cancelled) break;
 
+        try {
+          let asset: PreparedSymbolAsset;
+
+          if (shouldRenderRawModuleAsset(symbol.visualPath)) {
+            asset = { imageSrc: symbol.visualPath };
+          } else {
+            const rating = getSymbolRatingText(symbol);
+            const parameters = rating
+              ? { ...symbol.parameters, _DYNAMIC_RATING_: rating }
+              : symbol.parameters;
+
+            const rawMarkup = await loadPreparedSvgMarkup(symbol.visualPath, parameters);
+            asset = {
+              namespacedMarkup: namespaceSvgMarkup(rawMarkup, `din-${symbol.id}`),
+            };
+          }
+
+          entries.push([symbol.id, asset]);
+        } catch (error) {
+          // Indywidualny blad ladowania SVG – nie niszczy pozostalych modulow
+          devLog("🔶 [useDinRailPreparedAssets] Failed to load SVG for", symbol.id, symbol.label, String(error));
+        }
+      }
+
+      if (!cancelled) {
         setAssetMap(new Map(entries));
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setAssetMap(new Map());
-        }
-      });
+      }
+    };
+
+    void loadAssets();
 
     return () => {
       cancelled = true;

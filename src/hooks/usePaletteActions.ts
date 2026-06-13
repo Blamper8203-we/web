@@ -297,13 +297,13 @@ export function usePaletteActions({
                 const childId = targetIsHead ? nextSymbol.id : snapTarget.id;
                 nextSymbols = nextSymbols.map((s) =>
                   s.id === childId
-                    ? {
+                    ? ({
                         ...s,
                         rcdSymbolId: rcdSymbol.id,
                         rcdRatedCurrent: rcdSymbol.rcdRatedCurrent,
                         rcdResidualCurrent: rcdSymbol.rcdResidualCurrent,
                         rcdType: rcdSymbol.rcdType,
-                      }
+                      } as SymbolItem)
                     : s,
                 );
 

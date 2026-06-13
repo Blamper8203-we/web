@@ -237,6 +237,173 @@ function applyDynamicRatingText(svgRoot: SVGSVGElement, newText: string): void {
   }
 }
 
+/**
+ * Detects circle elements in an SVG that likely represent screw terminals
+ * in a terminal block module. Returns an array of positions sorted by the
+ * primary axis (Y for vertical terminal blocks, X for horizontal ones).
+ * 
+ * A "screw" is identified as a <circle> element with a reasonable radius
+ * (between 2 and 15 SVG units) that is filled (not fill="none").
+ * 
+ * If the SVG is wider than tall (landscape / horizontal orientation),
+ * pins are sorted by X (left to right).
+ * If the SVG is taller than wide (portrait / vertical orientation),
+ * pins are sorted by Y (top to bottom).
+ */
+export interface DetectedScrewPosition {
+  /** Normalised position (0–1) along the primary axis of the terminal block */
+  position: number;
+  /** Raw centre X in SVG coordinate space */
+  cx: number;
+  /** Raw centre Y in SVG coordinate space */
+  cy: number;
+  /** Radius of the circle */
+  r: number;
+}
+
+export function detectTerminalBlockPinPositions(svgMarkup: string): DetectedScrewPosition[] {
+  if (typeof DOMParser === "undefined") {
+    return [];
+  }
+
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgMarkup, "image/svg+xml");
+    const root = doc.documentElement;
+
+    if (!root || root.tagName.toLowerCase() !== "svg") {
+      return [];
+    }
+
+    const viewBox = parseViewBox(root.getAttribute("viewBox"));
+    if (!viewBox.found || viewBox.width <= 0 || viewBox.height <= 0) {
+      return [];
+    }
+
+    const svgWidth = viewBox.width;
+    const svgHeight = viewBox.height;
+    const isLandscape = svgWidth >= svgHeight;
+
+    const circles: { cx: number; cy: number; r: number }[] = [];
+
+    for (const el of Array.from(root.querySelectorAll("circle"))) {
+      const id = el.getAttribute("id") ?? "";
+      if (id.startsWith("Page")) {
+        continue;
+      }
+
+      const cx = parseNumber(el.getAttribute("cx"));
+      const cy = parseNumber(el.getAttribute("cy"));
+      const r = parseNumber(el.getAttribute("r"));
+      if (cx == null || cy == null || r == null || r <= 0) {
+        continue;
+      }
+
+      // Skip circles that are "holes" (fill="none" with no stroke)
+      const style = el.getAttribute("style");
+      const fill = el.getAttribute("fill");
+      if (hasFillNone(style, fill)) {
+        const stroke = el.getAttribute("stroke") || style?.includes("stroke:");
+        if (!stroke) {
+          continue;
+        }
+      }
+
+      // Only consider circles that look like screw terminals: radius between 2 and 15 SVG units
+      if (r < 2 || r > 15) {
+        continue;
+      }
+
+      circles.push({ cx, cy, r });
+    }
+
+    // Also look for <ellipse> elements that might be screws (not typical but possible)
+    for (const el of Array.from(root.querySelectorAll("ellipse"))) {
+      const id = el.getAttribute("id") ?? "";
+      if (id.startsWith("Page")) {
+        continue;
+      }
+
+      const cx = parseNumber(el.getAttribute("cx"));
+      const cy = parseNumber(el.getAttribute("cy"));
+      const rx = parseNumber(el.getAttribute("rx"));
+      const ry = parseNumber(el.getAttribute("ry"));
+      if (cx == null || cy == null || rx == null || ry == null || rx <= 0 || ry <= 0) {
+        continue;
+      }
+
+      const style = el.getAttribute("style");
+      const fill = el.getAttribute("fill");
+      if (hasFillNone(style, fill)) {
+        const stroke = el.getAttribute("stroke") || style?.includes("stroke:");
+        if (!stroke) {
+          continue;
+        }
+      }
+
+      const avgR = (rx + ry) / 2;
+      if (avgR < 2 || avgR > 15) {
+        continue;
+      }
+
+      circles.push({ cx, cy, r: avgR });
+    }
+
+    // Group circles that are very close together (same screw, duplicate geometry)
+    const grouped: typeof circles = [];
+    for (const c of circles) {
+      const existing = grouped.find(
+        (g) => Math.abs(g.cx - c.cx) < 3 && Math.abs(g.cy - c.cy) < 3,
+      );
+      if (!existing) {
+        grouped.push(c);
+      }
+    }
+
+    if (grouped.length < 2) {
+      // Need at least 2 screws to be a terminal block
+      return [];
+    }
+
+    // Sort by primary axis
+    grouped.sort((a, b) => (isLandscape ? a.cx - b.cx : a.cy - b.cy));
+
+    const maxValue = isLandscape ? svgWidth : svgHeight;
+
+    return grouped.map((c) => ({
+      position: (isLandscape ? c.cx : c.cy) / maxValue,
+      cx: c.cx,
+      cy: c.cy,
+      r: c.r,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Serialises detected terminal block pin positions into a compact string
+ * suitable for storage in parameters (e.g. "0.046,0.119,0.245,...").
+ * Returns empty string if no positions are detected.
+ */
+export function serialisePinPositions(positions: DetectedScrewPosition[]): string {
+  return positions.map((p) => p.position.toFixed(6)).join(",");
+}
+
+/**
+ * Parses a pin position string back into an array of normalised positions.
+ */
+export function deserialisePinPositions(serialised: string): number[] {
+  if (!serialised || !serialised.trim()) {
+    return [];
+  }
+
+  return serialised
+    .split(",")
+    .map((s) => Number.parseFloat(s.trim()))
+    .filter((v) => Number.isFinite(v) && v >= 0 && v <= 1);
+}
+
 export function normalizeSvgMarkup(
   svgMarkup: string,
   options: SvgNormalizationOptions = {},

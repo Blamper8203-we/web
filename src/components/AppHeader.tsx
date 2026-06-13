@@ -78,8 +78,17 @@ export function AppHeader({
   const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(() => window.innerWidth <= 768);
 
   const isNative = Capacitor.isNativePlatform();
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileViewport(window.innerWidth <= 768);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const fileMenuRef = useRef<HTMLDivElement>(null);
 
@@ -113,7 +122,7 @@ export function AppHeader({
   return (
     <header className={`toolbar-shell ${activeSheet === "sheet4" ? "toolbar-shell--compact" : ""} ${isNative ? "is-native" : ""}`}>
       <div className="toolbar-left">
-        {isNative ? (
+        {(isNative || isMobileViewport) ? (
           <button
             type="button"
             className="toolbar-menu-btn mobile-hamburger"
@@ -130,7 +139,7 @@ export function AppHeader({
           </div>
         )}
 
-        {!isNative && (
+        {!isNative && !isMobileViewport && (
           <>
             <div style={{ position: "relative" }} ref={fileMenuRef}>
               <button
@@ -346,7 +355,7 @@ export function AppHeader({
               href="https://suppi.pl/dinboard"
               target="_blank"
               rel="noopener noreferrer"
-              className="toolbar-menu-btn"
+              className="toolbar-menu-btn toolbar-menu-btn--donate-tablet"
               style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#FFB020", textDecoration: "none" }}
             >
               <AppIcon name="coffee" size={14} />
@@ -356,7 +365,7 @@ export function AppHeader({
         )}
       </div>
 
-      {!isNative && activeSheet !== "sheet4" ? (
+      {!isNative && !isMobileViewport && activeSheet !== "sheet4" ? (
       <div className="toolbar-center">
         <button
           type="button"
@@ -506,7 +515,25 @@ export function AppHeader({
           className="mobile-side-drawer-overlay"
           onClick={() => setMobileMenuOpen(false)}
         >
-          <div className="mobile-side-drawer" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="mobile-side-drawer"
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => {
+              const touch = e.touches[0];
+              if (!touch) return;
+              (e.currentTarget as HTMLElement).dataset.swipeStartX = String(touch.clientX);
+            }}
+            onTouchMove={(e) => {
+              const touch = e.touches[0];
+              if (!touch) return;
+              const startX = Number((e.currentTarget as HTMLElement).dataset.swipeStartX || 0);
+              const deltaX = touch.clientX - startX;
+              // Przeciągnięcie w lewo > 50px zamyka drawer
+              if (deltaX < -50) {
+                setMobileMenuOpen(false);
+              }
+            }}
+          >
             <div className="mobile-side-drawer-header">
               <img src="/favicon-192.png" alt="Logo" width="32" height="32" />
               <strong>DinBoard</strong>
@@ -528,6 +555,27 @@ export function AppHeader({
               <button className="drawer-item" onClick={() => { setMobileMenuOpen(false); onSaveProject(false); }}>
                 <AppIcon className="drawer-icon" name="save" />
                 <span>Zapisz zmiany</span>
+              </button>
+
+              <span className="drawer-divider" />
+              <span className="drawer-section">EDYCJA</span>
+              <button
+                className="drawer-item"
+                disabled={!canUndo}
+                style={{ opacity: canUndo ? 1 : 0.4 }}
+                onClick={() => { setMobileMenuOpen(false); onUndo(); }}
+              >
+                <AppIcon className="drawer-icon" name="undo" />
+                <span>{undoLabel ? `Cofnij: ${undoLabel}` : "Cofnij"}</span>
+              </button>
+              <button
+                className="drawer-item"
+                disabled={!canRedo}
+                style={{ opacity: canRedo ? 1 : 0.4 }}
+                onClick={() => { setMobileMenuOpen(false); onRedo(); }}
+              >
+                <AppIcon className="drawer-icon" name="redo" />
+                <span>{redoLabel ? `Ponów: ${redoLabel}` : "Ponów"}</span>
               </button>
 
               <span className="drawer-divider" />

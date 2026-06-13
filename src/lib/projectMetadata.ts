@@ -1,3 +1,4 @@
+import { safeGetItemSync } from "./storageService";
 import {
   createDefaultMeasurementProtocols,
   normalizeMeasurementProtocolsData,
@@ -412,8 +413,8 @@ export function loadProjectMetadata(): ProjectMetadata {
   }
 
   const raw =
-    window.localStorage.getItem(PROJECT_METADATA_STORAGE_KEY) ??
-    window.localStorage.getItem(LEGACY_PROJECT_METADATA_STORAGE_KEY);
+    safeGetItemSync(PROJECT_METADATA_STORAGE_KEY) ??
+    safeGetItemSync(LEGACY_PROJECT_METADATA_STORAGE_KEY);
 
   if (!raw) {
     return createEmptyProjectMetadata();

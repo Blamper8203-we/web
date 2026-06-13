@@ -135,6 +135,9 @@ export function resolveReleasedDinRailGrouping(
 }
 
 function shouldExcludeFromReleaseGrouping(symbol: SymbolItem): boolean {
+  if (symbol.deviceKind === "rcd" && !symbol.group) {
+    return false; // Pozwólmy nowemu RCD (bez grupy) dołączyć do grupy / stworzyć grupę przy upuszczeniu
+  }
   return shouldExcludeFromAutoGrouping(symbol);
 }
 

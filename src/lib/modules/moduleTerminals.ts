@@ -1,4 +1,5 @@
 import type { SymbolItem } from "../../types/symbolItem";
+import { svgTerminalCache } from "./svgTerminalCache";
 
 export interface TerminalHotspot {
   name: string; // np. "1", "2", "3", "N", "PE"
@@ -6,6 +7,10 @@ export interface TerminalHotspot {
   y: number;    // Relatywne Y w pikselach
   type: "phase" | "neutral" | "pe";
   isTop: boolean;
+  direction?: "top" | "bottom" | "left" | "right" | "auto-horizontal" | "auto-vertical";
+  radius?: number;
+  visualInset?: number;
+  exitOffset?: number;
 }
 
 function normalizePathText(text: string): string {
@@ -58,6 +63,74 @@ export function getSymbolPoles(symbol: SymbolItem): number {
 }
 
 export function getSymbolTerminals(symbol: SymbolItem): TerminalHotspot[] {
+  const cachedGroups = svgTerminalCache.get(symbol.moduleRef || symbol.visualPath || "");
+  if (cachedGroups && cachedGroups.length > 0) {
+    const hotspots: TerminalHotspot[] = [];
+    const width = symbol.width;
+    const height = symbol.height || 1103;
+
+    // Check if we should use uniform scaling ("meet") or stretching ("none")
+    // Listwy and GSU use "none". Everything else (including Blok rozdzielczy) uses "meet"
+    const useMeet = !(
+      (symbol.moduleRef || "").toLowerCase().includes("listwy do rozdzielnicy") ||
+      (symbol.moduleRef || "").toLowerCase().includes("gsu")
+    );
+
+    let vbWidth = 0;
+    let vbHeight = 0;
+    for (const group of cachedGroups) {
+      if (group.viewBoxWidth && group.viewBoxHeight) {
+        vbWidth = group.viewBoxWidth;
+        vbHeight = group.viewBoxHeight;
+        break;
+      }
+    }
+
+    let scale = 1;
+    let dx = 0;
+    let dy = 0;
+    if (useMeet && vbWidth > 0 && vbHeight > 0) {
+      scale = Math.min(width / vbWidth, height / vbHeight);
+      dx = (width - vbWidth * scale) / 2;
+      dy = (height - vbHeight * scale) / 2;
+    }
+
+    for (const group of cachedGroups) {
+      const type = group.prefix === "PE" ? "pe" : group.prefix === "N" ? "neutral" : "phase";
+      
+      for (const t of group.terminals) {
+        let xPos, yPos, radius;
+        if (useMeet && vbWidth > 0 && vbHeight > 0) {
+          // Uniform scaling calculation (xMidYMid meet)
+          const cx = t.xRatio * vbWidth;
+          const cy = t.yRatio * vbHeight;
+          xPos = dx + cx * scale;
+          yPos = dy + cy * scale;
+          // Radius is proportional to uniform scale
+          radius = t.rRatio ? (t.rRatio * vbWidth) * scale : undefined;
+        } else {
+          // Stretched ("none") calculation
+          xPos = width * t.xRatio;
+          yPos = height * t.yRatio;
+          radius = t.rRatio ? width * t.rRatio : undefined;
+        }
+
+        const isTop = t.yRatio < 0.5;
+        hotspots.push({
+          name: t.name,
+          x: xPos,
+          y: yPos,
+          type: type,
+          isTop: isTop,
+          direction: isTop ? "top" : "bottom",
+          visualInset: isTop ? yPos : height - yPos,
+          radius: radius
+        });
+      }
+    }
+    return hotspots;
+  }
+
   const poles = getSymbolPoles(symbol);
   const width = symbol.width;
   const height = symbol.height || 1103;
@@ -169,25 +242,49 @@ export function getSymbolTerminals(symbol: SymbolItem): TerminalHotspot[] {
   } else if (kind === "phaseIndicator") {
     const phaseRef = normalizePathText(symbol.moduleRef || symbol.visualPath || "");
     if (phaseRef.includes("lampka kontrolna")) {
-      // Lampka Kontrolna 3 Fazowa – 8 śrub zmierzonych z SVG (viewBox 0 0 209 983)
-      // Góra rząd 1 (y≈6.5%, śruby 1 i 3): L1 (lewy), L1 (prawy)
-      hotspots.push({ name: "L1", x: width * 0.253, y: height * 0.065, type: "phase",   isTop: true });
-      hotspots.push({ name: "L1'", x: width * 0.747, y: height * 0.065, type: "phase",   isTop: true });
-      // Góra rząd 2 (y≈17.3%, śruby 4 i 6): N (lewy), N (prawy)
-      hotspots.push({ name: "N",  x: width * 0.261, y: height * 0.173, type: "neutral", isTop: true });
-      hotspots.push({ name: "N'", x: width * 0.755, y: height * 0.173, type: "neutral", isTop: true });
-      // Dół rząd 1 (y≈81.4%, śruby 7 i 9): L3 (lewy), L3 (prawy)
-      hotspots.push({ name: "L3", x: width * 0.253, y: height * 0.814, type: "phase",   isTop: false });
-      hotspots.push({ name: "L3'", x: width * 0.747, y: height * 0.814, type: "phase",   isTop: false });
-      // Dół rząd 2 (y≈93.2%, śruby 10 i 12): L2 (lewy), L2 (prawy)
-      hotspots.push({ name: "L2", x: width * 0.252, y: height * 0.932, type: "phase",   isTop: false });
-      hotspots.push({ name: "L2'", x: width * 0.745, y: height * 0.932, type: "phase",   isTop: false });
+      // Lampka Kontrolna 3 Fazowa – 8 śrub (lewa i prawa kolumna)
+      // Zaciski są umieszczone dokładnie na śrubach (y), a `visualInset` odpowiada
+      // odległości w pikselach od śruby do krawędzi bloku plastiku.
+      // Kierunki wyjścia przewodów: góra → "top", dół → "bottom"
+      
+      // Góra rząd 1 – śruby cy=64.041 (rel_y=0.0651), krawędź SVG=0.000
+      // visualInset = 0.0651*h → przewód wychodzi z samej góry SVG
+      hotspots.push({ name: "1",   x: width * 0.2528, y: height * 0.0651, type: "phase",   isTop: true,  direction: "top",    visualInset: height * 0.0651 });
+      hotspots.push({ name: "3",   x: width * 0.7474, y: height * 0.0651, type: "phase",   isTop: true,  direction: "top",    visualInset: height * 0.0651 });
+      hotspots.push({ name: "L1",  x: width * 0.2528, y: height * 0.0651, type: "phase",   isTop: true,  direction: "top",    visualInset: height * 0.0651 });
+      hotspots.push({ name: "L1'", x: width * 0.7474, y: height * 0.0651, type: "phase",   isTop: true,  direction: "top",    visualInset: height * 0.0651 });
+
+      // Góra rząd 2 – śruby cy=170.363 (rel_y=0.1733), krawędź górna plastiku=0.1120
+      // visualInset = (0.1733-0.1120)*h = 0.0613*h
+      hotspots.push({ name: "4",   x: width * 0.2606, y: height * 0.1733, type: "phase",   isTop: true,  direction: "top",    visualInset: height * 0.0613 });
+      hotspots.push({ name: "6",   x: width * 0.7394, y: height * 0.1733, type: "phase",   isTop: true,  direction: "top",    visualInset: height * 0.0613 });
+      hotspots.push({ name: "N",   x: width * 0.2606, y: height * 0.1733, type: "neutral", isTop: true,  direction: "top",    visualInset: height * 0.0613 });
+      hotspots.push({ name: "N'",  x: width * 0.7394, y: height * 0.1733, type: "neutral", isTop: true,  direction: "top",    visualInset: height * 0.0613 });
+
+      // Dół rząd 1 – śruby cy=800.578 (rel_y=0.8144), krawędź dolna plastiku=0.8755
+      // visualInset = (0.8755-0.8144)*h = 0.0611*h
+      hotspots.push({ name: "7",   x: width * 0.2528, y: height * 0.8144, type: "phase",   isTop: false, direction: "bottom", visualInset: height * 0.0611 });
+      hotspots.push({ name: "9",   x: width * 0.7474, y: height * 0.8144, type: "phase",   isTop: false, direction: "bottom", visualInset: height * 0.0611 });
+      hotspots.push({ name: "L3",  x: width * 0.2528, y: height * 0.8144, type: "phase",   isTop: false, direction: "bottom", visualInset: height * 0.0611 });
+      hotspots.push({ name: "L3'", x: width * 0.7474, y: height * 0.8144, type: "phase",   isTop: false, direction: "bottom", visualInset: height * 0.0611 });
+
+      // Dół rząd 2 – zielony blok od rel_y=0.9277, śruby szacunkowo ≈0.9349
+      // visualInset = (1.0-0.9277)*h = 0.0723*h
+      hotspots.push({ name: "10",  x: width * 0.2528, y: height * 0.9349, type: "phase",   isTop: false, direction: "bottom", visualInset: height * 0.0651 });
+      hotspots.push({ name: "12",  x: width * 0.7474, y: height * 0.9349, type: "phase",   isTop: false, direction: "bottom", visualInset: height * 0.0651 });
+      hotspots.push({ name: "L2",  x: width * 0.2528, y: height * 0.9349, type: "phase",   isTop: false, direction: "bottom", visualInset: height * 0.0651 });
+      hotspots.push({ name: "L2'", x: width * 0.7474, y: height * 0.9349, type: "phase",   isTop: false, direction: "bottom", visualInset: height * 0.0651 });
     } else {
       // Stare "Kontrolki faz.svg" – 4 terminale (oryginalne współrzędne)
-      hotspots.push({ name: "L1", x: width * 0.7726, y: height * 0.0517, type: "phase",   isTop: true });
-      hotspots.push({ name: "N",  x: width * 0.5171, y: height * 0.1630, type: "neutral", isTop: true });
-      hotspots.push({ name: "L2", x: width * 0.4955, y: height * 0.8359, type: "phase",   isTop: false });
-      hotspots.push({ name: "L3", x: width * 0.7727, y: height * 0.9524, type: "phase",   isTop: false });
+      // visualInset = odległość od śruby do krawędzi plastiku DANEGO PIĘTRA.
+      // L1 (top) y = 50.9 -> wyjście na górnej krawędzi (y=0) -> inset = 50.9/983 = 0.0517
+      // N (top) y = 160.3 -> wyjście na linii y=102.2 -> inset = (160.3 - 102.2)/983 = 0.0590
+      // L2 (bottom) y = 821.7 -> wyjście na linii y=880.2 -> inset = (880.2 - 821.7)/983 = 0.0595
+      // L3 (bottom) y = 936.3 -> wyjście na dolnej krawędzi (y=983) -> inset = (983 - 936.3)/983 = 0.0476
+      hotspots.push({ name: "L1", x: width * 0.7726, y: height * 0.0517, type: "phase",   isTop: true,  direction: "top",    visualInset: height * 0.0517 });
+      hotspots.push({ name: "N",  x: width * 0.5171, y: height * 0.1630, type: "neutral", isTop: true,  direction: "top",    visualInset: height * 0.0590 });
+      hotspots.push({ name: "L2", x: width * 0.4955, y: height * 0.8359, type: "phase",   isTop: false, direction: "bottom", visualInset: height * 0.0595 });
+      hotspots.push({ name: "L3", x: width * 0.7727, y: height * 0.9524, type: "phase",   isTop: false, direction: "bottom", visualInset: height * 0.0476 });
     }
   } else if (kind === "terminalBlock") {
     // Listwa zaciskowa: zwykle jeden zacisk na górze, jeden na dole
@@ -230,13 +327,110 @@ export function getSymbolTerminals(symbol: SymbolItem): TerminalHotspot[] {
         if (explicitPercentages && i < explicitPercentages.length) {
           yPos = height * explicitPercentages[i];
         }
-        hotspots.push({ name: `${i + 1}`, x: width / 2, y: yPos, type, isTop: i < pins / 2 });
+        hotspots.push({ name: `${i + 1}`, x: width / 2, y: yPos, type, isTop: i < pins / 2, direction: "auto-horizontal", exitOffset: 150 });
       }
     } else if (normalizePathText(symbol.moduleRef || "").includes("gsu/gsu.svg")) {
       // Szyna wyrównawcza GSU (6 zacisków)
       const explicitPercentages = [58/600, 155/600, 251/600, 348/600, 445/600, 542/600];
       for (let i = 0; i < 6; i++) {
         hotspots.push({ name: `${i + 1}`, x: width * explicitPercentages[i], y: height / 2, type: "pe", isTop: false });
+      }
+    } else if (symbol.type === "Blok rozdzielczy" || normalizePathText(symbol.moduleRef || "").includes("blok rozdzielczy")) {
+      // Blok rozdzielczy (np. 4x7 pin, 4x15 pin)
+      const labelLower = (symbol.label || "").toLowerCase();
+      const pathLower = normalizePathText(symbol.moduleRef || symbol.visualPath || "");
+      
+      let cols = 7; // Domyślnie 7 pinów
+      if (labelLower.includes("15")) cols = 15;
+      else if (labelLower.includes("12")) cols = 12;
+      else if (labelLower.includes("7")) cols = 7;
+      else if (poles > 0) cols = poles; // Fallback to poles if no number in label
+
+      const is4_7 = pathLower.includes("4-7") || pathLower.includes("4_7") || pathLower.includes("4x7") || labelLower.includes("4-7") || labelLower.includes("4x7");
+
+      // Zawsze umieszczamy zaciski w 4 rzędach: L1, L2, L3, N
+      // Wszystkie przewody wychodzą od spodu bloku i układają się
+      // obok siebie z minimalnym odstępem. Rzędy bliżej góry bloku
+      // (L1, L2) mają większy exitOffset, żeby przewody z różnych
+      // rzędów nie kolidowały i tworzyły estetyczny pęk pod blokiem.
+      let yRatios = [0.38, 0.56, 0.73, 0.91]; // Domyślne dla innych bloków 4x
+      let paddingX = 0.08;
+      
+      const is7Pin = cols === 7 && (pathLower.includes("7 pin") || pathLower.includes("7pin"));
+
+      const types: ("phase" | "neutral")[] = ["phase", "phase", "phase", "neutral"];
+      const prefixes = ["L1", "L2", "L3", "N"];
+      
+      const exactYCoords = [420, 615, 810, 1005];
+      const exactXCoords = [180, 280, 380, 480, 580, 680, 780];
+
+      // Ratios for 4-7 custom block
+      const yRatios4_7 = [242.834 / 1148, 443.996 / 1148, 668.001 / 1148, 869.163 / 1148];
+      const xRatios4_7 = [
+        172.025 / 841,
+        254.805 / 841,
+        337.546 / 841,
+        420.287 / 841,
+        503.066 / 841,
+        585.807 / 841,
+        669.001 / 841
+      ];
+      const rRatio4_7 = 23.622 / 841;
+
+      // We use meet scaling for Blok rozdzielczy even in fallback if it matches 4-7 dimensions
+      // standard viewBox width = 841, height = 1148
+      const vbWidth = 841;
+      const vbHeight = 1148;
+      const scale = Math.min(width / vbWidth, height / vbHeight);
+      const dx = (width - vbWidth * scale) / 2;
+      const dy = (height - vbHeight * scale) / 2;
+
+      // Marginesy dla exitOffset poniżej dolnej krawędzi bloku.
+      // exitOffset musi być >= (height - yPos), żeby punkt wyjścia trasy
+      // wypadł poniżej dolnej krawędzi bloku. Następnie dodajemy:
+      //   BASE_MARGIN – minimalny dystans pod krawędzią
+      //   (3 - r) * STAGGER – rozstaggerowanie rzędów (L1 najdalej, N najbliżej)
+      const BASE_MARGIN = 40;   // px poniżej dolnej krawędzi bloku
+      const ROW_STAGGER = 35;   // px odstępu między rzędami pod blokiem
+
+      for (let r = 0; r < 4; r++) {
+        const type = types[r];
+        const prefix = prefixes[r];
+        
+        for (let c = 0; c < cols; c++) {
+          let xPos, yPos, radius;
+          if (is4_7) {
+            // Perfect scale for 4-7
+            xPos = dx + xRatios4_7[c] * vbWidth * scale;
+            yPos = dy + yRatios4_7[r] * vbHeight * scale;
+            radius = rRatio4_7 * vbWidth * scale;
+          } else {
+            // standard fallback
+            yPos = is7Pin ? exactYCoords[r] : height * yRatios[r];
+            xPos = is7Pin ? exactXCoords[c] : width * (paddingX + (1 - 2 * paddingX) * (c / Math.max(1, cols - 1)));
+            radius = undefined;
+          }
+          
+          // exitOffset = odległość od zacisku do dolnej krawędzi (height - yPos)
+          //            + BASE_MARGIN (żeby wyjść poza blok)
+          //            + stagger (L1 schodzi najdalej, N najbliżej)
+          // Gwarantuje, że punkt wyjścia trasy jest ZAWSZE poniżej bloku.
+          const rowExitOffset = (height - yPos) + BASE_MARGIN + (3 - r) * ROW_STAGGER;
+
+          hotspots.push({
+            name: `${prefix}-${c + 1}`,
+            x: xPos,
+            y: yPos,
+            type: type,
+            isTop: false,
+            direction: "bottom",
+            visualInset: height - yPos,
+            radius: radius,
+            // Każdy rząd wychodzi na inną głębokość pod blokiem:
+            // L1 (r=0) najdalej, N (r=3) najbliżej dolnej krawędzi.
+            exitOffset: rowExitOffset
+          });
+        }
       }
     } else if ((normalizePathText(symbol.moduleRef || "").includes("listwy do rozdzielnicy") || normalizePathText(symbol.visualPath || "").includes("listwy do rozdzielnicy")) && pins > 2) {
       // Nowe poziome listwy do rozdzielnicy (np. 15 pin)
@@ -352,3 +546,8 @@ export function getSymbolTerminals(symbol: SymbolItem): TerminalHotspot[] {
 
   return hotspots;
 }
+
+export function findTerminalByName(terminals: TerminalHotspot[], terminalName: string, isTop?: boolean): TerminalHotspot | undefined {
+  return terminals.find(t => t.name === terminalName && (isTop === undefined || t.isTop === isTop)) || terminals.find(t => t.name === terminalName);
+}
+

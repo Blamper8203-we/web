@@ -1,7 +1,9 @@
 import type { CircuitTypeValue, DeviceKind, PhaseAssignment } from "../../types/symbolItem";
 import type { PaletteGroup, PaletteTemplate } from "./moduleCatalog";
 import { getModuleAssetUrl, MODULE_PX_PER_MM, MODULE_UNIT_MM_WIDTH } from "./moduleCatalog";
+import { safeGetItemSync, safeSetItem, safeRemoveItem } from "../storageService";
 import { reportRuntimeError } from "../runtimeDiagnostics";
+import { detectTerminalBlockPinPositions, serialisePinPositions } from "./svgNormalization";
 
 const IMPORTED_MODULES_STORAGE_KEY = "dinboard.importedModules";
 const IMPORTED_MODULES_CATALOG_VERSION_KEY = "dinboard.importedModules.catalogVersion";
@@ -84,14 +86,13 @@ function ensureImportedModulesCatalogVersion(): void {
     return;
   }
 
-  const currentVersion = window.localStorage.getItem(IMPORTED_MODULES_CATALOG_VERSION_KEY);
+  const currentVersion = safeGetItemSync(IMPORTED_MODULES_CATALOG_VERSION_KEY);
   if (currentVersion === IMPORTED_MODULES_CATALOG_VERSION) {
     return;
   }
-
-  window.localStorage.removeItem(IMPORTED_MODULES_STORAGE_KEY);
-  window.localStorage.removeItem(HIDDEN_PALETTE_TEMPLATE_IDS_STORAGE_KEY);
-  window.localStorage.setItem(IMPORTED_MODULES_CATALOG_VERSION_KEY, IMPORTED_MODULES_CATALOG_VERSION);
+  safeRemoveItem(IMPORTED_MODULES_STORAGE_KEY);
+  safeRemoveItem(HIDDEN_PALETTE_TEMPLATE_IDS_STORAGE_KEY);
+  safeSetItem(IMPORTED_MODULES_CATALOG_VERSION_KEY, IMPORTED_MODULES_CATALOG_VERSION);
 }
 
 function parseSvgDimensions(svgMarkup: string): SvgDimensions | null {
@@ -259,6 +260,7 @@ function detectDeviceKind(category: string): DeviceKind {
       return "phaseIndicator";
     case "Listwy zaciskowe":
     case "Z\u0142\u0105cza":
+    case "Blok rozdzielczy":
       return "terminalBlock";
     default:
       return "other";
@@ -302,6 +304,25 @@ export function deriveImportTraits(category: string, fileName = "") {
     type: detectType(category),
     defaultHeightMm: CATEGORY_DEFAULT_HEIGHT_MM[category],
   };
+}
+
+/**
+ * For terminal block modules, detect screw positions from the SVG
+ * and store them in parameters as a serialised string.
+ */
+function storeTerminalBlockPinPositions(
+  parameters: Record<string, string>,
+  rawSvg: string,
+  deviceKind: DeviceKind,
+): void {
+  if (deviceKind !== "terminalBlock") {
+    return;
+  }
+
+  const positions = detectTerminalBlockPinPositions(rawSvg);
+  if (positions.length >= 2) {
+    parameters["_TERMINAL_PIN_POSITIONS"] = serialisePinPositions(positions);
+  }
 }
 
 function detectCircuitType(category: string): CircuitTypeValue | undefined {
@@ -652,6 +673,7 @@ function buildPendingSvgImportItem(
     ? calculateModulesFromWidthMm(explicitMmDimensions.widthMm)
     : detectedModules;
   const parameters = extractPlaceholderDefaults(normalizedSvg, category);
+  storeTerminalBlockPinPositions(parameters, normalizedSvg, detectDeviceKind(category));
   const id = crypto.randomUUID();
   const code = safeName;
   const duplicateKey = `${category}::${code}`.toLocaleLowerCase("pl-PL");
@@ -748,8 +770,10 @@ export function buildDiscoveredModuleDefinition(
   const heightMm = explicitMmDimensions?.heightMm ?? calculateDefaultHeightMm(category, modules, svgDimensions);
   const customWidth = Math.round(widthMm * MODULE_PX_PER_MM * 100) / 100;
   const customHeight = Math.round(heightMm * MODULE_PX_PER_MM * 100) / 100;
+  const deviceKind = detectDeviceKind(category);
+  const parameters = extractPlaceholderDefaults(normalizedSvg, category);
 
-  return {
+  const definition: ImportedModuleDefinition = {
     id: `catalog-${buildStableImportedModuleId(asset.moduleRef)}`,
     code: safeName,
     label: safeName,
@@ -757,7 +781,7 @@ export function buildDiscoveredModuleDefinition(
     modules,
     widthMm,
     heightMm,
-    deviceKind: detectDeviceKind(category),
+    deviceKind,
     type: detectType(category),
     phase: detectPhase(category, asset.fileName),
     moduleRef: asset.moduleRef,
@@ -766,11 +790,16 @@ export function buildDiscoveredModuleDefinition(
     assetPath: buildDiscoveredModuleAssetPath(asset.moduleRef, buildDiscoveredModuleAssetVersion(asset)),
     customWidth,
     customHeight,
-    parameters: extractPlaceholderDefaults(normalizedSvg, category),
+    parameters,
     rcdRatedCurrent: detectRcdRatedCurrent(asset.fileName, category),
     rcdResidualCurrent: detectRcdResidualCurrent(asset.fileName, category),
     rcdType: detectRcdType(asset.fileName, category),
   };
+
+  // Detect terminal block pin positions for discovered terminal modules
+  storeTerminalBlockPinPositions(definition.parameters, normalizedSvg, deviceKind);
+
+  return definition;
 }
 
 export async function savePendingSvgImportsToDirectory(
@@ -793,7 +822,7 @@ export function loadImportedModules(): ImportedModuleDefinition[] {
 
   try {
     ensureImportedModulesCatalogVersion();
-    const raw = window.localStorage.getItem(IMPORTED_MODULES_STORAGE_KEY);
+    const raw = safeGetItemSync(IMPORTED_MODULES_STORAGE_KEY);
     if (!raw) {
       return [];
     }
@@ -822,7 +851,7 @@ export function saveImportedModules(modules: ImportedModuleDefinition[]) {
 
   try {
     ensureImportedModulesCatalogVersion();
-    window.localStorage.setItem(IMPORTED_MODULES_STORAGE_KEY, JSON.stringify(modules));
+    safeSetItem(IMPORTED_MODULES_STORAGE_KEY, JSON.stringify(modules));
   } catch (error) {
     reportRuntimeError(error, {
       source: "unhandled-error",

@@ -4,6 +4,7 @@ import {
   calculateTotalDistribution,
   distributePower,
 } from "../phaseDistribution/phaseDistributionCalculator";
+import { isMainBreaker, isThreePhaseDevice } from "../deviceIdentification";
 
 export type ValidationSeverity = "Error" | "Warning" | "Info";
 
@@ -323,9 +324,7 @@ function validateMainOverload(
   phaseVoltage: number,
   configuredMainBreakerA?: number,
 ): void {
-  const mainBreakers = symbols.filter(
-    (s) => s.type.toUpperCase().includes("FR") || s.type.toUpperCase().includes("SWITCH"),
-  );
+  const mainBreakers = symbols.filter(isMainBreaker);
 
   const phaseCurrents = calculateCircuitPhaseCurrents(symbols, phaseVoltage);
   const maxPhaseCurrent = Math.max(phaseCurrents.l1CurrentA, phaseCurrents.l2CurrentA, phaseCurrents.l3CurrentA);
@@ -555,7 +554,7 @@ function validateMainProtectionCoordination(
 ): void {
   const mainRatings = [
     ...symbols
-      .filter((symbol) => symbol.type.toUpperCase().includes("FR") || symbol.type.toUpperCase().includes("SWITCH"))
+      .filter(isMainBreaker)
       .map((symbol) => ({ rating: parseProtectionRating(symbol.frRatedCurrent), symbolId: symbol.id })),
     ...(configuredMainBreakerA && configuredMainBreakerA > 0
       ? [{ rating: configuredMainBreakerA, symbolId: undefined }]
@@ -639,17 +638,7 @@ function calculateCircuitPhaseCurrents(
 }
 
 function isThreePhaseRcd(rcd: SymbolItem): boolean {
-  const identity = normalizeValidationText(rcd.type, rcd.label, rcd.moduleRef, rcd.visualPath);
-  const phase = (rcd.phase || "").toUpperCase();
-
-  return (
-    phase === "L1+L2+L3" ||
-    phase === "3F" ||
-    identity.includes("3P+N") ||
-    identity.includes("3P N") ||
-    identity.includes("4P") ||
-    identity.includes("3P")
-  );
+  return isThreePhaseDevice(rcd);
 }
 
 function normalizeSinglePhase(phase: string | undefined | null): "L1" | "L2" | "L3" | null {

@@ -42,7 +42,10 @@ function areConnectionsEqual(first: ConnectionItem[] | undefined, second: Connec
       a.customOffsetY2 !== b.customOffsetY2 ||
       a.isFromTop !== b.isFromTop ||
       a.isToTop !== b.isToTop ||
-      a.customRadius !== b.customRadius
+      a.customRadius !== b.customRadius ||
+      a.ferruleColor !== b.ferruleColor ||
+      a.fromDirection !== b.fromDirection ||
+      a.toDirection !== b.toDirection
     ) {
       return false;
     }

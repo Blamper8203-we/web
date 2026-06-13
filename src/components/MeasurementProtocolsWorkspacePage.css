@@ -383,6 +383,61 @@ label:hover .mp-delete-btn {
   opacity: 1;
 }
 
+/* ================================================================
+   Responsive: dostosowanie A4 preview do mobile
+   ================================================================ */
+
+@media (max-width: 900px) {
+  .a4-page {
+    width: min(210mm, calc(100vw - 32px));
+    height: auto;
+    padding: 8mm;
+  }
+
+  .a4-page--landscape {
+    width: min(297mm, calc(100vw - 32px));
+    height: auto;
+    padding: 6mm;
+  }
+
+  .mp-stage {
+    padding: 12px 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  .a4-page {
+    width: calc(100vw - 16px);
+    height: auto;
+    padding: 6mm 4mm;
+  }
+
+  .a4-page--landscape {
+    width: calc(100vw - 16px);
+    height: auto;
+    padding: 4mm;
+  }
+
+  .mp-stage {
+    padding: 8px 4px;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mp-din-rail-preview-frame {
+    min-height: 120mm;
+    padding: 5mm;
+  }
+
+  .mp-din-rail-preview-image {
+    max-height: 100mm;
+  }
+
+  .mp-din-rail-preview-empty {
+    min-height: 80mm;
+  }
+}
+
 /* Missing utility classes for logo upload */
 .hidden { display: none; }
 .absolute { position: absolute; }
