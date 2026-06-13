@@ -41,11 +41,35 @@ import {
   DinRailZoomToolbar,
 } from "./dinRailUiParts";
 import { AppIcon } from "./AppIcon";
-
-const DIN_RAIL_PREVIEW_CANVAS_WIDTH = 360;
-const DIN_RAIL_PREVIEW_CANVAS_HEIGHT = 280;
-const DIN_RAIL_PREVIEW_MARGIN_X = 40;
-const DIN_RAIL_PREVIEW_MARGIN_Y = 28;
+import {
+  DEFAULT_CONFIG,
+  DIN_RAIL_PREVIEW_CANVAS_WIDTH,
+  DIN_RAIL_PREVIEW_CANVAS_HEIGHT,
+  DIN_RAIL_PREVIEW_MARGIN_X,
+  DIN_RAIL_PREVIEW_MARGIN_Y,
+  MAX_INITIAL_SCALE,
+  MAX_SCALE,
+  MIN_SCALE,
+  PIXI_LABEL_SYMBOL_LIMIT,
+  PIXI_MAX_RESOLUTION,
+  WIRE_COLORS_MAP,
+  WIRE_THICKNESS_MAP,
+} from "../lib/dinRailCanvas/constants";
+import {
+  buildWorldRectStyle,
+  clamp,
+  expandRect,
+  getSymbolDesignationLabel,
+  measureSvgNormalizedRect,
+  sameNormalizedRect,
+  worldRectFromNormalizedRect,
+} from "../lib/dinRailCanvas/geometry";
+import type {
+  InteractionState,
+  NormalizedRect,
+  WorldPoint,
+  WorldRect,
+} from "../lib/dinRailCanvas/types";
 
 export interface DinRailCanvasRail {
   config: DinRailConfig;
@@ -94,173 +118,6 @@ interface DinRailCanvasProps {
   showGroups?: boolean;
   onRequestLeftPanelTab?: (tabName: string) => void;
 }
-
-interface WorldRect {
-  height: number;
-  width: number;
-  x: number;
-  y: number;
-}
-
-interface WorldPoint {
-  x: number;
-  y: number;
-}
-
-interface NormalizedRect {
-  height: number;
-  width: number;
-  x: number;
-  y: number;
-}
-
-type InteractionState =
-  | { mode: "idle" }
-  | { lastX: number; lastY: number; mode: "pan" }
-  | {
-    anchorWorld: WorldPoint;
-    mode: "select";
-  }
-  | {
-    anchorId: string;
-    anchorRectStart: WorldRect;
-    dragIds: string[];
-    mode: "drag";
-    pointerWorldStart: WorldPoint;
-    startPositions: Map<string, WorldPoint>;
-  };
-
-const DEFAULT_CONFIG: DinRailConfig = { rows: 1, modulesPerRow: 24 };
-const MAX_INITIAL_SCALE = 0.25;
-const MIN_SCALE = 0.1;
-const MAX_SCALE = 5;
-const PIXI_MAX_RESOLUTION = 2;
-const PIXI_LABEL_SYMBOL_LIMIT = 64;
-const MANUAL_REFERENCE_DESIGNATION_KEY = "ManualReferenceDesignation";
-
-const WIRE_COLORS_MAP: Record<string, { hex: string; highlight: string; dark: string }> = {
-  black: { hex: "#333333", highlight: "#666666", dark: "#000000" }, // L2
-  brown: { hex: "#8B4513", highlight: "#c4763a", dark: "#4a2007" }, // L1
-  grey: { hex: "#888888", highlight: "#bbbbbb", dark: "#555555" },  // L3
-  gray: { hex: "#888888", highlight: "#bbbbbb", dark: "#555555" },  // L3
-  blue: { hex: "#1565C0", highlight: "#4a9ed6", dark: "#0a2f6b" },  // N
-  "green-yellow": { hex: "#2e7d32", highlight: "#5ab55e", dark: "#143b16" }, // PE
-  pe: { hex: "#2e7d32", highlight: "#5ab55e", dark: "#143b16" }, // PE
-  red: { hex: "#ef4444", highlight: "#f87171", dark: "#991b1b" },
-  other: { hex: "#a855f7", highlight: "#c084fc", dark: "#6b21a8" },
-};
-
-const WIRE_THICKNESS_MAP: Record<number, number> = {
-  1.5: 24.0,
-  2.5: 30.0,
-  4.0: 36.0,
-  6.0: 42.0,
-  10.0: 50.0,
-  16.0: 60.0,
-};
-
-function clamp(value: number, min: number, max: number) {
-  return Math.max(min, Math.min(value, Math.max(min, max)));
-}
-
-function buildWorldRectStyle(rect: WorldRect): React.CSSProperties {
-  return {
-    position: "absolute",
-    left: `${rect.x}px`,
-    top: `${rect.y}px`,
-    width: `${rect.width}px`,
-    height: `${rect.height}px`,
-  };
-}
-
-function expandRect(rect: WorldRect, padding: number): WorldRect {
-  return {
-    x: rect.x - padding,
-    y: rect.y - padding,
-    width: rect.width + padding * 2,
-    height: rect.height + padding * 2,
-  };
-}
-
-function measureSvgNormalizedRect(node: HTMLDivElement): NormalizedRect | null {
-  const svg = node.querySelector("svg");
-  if (!(svg instanceof SVGSVGElement)) {
-    return null;
-  }
-
-  const viewBox = svg.viewBox?.baseVal;
-  if (!viewBox || viewBox.width <= 0 || viewBox.height <= 0) {
-    return null;
-  }
-
-  try {
-    const bbox = svg.getBBox();
-    if (bbox.width <= 0 || bbox.height <= 0) {
-      return null;
-    }
-
-    const normalized: NormalizedRect = {
-      x: (bbox.x - viewBox.x) / viewBox.width,
-      y: (bbox.y - viewBox.y) / viewBox.height,
-      width: bbox.width / viewBox.width,
-      height: bbox.height / viewBox.height,
-    };
-
-    if (
-      !Number.isFinite(normalized.x)
-      || !Number.isFinite(normalized.y)
-      || !Number.isFinite(normalized.width)
-      || !Number.isFinite(normalized.height)
-      || normalized.width <= 0
-      || normalized.height <= 0
-    ) {
-      return null;
-    }
-
-    return normalized;
-  } catch {
-    return null;
-  }
-}
-
-function worldRectFromNormalizedRect(symbol: SymbolItem, normalized: NormalizedRect): WorldRect {
-  return {
-    x: symbol.x + normalized.x * symbol.width,
-    y: symbol.y + normalized.y * symbol.height,
-    width: normalized.width * symbol.width,
-    height: normalized.height * symbol.height,
-  };
-}
-
-function sameNormalizedRect(left: NormalizedRect, right: NormalizedRect): boolean {
-  return left.x === right.x
-    && left.y === right.y
-    && left.width === right.width
-    && left.height === right.height;
-}
-
-function getSymbolDesignationLabel(
-  symbol: SymbolItem,
-  automaticDesignationBySymbolId: Map<string, string>,
-): string {
-  const manualDesignation = symbol.referenceDesignation.trim();
-  const isManualDesignation =
-    symbol.parameters[MANUAL_REFERENCE_DESIGNATION_KEY]?.toLocaleLowerCase("pl-PL") === "true";
-
-  if (isManualDesignation && manualDesignation.length > 0) {
-    return manualDesignation;
-  }
-
-  // For terminal blocks and distribution blocks, use the pre-computed displayModuleNumber
-  // which contains the correct prefix (N1, PE1, BL1, X1)
-  if (isAuxiliaryNonCircuitSymbol(symbol)) {
-    return symbol.displayModuleNumber || manualDesignation;
-  }
-
-  return automaticDesignationBySymbolId.get(symbol.id) ?? "";
-}
-
-
 
 export function DinRailCanvas({
   getPaletteTemplate,
