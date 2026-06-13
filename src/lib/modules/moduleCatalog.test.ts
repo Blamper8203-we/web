@@ -103,3 +103,71 @@ describe("getSymbolTerminals for 28-pin block", () => {
     expect(n_7?.x).toBe(780);
   });
 });
+
+import { svgTerminalCache } from "./svgTerminalCache";
+
+describe("getSymbolTerminals uniform scaling (meet) for custom block", () => {
+  it("calculates terminal positions and radiuses using meet scaling", () => {
+    const moduleRef = "Blok rozdzielczy/blok rozdzielczy 4-7.svg";
+    const groups = [
+      {
+        prefix: "L1",
+        viewBoxWidth: 841,
+        viewBoxHeight: 1148,
+        terminals: [
+          {
+            name: "L1-1",
+            xRatio: 172.025 / 841,
+            yRatio: 242.834 / 1148,
+            rRatio: 23.622 / 841,
+          },
+        ],
+      },
+    ];
+    svgTerminalCache.set(moduleRef, groups);
+
+    const symbol = createDefaultSymbolItem({
+      type: "Blok rozdzielczy",
+      moduleRef: moduleRef,
+      width: 1395.48,
+      height: 1170,
+    });
+
+    const terminals = getSymbolTerminals(symbol);
+    expect(terminals.length).toBe(1);
+
+    const l1_1 = terminals[0]!;
+    expect(l1_1.name).toBe("L1-1");
+    // scale = Math.min(1395.48 / 841, 1170 / 1148) = 1170 / 1148 = 1.01916376
+    // dx = (1395.48 - 841 * scale) / 2 = (1395.48 - 857.1167) / 2 = 269.1816
+    // dy = (1170 - 1148 * scale) / 2 = 0
+    // x = dx + cx * scale = 269.1816 + 172.025 * 1.01916376 = 269.1816 + 175.3216 = 444.503
+    // y = dy + cy * scale = 0 + 242.834 * 1.01916376 = 247.487
+    // radius = r * scale = 23.622 * 1.01916376 = 24.0747
+    expect(l1_1.x).toBeCloseTo(444.503, 1);
+    expect(l1_1.y).toBeCloseTo(247.487, 1);
+    expect(l1_1.radius).toBeCloseTo(24.0747, 1);
+  });
+});
+
+import { parseSvgForTerminals } from "./svgTerminalParser";
+
+describe("parseSvgForTerminals with data URI", () => {
+  it("decodes and parses a UTF-8 encoded SVG data URI", async () => {
+    const rawSvg = `<svg viewBox="0 0 100 200"><g id="Grupa-L1"><circle cx="20" cy="30" r="5" /></g></svg>`;
+    const dataUri = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(rawSvg)}`;
+    const cacheKey = "imported/test-uuid/custom-block.svg";
+
+    await parseSvgForTerminals(dataUri, cacheKey);
+
+    const cached = svgTerminalCache.get(cacheKey);
+    expect(cached).toBeDefined();
+    expect(cached?.length).toBe(1);
+    expect(cached?.[0].prefix).toBe("L1");
+    expect(cached?.[0].viewBoxWidth).toBe(100);
+    expect(cached?.[0].viewBoxHeight).toBe(200);
+    expect(cached?.[0].terminals[0].name).toBe("L1-1");
+    expect(cached?.[0].terminals[0].xRatio).toBe(20 / 100);
+    expect(cached?.[0].terminals[0].yRatio).toBe(30 / 200);
+  });
+});

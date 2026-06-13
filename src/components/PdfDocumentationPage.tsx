@@ -6,26 +6,14 @@ import {
   updateSelectedProtocolHeader,
 } from "../lib/pdfDocumentation";
 import type { MeasurementProtocolHeaderSettings, ProjectMetadata, TitlePageChecklistItem } from "../types/projectMetadata";
-import type { SymbolItem } from "../types/symbolItem";
 import { AppIcon } from "./AppIcon";
 import { exportToPdf } from "../lib/export/pdfExportService";
 import {
   DEFAULT_ATTACHMENT_ITEMS,
   DEFAULT_WORK_SCOPE_ITEMS,
 } from "../lib/projectMetadata";
-import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
-import type { ConnectionItem } from "../types/connectionItem";
+import { usePdfWorkspace } from "./PdfWorkspaceShell";
 import "./PdfDocumentationPage.css";
-
-type PdfDocumentationPageProps = {
-  metadata: ProjectMetadata;
-  symbols: SymbolItem[];
-  rail: DinRailCanvasRail;
-  connections: ConnectionItem[];
-  onChange: (next: ProjectMetadata) => void;
-  onResetDocumentation: () => void;
-  selectedPreviewTab: PdfDocumentationPreviewTab;
-};
 
 type FieldProps = {
   label: string;
@@ -104,17 +92,16 @@ function parseChecklistItems(value: string): TitlePageChecklistItem[] {
     });
 }
 
-
-
-export function PdfDocumentationPage({
-  metadata,
-  symbols,
-  rail,
-  connections,
-  onChange,
-  onResetDocumentation: _onResetDocumentation,
-  selectedPreviewTab,
-}: PdfDocumentationPageProps) {
+export function PdfDocumentationPage() {
+  const {
+    metadata,
+    symbols,
+    dinRail: rail,
+    connections,
+    handleMetadataChange: onChange,
+    handleResetDocumentation: _onResetDocumentation,
+    pdfPreviewTab: selectedPreviewTab,
+  } = usePdfWorkspace();
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
   const logoInputRef = useRef<HTMLInputElement | null>(null);

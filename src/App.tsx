@@ -1,5 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, useTransition, Suspense, lazy } from "react";
-import type { PdfDocumentationPreviewTab } from "./lib/pdfDocumentation";
+import { useEffect, useState, useCallback, useMemo, Suspense, lazy } from "react";
 import type { DinRailCanvasRail } from "./components/DinRailCanvasPixi";
 import { AppHeader } from "./components/AppHeader";
 import { AppRightPanel } from "./components/AppRightPanel";
@@ -28,7 +27,7 @@ import {
   type SheetType,
   type RightTab,
 } from "./lib/appHelpers";
-import { createDefaultSymbolItem, normalizeSymbolItems } from "./types/symbolItem";
+import { normalizeSymbolItems } from "./types/symbolItem";
 import { useSymbolHistory } from "./hooks/useSymbolHistory";
 import { useSymbolActions } from "./hooks/useSymbolActions";
 import { useProjectActions } from "./hooks/useProjectActions";
@@ -37,9 +36,11 @@ import { useImportedModules } from "./hooks/useImportedModules";
 import { useSheetPanelState } from "./hooks/useSheetPanelState";
 import { useDialogState } from "./hooks/useDialogState";
 import { useSchematicState } from "./hooks/useSchematicState";
+import { useDebouncedPersist } from "./hooks/useDebouncedPersist";
+import { applyRcdManagerUpdates } from "./lib/circuitEdit/rcdManagerLogic";
 import type { ProjectMetadata } from "./types/projectMetadata";
 import type { SymbolItem } from "./types/symbolItem";
-import type { ConnectionItem, WireColor, WireType, RoutingMode } from "./types/connectionItem";
+import type { ConnectionItem, WireColor, WireType, RoutingMode, FerruleColor } from "./types/connectionItem";
 import { PublicLandingPage } from "./components/PublicLandingPage";
 import { FeedbackModal } from "./components/FeedbackModal";
 import "./App.css";
@@ -66,7 +67,8 @@ function normalizeRoutePath(pathname: string): "/" | "/app" {
 
 function loadUiTheme(): AppUiTheme {
   try {
-    return window.localStorage.getItem(UI_THEME_STORAGE_KEY) === "classic" ? "classic" : "modern";
+    const value = safeGetItemSync(UI_THEME_STORAGE_KEY);
+    return value === "classic" ? "classic" : "modern";
   } catch {
     return "modern";
   }
@@ -74,6 +76,7 @@ function loadUiTheme(): AppUiTheme {
 
 import type { ProjectFileData } from "./lib/projectFile";
 import { openProjectFile } from "./lib/projectFile";
+import { safeGetItemSync, safeSetItem, initStorageService } from "./lib/storageService";
 
 function AppWorkspace({
   initialAction,
@@ -86,11 +89,11 @@ function AppWorkspace({
 }) {
   // ── Core state ───────────────────────────────────────────────────────────────
   const [metadata, setMetadata] = useState<ProjectMetadata>(() => loadProjectMetadata());
-  const [symbols, setSymbols] = useState<SymbolItem[]>(() => {
+    const [symbols, setSymbols] = useState<SymbolItem[]>(() => {
     try {
       const raw =
-        window.localStorage.getItem(SYMBOLS_STORAGE_KEY) ??
-        window.localStorage.getItem(LEGACY_SYMBOLS_STORAGE_KEY);
+        safeGetItemSync(SYMBOLS_STORAGE_KEY) ??
+        safeGetItemSync(LEGACY_SYMBOLS_STORAGE_KEY);
       if (raw) {
         const normalized = normalizeSymbolItems(JSON.parse(raw) as Partial<SymbolItem>[]);
         if (normalized.length > 0) return normalized;
@@ -100,7 +103,7 @@ function AppWorkspace({
   });
   const [connections, setConnections] = useState<ConnectionItem[]>(() => {
     try {
-      const raw = window.localStorage.getItem(CONNECTIONS_STORAGE_KEY);
+      const raw = safeGetItemSync(CONNECTIONS_STORAGE_KEY);
       if (raw) return JSON.parse(raw) as ConnectionItem[];
     } catch { /* ignore */ }
     return [];
@@ -110,9 +113,10 @@ function AppWorkspace({
     wireCrossSection: number;
     wireType: WireType;
     routingMode: RoutingMode;
+    ferruleColor?: FerruleColor;
   }>(() => {
     try {
-      const raw = window.localStorage.getItem("dinboard.default_wire_settings");
+      const raw = safeGetItemSync("dinboard.default_wire_settings");
       if (raw) return JSON.parse(raw);
     } catch { /* ignore */ }
     return {
@@ -120,6 +124,7 @@ function AppWorkspace({
       wireCrossSection: 2.5,
       wireType: "LgY",
       routingMode: "manhattan",
+      ferruleColor: "none",
     };
   });
   const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
@@ -147,8 +152,7 @@ function AppWorkspace({
     const sheetPanel = useSheetPanelState();
     const dialog = useDialogState();
     const schematic = useSchematicState();
-    const [pdfPreviewTab, setPdfPreviewTab] = useState<PdfDocumentationPreviewTab>("title-page");
-    const [, startPdfTabTransition] = useTransition();
+
 
   // ── Hooks ─────────────────────────────────────────────────────────────────────
   const {
@@ -226,7 +230,7 @@ function AppWorkspace({
 
   const { paletteContextMenu, setPaletteContextMenu,
         pendingPaletteRemoval, setPendingPaletteRemoval,
-        handlePaletteDrop, handleUnsupportedDinRailDrop, handleConfirmPaletteRemoval,
+        handlePaletteDrop, handlePaletteInsert, handleUnsupportedDinRailDrop, handleConfirmPaletteRemoval,
   } = usePaletteActions({
         symbols, paletteTemplateMap, dinRail, activeSheet: sheetPanel.activeSheet,
         selectedSymbol, selectedSymbolId, selectedSymbolIds,
@@ -293,91 +297,22 @@ function AppWorkspace({
     dialog.setUnsavedChangesActionType(null);
     }, []);
 
+    // ── Inicjalizacja storage (tylko Capacitor) ──────────────────────────────────
+  useEffect(() => {
+    initStorageService();
+  }, []);
+
   // ── Persistence ───────────────────────────────────────────────────────────────
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      try {
-        window.localStorage.setItem(PROJECT_METADATA_STORAGE_KEY, JSON.stringify(metadata));
-      } catch (error) {
-        reportRuntimeError(error, {
-          source: "unhandled-error",
-        });
-      }
-    }, LOCAL_STORAGE_WRITE_DEBOUNCE_MS);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [metadata]);
+  useDebouncedPersist(PROJECT_METADATA_STORAGE_KEY, metadata, LOCAL_STORAGE_WRITE_DEBOUNCE_MS);
+  useDebouncedPersist(SYMBOLS_STORAGE_KEY, symbols, LOCAL_STORAGE_WRITE_DEBOUNCE_MS);
+  useDebouncedPersist(CONNECTIONS_STORAGE_KEY, connections, LOCAL_STORAGE_WRITE_DEBOUNCE_MS);
+  useDebouncedPersist("dinboard.default_wire_settings", defaultWireSettings, LOCAL_STORAGE_WRITE_DEBOUNCE_MS);
+  useDebouncedPersist("dinboard.show_din_rail_groups", sheetPanel.showDinRailGroups, LOCAL_STORAGE_WRITE_DEBOUNCE_MS);
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      try {
-        window.localStorage.setItem(SYMBOLS_STORAGE_KEY, JSON.stringify(symbols));
-      } catch (error) {
-        reportRuntimeError(error, {
-          source: "unhandled-error",
-        });
-      }
-    }, LOCAL_STORAGE_WRITE_DEBOUNCE_MS);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [symbols]);
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      try {
-        window.localStorage.setItem(CONNECTIONS_STORAGE_KEY, JSON.stringify(connections));
-      } catch (error) {
-        reportRuntimeError(error, {
-          source: "unhandled-error",
-        });
-      }
-    }, LOCAL_STORAGE_WRITE_DEBOUNCE_MS);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [connections]);
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      try {
-        window.localStorage.setItem(
-          "dinboard.default_wire_settings",
-          JSON.stringify(defaultWireSettings)
-        );
-      } catch (error) {
-        reportRuntimeError(error, {
-          source: "unhandled-error",
-        });
-      }
-    }, LOCAL_STORAGE_WRITE_DEBOUNCE_MS);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [defaultWireSettings]);
-
-    useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      try {
-        window.localStorage.setItem(
-          "dinboard.show_din_rail_groups",
-          JSON.stringify(sheetPanel.showDinRailGroups),
-        );
-      } catch (error) {
-        reportRuntimeError(error, {
-          source: "unhandled-error",
-        });
-      }
-    }, LOCAL_STORAGE_WRITE_DEBOUNCE_MS);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [sheetPanel.showDinRailGroups]);
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(UI_THEME_STORAGE_KEY, uiTheme);
-    } catch (error) {
-      reportRuntimeError(error, {
-        source: "unhandled-error",
-      });
-    }
+    safeSetItem(UI_THEME_STORAGE_KEY, uiTheme).catch((error) =>
+      reportRuntimeError(error, { source: "unhandled-error" })
+    );
   }, [uiTheme]);
 
   useEffect(() => {
@@ -475,39 +410,7 @@ function AppWorkspace({
 
   const handleSaveRcdManager = useCallback(
     (entries: RcdManagerEntry[]) => {
-      const rcdById = new Map(entries.map((entry) => [entry.id, entry] as const));
-
-      const nextSymbols = symbols.map((symbol) => {
-        if (symbol.deviceKind === "rcd") {
-          const nextRcd = rcdById.get(symbol.id);
-          if (!nextRcd) {
-            return symbol;
-          }
-
-          return createDefaultSymbolItem({
-            ...symbol,
-            rcdRatedCurrent: Math.max(1, Math.round(nextRcd.rcdRatedCurrent)),
-            rcdResidualCurrent: Math.max(1, Math.round(nextRcd.rcdResidualCurrent)),
-            rcdType: nextRcd.rcdType.trim().toUpperCase() || "A",
-          });
-        }
-
-        if (symbol.rcdSymbolId) {
-          const parentRcd = rcdById.get(symbol.rcdSymbolId);
-          if (!parentRcd) {
-            return symbol;
-          }
-
-          return createDefaultSymbolItem({
-            ...symbol,
-            rcdRatedCurrent: Math.max(1, Math.round(parentRcd.rcdRatedCurrent)),
-            rcdResidualCurrent: Math.max(1, Math.round(parentRcd.rcdResidualCurrent)),
-            rcdType: parentRcd.rcdType.trim().toUpperCase() || "A",
-          });
-        }
-
-        return symbol;
-      });
+      const nextSymbols = applyRcdManagerUpdates(symbols, entries);
 
       const changed = history.executeSymbolsCommand(
         "Zarządzanie RCD",
@@ -610,11 +513,9 @@ function AppWorkspace({
               dinRail={dinRail}
               circuitRows={circuitRows}
               connections={connections}
-              pdfPreviewTab={pdfPreviewTab}
-              setPdfPreviewTab={setPdfPreviewTab}
-              startPdfTabTransition={startPdfTabTransition}
               handleMetadataChange={handleMetadataChange}
               handleResetDocumentation={handleResetDocumentation}
+              showLeftPanel={sheetPanel.showLeftPanel}
               showRightPanel={sheetPanel.showRightPanel}
             />
           </Suspense>
@@ -633,6 +534,7 @@ function AppWorkspace({
               setActivePaletteGroupTitle={setActivePaletteGroupTitle}
               setPaletteContextMenu={setPaletteContextMenu}
               handleOpenDinRailGenerator={handleOpenDinRailGenerator}
+              onPaletteItemTap={handlePaletteInsert}
               defaultWireSettings={defaultWireSettings}
               onChangeDefaultWireSettings={setDefaultWireSettings}
               selectedConnectionId={selectedConnectionId}

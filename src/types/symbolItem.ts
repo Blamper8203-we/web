@@ -23,7 +23,7 @@ export type PhaseAssignment =
 
 export type CircuitTypeValue = "Oswietlenie" | "Gniazdo" | "Sila" | "Inne";
 
-export interface SymbolItem {
+export interface SymbolBase {
   id: string;
   type: string;
   deviceKind: DeviceKind;
@@ -103,8 +103,54 @@ export interface SymbolItem {
   parameters: Record<string, string>;
 }
 
-export function createDefaultSymbolItem(overrides?: Partial<SymbolItem>): SymbolItem {
-  const base: SymbolItem = {
+export interface McbSymbol extends SymbolBase {
+  deviceKind: "mcb";
+}
+
+export interface RcdSymbol extends SymbolBase {
+  deviceKind: "rcd";
+  rcdType: "A" | "AC" | "B" | "F" | "";
+}
+
+export interface RcboSymbol extends SymbolBase {
+  deviceKind: "rcbo";
+  rcdType: "A" | "AC" | "B" | "F" | "";
+}
+
+export interface SpdSymbol extends SymbolBase {
+  deviceKind: "spd";
+  spdType: "T1" | "T2" | "T1+T2" | "T2+T3" | "";
+}
+
+export interface FrSymbol extends SymbolBase {
+  deviceKind: "fr";
+}
+
+export interface PhaseIndicatorSymbol extends SymbolBase {
+  deviceKind: "phaseIndicator";
+}
+
+export interface TerminalBlockSymbol extends SymbolBase {
+  deviceKind: "terminalBlock";
+  isTerminalBlock: true;
+}
+
+export interface OtherSymbol extends SymbolBase {
+  deviceKind: "other";
+}
+
+export type SymbolItem =
+  | McbSymbol
+  | RcdSymbol
+  | RcboSymbol
+  | SpdSymbol
+  | FrSymbol
+  | PhaseIndicatorSymbol
+  | TerminalBlockSymbol
+  | OtherSymbol;
+
+export function createDefaultSymbolItem(overrides?: Partial<SymbolBase>): SymbolItem {
+  const base: SymbolBase = {
     id: crypto.randomUUID(),
     type: "",
     deviceKind: "other",
@@ -185,10 +231,10 @@ export function createDefaultSymbolItem(overrides?: Partial<SymbolItem>): Symbol
   base.displayLocation = computeDisplayLocation(base);
   base.displayModuleNumber = computeDisplayModuleNumber(base);
 
-  return base;
+  return base as SymbolItem;
 }
 
-function computeDisplayProtection(symbol: SymbolItem): string {
+function computeDisplayProtection(symbol: SymbolBase): string {
   const typeUpper = symbol.type.toUpperCase();
   if (typeUpper.includes("SPD")) return symbol.spdInfo;
   if (typeUpper.includes("RCD")) return symbol.rcdInfo;
@@ -201,11 +247,11 @@ function computeDisplayProtection(symbol: SymbolItem): string {
     : "Brak";
 }
 
-function computeDisplayLocation(symbol: SymbolItem): string {
+function computeDisplayLocation(symbol: SymbolBase): string {
   return symbol.location && symbol.location.trim().length > 0 ? symbol.location : "Brak lokalizacji";
 }
 
-function computeDisplayModuleNumber(symbol: SymbolItem): string {
+function computeDisplayModuleNumber(symbol: SymbolBase): string {
   if (isTerminalOrConnectorSymbol(symbol) || isDistributionBlockSymbol(symbol)) {
     return symbol.referenceDesignation || `X${symbol.moduleNumber}`;
   }
@@ -213,21 +259,21 @@ function computeDisplayModuleNumber(symbol: SymbolItem): string {
   return `#${symbol.moduleNumber}`;
 }
 
-function computeRcdInfo(symbol: SymbolItem): string {
+function computeRcdInfo(symbol: SymbolBase): string {
   if (symbol.rcdRatedCurrent > 0 && symbol.rcdResidualCurrent > 0) {
     return `RCD ${symbol.rcdRatedCurrent}A/${symbol.rcdResidualCurrent}mA Typ ${symbol.rcdType}`;
   }
   return "";
 }
 
-function computeSpdInfo(symbol: SymbolItem): string {
+function computeSpdInfo(symbol: SymbolBase): string {
   if (symbol.spdType && symbol.spdVoltage > 0) {
     return `SPD ${symbol.spdType} ${symbol.spdVoltage}V ${symbol.spdDischargeCurrent}kA`;
   }
   return "";
 }
 
-function computeIsTerminalBlock(symbol: SymbolItem): boolean {
+function computeIsTerminalBlock(symbol: SymbolBase): boolean {
   return isTerminalOrConnectorSymbol(symbol);
 }
 
@@ -240,7 +286,7 @@ function normalizeSymbolIdentityText(...values: Array<string | undefined>): stri
     .replace(/[\u0300-\u036f]/g, "");
 }
 
-function isKnownCircuitDeviceKind(symbol: Partial<SymbolItem>): boolean {
+function isKnownCircuitDeviceKind(symbol: Partial<SymbolBase>): boolean {
   return (
     symbol.deviceKind === "mcb" ||
     symbol.deviceKind === "rcd" ||
@@ -270,7 +316,7 @@ function hasKnownCircuitDeviceIdentity(value: string): boolean {
   );
 }
 
-export function isTerminalOrConnectorSymbol(symbol: Partial<SymbolItem>): boolean {
+export function isTerminalOrConnectorSymbol(symbol: Partial<SymbolBase>): boolean {
   const value = normalizeSymbolIdentityText(
     symbol.type,
     symbol.label,
@@ -290,7 +336,7 @@ export function isTerminalOrConnectorSymbol(symbol: Partial<SymbolItem>): boolea
   );
 }
 
-export function isDistributionBlockSymbol(symbol: Partial<SymbolItem>): boolean {
+export function isDistributionBlockSymbol(symbol: Partial<SymbolBase>): boolean {
   const value = normalizeSymbolIdentityText(
     symbol.type,
     symbol.label,
@@ -306,7 +352,7 @@ export function isDistributionBlockSymbol(symbol: Partial<SymbolItem>): boolean 
   );
 }
 
-export function isAuxiliaryNonCircuitSymbol(symbol: Partial<SymbolItem>): boolean {
+export function isAuxiliaryNonCircuitSymbol(symbol: Partial<SymbolBase>): boolean {
   const value = normalizeSymbolIdentityText(
     symbol.type,
     symbol.label,
@@ -335,14 +381,14 @@ export function cloneSymbol(symbol: SymbolItem): SymbolItem {
 }
 
 export function normalizeSymbolItems(
-  raw: Partial<SymbolItem>[] | null | undefined,
+  raw: Partial<SymbolBase>[] | null | undefined,
 ): SymbolItem[] {
   if (!Array.isArray(raw)) {
     return [];
   }
 
   return raw
-    .filter((item): item is Partial<SymbolItem> => typeof item === "object" && item !== null)
+    .filter((item): item is Partial<SymbolBase> => typeof item === "object" && item !== null)
     .map((item) =>
       createDefaultSymbolItem({
         ...item,

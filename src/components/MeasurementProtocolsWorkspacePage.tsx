@@ -1,7 +1,4 @@
 import { useEffect, useState, useRef } from "react";
-import type { CircuitRow } from "../types/circuitRow";
-import type { SymbolItem } from "../types/symbolItem";
-import type { ConnectionItem } from "../types/connectionItem";
 import type {
   MeasurementContinuityProtocolRow,
   MeasurementInsulationProtocolRow,
@@ -9,7 +6,6 @@ import type {
   MeasurementProtocolsData,
   MeasurementRcdProtocolRow,
   MeasurementUnifiedProtocolRow,
-  ProjectMetadata,
 } from "../types/projectMetadata";
 import {
   DEFAULT_WORK_SCOPE_ITEMS,
@@ -17,25 +13,14 @@ import {
 } from "../lib/projectMetadata";
 import { buildCircuitListTableRows } from "../lib/circuitRows";
 import { exportDinRailToDataURL } from "../lib/export/dinRailSnapshotService";
-import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
 import { AppIcon } from "./AppIcon";
+import { usePdfWorkspace } from "./PdfWorkspaceShell";
 import "./MeasurementProtocolsWorkspacePage.css";
 const UNIFIED_ROWS_PER_PAGE = 7;
 const CIRCUIT_LIST_ROWS_PER_PAGE = 10;
 const TITLE_WORK_SCOPE_MAX_ITEMS = 12;
 const TITLE_WORK_SCOPE_COLUMN_SIZE = 6;
 
-type WorkspaceTab = "overview" | "unified" | "continuity" | "loop" | "insulation" | "rcd-ground" | "title-page" | "circuit-list" | "din-rail";
-
-type MeasurementProtocolsWorkspacePageProps = {
-  metadata: ProjectMetadata;
-  symbols: SymbolItem[];
-  rail: DinRailCanvasRail;
-  circuitRows: CircuitRow[];
-  onChange: (next: ProjectMetadata) => void;
-  activeTab: WorkspaceTab;
-  connections: ConnectionItem[];
-};
 
 type ProtocolTableRowsMap = Pick<
   MeasurementProtocolsData,
@@ -58,12 +43,12 @@ function chunkRows<T>(rows: T[], size: number): T[][] {
     return [[]];
   }
 
-  const chunks: T[][] = [];
-  for (let index = 0; index < rows.length; index += size) {
-    chunks.push(rows.slice(index, index + size));
+  const results: T[][] = [];
+  for (let i = 0; i < rows.length; i += size) {
+    results.push(rows.slice(i, i + size));
   }
 
-  return chunks;
+  return results;
 }
 
 function buildSheetTitle(pageIndex: number, totalPages: number): string {
@@ -92,15 +77,16 @@ function formatProtocolNumberLabel(headerTitle: string | undefined): string {
   return normalized.replace(/^protokół\s+(pomiarów\s+)?nr\s+/i, "").trim();
 }
 
-export function MeasurementProtocolsWorkspacePage({
-  metadata,
-  symbols,
-  rail,
-  circuitRows,
-  onChange,
-  activeTab,
-  connections,
-}: MeasurementProtocolsWorkspacePageProps) {
+export function MeasurementProtocolsWorkspacePage() {
+  const {
+    metadata,
+    symbols,
+    dinRail: rail,
+    circuitRows,
+    handleMetadataChange: onChange,
+    pdfPreviewTab: activeTab,
+    connections,
+  } = usePdfWorkspace();
   const [dinRailPreviewUrl, setDinRailPreviewUrl] = useState<string | null>(null);
   const [dinRailPreviewError, setDinRailPreviewError] = useState<string | null>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);

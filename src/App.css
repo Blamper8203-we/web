@@ -123,6 +123,8 @@
 
 html, body, #root {
   height: 100%;
+  /* iOS Safari fallback – fill-available prevents the address bar from clipping content */
+  min-height: -webkit-fill-available;
   overflow: hidden;
   overscroll-behavior: none;
 }
@@ -149,7 +151,9 @@ body {
    ================================================================ */
 
 .app-shell {
+  /* dvh = Dynamic Viewport Height – shrinks when iOS Safari toolbar is visible */
   height: 100vh;
+  height: 100dvh;
   display: grid;
   grid-template-rows: auto 1fr var(--statusbar-height);
   background: var(--app-background);
@@ -1572,6 +1576,7 @@ button:focus-visible {
   position: absolute;
   inset: 0 0 var(--statusbar-height) 0;
   overflow: visible;
+  z-index: 1;
 }
 
 .din-rail-svg-container.is-drop-target {
@@ -2941,6 +2946,43 @@ input[type="text"].schematic-cell-editor:focus,
   }
 }
 
+/* ----------------------------------------------------------------
+   Tablet (769px – 900px): toolbar może się nie zmieścić w linii
+   ---------------------------------------------------------------- */
+@media (max-width: 900px) and (min-width: 769px) {
+  .toolbar-shell {
+    /* Umożliwia przewijanie gdy menu textowe się nie mieszczą */
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+
+  .toolbar-shell::-webkit-scrollbar {
+    display: none;
+  }
+
+  .toolbar-left {
+    flex-shrink: 0;
+    margin-left: 10px;
+  }
+
+  .toolbar-right {
+    flex-shrink: 0;
+    margin-right: 10px;
+  }
+
+  /* Skróć nieco padding przycisków menu tekstowego */
+  .toolbar-menu-btn {
+    padding: 6px 8px;
+    font-size: var(--font-size-sm);
+  }
+
+  /* Na tablecie ukryj "Postaw kawę" – priorytet mniejszy */
+  .toolbar-menu-btn--donate-tablet {
+    display: none;
+  }
+}
+
 @media (max-width: 768px) {
   :root {
     --left-panel-width: 100vw;
@@ -2948,31 +2990,36 @@ input[type="text"].schematic-cell-editor:focus,
     --statusbar-height: 0px;
   }
 
-  .app-shell {
+    .app-shell {
     grid-template-rows: auto 1fr 0;
-    padding-bottom: 68px; /* Room for bottom navigation */
   }
 
-  .main-content {
+        .main-content {
     grid-template-columns: 1fr;
-    grid-template-rows: 0 minmax(0, 1fr) 0; /* Tabs are now fixed at bottom */
+    grid-template-rows: auto minmax(0, 1fr) auto; /* Row 1 = sheet tabs, Row 3 = panels */
   }
 
   .main-content.is-right-panel-hidden {
     grid-template-columns: 1fr;
   }
 
-  .main-content.is-pdf-workspace {
-    grid-template-columns: 1fr;
-    grid-template-rows: 44px minmax(0, 1fr) minmax(280px, 46vh);
+  .main-content.is-left-panel-hidden.is-right-panel-hidden:not(.is-pdf-workspace) {
+    grid-template-rows: auto minmax(0, 1fr) auto;
   }
 
-  .toolbar-shell {
+  .main-content.is-pdf-workspace {
+      grid-template-columns: 1fr;
+      grid-template-rows: 44px minmax(0, 1fr) minmax(200px, 40vh);
+    }
+
+    .toolbar-shell {
     align-items: center;
     justify-content: flex-start;
     gap: 8px;
     padding: 6px;
     overflow-x: auto;
+    grid-template-rows: auto;
+    min-height: 56px;
   }
 
   .toolbar-left,
@@ -2991,13 +3038,29 @@ input[type="text"].schematic-cell-editor:focus,
     padding: 6px 8px;
   }
 
+  .toolbar-center {
+    display: none;
+  }
+
+  .toolbar-shell .toolbar-right {
+    margin: 0;
+  }
+
+  .mobile-hamburger {
+    padding: 8px;
+    margin: 0;
+  }
+
   .flyout-menu,
   .flyout-menu.wide {
     position: fixed;
-    top: 46px;
+    top: 52px;
     left: 6px;
     right: 6px;
     width: auto;
+    max-height: calc(100vh - 70px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   .canvas-area {
@@ -3067,10 +3130,70 @@ input[type="text"].schematic-cell-editor:focus,
 
 
 
-  .statusbar,
-  .workspace-statusbar,
+    .workspace-statusbar,
   .workspace-hud--bottom-left {
     display: none;
+  }
+
+  /* Minimalny statusbar na mobile – tylko nazwa pliku i kropka niezapisane */
+  .statusbar {
+    display: flex;
+    position: fixed;
+    bottom: 8px;
+    bottom: calc(8px + env(safe-area-inset-bottom));
+    left: 8px;
+    right: 8px;
+    z-index: 30;
+    min-height: 24px;
+    height: auto;
+    padding: 2px 10px;
+    background: rgba(22, 23, 25, 0.92);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid var(--panel-border);
+    border-radius: 6px;
+    box-shadow: var(--shadow-sm);
+    gap: 4px;
+    overflow: hidden;
+    /* Nie blokuje dotyku na canvasie pod spodem */
+    pointer-events: none;
+  }
+
+  .statusbar .statusbar-right,
+  .statusbar .statusbar-divider,
+  .statusbar .statusbar-item:not(.statusbar-project) {
+    display: none;
+  }
+
+  .statusbar .statusbar-left {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .statusbar-project {
+    font-size: 11px;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .statusbar-project strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    display: inline;
+  }
+
+  .statusbar-icon {
+    flex: 0 0 auto;
   }
 
   .workspace-hud {
@@ -3102,7 +3225,7 @@ input[type="text"].schematic-cell-editor:focus,
   .din-rail-dialog {
     grid-template-columns: 1fr;
     width: min(520px, calc(100% - 16px));
-    height: min(620px, calc(100% - 16px));
+        height: min(620px, calc(100vh - 120px));
     overflow: auto;
   }
 
@@ -3115,14 +3238,18 @@ input[type="text"].schematic-cell-editor:focus,
     height: 240px;
   }
 
+    .schematic-zoom-dock {
+    bottom: calc(48px + 68px);
+  }
+
   .schematic-drop-card {
     min-width: 0;
     width: calc(100% - 32px);
   }
 
   .svg-import-dialog {
-    width: min(calc(100vw - 16px), 680px);
-    height: min(calc(100vh - 16px), 680px);
+        width: min(calc(100vw - 16px), 680px);
+    height: min(calc(100vh - 120px), 680px);
   }
 
   .svg-import-dialog__topbar,
@@ -3191,6 +3318,7 @@ input[type="text"].schematic-cell-editor:focus,
   flex: 1;
   overflow-y: auto;
   padding: 12px 0;
+  overscroll-behavior: contain;
 }
 
 .drawer-section {
@@ -3315,8 +3443,22 @@ input[type="text"].schematic-cell-editor:focus,
     display: inline-flex !important;
   }
 
-  .main-content.is-left-panel-hidden .left-panel {
+    .main-content.is-left-panel-hidden .left-panel {
     display: none !important;
   }
-}
+
+  /* Gdy lewy panel ma byc widoczny, dajemy wierszowi 3 auto wysokosc */
+        .main-content:not(.is-left-panel-hidden):not(.is-pdf-workspace) {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  /* PDF workspace: gdy panel lewy ukryty, canvas zajmuje cala wysokosc */
+  .main-content.is-pdf-workspace.is-left-panel-hidden {
+    grid-template-rows: 44px 1fr 0;
+  }
+
+  /* PDF workspace: gdy panel lewy widoczny */
+  .main-content.is-pdf-workspace:not(.is-left-panel-hidden) {
+    grid-template-rows: 44px minmax(0, 1fr) minmax(200px, 40vh);
+  }
 

@@ -1,4 +1,4 @@
-import { Suspense, lazy, useMemo, type TransitionStartFunction } from "react";
+import { Suspense, lazy, useMemo, useState, useTransition, createContext, useContext, type TransitionStartFunction } from "react";
 import { getPdfDocumentationTabs, type PdfDocumentationPreviewTab } from "../lib/pdfDocumentation";
 import { buildEditableMeasurementProtocols } from "../lib/measurementProtocols";
 import type { ProjectMetadata } from "../types/projectMetadata";
@@ -17,7 +17,7 @@ const MeasurementProtocolsWorkspacePage = lazy(async () => {
   return { default: module.MeasurementProtocolsWorkspacePage };
 });
 
-export interface PdfWorkspaceShellProps {
+export interface PdfWorkspaceContextType {
   metadata: ProjectMetadata;
   symbols: SymbolItem[];
   dinRail: DinRailCanvasRail;
@@ -28,6 +28,27 @@ export interface PdfWorkspaceShellProps {
   startPdfTabTransition: TransitionStartFunction;
   handleMetadataChange: (nextMetadata: ProjectMetadata) => void;
   handleResetDocumentation: () => void;
+}
+
+export const PdfWorkspaceContext = createContext<PdfWorkspaceContextType | null>(null);
+
+export function usePdfWorkspace() {
+  const context = useContext(PdfWorkspaceContext);
+  if (!context) {
+    throw new Error("usePdfWorkspace must be used within a PdfWorkspaceProvider");
+  }
+  return context;
+}
+
+export interface PdfWorkspaceShellProps {
+  metadata: ProjectMetadata;
+  symbols: SymbolItem[];
+  dinRail: DinRailCanvasRail;
+  circuitRows: CircuitRow[];
+  connections: ConnectionItem[];
+  handleMetadataChange: (nextMetadata: ProjectMetadata) => void;
+  handleResetDocumentation: () => void;
+  showLeftPanel: boolean;
   showRightPanel: boolean;
 }
 
@@ -37,13 +58,14 @@ export function PdfWorkspaceShell({
   dinRail,
   circuitRows,
   connections,
-  pdfPreviewTab,
-  setPdfPreviewTab,
-  startPdfTabTransition,
   handleMetadataChange,
   handleResetDocumentation,
+  showLeftPanel,
   showRightPanel,
 }: PdfWorkspaceShellProps) {
+  const [pdfPreviewTab, setPdfPreviewTab] = useState<PdfDocumentationPreviewTab>("title-page");
+  const [, startPdfTabTransition] = useTransition();
+
   const effectiveMetadata = useMemo<ProjectMetadata>(
     () => ({
       ...metadata,
@@ -52,23 +74,44 @@ export function PdfWorkspaceShell({
     [metadata, circuitRows],
   );
 
+  const contextValue = useMemo<PdfWorkspaceContextType>(
+    () => ({
+      metadata: effectiveMetadata,
+      symbols,
+      dinRail,
+      circuitRows,
+      connections,
+      pdfPreviewTab,
+      setPdfPreviewTab,
+      startPdfTabTransition,
+      handleMetadataChange,
+      handleResetDocumentation,
+    }),
+    [
+      effectiveMetadata,
+      symbols,
+      dinRail,
+      circuitRows,
+      connections,
+      pdfPreviewTab,
+      setPdfPreviewTab,
+      startPdfTabTransition,
+      handleMetadataChange,
+      handleResetDocumentation,
+    ],
+  );
+
   return (
-    <>
-      <aside className="left-panel">
-        <div className="panel-content">
-          <Suspense fallback={<div className="left-panel-empty"><strong>Ładowanie panelu PDF...</strong></div>}>
-            <PdfDocumentationPage
-              metadata={effectiveMetadata}
-              symbols={symbols}
-              rail={dinRail}
-              connections={connections}
-              onChange={handleMetadataChange}
-              onResetDocumentation={handleResetDocumentation}
-              selectedPreviewTab={pdfPreviewTab}
-            />
-          </Suspense>
-        </div>
-      </aside>
+    <PdfWorkspaceContext.Provider value={contextValue}>
+      {showLeftPanel && (
+        <aside className="left-panel">
+          <div className="panel-content">
+            <Suspense fallback={<div className="left-panel-empty"><strong>Ładowanie panelu PDF...</strong></div>}>
+              <PdfDocumentationPage />
+            </Suspense>
+          </div>
+        </aside>
+      )}
 
       <div className="canvas-area">
         <div className="pdf-workspace-shell" style={{
@@ -81,15 +124,7 @@ export function PdfWorkspaceShell({
         }}>
           <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", background: "#2E3238" }}>
             <Suspense fallback={<div className="pdf-preview-workspace__empty"><strong>Ładowanie arkusza A4...</strong></div>}>
-              <MeasurementProtocolsWorkspacePage
-                metadata={effectiveMetadata}
-                symbols={symbols}
-                rail={dinRail}
-                circuitRows={circuitRows}
-                connections={connections}
-                onChange={handleMetadataChange}
-                activeTab={pdfPreviewTab}
-              />
+              <MeasurementProtocolsWorkspacePage />
             </Suspense>
           </div>
         </div>
@@ -119,6 +154,6 @@ export function PdfWorkspaceShell({
           </div>
         </aside>
       )}
-    </>
+    </PdfWorkspaceContext.Provider>
   );
 }

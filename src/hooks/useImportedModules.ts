@@ -6,6 +6,7 @@ import {
   upsertImportedModules,
   type ImportedModuleDefinition,
 } from '../lib/modules/importedModuleCatalog';
+import { safeGetItemSync, safeSetItem } from "../lib/storageService";
 import { reportRuntimeError } from "../lib/runtimeDiagnostics";
 import {
   PALETTE_GROUPS as ASSET_PALETTE_GROUPS,
@@ -19,7 +20,7 @@ import {
 function loadHiddenPaletteTemplateIds(): string[] {
   if (typeof window === 'undefined') return [];
   try {
-    const raw = window.localStorage.getItem(HIDDEN_PALETTE_TEMPLATE_IDS_STORAGE_KEY);
+    const raw = safeGetItemSync(HIDDEN_PALETTE_TEMPLATE_IDS_STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
     return Array.isArray(parsed)
       ? parsed.filter((item): item is string => typeof item === 'string')
@@ -120,16 +121,12 @@ export function useImportedModules(showTemporaryStatus: (msg: string, ms?: numbe
       return;
     }
 
-    try {
-      window.localStorage.setItem(
-        HIDDEN_PALETTE_TEMPLATE_IDS_STORAGE_KEY,
-        JSON.stringify(hiddenPaletteTemplateIds),
-      );
-    } catch (error) {
-      reportRuntimeError(error, {
-        source: "unhandled-error",
-      });
-    }
+    safeSetItem(
+      HIDDEN_PALETTE_TEMPLATE_IDS_STORAGE_KEY,
+      JSON.stringify(hiddenPaletteTemplateIds),
+    ).catch((error) =>
+      reportRuntimeError(error, { source: "unhandled-error" })
+    );
   }, [hasSyncedCatalogStorage, hiddenPaletteTemplateIds]);
 
   const handleHidePaletteTemplate = useCallback((templateId: string) => {

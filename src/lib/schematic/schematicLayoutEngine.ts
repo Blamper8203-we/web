@@ -23,16 +23,22 @@ import {
   MODULE_WIDTH,
   PAGE_GAP,
   Y_FR,
-  Y_MAIN_BUS,
-  Y_MAIN_DEVICE,
-  Y_TOP_SWITCH,
-  Y_MCB,
   Y_FR_WITH_TOP,
+  Y_MAIN_BUS,
   Y_MAIN_BUS_WITH_TOP,
+  Y_MAIN_DEVICE,
   Y_MAIN_DEVICE_WITH_TOP,
-  Y_TOP_SWITCH_WITH_TOP,
+  Y_MCB,
   Y_MCB_WITH_TOP,
+  Y_TOP_SWITCH,
+  Y_TOP_SWITCH_WITH_TOP,
 } from "./schematicLayout";
+
+const MANUAL_REFERENCE_DESIGNATION_KEY = "ManualReferenceDesignation";
+const MANUAL_PHASE_KEY = "ManualPhase";
+const INDUCTION_OVEN_ENABLED_KEY = "GroupScenario.InductionWithOven.Enabled";
+const INDUCTION_OVEN_PATTERN_KEY = "GroupScenario.InductionWithOven.Pattern";
+import { isMainBreaker, isSpd, isIndicator, isThreePhaseDevice, isRcdDevice, isRcboDevice, normalizeValidationText } from "../deviceIdentification";
 
 type ModulePoleCount = 0 | 1 | 2 | 3 | 4;
 
@@ -42,10 +48,6 @@ interface BuildResult {
   circuitDevices: SchematicNode[];
 }
 
-const MANUAL_REFERENCE_DESIGNATION_KEY = "ManualReferenceDesignation";
-const MANUAL_PHASE_KEY = "ManualPhase";
-const INDUCTION_OVEN_ENABLED_KEY = "GroupScenario.InductionWithOven.Enabled";
-const INDUCTION_OVEN_PATTERN_KEY = "GroupScenario.InductionWithOven.Pattern";
 const MIN_SCHEMATIC_CELL_WIDTH = 56;
 const MAX_SCHEMATIC_CELL_WIDTH = 68;
 
@@ -788,35 +790,11 @@ function findGroupHead(symbols: SymbolItem[]): SymbolItem | undefined {
 }
 
 function getModuleType(symbol: SymbolItem): SchematicNode["nodeType"] {
-  if (symbol.deviceKind === "rcd") return "RCD";
-  if (symbol.deviceKind === "mcb" || symbol.deviceKind === "rcbo") return "MCB";
-  if (symbol.deviceKind === "spd") return "SPD";
-  if (symbol.deviceKind === "fr") return "MainBreaker";
-  if (symbol.deviceKind === "phaseIndicator") return "PhaseIndicator";
-
-  const value = getSchematicIdentity(symbol);
-  if (value.includes("rcbo")) return "MCB";
-  if (isRcdIdentity(value)) return "RCD";
-  if (value.includes("spd")) return "SPD";
-  if (
-    /\bfr\b/.test(value) ||
-    value.includes("switch") ||
-    value.includes("rozlacznik") ||
-    value.includes("rozłącznik") ||
-    value.includes("isolator") ||
-    value.includes("przelacznik")
-  ) {
-    return "MainBreaker";
-  }
-  if (
-    value.includes("kontrolk") ||
-    value.includes("indicator") ||
-    value.includes("lampka") ||
-    value.includes("sygnalizat") ||
-    value.includes("kontrolkifaz")
-  ) {
-    return "PhaseIndicator";
-  }
+  if (symbol.deviceKind === "rcd" || isRcdDevice(symbol)) return "RCD";
+  if (symbol.deviceKind === "mcb" || symbol.deviceKind === "rcbo" || isRcboDevice(symbol)) return "MCB";
+  if (symbol.deviceKind === "spd" || isSpd(symbol)) return "SPD";
+  if (symbol.deviceKind === "fr" || isMainBreaker(symbol)) return "MainBreaker";
+  if (symbol.deviceKind === "phaseIndicator" || isIndicator(symbol)) return "PhaseIndicator";
   return "MCB";
 }
 
@@ -829,12 +807,11 @@ function isFixedThreePhaseRcdSymbol(symbol: SymbolItem): boolean {
     return false;
   }
 
-  const value = getRcdIdentity(symbol);
   if (hasExplicitSinglePhaseRcdHint(symbol)) {
     return false;
   }
 
-  return symbol.phase === "L1+L2+L3" || value.includes("4P") || value.includes("3P");
+  return isThreePhaseDevice(symbol);
 }
 
 function isThreePhaseRcdHead(symbol: SymbolItem): boolean {
@@ -863,24 +840,9 @@ function resolveSinglePhaseRcdPhase(phase: string, autoIndex: number): "L1" | "L
   return phases[autoIndex % phases.length];
 }
 
-function getSchematicIdentity(symbol: SymbolItem): string {
-  return `${symbol.type} ${symbol.label} ${symbol.visualPath} ${symbol.moduleRef}`
-    .toLocaleLowerCase("pl-PL")
-    .replace(/ł/g, "l")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-}
-
-function isRcdIdentity(value: string): boolean {
-  return value.includes("rcd") || value.includes("rccb") || value.includes("roznic");
-}
-
-function getRcdIdentity(symbol: SymbolItem): string {
-  return getSchematicIdentity(symbol).toLocaleUpperCase("pl-PL");
-}
-
 function getExplicitRcdPoleHint(symbol: SymbolItem): ModulePoleCount {
-  const match = getRcdIdentity(symbol).match(
+  const identity = `${symbol.type} ${symbol.label} ${symbol.visualPath} ${symbol.moduleRef}`.toUpperCase();
+  const match = identity.match(
     /(^|[^0-9])([1-4])\s*-?\s*(?:P|POL[A-Z]*|BIEG[A-Z]*|TOR[A-Z]*)([^A-Z0-9]|$)/,
   );
   if (!match) {
@@ -891,24 +853,20 @@ function getExplicitRcdPoleHint(symbol: SymbolItem): ModulePoleCount {
 }
 
 function hasExplicitSinglePhaseRcdHint(symbol: SymbolItem): boolean {
-  const value = getRcdIdentity(symbol);
+  const identity = `${symbol.type} ${symbol.label} ${symbol.visualPath} ${symbol.moduleRef}`.toUpperCase();
   const poles = getExplicitRcdPoleHint(symbol);
-  return poles === 1 || poles === 2 || value.includes("2P") || value.includes("1P");
+  return poles === 1 || poles === 2 || identity.includes("2P") || identity.includes("1P");
 }
 
 function hasExplicitThreePhaseRcdHint(symbol: SymbolItem): boolean {
-  const value = getRcdIdentity(symbol);
+  const identity = `${symbol.type} ${symbol.label} ${symbol.visualPath} ${symbol.moduleRef}`.toUpperCase();
   const poles = getExplicitRcdPoleHint(symbol);
-  return poles === 3 || poles === 4 || value.includes("4P") || value.includes("3P");
+  return poles === 3 || poles === 4 || identity.includes("4P") || identity.includes("3P");
 }
 
 function isNetworkSwitch(symbol: SymbolItem): boolean {
-  const value = getSchematicIdentity(symbol);
-  return value.includes("przelacznik") && value.includes("siec");
-}
-
-function isSpd(symbol: SymbolItem): boolean {
-  return getModuleType(symbol) === "SPD";
+  const identity = normalizeValidationText(symbol.type, symbol.label, symbol.visualPath, symbol.moduleRef);
+  return identity.includes("przelacznik") && identity.includes("siec");
 }
 
 function isKf(symbol: SymbolItem): boolean {

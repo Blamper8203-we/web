@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { createDefaultSymbolItem } from "../../types/symbolItem";
 import { createEmptyProjectMetadata } from "../projectMetadata";
+import { buildPdfCircuitGroups } from "./pdfPages/pdfHelpers";
 import {
-  buildPdfCircuitGroups,
   PdfProtocolDocument,
 } from "./PdfProtocolDocument";
 
@@ -19,9 +19,16 @@ function collectTextContent(node: unknown): string[] {
     return node.flatMap(collectTextContent);
   }
 
-  if (typeof node === "object" && "props" in node) {
-    const props = (node as { props?: { children?: unknown } }).props;
-    return collectTextContent(props?.children);
+  if (typeof node === "object" && node !== null) {
+    const element = node as { type?: any; props?: { children?: unknown } };
+    if (typeof element.type === "function") {
+      try {
+        return collectTextContent(element.type(element.props));
+      } catch (err) {
+        // Fallback
+      }
+    }
+    return collectTextContent(element.props?.children);
   }
 
   return [];
@@ -36,10 +43,17 @@ function collectImageSources(node: unknown): string[] {
     return node.flatMap(collectImageSources);
   }
 
-  if (typeof node === "object" && "props" in node) {
-    const props = (node as { props?: { children?: unknown; src?: unknown } }).props;
-    const current = typeof props?.src === "string" ? [props.src] : [];
-    return [...current, ...collectImageSources(props?.children)];
+  if (typeof node === "object" && node !== null) {
+    const element = node as { type?: any; props?: { children?: unknown; src?: unknown } };
+    if (typeof element.type === "function") {
+      try {
+        return collectImageSources(element.type(element.props));
+      } catch (err) {
+        // Fallback
+      }
+    }
+    const current = typeof element.props?.src === "string" ? [element.props.src] : [];
+    return [...current, ...collectImageSources(element.props?.children)];
   }
 
   return [];
@@ -54,10 +68,17 @@ function collectPageOrientations(node: unknown): Array<unknown> {
     return node.flatMap(collectPageOrientations);
   }
 
-  if (typeof node === "object" && "props" in node) {
-    const props = (node as { props?: { children?: unknown; size?: unknown; orientation?: unknown } }).props;
-    const current = props?.size === "A4" ? [props.orientation] : [];
-    return [...current, ...collectPageOrientations(props?.children)];
+  if (typeof node === "object" && node !== null) {
+    const element = node as { type?: any; props?: { children?: unknown; size?: unknown; orientation?: unknown } };
+    if (typeof element.type === "function") {
+      try {
+        return collectPageOrientations(element.type(element.props));
+      } catch (err) {
+        // Fallback
+      }
+    }
+    const current = element.props?.size === "A4" ? [element.props.orientation] : [];
+    return [...current, ...collectPageOrientations(element.props?.children)];
   }
 
   return [];
@@ -72,11 +93,18 @@ function collectA4PageTextContent(node: unknown): string[] {
     return node.flatMap(collectA4PageTextContent);
   }
 
-  if (typeof node === "object" && "props" in node) {
-    const props = (node as { props?: { children?: unknown; size?: unknown } }).props;
-    const childPages = collectA4PageTextContent(props?.children);
-    if (props?.size === "A4") {
-      return [collectTextContent(props.children).join("\n"), ...childPages];
+  if (typeof node === "object" && node !== null) {
+    const element = node as { type?: any; props?: { children?: unknown; size?: unknown } };
+    if (typeof element.type === "function") {
+      try {
+        return collectA4PageTextContent(element.type(element.props));
+      } catch (err) {
+        // Fallback
+      }
+    }
+    const childPages = collectA4PageTextContent(element.props?.children);
+    if (element.props?.size === "A4") {
+      return [collectTextContent(element.props.children).join("\n"), ...childPages];
     }
 
     return childPages;

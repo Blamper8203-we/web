@@ -92,8 +92,6 @@ const INDUCTION_OVEN_PATTERN_KEY = "GroupScenario.InductionWithOven.Pattern";
 const INDUCTION_OVEN_PATTERN_VALUE = "Rcd4PWithMcb2PAnd1P";
 const MIN_TIE_EPSILON = 0.01;
 
-let minTieBreaker = 0;
-
 interface BalanceUnit {
   symbols: SymbolItem[];
   totalWeight: number;
@@ -106,6 +104,7 @@ export interface BalancePlan {
   loads: [number, number, number];
   workingSymbols: SymbolItem[];
   phaseIndicatorAssignments: Array<{ symbol: SymbolItem; phase: PhaseAssignment }>;
+  tieBreaker: number;
 }
 
 export interface AppliedBalanceResult {
@@ -119,15 +118,13 @@ export function autoBalancePhases(
   scope: BalanceScope = "OnlyUnlocked",
   voltage: number = 230,
 ): BalancePlan {
-  // Reset tie-breaker so the algorithm is deterministic for the same input.
-  minTieBreaker = 0;
-
   const plan: BalancePlan = {
     snapshot: new Map(),
     units: [],
     loads: [0, 0, 0],
     workingSymbols: symbols.map((s) => ({ ...s })),
     phaseIndicatorAssignments: [],
+    tieBreaker: 0,
   };
 
   for (const symbol of symbols) {
@@ -300,7 +297,7 @@ export function applyBalancePlan(
 
 function assignUnitsToPhases(plan: BalancePlan): void {
   for (const unit of plan.units) {
-    const minPhase = minIndex(plan.loads);
+    const minPhase = minIndex(plan.loads, plan);
 
     const phase = PHASE_NAMES[minPhase];
     for (const symbol of unit.symbols) {
@@ -480,7 +477,7 @@ function computeResultFromPowers(l1: number, l2: number, l3: number): PhaseDistr
   };
 }
 
-function minIndex(loads: [number, number, number]): number {
+function minIndex(loads: [number, number, number], plan: BalancePlan): number {
   let minValue = loads[0];
   for (let index = 1; index < loads.length; index++) {
     if (loads[index] < minValue) {
@@ -499,8 +496,8 @@ function minIndex(loads: [number, number, number]): number {
     return tied[0] ?? 0;
   }
 
-  const picked = tied[minTieBreaker % tied.length];
-  minTieBreaker += 1;
+  const picked = tied[plan.tieBreaker % tied.length];
+  plan.tieBreaker += 1;
   return picked;
 }
 

@@ -13,8 +13,9 @@ import {
 import { loadPreparedSvgDataUri } from "../modules/svgAsset";
 import { getSymbolRatingText } from "../appHelpers";
 import type { ConnectionItem } from "../../types/connectionItem";
-import { getSymbolTerminals } from "../modules/moduleTerminals";
+import { getSymbolTerminals, findTerminalByName } from "../modules/moduleTerminals";
 import { calculateWirePoints, type Point } from "../routing/wireRoutingEngine";
+import { getFerruleLength } from "../connections/connectionsLogic";
 
 const MANUAL_REFERENCE_DESIGNATION_KEY = "ManualReferenceDesignation";
 
@@ -331,12 +332,21 @@ async function renderDinRailSnapshotCanvas(
       const toSymbol = symbols.find((s) => s.id === conn.toSymbolId);
       if (!fromSymbol || !toSymbol) continue;
 
-      const fromHS = getSymbolTerminals(fromSymbol).find((h) => h.name === conn.fromTerminal);
-      const toHS = getSymbolTerminals(toSymbol).find((h) => h.name === conn.toTerminal);
+      const fromHS = findTerminalByName(getSymbolTerminals(fromSymbol), conn.fromTerminal, conn.isFromTop);
+      const toHS = findTerminalByName(getSymbolTerminals(toSymbol), conn.toTerminal, conn.isToTop);
       if (!fromHS || !toHS) continue;
 
       const fromPt = { x: fromSymbol.x + fromHS.x, y: fromSymbol.y + fromHS.y };
       const toPt = { x: toSymbol.x + toHS.x, y: toSymbol.y + toHS.y };
+
+      const hasFerrule = conn.ferruleColor && conn.ferruleColor !== "none";
+      const customRadius = conn.customRadius ?? 0;
+      
+      const fromFerruleLen = getFerruleLength(fromSymbol.deviceKind, fromSymbol.moduleRef);
+      const toFerruleLen = getFerruleLength(toSymbol.deviceKind, toSymbol.moduleRef);
+
+      const fromExitOffsetVal = hasFerrule ? Math.max(fromHS.exitOffset ?? 40, fromFerruleLen) + customRadius : (fromHS.exitOffset ?? 40) + customRadius;
+      const toExitOffsetVal = hasFerrule ? Math.max(toHS.exitOffset ?? 40, toFerruleLen) + customRadius : (toHS.exitOffset ?? 40) + customRadius;
 
       const routingOpts = {
         isFromTop: conn.isFromTop ?? fromHS.isTop,
@@ -346,7 +356,9 @@ async function renderDinRailSnapshotCanvas(
         customOffsetX: conn.customOffsetX,
         customOffsetY1: conn.customOffsetY1,
         customOffsetY2: conn.customOffsetY2,
-        customRadius: conn.customRadius ?? 0,
+        customRadius,
+        fromExitOffset: fromExitOffsetVal,
+        toExitOffset: toExitOffsetVal,
       };
 
       const pointsArr = calculateWirePoints(fromPt, toPt, routingOpts);
@@ -443,19 +455,34 @@ async function renderDinRailSnapshotCanvas(
     symbol: SymbolItem;
   }[];
 
-  // Draw wires/connections FIRST (so they appear behind modules)
+  // 1. Draw Terminal Blocks (background part) FIRST so wires go over them
+  const bgImages = loadedImages.filter(li => li.symbol.deviceKind === "terminalBlock");
+  for (const { img, symbol } of bgImages) {
+    ctx.drawImage(img, symbol.x, symbol.y, symbol.width, symbol.height);
+  }
+
+  // Draw wires/connections FIRST (so they appear behind normal modules)
   if (connections && connections.length > 0) {
     for (const conn of connections) {
       const fromSymbol = symbols.find((s) => s.id === conn.fromSymbolId);
       const toSymbol = symbols.find((s) => s.id === conn.toSymbolId);
       if (!fromSymbol || !toSymbol) continue;
 
-      const fromHS = getSymbolTerminals(fromSymbol).find((h) => h.name === conn.fromTerminal);
-      const toHS = getSymbolTerminals(toSymbol).find((h) => h.name === conn.toTerminal);
+      const fromHS = findTerminalByName(getSymbolTerminals(fromSymbol), conn.fromTerminal, conn.isFromTop);
+      const toHS = findTerminalByName(getSymbolTerminals(toSymbol), conn.toTerminal, conn.isToTop);
       if (!fromHS || !toHS) continue;
 
       const fromPt = { x: fromSymbol.x + fromHS.x, y: fromSymbol.y + fromHS.y };
       const toPt = { x: toSymbol.x + toHS.x, y: toSymbol.y + toHS.y };
+
+      const hasFerrule = conn.ferruleColor && conn.ferruleColor !== "none";
+      const customRadius = conn.customRadius ?? 0;
+      
+      const fromFerruleLen = getFerruleLength(fromSymbol.deviceKind, fromSymbol.moduleRef);
+      const toFerruleLen = getFerruleLength(toSymbol.deviceKind, toSymbol.moduleRef);
+
+      const fromExitOffsetVal = hasFerrule ? Math.max(fromHS.exitOffset ?? 40, fromFerruleLen) + customRadius : (fromHS.exitOffset ?? 40) + customRadius;
+      const toExitOffsetVal = hasFerrule ? Math.max(toHS.exitOffset ?? 40, toFerruleLen) + customRadius : (toHS.exitOffset ?? 40) + customRadius;
 
       const routingOpts = {
         isFromTop: conn.isFromTop ?? fromHS.isTop,
@@ -465,7 +492,9 @@ async function renderDinRailSnapshotCanvas(
         customOffsetX: conn.customOffsetX,
         customOffsetY1: conn.customOffsetY1,
         customOffsetY2: conn.customOffsetY2,
-        customRadius: conn.customRadius ?? 0,
+        customRadius,
+        fromExitOffset: fromExitOffsetVal,
+        toExitOffset: toExitOffsetVal,
       };
 
       const pointsArr = calculateWirePoints(fromPt, toPt, routingOpts);
@@ -481,7 +510,9 @@ async function renderDinRailSnapshotCanvas(
     }
   }
 
-  loadedImages.sort((a, b) => {
+  // Draw normal modules (on top of wires)
+  const fgImages = loadedImages.filter(li => li.symbol.deviceKind !== "terminalBlock");
+  fgImages.sort((a, b) => {
     if (Math.abs(a.symbol.y - b.symbol.y) > 5) {
       return a.symbol.y - b.symbol.y;
     }
@@ -489,7 +520,7 @@ async function renderDinRailSnapshotCanvas(
     return a.symbol.x - b.symbol.x;
   });
 
-  for (const { img, symbol } of loadedImages) {
+  for (const { img, symbol } of fgImages) {
     ctx.drawImage(img, symbol.x, symbol.y, symbol.width, symbol.height);
   }
 

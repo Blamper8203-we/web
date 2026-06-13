@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { safeGetItemSync } from "../lib/storageService";
 import type { SheetType, RightTab } from "../lib/appHelpers";
 
 /**
@@ -16,10 +17,51 @@ export function useSheetPanelState() {
   const [activeRightTab, setActiveRightTab] = useState<RightTab>("balance");
   const [showRightPanel, setShowRightPanel] = useState(() => window.innerWidth > 768);
   const [showLeftPanel, setShowLeftPanel] = useState(() => window.innerWidth > 768);
+  const resizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastWideRef = useRef(window.innerWidth > 768);
+
+  // Automatycznie pokazuj/ukrywaj panele przy zmianie rozmiaru okna (z debounce)
+  // Działa tylko przy przekroczeniu progu 768px – nie nadpisuje ręcznych przełączeń
+  useEffect(() => {
+    const handleResize = () => {
+      if (resizeTimerRef.current !== null) {
+        clearTimeout(resizeTimerRef.current);
+      }
+
+      resizeTimerRef.current = setTimeout(() => {
+        const isWide = window.innerWidth > 768;
+        const wasWide = lastWideRef.current;
+        lastWideRef.current = isWide;
+
+        // Only act when crossing the 768px boundary
+        if (isWide === wasWide) {
+          return;
+        }
+
+        if (isWide) {
+          setShowLeftPanel(true);
+          setShowRightPanel(true);
+        } else {
+          setShowLeftPanel(false);
+          setShowRightPanel(false);
+        }
+
+        resizeTimerRef.current = null;
+      }, 200);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      if (resizeTimerRef.current !== null) {
+        clearTimeout(resizeTimerRef.current);
+      }
+    };
+  }, []);
   const [workspaceZoomPercent, setWorkspaceZoomPercent] = useState(100);
   const [showDinRailGroups, setShowDinRailGroups] = useState<boolean>(() => {
     try {
-      const raw = window.localStorage.getItem("dinboard.show_din_rail_groups");
+      const raw = safeGetItemSync("dinboard.show_din_rail_groups");
       if (!raw) {
         return true;
       }

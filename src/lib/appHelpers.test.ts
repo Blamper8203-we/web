@@ -193,10 +193,9 @@ describe("normalizePaletteAssetDimensions", () => {
     });
     const distributionBlock = createDefaultSymbolItem({
       id: "block",
-      type: "Blok rozdzielczy",
-      label: "Blok rozdzielczy 4 15",
-      deviceKind: "other",
       group: "G1",
+      type: "Blok rozdzielczy",
+      deviceKind: "terminalBlock",
       groupName: "Grupa-1",
       rcdSymbolId: "rcd",
       isSnappedToRail: true,
