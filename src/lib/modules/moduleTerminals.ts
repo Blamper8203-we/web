@@ -1,4 +1,5 @@
 import type { SymbolItem } from "../../types/symbolItem";
+import { isDistributionBlockSymbol } from "../../types/symbolItem";
 import { svgTerminalCache } from "./svgTerminalCache";
 
 export interface TerminalHotspot {
@@ -115,7 +116,13 @@ export function getSymbolTerminals(symbol: SymbolItem): TerminalHotspot[] {
           radius = t.rRatio ? width * t.rRatio : undefined;
         }
 
-        const isTop = t.yRatio < 0.5;
+        // Distribution blocks (e.g. "Blok rozdzielczy 4-7") always route wires
+        // from the bottom of the module - it is the engineering convention
+        // for these multi-section power distribution blocks where all 28
+        // wires (4 groups x 7 pins) fan out below the block in a tight
+        // column. Override the y-based heuristic for these symbols.
+        const isDistribution = isDistributionBlockSymbol(symbol);
+        const isTop = isDistribution ? false : t.yRatio < 0.5;
         hotspots.push({
           name: t.name,
           x: xPos,
