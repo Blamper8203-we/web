@@ -2,12 +2,12 @@ import React, { useMemo, useState, useRef, useEffect, useCallback } from "react"
 import type { ConnectionItem, WireColor, WireType, RoutingMode, FerruleColor } from "../types/connectionItem";
 import { createDefaultConnection } from "../types/connectionItem";
 import { type SymbolItem, isDistributionBlockSymbol } from "../types/symbolItem";
-import { getSymbolTerminals, type TerminalHotspot, findTerminalByName } from "../lib/modules/moduleTerminals";
-import { calculateWirePath, calculateWirePoints, getOrthoExit, pointsToRoundedPath, type Point } from "../lib/routing/wireRoutingEngine";
+import { getSymbolTerminals, type TerminalHotspot, findTerminalByName, resolveConnectionIsFromTop, resolveConnectionIsToTop } from "../lib/modules/moduleTerminals";
+import { calculateWirePath, calculateWirePoints, getOrthoExit, type Point } from "../lib/routing/wireRoutingEngine";
 import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
 import { AppIcon } from "./AppIcon";
 import { useElementSize } from "../hooks/useElementSize";
-import { useDinRailForegroundSvgs } from "../hooks/useDinRailForegroundSvgs";
+import { useDinRailProcessedSvgs } from "../hooks/useDinRailForegroundSvgs";
 import { DinRailConnectionsForegroundLayer } from "./canvasLayers/DinRailConnectionsForegroundLayer";
 import { FerruleGraphic } from "./canvasLayers/FerruleGraphic";
 import { getFerruleLength, isTerminalZlaczka } from "../lib/connections/connectionsLogic";
@@ -289,7 +289,31 @@ export function DinRailConnectionsCanvas({
     return rail.svg.replace(/<svg[^>]*>/, "").replace(/<\/svg>/, "");
   }, [rail.svg]);
 
-  const foregroundUrls = useDinRailForegroundSvgs(symbols);
+  // Dynamiczny CSS ukrywający grupę Osłona w tle szyny
+  // gdy użytkownik zdejmie osłonę przez przełącznik w prawym panelu.
+  // rail.svg jest statyczny (generowany raz), więc nie odzwierciedla zmian parametrów –
+  // dlatego nadpisujemy widoczność przez <style> wstrzyknięty do SVG.
+  const coverHiddenCss = useMemo(() => {
+    const hiddenIds = symbols
+      .filter(
+        (s) =>
+          s.deviceKind === "terminalBlock" &&
+          (s.parameters?.BLUE_COVER_VISIBILITY === "hidden" ||
+            s.parameters?.BLUE_COVER_VISIBILITY === "none")
+      )
+      .map((s) => s.id);
+
+    if (hiddenIds.length === 0) return "";
+
+    // Ukryj element o id="Osłona" w całym SVG canvasa.
+    // Jeśli na szynie jest wiele bloków z różnymi stanami, każdy ma własny
+    // placeholder zastąpiony przez rail generator – ale w tej wersji targetujemy
+    // po id grupy, które jest stałe ("Osłona").
+    return `[id="Osłona"] { display: none !important; }`;
+  }, [symbols]);
+
+
+  const { foregroundUrls, baseUrls } = useDinRailProcessedSvgs(symbols);
 
   // Pre-calculate hotspots for symbols
   const hotspotsData = useMemo(() => {
@@ -353,7 +377,85 @@ export function DinRailConnectionsCanvas({
       if (hoveredHotspot) return; // Kliknięcie w terminal kończy w handlePointerUp
 
       const logicalPos = getLogicalPoint(e.clientX, e.clientY);
-      const targetPt = drawingAlignment.snappedPt || logicalPos;
+      
+      const clampedPos = { ...logicalPos };
+      const fromSymbol = symbols.find((s) => s.id === drawingState.startSymbolId);
+      const fromHS = fromSymbol ? findTerminalByName(getSymbolTerminals(fromSymbol), drawingState.startTerminal, drawingState.isTop) : null;
+      const fromDirection = fromHS?.direction || (drawingState.isTop ? "top" : "bottom");
+
+      if (explicitPoints.length === 0) {
+        if (fromDirection === "bottom") {
+          if (fromSymbol) {
+            if (clampedPos.y < fromSymbol.y) {
+              clampedPos.y = fromSymbol.y;
+            }
+            if (clampedPos.y < fromSymbol.y + fromSymbol.height) {
+              if (clampedPos.x < fromSymbol.x) {
+                clampedPos.x = fromSymbol.x;
+              } else if (clampedPos.x > fromSymbol.x + fromSymbol.width) {
+                clampedPos.x = fromSymbol.x + fromSymbol.width;
+              }
+            }
+          } else {
+            if (clampedPos.y < drawingState.startY) {
+              clampedPos.y = drawingState.startY;
+            }
+          }
+        } else if (fromDirection === "top") {
+          if (fromSymbol) {
+            if (clampedPos.y > fromSymbol.y + fromSymbol.height) {
+              clampedPos.y = fromSymbol.y + fromSymbol.height;
+            }
+            if (clampedPos.y > fromSymbol.y) {
+              if (clampedPos.x < fromSymbol.x) {
+                clampedPos.x = fromSymbol.x;
+              } else if (clampedPos.x > fromSymbol.x + fromSymbol.width) {
+                clampedPos.x = fromSymbol.x + fromSymbol.width;
+              }
+            }
+          } else {
+            if (clampedPos.y > drawingState.startY) {
+              clampedPos.y = drawingState.startY;
+            }
+          }
+        } else if (fromDirection === "left") {
+          if (fromSymbol) {
+            if (clampedPos.x > fromSymbol.x + fromSymbol.width) {
+              clampedPos.x = fromSymbol.x + fromSymbol.width;
+            }
+            if (clampedPos.x > fromSymbol.x) {
+              if (clampedPos.y < fromSymbol.y) {
+                clampedPos.y = fromSymbol.y;
+              } else if (clampedPos.y > fromSymbol.y + fromSymbol.height) {
+                clampedPos.y = fromSymbol.y + fromSymbol.height;
+              }
+            }
+          } else {
+            if (clampedPos.x > drawingState.startX) {
+              clampedPos.x = drawingState.startX;
+            }
+          }
+        } else if (fromDirection === "right") {
+          if (fromSymbol) {
+            if (clampedPos.x < fromSymbol.x) {
+              clampedPos.x = fromSymbol.x;
+            }
+            if (clampedPos.x < fromSymbol.x + fromSymbol.width) {
+              if (clampedPos.y < fromSymbol.y) {
+                clampedPos.y = fromSymbol.y;
+              } else if (clampedPos.y > fromSymbol.y + fromSymbol.height) {
+                clampedPos.y = fromSymbol.y + fromSymbol.height;
+              }
+            }
+          } else {
+            if (clampedPos.x < drawingState.startX) {
+              clampedPos.x = drawingState.startX;
+            }
+          }
+        }
+      }
+
+      const targetPt = drawingAlignment.snappedPt || clampedPos;
       const fromPt = { x: drawingState.startX, y: drawingState.startY };
       const firstTarget = explicitPoints.length > 0 ? explicitPoints[0] : targetPt;
       const startExit = getOrthoExit(fromPt, firstTarget);
@@ -468,8 +570,87 @@ export function DinRailConnectionsCanvas({
     }
 
     if (drawingState) {
-      setCurrentMousePos(logicalPos);
-      // Find nearest hotspot to snap
+      const fromSymbol = symbols.find((s) => s.id === drawingState.startSymbolId);
+      const fromHS = fromSymbol ? findTerminalByName(getSymbolTerminals(fromSymbol), drawingState.startTerminal, drawingState.isTop) : null;
+      const fromDirection = fromHS?.direction || (drawingState.isTop ? "top" : "bottom");
+
+      const clampedPos = { ...logicalPos };
+
+      if (explicitPoints.length === 0) {
+        if (fromDirection === "bottom") {
+          if (fromSymbol) {
+            if (clampedPos.y < fromSymbol.y) {
+              clampedPos.y = fromSymbol.y;
+            }
+            if (clampedPos.y < fromSymbol.y + fromSymbol.height) {
+              if (clampedPos.x < fromSymbol.x) {
+                clampedPos.x = fromSymbol.x;
+              } else if (clampedPos.x > fromSymbol.x + fromSymbol.width) {
+                clampedPos.x = fromSymbol.x + fromSymbol.width;
+              }
+            }
+          } else {
+            if (clampedPos.y < drawingState.startY) {
+              clampedPos.y = drawingState.startY;
+            }
+          }
+        } else if (fromDirection === "top") {
+          if (fromSymbol) {
+            if (clampedPos.y > fromSymbol.y + fromSymbol.height) {
+              clampedPos.y = fromSymbol.y + fromSymbol.height;
+            }
+            if (clampedPos.y > fromSymbol.y) {
+              if (clampedPos.x < fromSymbol.x) {
+                clampedPos.x = fromSymbol.x;
+              } else if (clampedPos.x > fromSymbol.x + fromSymbol.width) {
+                clampedPos.x = fromSymbol.x + fromSymbol.width;
+              }
+            }
+          } else {
+            if (clampedPos.y > drawingState.startY) {
+              clampedPos.y = drawingState.startY;
+            }
+          }
+        } else if (fromDirection === "left") {
+          if (fromSymbol) {
+            if (clampedPos.x > fromSymbol.x + fromSymbol.width) {
+              clampedPos.x = fromSymbol.x + fromSymbol.width;
+            }
+            if (clampedPos.x > fromSymbol.x) {
+              if (clampedPos.y < fromSymbol.y) {
+                clampedPos.y = fromSymbol.y;
+              } else if (clampedPos.y > fromSymbol.y + fromSymbol.height) {
+                clampedPos.y = fromSymbol.y + fromSymbol.height;
+              }
+            }
+          } else {
+            if (clampedPos.x > drawingState.startX) {
+              clampedPos.x = drawingState.startX;
+            }
+          }
+        } else if (fromDirection === "right") {
+          if (fromSymbol) {
+            if (clampedPos.x < fromSymbol.x) {
+              clampedPos.x = fromSymbol.x;
+            }
+            if (clampedPos.x < fromSymbol.x + fromSymbol.width) {
+              if (clampedPos.y < fromSymbol.y) {
+                clampedPos.y = fromSymbol.y;
+              } else if (clampedPos.y > fromSymbol.y + fromSymbol.height) {
+                clampedPos.y = fromSymbol.y + fromSymbol.height;
+              }
+            }
+          } else {
+            if (clampedPos.x < drawingState.startX) {
+              clampedPos.x = drawingState.startX;
+            }
+          }
+        }
+      }
+
+      setCurrentMousePos(clampedPos);
+
+      // Find nearest hotspot to snap (using clamped position)
       let nearest = null;
       let minDist = 36; // Snapping radius in logical pixels
 
@@ -477,8 +658,8 @@ export function DinRailConnectionsCanvas({
         if (hs.symbolId === drawingState.startSymbolId && hs.name === drawingState.startTerminal) {
           continue; // Don't snap to source terminal
         }
-        const dx = hs.absX - logicalPos.x;
-        const dy = hs.absY - logicalPos.y;
+        const dx = hs.absX - clampedPos.x;
+        const dy = hs.absY - clampedPos.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < minDist) {
           minDist = dist;
@@ -494,7 +675,8 @@ export function DinRailConnectionsCanvas({
           absX: nearest.absX,
           absY: nearest.absY,
           isTop: nearest.isTop,
-          type: nearest.type, direction: nearest.direction,
+          type: nearest.type,
+          direction: nearest.direction,
         });
       } else {
         setHoveredHotspot(null);
@@ -505,7 +687,9 @@ export function DinRailConnectionsCanvas({
   const handlePointerUp = (e: React.PointerEvent<SVGSVGElement>) => {
     if (isPanning) {
       setIsPanning(false);
-      try { e.currentTarget.releasePointerCapture(e.pointerId); } catch(err) {}
+      try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (_err) {
+        // Pointer może być już zwolniony (np. po touchend) — bezpiecznie zignorować.
+      }
       return;
     }
 
@@ -514,7 +698,9 @@ export function DinRailConnectionsCanvas({
       onConnectionsChange(finalState, "Przesuń trasę", "Przesunięto trasę przewodu");
       setDraggingHandle(null);
       setDraggingSegment(null);
-      try { e.currentTarget.releasePointerCapture(e.pointerId); } catch(err) {}
+      try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (_err) {
+        // Pointer może być już zwolniony — bezpiecznie zignorować.
+      }
       return;
     }
 
@@ -603,6 +789,7 @@ export function DinRailConnectionsCanvas({
       startY: hs.absY,
       isTop: hs.isTop,
       type: hs.type,
+      direction: hs.direction,
     });
     setExplicitPoints([]);
     const logicalPoint = getLogicalPoint(e.clientX, e.clientY);
@@ -706,6 +893,8 @@ export function DinRailConnectionsCanvas({
         toWireCount: toCount,
         fromHS,
         toHS,
+        fromSymbol,
+        toSymbol,
         fromDeviceKind: fromSymbol.deviceKind,
         fromModuleRef: fromSymbol.moduleRef,
         toDeviceKind: toSymbol.deviceKind,
@@ -718,7 +907,7 @@ export function DinRailConnectionsCanvas({
       keyIndices[d.key] = index + 1;
 
       const hasFerrule = d.connection.ferruleColor && d.connection.ferruleColor !== "none";
-      const customRadius = d.connection.customRadius ?? 52;
+      const customRadius = d.connection.customRadius ?? 0;
       
       const fromFerruleLen = getFerruleLength(d.fromDeviceKind, d.fromModuleRef);
       const toFerruleLen = getFerruleLength(d.toDeviceKind, d.toModuleRef);
@@ -727,8 +916,8 @@ export function DinRailConnectionsCanvas({
       const toExitOffsetVal = hasFerrule ? Math.max(d.toHS.exitOffset ?? 40, toFerruleLen) + customRadius : (d.toHS.exitOffset ?? 40) + customRadius;
 
       const routingOpts = {
-        isFromTop: d.connection.isFromTop ?? d.fromHS.isTop,
-        isToTop: d.connection.isToTop ?? d.toHS.isTop,
+        isFromTop: resolveConnectionIsFromTop(d.fromSymbol, d.connection.isFromTop, d.fromHS),
+        isToTop: resolveConnectionIsToTop(d.toSymbol, d.connection.isToTop, d.toHS),
         points: d.connection.points,
         customOffset: d.connection.customOffset,
         customOffsetX: d.connection.customOffsetX,
@@ -737,8 +926,8 @@ export function DinRailConnectionsCanvas({
         customRadius,
         fromDirection: d.fromHS.direction,
         toDirection: d.toHS.direction,
-        fromVisualInset: d.fromHS.visualInset,
-        toVisualInset: d.toHS.visualInset,
+        fromVisualInset: (isDistributionBlockSymbol(d.fromSymbol) || (d.fromHS.visualInset !== undefined && d.fromHS.visualInset > 180)) ? 0 : d.fromHS.visualInset,
+        toVisualInset: (isDistributionBlockSymbol(d.toSymbol) || (d.toHS.visualInset !== undefined && d.toHS.visualInset > 180)) ? 0 : d.toHS.visualInset,
         fromExitOffset: fromExitOffsetVal,
         toExitOffset: toExitOffsetVal,
       };
@@ -809,7 +998,7 @@ export function DinRailConnectionsCanvas({
     const isHorizontal = Math.abs(currentMousePos.x - lastP.x) > Math.abs(currentMousePos.y - lastP.y);
     const SNAP_TOLERANCE = 18;
     
-    let snappedPt = { x: currentMousePos.x, y: currentMousePos.y };
+    const snappedPt = { x: currentMousePos.x, y: currentMousePos.y };
     const guides: Array<{ x1: number; y1: number; x2: number; y2: number; hs: any }> = [];
 
     if (isHorizontal) {
@@ -867,41 +1056,43 @@ export function DinRailConnectionsCanvas({
   const previewPath = useMemo(() => {
     if (!drawingState || !currentMousePos) return null;
     const fromPt = { x: drawingState.startX, y: drawingState.startY };
-    
-    // Build sequence of points from start -> explicitPoints -> currentMousePos
-    const pts = [fromPt, ...explicitPoints];
-    
-    // Get last point (could be start point or last explicit corner)
-    const lastP = pts[pts.length - 1];
-    
-    const previewPoints: Point[] = [...pts];
 
-    if (hoveredHotspot) {
-      const toPt = { x: hoveredHotspot.absX, y: hoveredHotspot.absY };
-      const endEntry = getOrthoExit(toPt, lastP);
-      const corner = endEntry.axis === 'y' 
-          ? { x: endEntry.x, y: lastP.y } 
-          : { x: lastP.x, y: endEntry.y };
-      
-      previewPoints.push(corner);
-      previewPoints.push({ x: endEntry.x, y: endEntry.y });
-      previewPoints.push(toPt);
-    } else {
-      // Use snapped preview point if calculated
-      const targetPt = drawingAlignment.snappedPt || currentMousePos;
-      let previewX = targetPt.x;
-      let previewY = targetPt.y;
+    const fromSymbol = symbols.find((s) => s.id === drawingState.startSymbolId);
+    const fromHS = fromSymbol ? findTerminalByName(getSymbolTerminals(fromSymbol), drawingState.startTerminal, drawingState.isTop) : null;
+    const fromIsDist = fromSymbol ? (isDistributionBlockSymbol(fromSymbol) || (fromHS?.visualInset !== undefined && fromHS.visualInset > 180)) : false;
+    const fromVisualInset = fromHS ? (fromIsDist ? 0 : fromHS.visualInset) : 10;
+    const fromDirection = fromHS?.direction || (drawingState.isTop ? "top" : "bottom");
 
-      if (Math.abs(targetPt.x - lastP.x) > Math.abs(targetPt.y - lastP.y)) {
-          previewY = lastP.y;
-      } else {
-          previewX = lastP.x;
-      }
-      previewPoints.push({ x: previewX, y: previewY });
-    }
+    const customRadius = 0;
+    const fromExitOffsetVal = fromHS ? (fromHS.exitOffset ?? 40) + customRadius : 40 + customRadius;
 
-    return { pathData: pointsToRoundedPath(previewPoints, 0), pointsArr: previewPoints }; // Preview uses sharp corners by default
-  }, [drawingState, currentMousePos, hoveredHotspot, explicitPoints, drawingAlignment]);
+    const toSymbol = hoveredHotspot ? symbols.find((s) => s.id === hoveredHotspot.symbolId) : null;
+    const toHS = toSymbol && hoveredHotspot ? findTerminalByName(getSymbolTerminals(toSymbol), hoveredHotspot.terminalName, hoveredHotspot.isTop) : null;
+    const toIsDist = toSymbol ? (isDistributionBlockSymbol(toSymbol) || (toHS?.visualInset !== undefined && toHS.visualInset > 180)) : false;
+
+    const opts = {
+      isDrawing: true,
+      points: explicitPoints,
+      customRadius,
+      isFromTop: fromSymbol ? resolveConnectionIsFromTop(fromSymbol, drawingState.isTop, fromHS || undefined) : drawingState.isTop,
+      fromDirection,
+      fromVisualInset,
+      fromExitOffset: fromExitOffsetVal,
+      isToTop: hoveredHotspot && toSymbol ? resolveConnectionIsToTop(toSymbol, hoveredHotspot.isTop, toHS || undefined) : (hoveredHotspot ? hoveredHotspot.isTop : undefined),
+      toDirection: hoveredHotspot ? (toHS?.direction || (hoveredHotspot.isTop ? "top" : "bottom")) : undefined,
+      toVisualInset: hoveredHotspot ? (toHS ? (toIsDist ? 0 : toHS.visualInset) : 10) : undefined,
+      toExitOffset: hoveredHotspot ? (toHS ? (toHS.exitOffset ?? 40) + customRadius : 40 + customRadius) : undefined,
+    };
+
+    const targetPt = hoveredHotspot 
+      ? { x: hoveredHotspot.absX, y: hoveredHotspot.absY } 
+      : (drawingAlignment.snappedPt || currentMousePos);
+
+    const ptsArr = calculateWirePoints(fromPt, targetPt, opts);
+    const pathData = calculateWirePath(fromPt, targetPt, opts);
+
+    return { pathData, pointsArr: ptsArr };
+  }, [drawingState, currentMousePos, hoveredHotspot, explicitPoints, symbols, drawingAlignment]);
 
   const actualDrawingFromDir = useMemo(() => {
     if (!previewPath || previewPath.pointsArr.length < 2) return null;
@@ -1101,6 +1292,11 @@ export function DinRailConnectionsCanvas({
           </filter>
         </defs>
 
+        {/* Dynamiczny CSS: ukrywa Osłonę w tle szyny gdy użytkownik zdejmie pokrywę */}
+        {coverHiddenCss && (
+          <style>{coverHiddenCss}</style>
+        )}
+
         <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
           {/* 1. DIN Rail background */}
           <g
@@ -1227,7 +1423,7 @@ export function DinRailConnectionsCanvas({
                 style={{ transition: "stroke 0.15s ease" }}
               />
               <image
-                href={getSymbolAssetUrl(symbol)}
+                href={baseUrls[symbol.id] || getSymbolAssetUrl(symbol)}
                 width={symbol.width}
                 height={symbol.height}
                 preserveAspectRatio={(symbol.moduleRef || "").toLowerCase().includes("listwy do rozdzielnicy") || (symbol.moduleRef || "").toLowerCase().includes("gsu") ? "none" : "xMidYMid meet"}
@@ -1339,6 +1535,19 @@ export function DinRailConnectionsCanvas({
                   />
                 )}
 
+                {/* 0. Drop shadow for wire */}
+                <path
+                  d={w.pathData}
+                  fill="none"
+                  stroke="rgba(0, 0, 0, 0.4)"
+                  strokeWidth={wireThickness}
+                  strokeLinecap="butt"
+                  strokeLinejoin="round"
+                  transform="translate(1, 4)"
+                  filter="url(#shadow-blur)"
+                  style={{ pointerEvents: "none" }}
+                />
+
                 {/* 1. Dark outline base (Outer Edge) */}
                 <path
                   d={w.pathData}
@@ -1432,7 +1641,7 @@ export function DinRailConnectionsCanvas({
                         
                         const startDir = w.connection.fromDirection || (w.fromHS.isTop ? "top" : "bottom");
                         const endDir = w.connection.toDirection || (w.toHS.isTop ? "top" : "bottom");
-                        const bendRadius = w.connection.customRadius ?? 52;
+                        const bendRadius = w.connection.customRadius ?? 0;
                         const startClearance = (w.fromExitOffset ?? 30) + 40 + bendRadius; 
                         const endClearance = (w.toExitOffset ?? 30) + 40 + bendRadius;
 
@@ -1516,7 +1725,10 @@ export function DinRailConnectionsCanvas({
                           }
                         }
                         
-                        try { e.currentTarget.setPointerCapture(e.pointerId); } catch(err){}
+                        try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_err) {
+                          // Pointer capture może rzucić wyjątek jeśli pointerId
+                          // nie jest już aktywny (np. po touchend). Bezpiecznie zignorować.
+                        }
                       }}
                     />
                   );
@@ -1549,10 +1761,10 @@ export function DinRailConnectionsCanvas({
                 if (!renderedFerrules.has(fromKey)) {
                   renderedFerrules.add(fromKey);
                   const fromSymbolForFerrule = symbols.find(sym => sym.id === w.connection.fromSymbolId);
-                  // For distribution-block pins the ferrule is a short 80px strip
+                  // For distribution-block pins the ferrule is a short 40px strip
                   // anchored at the screw (the wire itself passes through the
                   // module body and exits at the bottom edge).
-                  const fromIsDist = !!fromSymbolForFerrule && isDistributionBlockSymbol(fromSymbolForFerrule);
+                  const fromIsDist = !!fromSymbolForFerrule && (isDistributionBlockSymbol(fromSymbolForFerrule) || (w.fromHS.visualInset !== undefined && w.fromHS.visualInset > 180));
                   elements.push(
                     <FerruleGraphic
                       key={`ferrule-from-${fromKey}`}
@@ -1576,7 +1788,7 @@ export function DinRailConnectionsCanvas({
                         return s?.deviceKind === "phaseIndicator";
                       })()}
                       customOffset={fromIsDist ? 10 : w.fromHS.visualInset}
-                      customLength={undefined}
+                      customLength={fromIsDist ? 40 : undefined}
                     />
                   );
                 }
@@ -1584,7 +1796,7 @@ export function DinRailConnectionsCanvas({
                 if (!renderedFerrules.has(toKey)) {
                   renderedFerrules.add(toKey);
                   const toSymbolForFerrule = symbols.find(sym => sym.id === w.connection.toSymbolId);
-                  const toIsDist = !!toSymbolForFerrule && isDistributionBlockSymbol(toSymbolForFerrule);
+                  const toIsDist = !!toSymbolForFerrule && (isDistributionBlockSymbol(toSymbolForFerrule) || (w.toHS.visualInset !== undefined && w.toHS.visualInset > 180));
                   elements.push(
                     <FerruleGraphic
                       key={`ferrule-to-${toKey}`}
@@ -1608,7 +1820,7 @@ export function DinRailConnectionsCanvas({
                         return s?.deviceKind === "phaseIndicator";
                       })()}
                       customOffset={toIsDist ? 10 : w.toHS.visualInset}
-                      customLength={undefined}
+                      customLength={toIsDist ? 40 : undefined}
                     />
                   );
                 }
@@ -1642,9 +1854,17 @@ export function DinRailConnectionsCanvas({
                   if (!s) return undefined;
                   const hotspots = getSymbolTerminals(s);
                   const hs = hotspots.find(h => h.name === drawingState.startTerminal);
-                  return hs?.visualInset;
+                  const isDist = isDistributionBlockSymbol(s) || (hs?.visualInset !== undefined && hs.visualInset > 180);
+                  return isDist ? 10 : hs?.visualInset;
                 })()}
-                customLength={undefined}
+                customLength={(() => {
+                  const s = symbols.find(sym => sym.id === drawingState.startSymbolId);
+                  if (!s) return undefined;
+                  const hotspots = getSymbolTerminals(s);
+                  const hs = hotspots.find(h => h.name === drawingState.startTerminal);
+                  const isDist = isDistributionBlockSymbol(s) || (hs?.visualInset !== undefined && hs.visualInset > 180);
+                  return isDist ? 40 : undefined;
+                })()}
               />
             )}
             {drawingState && hoveredHotspot && defaultWireSettings.ferruleColor && defaultWireSettings.ferruleColor !== "none" && (
@@ -1672,9 +1892,17 @@ export function DinRailConnectionsCanvas({
                   if (!s) return undefined;
                   const hotspots = getSymbolTerminals(s);
                   const hs = hotspots.find(h => h.name === hoveredHotspot.terminalName);
-                  return hs?.visualInset;
+                  const isDist = isDistributionBlockSymbol(s) || (hs?.visualInset !== undefined && hs.visualInset > 180);
+                  return isDist ? 10 : hs?.visualInset;
                 })()}
-                customLength={undefined}
+                customLength={(() => {
+                  const s = symbols.find(sym => sym.id === hoveredHotspot.symbolId);
+                  if (!s) return undefined;
+                  const hotspots = getSymbolTerminals(s);
+                  const hs = hotspots.find(h => h.name === hoveredHotspot.terminalName);
+                  const isDist = isDistributionBlockSymbol(s) || (hs?.visualInset !== undefined && hs.visualInset > 180);
+                  return isDist ? 40 : undefined;
+                })()}
               />
             )}
           </g>

@@ -30,7 +30,7 @@ export function PublicLandingPage({
       setCurrentSlide((prev) => (prev + 1) % SLIDER_IMAGES.length);
     }, 8000);
     return () => clearInterval(interval);
-  }, []);
+  }, [SLIDER_IMAGES.length]);
 
   // Wstrzykiwanie bezpiecznego Tailwinda bez Preflighta (tylko w obszarze Landingu)
   useEffect(() => {

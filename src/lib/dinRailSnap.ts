@@ -150,7 +150,6 @@ export function snapModulePlacementToDinRail(
         + Math.round((x - DIN_RAIL_PADDING_X) / MODULE_UNIT_WIDTH) * MODULE_UNIT_WIDTH;
       if (isSpaceFree(gridX, width)) {
         finalX = gridX;
-        isHorizontallySnapped = true;
       }
     }
   }

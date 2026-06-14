@@ -147,3 +147,139 @@ describe("projectFile serialization/parsing with connections", () => {
   });
 });
 
+describe("projectFile round-trip (no data loss)", () => {
+  // Krytyczne dla Krok 2 roadmapy: upewniamy się, że serialize → parse
+  // zachowuje WSZYSTKIE dane (metadata + symbols + rail + connections).
+  // Bez tego użytkownik mógłby stracić dane po "Zapisz" → "Otwórz" bez
+  // zauważenia.
+
+  function makeRoundTripData() {
+    const metadata = createEmptyProjectMetadata();
+    const connections: ConnectionItem[] = [
+      {
+        id: "conn-1",
+        fromSymbolId: "rcd-1",
+        fromTerminal: "2",
+        toSymbolId: "mcb-1",
+        toTerminal: "1",
+        wireColor: "black",
+        wireCrossSection: 2.5,
+        wireType: "LgY",
+        routingMode: "manhattan",
+      },
+    ];
+    return {
+      metadata,
+      symbols: [
+        createDefaultSymbolItem({
+          id: "rcd-1",
+          type: "RCD 2P",
+          deviceKind: "rcd",
+          rcdRatedCurrent: 40,
+          rcdResidualCurrent: 30,
+          rcdType: "A",
+          group: "G1",
+          groupName: "Grupa 1",
+        }),
+        createDefaultSymbolItem({
+          id: "mcb-1",
+          type: "MCB 1P",
+          deviceKind: "mcb",
+          circuitName: "Oświetlenie salon",
+          rcdSymbolId: "rcd-1",
+          group: "G1",
+          powerW: 2300,
+        }),
+        createDefaultSymbolItem({
+          id: "mcb-2",
+          type: "MCB 1P",
+          deviceKind: "mcb",
+          circuitName: "Gniazdo kuchnia",
+          rcdSymbolId: "rcd-1",
+          group: "G1",
+          powerW: 3680,
+        }),
+      ],
+      connections,
+      rail: {
+        svg: "<svg><rect width='100' height='50' /></svg>",
+        width: 1000,
+        height: 500,
+        rows: 1,
+        modulesPerRow: 24,
+        isVisible: true,
+      },
+    };
+  }
+
+  it("full round-trip preserves metadata, symbols, connections, and rail", () => {
+    const data = makeRoundTripData();
+
+    const serialized = serializeProjectFileContent(
+      data.metadata,
+      data.symbols,
+      data.rail,
+      data.connections,
+    );
+    const parsed = parseProjectFileContent(serialized, "/test/roundtrip.dinboard");
+
+    // Metadata (tylko te pola, które są porównywalne po normalizacji)
+    expect(parsed.metadata).not.toBeNull();
+    expect(parsed.metadata!.projectNumber).toBe(data.metadata.projectNumber);
+    expect(parsed.metadata!.investor).toBe(data.metadata.investor);
+
+    // Symbols
+    expect(parsed.symbols).toHaveLength(3);
+    expect(parsed.symbols.map((s) => s.id)).toEqual(["rcd-1", "mcb-1", "mcb-2"]);
+    expect(parsed.symbols.find((s) => s.id === "mcb-1")!.circuitName).toBe("Oświetlenie salon");
+    expect(parsed.symbols.find((s) => s.id === "mcb-1")!.rcdSymbolId).toBe("rcd-1");
+    expect(parsed.symbols.find((s) => s.id === "mcb-1")!.powerW).toBe(2300);
+
+    // Connections
+    expect(parsed.connections).toHaveLength(1);
+    expect(parsed.connections![0]).toMatchObject({
+      id: "conn-1",
+      fromSymbolId: "rcd-1",
+      toSymbolId: "mcb-1",
+      wireColor: "black",
+    });
+
+    // Rail
+    expect(parsed.rail).not.toBeNull();
+    expect(parsed.rail!.width).toBe(1000);
+    expect(parsed.rail!.height).toBe(500);
+    expect(parsed.rail!.isVisible).toBe(true);
+    expect(parsed.rail!.rows).toBe(1);
+    expect(parsed.rail!.modulesPerRow).toBe(24);
+  });
+
+  it("round-trip with invisible rail: rail is null after parse", () => {
+    const data = makeRoundTripData();
+    const hiddenRail = { ...data.rail, isVisible: false };
+
+    const serialized = serializeProjectFileContent(data.metadata, data.symbols, hiddenRail, data.connections);
+    const parsed = parseProjectFileContent(serialized);
+
+    // rail?.isVisible ? rail : null — niewidoczny rail NIE jest serializowany
+    expect(parsed.rail).toBeNull();
+  });
+
+  it("round-trip with null rail: stays null after parse", () => {
+    const data = makeRoundTripData();
+
+    const serialized = serializeProjectFileContent(data.metadata, data.symbols, null, data.connections);
+    const parsed = parseProjectFileContent(serialized);
+
+    expect(parsed.rail).toBeNull();
+  });
+
+  it("round-trip with no connections: empty array preserved", () => {
+    const data = makeRoundTripData();
+
+    const serialized = serializeProjectFileContent(data.metadata, data.symbols, data.rail);
+    const parsed = parseProjectFileContent(serialized);
+
+    expect(parsed.connections).toEqual([]);
+  });
+});
+

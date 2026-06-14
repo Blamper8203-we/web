@@ -24,7 +24,7 @@ function collectTextContent(node: unknown): string[] {
     if (typeof element.type === "function") {
       try {
         return collectTextContent(element.type(element.props));
-      } catch (err) {
+      } catch (_err) {
         // Fallback
       }
     }
@@ -48,7 +48,7 @@ function collectImageSources(node: unknown): string[] {
     if (typeof element.type === "function") {
       try {
         return collectImageSources(element.type(element.props));
-      } catch (err) {
+      } catch (_err) {
         // Fallback
       }
     }
@@ -73,7 +73,7 @@ function collectPageOrientations(node: unknown): Array<unknown> {
     if (typeof element.type === "function") {
       try {
         return collectPageOrientations(element.type(element.props));
-      } catch (err) {
+      } catch (_err) {
         // Fallback
       }
     }
@@ -98,7 +98,7 @@ function collectA4PageTextContent(node: unknown): string[] {
     if (typeof element.type === "function") {
       try {
         return collectA4PageTextContent(element.type(element.props));
-      } catch (err) {
+      } catch (_err) {
         // Fallback
       }
     }
@@ -624,3 +624,4 @@ describe("PdfProtocolDocument", () => {
     expect(text).toContain("Obwód testowy 0");
   });
 });
+

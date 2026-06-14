@@ -138,7 +138,16 @@ function normalizeModuleRefForWeb(moduleRef: string): string {
 
 function resolveVisualPath(rawVisualPath: unknown, rawModuleRef: unknown): string {
   if (typeof rawVisualPath === "string" && rawVisualPath.trim().length > 0) {
-    return rawVisualPath;
+    let path = rawVisualPath;
+    if (
+      !path.startsWith("/") &&
+      !path.startsWith("http") &&
+      !path.toLowerCase().startsWith("assets/modules/") &&
+      !path.toLowerCase().startsWith("assets\\modules\\")
+    ) {
+      path = "assets/modules/" + path;
+    }
+    return path;
   }
 
   if (typeof rawModuleRef !== "string" || rawModuleRef.trim().length === 0) {
@@ -600,7 +609,7 @@ export async function openProjectFile(): Promise<ProjectFileData | null> {
       return parseProjectFileContent(content, path);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Nieznany błąd";
-      throw new Error(`Nie można otworzyć pliku: ${message}`);
+      throw new Error(`Nie można otworzyć pliku: ${message}`, { cause: error });
     }
   }
 
@@ -614,7 +623,7 @@ export async function openProjectFile(): Promise<ProjectFileData | null> {
     return parseProjectFileContent(await file.text(), file.name);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Nieznany błąd";
-    throw new Error(`Nie można otworzyć pliku: ${message}`);
+    throw new Error(`Nie można otworzyć pliku: ${message}`, { cause: error });
   }
 }
 
@@ -651,7 +660,7 @@ export async function saveProjectFile(
     return fileName;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Nieznany błąd";
-    throw new Error(`Nie można zapisać pliku: ${message}`);
+    throw new Error(`Nie można zapisać pliku: ${message}`, { cause: error });
   }
 }
 
@@ -665,6 +674,6 @@ export async function loadProjectFromPath(filePath: string): Promise<ProjectFile
     return parseProjectFileContent(await response.text(), filePath.split(/[\\/]/).pop());
   } catch (error) {
     const message = error instanceof Error ? error.message : "Nieznany błąd";
-    throw new Error(`Nie można załadować pliku: ${message}`);
+    throw new Error(`Nie można załadować pliku: ${message}`, { cause: error });
   }
 }

@@ -337,6 +337,8 @@ export function usePaletteActions({
       }
     },
     [
+      dinRail.config.modulesPerRow,
+      dinRail.config.rows,
       dinRail.isVisible,
       executeSymbolsCommand,
       handleOpenDinRailGenerator,

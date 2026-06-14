@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { type ConnectionItem } from "../../types/connectionItem";
-import { type SymbolItem } from "../../types/symbolItem";
+import { type SymbolItem, isDistributionBlockSymbol } from "../../types/symbolItem";
 import { getSymbolTerminals, findTerminalByName, resolveConnectionIsFromTop, resolveConnectionIsToTop } from "../../lib/modules/moduleTerminals";
 import { calculateWirePoints, calculateWirePath, type Point } from "../../lib/routing/wireRoutingEngine";
 import { WIRE_COLORS_MAP, WIRE_THICKNESS_MAP, getFerruleLength, isTerminalZlaczka } from "../../lib/connections/connectionsLogic";
@@ -77,7 +77,7 @@ export function DinRailConnectionsWiresLayer({
         keyIndices[d.key] = index + 1;
 
         const hasFerrule = d.connection.ferruleColor && d.connection.ferruleColor !== "none";
-        const customRadius = d.connection.customRadius ?? 52;
+        const customRadius = d.connection.customRadius ?? 0;
         
         const fromFerruleLen = getFerruleLength(d.fromSymbol.deviceKind, d.fromSymbol.moduleRef);
         const toFerruleLen = getFerruleLength(d.toSymbol.deviceKind, d.toSymbol.moduleRef);
@@ -85,11 +85,18 @@ export function DinRailConnectionsWiresLayer({
         const fromExitOffsetVal = hasFerrule ? Math.max(d.fromHS.exitOffset ?? 40, fromFerruleLen) + customRadius : (d.fromHS.exitOffset ?? 40) + customRadius;
         const toExitOffsetVal = hasFerrule ? Math.max(d.toHS.exitOffset ?? 40, toFerruleLen) + customRadius : (d.toHS.exitOffset ?? 40) + customRadius;
 
+        const fromIsDist = isDistributionBlockSymbol(d.fromSymbol) || (d.fromHS.visualInset !== undefined && d.fromHS.visualInset > 180);
+        const toIsDist = isDistributionBlockSymbol(d.toSymbol) || (d.toHS.visualInset !== undefined && d.toHS.visualInset > 180);
+        const fromVisualInset = fromIsDist ? 0 : d.fromHS.visualInset;
+        const toVisualInset = toIsDist ? 0 : d.toHS.visualInset;
+
         const routingOpts = {
           isFromTop: resolveConnectionIsFromTop(d.fromSymbol, d.connection.isFromTop, d.fromHS),
           fromDirection: d.fromHS.direction,
           isToTop: resolveConnectionIsToTop(d.toSymbol, d.connection.isToTop, d.toHS),
           toDirection: d.toHS.direction,
+          fromVisualInset,
+          toVisualInset,
           points: d.connection.points,
           customOffset: d.connection.customOffset,
           customOffsetX: d.connection.customOffsetX,
@@ -137,6 +144,8 @@ export function DinRailConnectionsWiresLayer({
           actualToDir,
           resolvedIsFromTop,
           resolvedIsToTop,
+          fromIsDist,
+          toIsDist,
           parallelIndex: index,
           parallelCount: keyCounts[d.key],
         };
@@ -236,8 +245,8 @@ export function DinRailConnectionsWiresLayer({
                   isExtraLong={isTerminalZlaczka(w.fromSymbol?.moduleRef)}
                   isSquare={w.fromSymbol?.deviceKind === "phaseIndicator"}
                   isDouble={(ferruleCounts.get(`${w.connection.fromSymbolId}:${w.connection.fromTerminal}:${w.resolvedIsFromTop ? 'T' : 'B'}:${w.actualFromDir}`) || 0) >= 2}
-                  customOffset={w.fromHS?.visualInset}
-                  customLength={undefined}
+                  customOffset={w.fromIsDist ? 10 : w.fromHS?.visualInset}
+                  customLength={w.fromIsDist ? 40 : undefined}
                 />
                 <FerruleGraphic
                   x={w.toPt.x}
@@ -250,8 +259,8 @@ export function DinRailConnectionsWiresLayer({
                   isExtraLong={isTerminalZlaczka(w.toSymbol?.moduleRef)}
                   isSquare={w.toSymbol?.deviceKind === "phaseIndicator"}
                   isDouble={(ferruleCounts.get(`${w.connection.toSymbolId}:${w.connection.toTerminal}:${w.resolvedIsToTop ? 'T' : 'B'}:${w.actualToDir}`) || 0) >= 2}
-                  customOffset={w.toHS?.visualInset}
-                  customLength={undefined}
+                  customOffset={w.toIsDist ? 10 : w.toHS?.visualInset}
+                  customLength={w.toIsDist ? 40 : undefined}
                 />
               </>
             )}
@@ -413,7 +422,11 @@ export function DinRailConnectionsWiresLayer({
 
                       try {
                         e.currentTarget.setPointerCapture(e.pointerId);
-                      } catch (err) {}
+                      } catch (_err) {
+                        // Pointer capture może rzucić wyjątek jeśli pointerId
+                        // nie jest już aktywny (np. po touchend). Bezpiecznie
+                        // zignorować — listener zostanie usunięty w cleanup.
+                      }
                     }}
                   />
                 );

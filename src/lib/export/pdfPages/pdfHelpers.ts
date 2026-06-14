@@ -74,6 +74,18 @@ export function formatProtocolTitle(originalTitle: string, suffix: string): stri
   return `${originalTitle} ${suffix}`;
 }
 
-export function formatProtocolNumberLabel(headerTitle: string): string {
-  return headerTitle.replace(/^protokół\s+(pomiarów\s+)?nr\s+/i, "").trim();
+/**
+ * Usuwa prefix "Protokół Nr" / "Protokół pomiarów Nr" z tytułu strony, zostawiając
+ * sam numer. Akceptuje `undefined`/`""`/`"  "` (whitespace) — zwraca pusty string.
+ *
+ * Unifikacja: wcześniej istniały dwie kopie — defensywna (akceptowała undefined,
+ * używana w MeasurementProtocolsWorkspacePage) i prosta (wymagała string,
+ * używana w PDF renderingu). Ta wersja łączy oba przypadki.
+ */
+export function formatProtocolNumberLabel(headerTitle: string | undefined): string {
+  const normalized = headerTitle?.trim();
+  if (!normalized) {
+    return "";
+  }
+  return normalized.replace(/^protokół\s+(pomiarów\s+)?nr\s+/i, "").trim();
 }

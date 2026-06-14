@@ -2,37 +2,29 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Application, Container, Text, TextStyle } from "pixi.js";
 import { type SymbolItem } from "../types/symbolItem";
 import type { ConnectionItem } from "../types/connectionItem";
-import { getSymbolTerminals, resolveConnectionIsFromTop, resolveConnectionIsToTop } from "../lib/modules/moduleTerminals";
-import { calculateWirePath } from "../lib/routing/wireRoutingEngine";
 import {
-  generateDinRailSvg,
   getDinRailDimensions,
   type DinRailConfig,
 } from "../lib/schematic/dinRailGenerator";
 import { buildSchematicLayout } from "../lib/schematic/schematicLayoutEngine";
 import {
-  DIN_RAIL_GROUP_FRAME_PADDING,
-  DIN_RAIL_GROUP_BRACKET_LABEL_GAP,
-  DIN_RAIL_GROUP_BRACKET_LEG_HEIGHT,
-  DIN_RAIL_GROUP_BRACKET_OFFSET_Y,
-  buildDinRailGroupFrames,
   buildSelectionBounds,
   expandSelectionToGroupIds,
-  formatDinRailGroupLabel,
   getDragSelectionIds,
   rectsIntersect,
 } from "../lib/dinRailSelection";
 import { snapModulePlacementToDinRail } from "../lib/dinRailSnap";
+import { snapListwaPlacement } from "../lib/dinRail/listwySnap";
 import {
   getPaletteTemplateDimensions,
   supportsDinRailPlacement,
 } from "../lib/modules/moduleCatalog";
-import { useDinRailForegroundSvgs } from "../hooks/useDinRailForegroundSvgs";
-import { DinRailConnectionsForegroundLayer } from "./canvasLayers/DinRailConnectionsForegroundLayer";
-import { isTerminalZlaczka } from "../lib/connections/connectionsLogic";
+import { useDinRailProcessedSvgs } from "../hooks/useDinRailForegroundSvgs";
 import { useDinRailPreparedAssets } from "../hooks/useDinRailPreparedAssets";
+import { useDinRailRailGenerator } from "../hooks/useDinRailRailGenerator";
 import { useSvgTerminalsPreloader } from "../hooks/useSvgTerminalsPreloader";
 import { useElementSize } from "../hooks/useElementSize";
+import { DinRailCanvasViewport } from "./DinRailCanvasViewport";
 import {
   DinRailEmptyState,
   DinRailGeneratorDialog,
@@ -42,21 +34,12 @@ import {
 } from "./dinRailUiParts";
 import { AppIcon } from "./AppIcon";
 import {
-  DEFAULT_CONFIG,
-  DIN_RAIL_PREVIEW_CANVAS_WIDTH,
-  DIN_RAIL_PREVIEW_CANVAS_HEIGHT,
-  DIN_RAIL_PREVIEW_MARGIN_X,
-  DIN_RAIL_PREVIEW_MARGIN_Y,
   MAX_INITIAL_SCALE,
   MAX_SCALE,
   MIN_SCALE,
-  PIXI_LABEL_SYMBOL_LIMIT,
   PIXI_MAX_RESOLUTION,
-  WIRE_COLORS_MAP,
-  WIRE_THICKNESS_MAP,
 } from "../lib/dinRailCanvas/constants";
 import {
-  buildWorldRectStyle,
   clamp,
   expandRect,
   getSymbolDesignationLabel,
@@ -123,7 +106,6 @@ export function DinRailCanvas({
   getPaletteTemplate,
   rail,
   symbols,
-  connections = [],
   generatorRequest,
   selectedSymbolId,
   selectedSymbolIds,
@@ -154,20 +136,15 @@ export function DinRailCanvas({
   const interactionRef = useRef<InteractionState>({ mode: "idle" });
   const panRef = useRef<WorldPoint>({ x: 0, y: 0 });
   const scaleRef = useRef(1);
-  const lastGeneratorRequest = useRef(generatorRequest);
   const measuredNodesRef = useRef(new Map<string, HTMLDivElement>());
 
   const viewportSize = useElementSize(containerRef);
   const [scale, setScale] = useState(1);
   const [pan, setPan] = useState<WorldPoint>({ x: 0, y: 0 });
   const [isDropTarget, setIsDropTarget] = useState(false);
-  const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
   const [isPixiReady, setIsPixiReady] = useState(false);
   const [selectionRect, setSelectionRect] = useState<WorldRect | null>(null);
 
-  const [draftConfig, setDraftConfig] = useState<DinRailConfig>(
-    rail.isVisible ? rail.config : DEFAULT_CONFIG,
-  );
   const [symbolNormalizedRects, setSymbolNormalizedRects] = useState<Map<string, NormalizedRect>>(new Map());
 
   const snappedSymbols = useMemo(
@@ -177,10 +154,6 @@ export function DinRailCanvas({
   const rowCenters = useMemo(
     () => getDinRailDimensions(rail.config.rows, rail.config.modulesPerRow).rowCenters,
     [rail.config.modulesPerRow, rail.config.rows],
-  );
-  const groupFrames = useMemo(
-    () => buildDinRailGroupFrames(snappedSymbols, DIN_RAIL_GROUP_FRAME_PADDING),
-    [snappedSymbols],
   );
   const automaticDesignationBySymbolId = useMemo(() => {
     const layout = buildSchematicLayout(symbols);
@@ -196,68 +169,8 @@ export function DinRailCanvas({
     return map;
   }, [symbols]);
 
-  const groupedWiredPaths = useMemo(() => {
-    const keyCounts: Record<string, number> = {};
-    const keyIndices: Record<string, number> = {};
-
-    return connections.map((conn) => {
-      const fromSymbol = symbols.find((s) => s.id === conn.fromSymbolId);
-      const toSymbol = symbols.find((s) => s.id === conn.toSymbolId);
-      
-      if (!fromSymbol || !toSymbol) return null;
-
-      const fromHS = getSymbolTerminals(fromSymbol).find((h) => h.name === conn.fromTerminal);
-      const toHS = getSymbolTerminals(toSymbol).find((h) => h.name === conn.toTerminal);
-
-      if (!fromHS || !toHS) return null;
-
-      const fromPt = { x: fromSymbol.x + fromHS.x, y: fromSymbol.y + fromHS.y };
-      const toPt = { x: toSymbol.x + toHS.x, y: toSymbol.y + toHS.y };
-
-      // Compute sorting key for parallel offsets
-      const key = [conn.fromSymbolId, conn.toSymbolId].sort().join(":");
-      const totalCount = keyCounts[key] || 0;
-      keyCounts[key] = totalCount + 1;
-
-      return {
-        connection: conn,
-        fromPt,
-        toPt,
-        fromHS,
-        toHS,
-        fromSymbol,
-        toSymbol,
-        key,
-      };
-    }).filter(Boolean).map((d) => {
-      if (!d) return null;
-      const index = keyIndices[d.key] || 0;
-      keyIndices[d.key] = index + 1;
-
-      const path = calculateWirePath(d.fromPt, d.toPt, {
-        isFromTop: resolveConnectionIsFromTop(d.fromSymbol, d.connection.isFromTop, d.fromHS),
-        isToTop: resolveConnectionIsToTop(d.toSymbol, d.connection.isToTop, d.toHS),
-        parallelIndex: index,
-        parallelCount: keyCounts[d.key],
-        customOffset: d.connection.customOffset,
-        customOffsetX: d.connection.customOffsetX,
-        customOffsetY1: d.connection.customOffsetY1,
-        customOffsetY2: d.connection.customOffsetY2,
-        points: d.connection.points,
-        customRadius: d.connection.customRadius,
-      });
-
-      return {
-        ...d,
-        pathData: path,
-        parallelIndex: index,
-        parallelCount: keyCounts[d.key],
-      };
-    });
-  }, [connections, symbols]);
-
   const assetMap = useDinRailPreparedAssets(snappedSymbols);
-  const foregroundUrls = useDinRailForegroundSvgs(snappedSymbols);
+  const { foregroundUrls } = useDinRailProcessedSvgs(snappedSymbols);
 
   const interactiveRects = useMemo(() => {
     const nextMap = new Map<string, WorldRect>();
@@ -293,26 +206,18 @@ export function DinRailCanvas({
     () => buildSelectionBounds(selectedSnappedSymbols),
     [selectedSnappedSymbols],
   );
-  const shouldRenderPixiLabels = false && snappedSymbols.length <= PIXI_LABEL_SYMBOL_LIMIT;
+  // Feature flag tymczasowo wyłączony. Aby z powrotem włączyć renderowanie
+  // etykiet w warstwie Pixi, zamień na `snappedSymbols.length <= PIXI_LABEL_SYMBOL_LIMIT`.
+  const shouldRenderPixiLabels = false;
 
-  const safePreviewConfig = useMemo<DinRailConfig>(() => ({
-    rows: Math.max(1, draftConfig.rows || 1),
-    modulesPerRow: Math.max(6, draftConfig.modulesPerRow || 6),
-  }), [draftConfig]);
-
-  const previewSvg = useMemo(() => generateDinRailSvg(safePreviewConfig), [safePreviewConfig]);
-  const previewDims = useMemo(
-    () => getDinRailDimensions(safePreviewConfig.rows, safePreviewConfig.modulesPerRow),
-    [safePreviewConfig],
-  );
-  const previewScale = Math.min(
-    (DIN_RAIL_PREVIEW_CANVAS_WIDTH - DIN_RAIL_PREVIEW_MARGIN_X * 2) / previewDims.width,
-    (DIN_RAIL_PREVIEW_CANVAS_HEIGHT - DIN_RAIL_PREVIEW_MARGIN_Y * 2) / previewDims.height,
-    1,
-  );
-  const totalModules = rail.isVisible
-    ? rail.config.rows * rail.config.modulesPerRow
-    : (draftConfig.rows || 1) * (draftConfig.modulesPerRow || 6);
+  const railGenerator = useDinRailRailGenerator({
+    railConfig: rail.config,
+    isRailVisible: rail.isVisible,
+    generatorRequest,
+    onGenerate: (config, svg, width, height) => {
+      onRailGenerated?.(config, svg, width, height);
+    },
+  });
 
   const flushViewportState = useCallback(() => {
     setPan((currentPan) => (
@@ -463,36 +368,14 @@ export function DinRailCanvas({
       const isTerminalBlock = template?.category === "Listwy do rozdzielnicy";
 
       if (isTerminalBlock) {
-         const topY = -1200;
-         const rectHeight = 300;
-         const bottomY = (rail.config.rows - 1) * (1642.0 + 50.0) + 2400;
-
-         const gap = 300;
-         const rectWidth = Math.min(2000, rail.width * 0.35);
-         const centerX = rail.width / 2;
-         const leftRectX = centerX - rectWidth - gap / 2;
-         const rightRectX = centerX + gap / 2;
-         
-         const leftCenterX = leftRectX + rectWidth / 2;
-         const rightCenterX = rightRectX + rectWidth / 2;
-
-         let snapX = x;
-         const distLeft = Math.abs((x + width/2) - leftCenterX);
-         const distRight = Math.abs((x + width/2) - rightCenterX);
-         
-         if (distLeft < distRight && distLeft < 1500) snapX = leftCenterX - width / 2;
-         else if (distRight <= distLeft && distRight < 1500) snapX = rightCenterX - width / 2;
-
-         const inTopZone = y >= topY - 200 && y <= topY + rectHeight + 200;
-         const inBottomZone = y >= bottomY - 200 && y <= bottomY + rectHeight + 200;
-
-         if (inTopZone) return { x: snapX, y: topY + rectHeight / 2 - height / 2 };
-         if (inBottomZone) return { x: snapX, y: bottomY + rectHeight / 2 - height / 2 };
-         
-         const distTop = Math.abs(y - topY);
-         const distBottom = Math.abs(y - bottomY);
-         if (distTop < distBottom) return { x: snapX, y: topY + rectHeight / 2 - height / 2 };
-         return { x: snapX, y: bottomY + rectHeight / 2 - height / 2 };
+        return snapListwaPlacement({
+          x,
+          y,
+          width,
+          height,
+          railWidth: rail.width,
+          railRows: rail.config.rows,
+        });
       }
 
       return snapModulePlacementToDinRail(
@@ -509,20 +392,6 @@ export function DinRailCanvas({
     },
     [getPaletteTemplate, rail.config.rows, rail.width, rowCenters, snappedSymbols],
   );
-
-  const openGenerator = useCallback(() => {
-    setDraftConfig(rail.isVisible ? rail.config : DEFAULT_CONFIG);
-    setIsGeneratorOpen(true);
-  }, [rail.config, rail.isVisible]);
-
-  useEffect(() => {
-    if (generatorRequest === lastGeneratorRequest.current) {
-      return;
-    }
-
-    lastGeneratorRequest.current = generatorRequest;
-    openGenerator();
-  }, [generatorRequest, openGenerator]);
 
   useEffect(() => {
     onZoomChange?.(Math.round(scale * 100));
@@ -906,7 +775,7 @@ export function DinRailCanvas({
 
       onSymbolMove?.(id, startPosition.x + deltaX, startPosition.y + deltaY);
     }
-  }, [onSymbolMove, rail.width, screenToWorld, setPanSafe, snapModulePlacement, snappedSymbols]);
+  }, [onSymbolMove, screenToWorld, setPanSafe, snapModulePlacement, snappedSymbols]);
 
   const handlePointerUp = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
@@ -931,7 +800,7 @@ export function DinRailCanvas({
 
     interactionRef.current = { mode: "idle" };
     setSelectionRect(null);
-  }, [commitSelectionRect, flushViewportState, onSymbolMoveEnd, onSymbolSelect, rail.isVisible, selectionRect]);
+  }, [commitSelectionRect, flushViewportState, onSymbolMoveEnd, onSymbolSelect, selectionRect]);
 
   const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     const types = Array.from(event.dataTransfer.types).map((type) => type.toLowerCase());
@@ -993,178 +862,17 @@ export function DinRailCanvas({
     setIsDropTarget(false);
   }, [getPaletteTemplate, onPaletteDrop, onUnsupportedTemplateDrop, rail.isVisible, screenToWorld, snapModulePlacement]);
 
-  const updateRows = (value: string) => {
-    if (value.trim() === "") {
-      setDraftConfig((prev) => ({
-        ...prev,
-        rows: "" as unknown as number,
-      }));
-      return;
-    }
-    const parsed = parseInt(value, 10);
-    if (!Number.isFinite(parsed)) {
-      return;
-    }
-    setDraftConfig((prev) => ({
-      ...prev,
-      rows: parsed,
-    }));
-  };
-
-  const updateModulesPerRow = (value: string) => {
-    if (value.trim() === "") {
-      setDraftConfig((prev) => ({
-        ...prev,
-        modulesPerRow: "" as unknown as number,
-      }));
-      return;
-    }
-    const parsed = parseInt(value, 10);
-    if (!Number.isFinite(parsed)) {
-      return;
-    }
-    setDraftConfig((prev) => ({
-      ...prev,
-      modulesPerRow: parsed,
-    }));
-  };
-
-  const generateRail = () => {
-    const normalizedConfig: DinRailConfig = {
-      rows: Math.max(1, Math.min(10, Math.round(draftConfig.rows) || 1)),
-      modulesPerRow: Math.max(6, Math.min(48, Math.round(draftConfig.modulesPerRow) || 6)),
-    };
-    const svg = generateDinRailSvg(normalizedConfig);
-    const dims = getDinRailDimensions(normalizedConfig.rows, normalizedConfig.modulesPerRow);
-    onRailGenerated?.(normalizedConfig, svg, dims.width, dims.height);
-    setIsGeneratorOpen(false);
-  };
-
-  const selectionRectStyle = selectionRect ? buildWorldRectStyle(selectionRect) : undefined;
-  const selectedBoundsStyle = selectedBounds ? buildWorldRectStyle(selectedBounds) : undefined;
-  const worldTransform = `translate(${pan.x}px, ${pan.y}px) scale(${scale})`;
-  const railSvgStyle: React.CSSProperties = {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    width: `${rail.width}px`,
-    height: `${rail.height}px`,
-    transform: worldTransform,
-    transformOrigin: "top left",
-    pointerEvents: "none",
-    zIndex: 10,
-  };
-  const worldLayerBaseStyle: React.CSSProperties = {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    width: `${rail.width}px`,
-    height: `${rail.height}px`,
-    transform: worldTransform,
-    transformOrigin: "top left",
-    pointerEvents: "none",
-  };
-  const hitboxLayerStyle: React.CSSProperties = {
-    ...worldLayerBaseStyle,
-    zIndex: 60,
-  };
-  const overlayLayerStyle: React.CSSProperties = {
-    ...worldLayerBaseStyle,
-    zIndex: 70,
-  };
-  const labelOverlayStyle: React.CSSProperties = {
-    position: "absolute",
-    inset: 0,
-    pointerEvents: "none",
-    zIndex: 50,
-  };
-
-  const renderListwyPlaceholders = () => {
-    if (!rail.isVisible) return null;
-    
-    const rectWidth = Math.min(2000, rail.width * 0.35);
-    const rectHeight = 300;
-    const gap = 300;
-    
-    const centerX = rail.width / 2;
-    const leftRectX = centerX - rectWidth - gap / 2;
-    const rightRectX = centerX + gap / 2;
-    
-    const topY = -1200;
-    const bottomY = (rail.config.rows - 1) * (1642.0 + 50.0) + 2400;
-
-    const baseStyle: React.CSSProperties = {
-      position: "absolute",
-      width: `${rectWidth}px`,
-      height: `${rectHeight}px`,
-      border: "12px dashed #475569", // slate-600
-      borderRadius: "24px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      cursor: "pointer",
-      pointerEvents: "auto",
-      backgroundColor: "rgba(15, 23, 42, 0.4)", // slate-900 with opacity
-      boxSizing: "border-box",
-      transition: "border-color 0.2s, background-color 0.2s",
-    };
-
-    const textStyle: React.CSSProperties = {
-      fontSize: "80px",
-      fontWeight: "bold",
-      color: "#94a3b8", // slate-400
-      fontFamily: "system-ui, sans-serif",
-      textTransform: "uppercase",
-      letterSpacing: "4px",
-      pointerEvents: "none",
-    };
-
-    const createPlaceholder = (x: number, y: number, key: string) => (
-      <div
-        key={key}
-        style={{ ...baseStyle, left: `${x}px`, top: `${y}px` }}
-        onClick={() => onRequestLeftPanelTab?.("Listwy do rozdzielnicy")}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = "#94a3b8";
-          e.currentTarget.style.backgroundColor = "rgba(30, 41, 59, 0.6)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = "#475569";
-          e.currentTarget.style.backgroundColor = "rgba(15, 23, 42, 0.4)";
-        }}
-      >
-        <span style={textStyle}>DODAJ LISTWY</span>
-      </div>
-    );
-
-    const isZoneOccupied = (zoneX: number, zoneY: number) => {
-      return snappedSymbols.some((s) => {
-        const template = getPaletteTemplate?.(s.moduleRef);
-        const isListwa = template?.category === "Listwy do rozdzielnicy" || s.moduleRef?.includes("Listwy do rozdzielnicy");
-        if (!isListwa) return false;
-        const sCenterX = s.x + s.width / 2;
-        const sCenterY = s.y + s.height / 2;
-        const zoneCenterX = zoneX + rectWidth / 2;
-        const zoneCenterY = zoneY + rectHeight / 2;
-        return Math.abs(sCenterX - zoneCenterX) < rectWidth * 0.8 && Math.abs(sCenterY - zoneCenterY) < rectHeight * 0.8;
-      });
-    };
-
-    return (
-      <div
-        className="din-rail-listwy-placeholders"
-        style={{
-          ...worldLayerBaseStyle,
-          zIndex: 20,
-        }}
-      >
-        {!isZoneOccupied(leftRectX, topY) && createPlaceholder(leftRectX, topY, "top-left")}
-        {!isZoneOccupied(rightRectX, topY) && createPlaceholder(rightRectX, topY, "top-right")}
-        {!isZoneOccupied(leftRectX, bottomY) && createPlaceholder(leftRectX, bottomY, "bottom-left")}
-        {!isZoneOccupied(rightRectX, bottomY) && createPlaceholder(rightRectX, bottomY, "bottom-right")}
-      </div>
-    );
-  };
+  const updateRows = railGenerator.updateRows;
+  const updateModulesPerRow = railGenerator.updateModulesPerRow;
+  const generateRail = railGenerator.generateRail;
+  const openGenerator = railGenerator.openGenerator;
+  const closeGenerator = railGenerator.closeGenerator;
+  const isGeneratorOpen = railGenerator.isGeneratorOpen;
+  const draftConfig = railGenerator.draftConfig;
+  const previewSvg = railGenerator.previewSvg;
+  const previewDims = railGenerator.previewDims;
+  const previewScale = railGenerator.previewScale;
+  const totalModules = railGenerator.totalModules;
 
   return (
     <div className="din-rail-canvas" ref={containerRef}>
@@ -1196,427 +904,42 @@ export function DinRailCanvas({
         </div>
       )}
 
-      <div
-        ref={viewportRef}
-        className={`din-rail-svg-container ${isDropTarget ? "is-drop-target" : ""}`}
-        style={{ cursor: rail.isVisible ? "grab" : "default" }}
+      <DinRailCanvasViewport
+        viewportRef={viewportRef}
+        surfaceRef={surfaceRef}
+        pixiHostRef={pixiHostRef}
+        rail={rail}
+        pan={pan}
+        scale={scale}
+        isDropTarget={isDropTarget}
+        shouldRenderPixiLabels={shouldRenderPixiLabels}
+        showGroups={showGroups}
+        snappedSymbols={snappedSymbols}
+        assetMap={assetMap}
+        foregroundUrls={foregroundUrls}
+        interactiveRects={interactiveRects}
+        selectedIds={selectedIds}
+        selectionRect={selectionRect}
+        selectedBounds={selectedBounds}
+        automaticDesignationBySymbolId={automaticDesignationBySymbolId}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
-      >
-        {rail.isVisible && rail.svg && (
-          <div
-            aria-hidden="true"
-            style={railSvgStyle}
-            dangerouslySetInnerHTML={{ __html: rail.svg }}
-          />
-        )}
-        {renderListwyPlaceholders()}
-        {false && rail.isVisible && (
-          <svg
-            className="din-rail-wires-layer"
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              left: 0,
-              top: 0,
-              width: `${rail.width}px`,
-              height: `${rail.height}px`,
-              transform: worldTransform,
-              transformOrigin: "top left",
-              pointerEvents: "none",
-              zIndex: 15,
-              overflow: "visible",
-            }}
-          >
-            <defs>
-              <pattern
-                id="green-yellow-stripe"
-                width="24"
-                height="24"
-                patternUnits="userSpaceOnUse"
-                patternTransform="rotate(45)"
-              >
-                <rect width="12" height="24" fill="#FFD600" />
-                <rect x="12" width="12" height="24" fill="#2e7d32" />
-              </pattern>
-              <filter id="shadow-blur" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="3.0" />
-              </filter>
-              <filter id="wire-soft-shadow" x="-50%" y="-50%" width="200%" height="200%">
-                <feOffset dx="1.5" dy="2.0" result="offset" />
-                <feGaussianBlur in="offset" stdDeviation="1.5" />
-              </filter>
-              <filter id="wire-soft-highlight" x="-50%" y="-50%" width="200%" height="200%">
-                <feOffset dx="-1.5" dy="-2.0" result="offset" />
-                <feGaussianBlur in="offset" stdDeviation="1.5" />
-              </filter>
-              <filter id="wire-sharp-highlight" x="-50%" y="-50%" width="200%" height="200%">
-                <feOffset dx="-2.0" dy="-3.0" result="offset" />
-                <feGaussianBlur in="offset" stdDeviation="0.6" />
-              </filter>
-            </defs>
-
-            {groupedWiredPaths.map((w) => {
-              if (!w) return null;
-              const wireThickness = WIRE_THICKNESS_MAP[w.connection.wireCrossSection] || 4.5;
-              
-              const offsetDistance = 6;
-              const parallelCount = w.parallelCount || 1;
-              const offset = parallelCount > 1 ? (w.parallelIndex - (parallelCount - 1) / 2) * offsetDistance : 0;
-              const x1 = w.fromPt.x + (w.fromHS.isTop ? offset : -offset);
-              const x2 = w.toPt.x + (w.toHS.isTop ? offset : -offset);
-
-              const ferruleExtension = Math.max(16, Math.round(wireThickness * 0.4));
-              const ferruleLength = 115 + ferruleExtension;
-              const FERRULE_INSET = 22; // Offset od środka śruby do krawędzi plastiku
-
-              const fromY1 = w.fromPt.y + (w.fromHS.isTop ? -FERRULE_INSET : FERRULE_INSET);
-              const fromY2 = w.fromPt.y + (w.fromHS.isTop ? -(ferruleLength + FERRULE_INSET) : (ferruleLength + FERRULE_INSET));
-
-              const toY1 = w.toPt.y + (w.toHS.isTop ? -FERRULE_INSET : FERRULE_INSET);
-              const toY2 = w.toPt.y + (w.toHS.isTop ? -(ferruleLength + FERRULE_INSET) : (ferruleLength + FERRULE_INSET));
-
-              return (
-                <g key={w.connection.id}>
-                  <line
-                    x1={x1}
-                    y1={fromY1}
-                    x2={x1}
-                    y2={fromY2}
-                    stroke="#000000"
-                    strokeWidth={wireThickness + 3.0}
-                    strokeLinecap="butt"
-                  />
-                  <line
-                    x1={x2}
-                    y1={toY1}
-                    x2={x2}
-                    y2={toY2}
-                    stroke="#000000"
-                    strokeWidth={wireThickness + 3.0}
-                    strokeLinecap="butt"
-                  />
-                  {/* 1. Dark outline base */}
-                  <path
-                    d={w.pathData}
-                    fill="none"
-                    stroke={
-                      w.connection.wireColor === "black"
-                        ? "#888888"
-                        : (WIRE_COLORS_MAP[w.connection.wireColor]?.dark || "#1a1a1a")
-                    }
-                    strokeWidth={wireThickness + 1.8}
-                    strokeLinecap="butt"
-                    strokeLinejoin="round"
-                  />
-                  {/* 2. Main color (Midtone) */}
-                  <path
-                    d={w.pathData}
-                    fill="none"
-                    stroke={
-                      w.connection.wireColor === "green-yellow"
-                        ? "#2e7d32"
-                        : (WIRE_COLORS_MAP[w.connection.wireColor]?.hex || "#555")
-                    }
-                    strokeWidth={wireThickness}
-                    strokeLinecap="butt"
-                    strokeLinejoin="round"
-                  />
-                  {/* 3. Yellow stripes overlay for PE */}
-                  {w.connection.wireColor === "green-yellow" && (
-                    <path
-                      d={w.pathData}
-                      fill="none"
-                      stroke="#FFD600"
-                      strokeWidth={wireThickness}
-                      strokeDasharray={`${wireThickness * 1.2} ${wireThickness * 1.2}`}
-                      strokeLinecap="butt"
-                      strokeLinejoin="round"
-                    />
-                  )}
-                </g>
-              );
-            })}
-          </svg>
-        )}
-        {rail.isVisible && showGroups && (
-          <svg
-            className="din-rail-groups-layer"
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              inset: 0,
-              pointerEvents: "none",
-              overflow: "visible",
-              zIndex: 100,
-            }}
-          >
-            <defs>
-              <linearGradient id="svg-bracket-leg-default" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(82,148,255,0.95)" />
-                <stop offset="100%" stopColor="rgba(82,148,255,0)" />
-              </linearGradient>
-              <linearGradient id="svg-bracket-leg-selected" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(13,121,242,1)" />
-                <stop offset="100%" stopColor="rgba(13,121,242,0)" />
-              </linearGradient>
-              <filter id="svg-bracket-glow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="1.5" result="blur" />
-                <feComposite in="SourceGraphic" in2="blur" operator="over" />
-              </filter>
-            </defs>
-
-            {groupFrames.map((group) => {
-                const isSelected = group.symbolIds.some((id) => selectedIds.has(id));
-                const isSingle = group.memberCount <= 1;
-                const screenX = group.x * scale + pan.x;
-                const screenY = group.y * scale + pan.y;
-                const screenWidth = Math.max(1, group.width * scale);
-                const barH = clamp(1 * scale, 1, 2);
-                const legH = clamp(DIN_RAIL_GROUP_BRACKET_LEG_HEIGHT * scale, 4, 28);
-                const labelH = clamp(22 * scale, 12, 26);
-                const labelGap = clamp(DIN_RAIL_GROUP_BRACKET_LABEL_GAP * scale, 1, 8);
-                const labelPadX = clamp(10 * scale, 4, 12);
-                const labelFont = clamp(12.5 * scale, 8, 16);
-
-                const topY = screenY - DIN_RAIL_GROUP_BRACKET_OFFSET_Y * scale;
-                const color = isSelected
-                  ? "rgba(13,121,242,1)"
-                  : isSingle
-                    ? "rgba(82,148,255,0.5)"
-                    : "rgba(82,148,255,0.85)";
-
-                const legGrad = isSelected ? "url(#svg-bracket-leg-selected)" : "url(#svg-bracket-leg-default)";
-                const label = formatDinRailGroupLabel(group.label, group.id);
-                const estLabelW = Math.min(label.length * labelFont * 0.65 + labelPadX * 2, 360);
-                const labelX = screenX + screenWidth / 2;
-                const labelY = topY - labelGap - labelH;
-                const showTextLabel = true;
-
-                return (
-                  <g key={`svg-group-${group.id}`}>
-                    <g>
-                      {/* Pozioma belka */}
-                      <rect x={screenX} y={topY} width={screenWidth} height={barH} fill={color} />
-                      {/* Lewa nóżka */}
-                      <rect x={screenX} y={topY} width={barH} height={legH} fill={legGrad} />
-                      {/* Prawa nóżka */}
-                      <rect x={screenX + screenWidth - barH} y={topY} width={barH} height={legH} fill={legGrad} />
-                    </g>
-                    {/* Etykieta – tło (szkło/blur) */}
-                    {showTextLabel && (
-                      <rect
-                        x={labelX - estLabelW / 2}
-                        y={labelY}
-                        width={estLabelW}
-                        height={labelH}
-                        rx={4} ry={4}
-                        fill={isSelected ? "rgba(13,121,242,0.95)" : "rgba(10, 15, 25, 0.9)"}
-                        stroke={isSelected ? "#fff" : "rgba(82,148,255,0.45)"}
-                        strokeWidth={1}
-                      />
-                    )}
-                    {/* Etykieta – tekst */}
-                    {showTextLabel && (
-                      <text
-                        x={labelX}
-                        y={labelY + labelH / 2 + 1}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        fill="#fff"
-                        fontSize={labelFont}
-                        fontWeight={700}
-                        fontFamily="Inter, system-ui, sans-serif"
-                      >
-                        {label}
-                      </text>
-                    )}
-                  </g>
-                );
-            })}
-          </svg>
-        )}
-
-        {rail.isVisible && snappedSymbols.map((symbol) => {
-          const isListwa = symbol.deviceKind === "terminalBlock" && !isTerminalZlaczka(symbol.moduleRef);
-
-          const asset = assetMap.get(symbol.id);
-          if (!asset) {
-            return null;
-          }
-
-          return (
-            <div
-              key={symbol.id}
-              ref={(node) => bindMeasuredNode(symbol.id, node)}
-              className={`din-rail-symbol-preview${selectedIds.has(symbol.id) ? " is-selected" : ""}`}
-              aria-hidden="true"
-              style={{
-                position: "absolute",
-                left: 0,
-                top: 0,
-                width: `${symbol.width}px`,
-                height: `${symbol.height}px`,
-                transform: `translate(${symbol.x * scale + pan.x}px, ${symbol.y * scale + pan.y}px) scale(${scale})`,
-                transformOrigin: "top left",
-                pointerEvents: "none",
-                zIndex: isListwa ? 12 : 20,
-              }}
-              dangerouslySetInnerHTML={
-                asset.namespacedMarkup
-                  ? { __html: asset.namespacedMarkup }
-                  : undefined
-              }
-            >
-              {asset.imageSrc && (
-                <img alt="" draggable={false} src={asset.imageSrc} />
-              )}
-            </div>
-          );
-        })}
-                  {/* Foreground parts of terminal blocks */}
-          {rail.isVisible && snappedSymbols.some(s => s.deviceKind === "terminalBlock" && !isTerminalZlaczka(s.moduleRef)) && (
-            <svg
-              className="din-rail-foreground-layer"
-              aria-hidden="true"
-              style={{
-                position: "absolute",
-                left: 0,
-                top: 0,
-                width: `${rail.width}px`,
-                height: `${rail.height}px`,
-                transform: worldTransform,
-                transformOrigin: "top left",
-                pointerEvents: "none",
-                zIndex: 25,
-                overflow: "visible",
-              }}
-            >
-              <DinRailConnectionsForegroundLayer
-                symbols={snappedSymbols.filter(s => s.deviceKind === "terminalBlock" && !isTerminalZlaczka(s.moduleRef))}
-                foregroundUrls={foregroundUrls}
-              />
-            </svg>
-          )}
-          <div
-            ref={pixiHostRef}
-          style={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 30,
-            pointerEvents: "none",
-            display: shouldRenderPixiLabels ? "block" : "none",
-          }}
-        />
-        {rail.isVisible && (
-          <div
-            aria-hidden="true"
-            style={labelOverlayStyle}
-          >
-            {snappedSymbols.map((symbol) => {
-              const designationLabel = getSymbolDesignationLabel(
-                symbol,
-                automaticDesignationBySymbolId,
-              );
-              if (!designationLabel) {
-                return null;
-              }
-
-              return (
-                <div
-                  key={`symbol-label-${symbol.id}`}
-                  style={{
-                    position: "absolute",
-                    left: symbol.x * scale + pan.x + Math.max(symbol.width * scale, 48 * scale) / 2,
-                    top: symbol.y * scale + pan.y + symbol.height * scale + 4,
-                    transform: "translateX(-50%)",
-                    transformOrigin: "center",
-                    color: "#f8fafc",
-                    fontFamily: "Segoe UI, Arial, sans-serif",
-                    fontSize: `${clamp(13.5 * scale, 10, 18)}px`,
-                    fontWeight: 700,
-                    lineHeight: 1.1,
-                    textShadow:
-                      "0 0 1px #111827, 0 0 3px #111827, 0 0 5px #111827",
-                    whiteSpace: "nowrap",
-                    pointerEvents: "none",
-                  }}
-                >
-                  {designationLabel}
-                </div>
-              );
-            })}
-          </div>
-        )}
-        {rail.isVisible && (
-          <div style={hitboxLayerStyle}>
-            {snappedSymbols.map((symbol) => (
-              <button
-                key={`symbol-hitbox-${symbol.id}`}
-                type="button"
-                className={`din-rail-hitbox${selectedIds.has(symbol.id) ? " is-selected" : ""}`}
-                style={{
-                  ...buildWorldRectStyle(interactiveRects.get(symbol.id) ?? symbol),
-                  pointerEvents: "auto",
-                }}
-                onPointerDown={(event) => beginDragForSymbol(event, symbol.id)}
-                title={
-                  getSymbolDesignationLabel(symbol, automaticDesignationBySymbolId)
-                  || symbol.label
-                }
-                aria-label={
-                  getSymbolDesignationLabel(symbol, automaticDesignationBySymbolId)
-                  || symbol.label
-                  || symbol.type
-                }
-              />
-            ))}
-          </div>
-        )}
-        <div
-          ref={surfaceRef}
-          className="din-rail-surface"
-          onDragLeave={() => setIsDropTarget(false)}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-          onPointerDown={handleSurfacePointerDown}
-          style={{ position: "absolute", inset: 0, zIndex: 40 }}
-        />
-        {(selectedBoundsStyle || selectionRectStyle) && (
-          <div aria-hidden="true" style={overlayLayerStyle}>
-            {selectedBoundsStyle && (
-              <div
-                style={{
-                  ...selectedBoundsStyle,
-                  border: "none",
-                  background: "transparent",
-                  borderRadius: "6px",
-                  pointerEvents: "none",
-                }}
-              >
-              </div>
-            )}
-            {selectionRectStyle && (
-              <div
-                style={{
-                  ...selectionRectStyle,
-                  border: "none",
-                  background: "var(--state-info-soft)",
-                  pointerEvents: "none",
-                }}
-              />
-            )}
-          </div>
-        )}
-      </div>
+        onSurfacePointerDown={handleSurfacePointerDown}
+        onSurfaceDragOver={handleDragOver}
+        onSurfaceDrop={handleDrop}
+        onSurfaceDragLeave={() => setIsDropTarget(false)}
+        onBeginDragForSymbol={(symbolId) => (event) => beginDragForSymbol(event, symbolId)}
+        onRequestLeftPanelTab={onRequestLeftPanelTab}
+        bindMeasuredNode={bindMeasuredNode}
+      />
 
       {!rail.isVisible && <DinRailEmptyState onOpenGenerator={openGenerator} />}
 
       {isGeneratorOpen && (
         <DinRailGeneratorDialog
           draftConfig={draftConfig}
-          onClose={() => setIsGeneratorOpen(false)}
+          onClose={closeGenerator}
           onGenerate={generateRail}
           onModulesPerRowChange={updateModulesPerRow}
           onRowsChange={updateRows}

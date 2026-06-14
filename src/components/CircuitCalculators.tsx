@@ -11,11 +11,14 @@ interface CircuitCalculatorsProps {
 const RHO_COPPER = 0.0175; // Rezystywność miedzi [Ω·mm²/m]
 
 export function CircuitCalculators({ values, moduleType }: CircuitCalculatorsProps) {
-  if (moduleType !== "mcb" && moduleType !== "rcbo" && moduleType !== "socket") {
-    return null;
-  }
-
   const results = useMemo(() => {
+    // Puste obliczenia jeśli typ modułu nie jest obsługiwany — early return
+    // jest w środku useMemo, bo hook musi być wywołany zawsze w tej samej
+    // kolejności (Rules of Hooks).
+    if (moduleType !== "mcb" && moduleType !== "rcbo" && moduleType !== "socket") {
+      return { currentA: 0, voltageDropPercent: 0, maxZs: 0, cableZ: 0 };
+    }
+
     // Extract raw values
     const powerW = Number(values.PowerW) || 0;
     const phase = String(values.Phase || "L1");
@@ -27,18 +30,18 @@ export function CircuitCalculators({ values, moduleType }: CircuitCalculatorsPro
     const currentA = calculateCurrent(powerW, phase, 230);
 
     // 2. Voltage drop (dU)
-    let voltageDropV = 0;
     let voltageDropPercent = 0;
     if (cableLength > 0 && cableCrossSection > 0 && currentA > 0) {
       const is3Phase = phase.includes("L1+L2+L3") || phase === "3F";
-      
-      if (is3Phase) {
-        voltageDropV = (Math.sqrt(3) * currentA * cableLength * RHO_COPPER) / cableCrossSection;
-        voltageDropPercent = (voltageDropV / 400) * 100;
-      } else {
-        voltageDropV = (2 * currentA * cableLength * RHO_COPPER) / cableCrossSection;
-        voltageDropPercent = (voltageDropV / 230) * 100;
-      }
+
+      // voltageDropV jest tylko pomocnicze do obliczenia voltageDropPercent
+      // (w prądzie 3F dzielimy przez 400V, w 1F przez 230V).
+      const voltageDropV = is3Phase
+        ? (Math.sqrt(3) * currentA * cableLength * RHO_COPPER) / cableCrossSection
+        : (2 * currentA * cableLength * RHO_COPPER) / cableCrossSection;
+      voltageDropPercent = is3Phase
+        ? (voltageDropV / 400) * 100
+        : (voltageDropV / 230) * 100;
     }
 
     // 3. Short circuit loop impedance (Zs max & Cable Z)
@@ -68,7 +71,7 @@ export function CircuitCalculators({ values, moduleType }: CircuitCalculatorsPro
       maxZs,
       cableZ
     };
-  }, [values]);
+  }, [values, moduleType]);
 
   const hasData = results.currentA > 0 || results.maxZs > 0;
 

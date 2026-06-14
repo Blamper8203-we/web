@@ -13,6 +13,8 @@ import {
 } from "../lib/projectMetadata";
 import { buildCircuitListTableRows } from "../lib/circuitRows";
 import { exportDinRailToDataURL } from "../lib/export/dinRailSnapshotService";
+import { chunkRows, createHeaderForPage } from "../lib/measurementProtocolHelpers";
+import { formatProtocolNumberLabel } from "../lib/export/pdfPages/pdfHelpers";
 import { AppIcon } from "./AppIcon";
 import { usePdfWorkspace } from "./PdfWorkspaceShell";
 import "./MeasurementProtocolsWorkspacePage.css";
@@ -37,45 +39,6 @@ type ProtocolTableRowByKey = {
 type StringFieldKeys<T> = {
   [K in keyof T]-?: T[K] extends string ? K : never;
 }[keyof T];
-
-function chunkRows<T>(rows: T[], size: number): T[][] {
-  if (rows.length === 0) {
-    return [[]];
-  }
-
-  const results: T[][] = [];
-  for (let i = 0; i < rows.length; i += size) {
-    results.push(rows.slice(i, i + size));
-  }
-
-  return results;
-}
-
-function buildSheetTitle(pageIndex: number, totalPages: number): string {
-  const current = String(pageIndex + 1).padStart(2, "0");
-  const total = String(totalPages).padStart(2, "0");
-  return `Protokół Nr ${current}/${total}`;
-}
-
-function createHeaderForPage<T extends { headerTitle?: string }>(
-  header: T,
-  pageIndex: number,
-  totalPages: number,
-): T {
-  return {
-    ...header,
-    headerTitle: buildSheetTitle(pageIndex, totalPages),
-  };
-}
-
-function formatProtocolNumberLabel(headerTitle: string | undefined): string {
-  const normalized = headerTitle?.trim();
-  if (!normalized) {
-    return "";
-  }
-
-  return normalized.replace(/^protokół\s+(pomiarów\s+)?nr\s+/i, "").trim();
-}
 
 export function MeasurementProtocolsWorkspacePage() {
   const {

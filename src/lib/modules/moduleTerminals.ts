@@ -298,32 +298,33 @@ export function getSymbolTerminals(symbol: SymbolItem): TerminalHotspot[] {
     const label = (symbol.label || "").toUpperCase();
     const type = label.includes("PE") ? "pe" : label.includes("N") ? "neutral" : "phase";
 
-    let pins = 1;
-    const pinMatch = label.match(/(\d+)\s*PIN/) || (symbol.moduleRef || "").toUpperCase().match(/(\d+)\s*PIN/);
+    const pinMatch = label.match(/(\d+)\s*PIN/i) || (symbol.moduleRef || "").toUpperCase().match(/(\d+)\s*PIN/i);
     const zaciskMatch = label.match(/(\d+)-ZACISKOW/i) || (symbol.moduleRef || "").match(/(\d+)-ZACISKOW/i);
     const torMatch = label.match(/(\d+)-TOROW/i) || (symbol.moduleRef || "").match(/(\d+)-TOROW/i);
-    
-    if (pinMatch) {
-      pins = parseInt(pinMatch[1], 10);
-    } else if (zaciskMatch) {
-      pins = parseInt(zaciskMatch[1], 10);
-    } else if (torMatch) {
-      pins = parseInt(torMatch[1], 10);
-    } else {
-      pins = poles; 
-    }
+
+    // pins jest zawsze nadpisywany w jednej z gałęzi poniżej lub później
+    // (przy 12/15/7 PIN matchach niżej). Stąd `let`.
+    let pins = pinMatch
+      ? parseInt(pinMatch[1], 10)
+      : zaciskMatch
+        ? parseInt(zaciskMatch[1], 10)
+        : torMatch
+          ? parseInt(torMatch[1], 10)
+          : poles;
 
     if (pins > 2 && height > width * 1.5) {
       // Pionowa listwa zbiorcza (np. Listwa 12 PIN, 7 PIN, 15 PIN)
       let explicitPercentages: number[] | null = null;
       const ref = (symbol.moduleRef || "").toUpperCase();
-      if (label.includes("12 PIN") || label.includes("12PIN") || ref.includes("12PIN")) {
+      const labelUpper = label.toUpperCase();
+      const refUpper = ref.toUpperCase();
+      if (labelUpper.includes("12 PIN") || labelUpper.includes("12PIN") || refUpper.includes("12PIN")) {
         explicitPercentages = [0.046, 0.119, 0.245, 0.319, 0.392, 0.465, 0.538, 0.611, 0.684, 0.807, 0.880, 0.953];
         pins = 12;
-      } else if (label.includes("15 PIN") || label.includes("15PIN") || ref.includes("15PIN")) {
+      } else if (labelUpper.includes("15 PIN") || labelUpper.includes("15PIN") || refUpper.includes("15PIN")) {
         explicitPercentages = [0.0386, 0.0982, 0.1581, 0.2179, 0.3210, 0.3812, 0.4409, 0.5007, 0.5607, 0.6204, 0.6805, 0.7815, 0.8412, 0.9010, 0.9607];
         pins = 15;
-      } else if (label.includes("7 PIN") || label.includes("7PIN") || ref.includes("7PIN")) {
+      } else if (labelUpper.includes("7 PIN") || labelUpper.includes("7PIN") || refUpper.includes("7PIN")) {
         explicitPercentages = [0.1392, 0.2606, 0.3809, 0.5015, 0.6222, 0.7425, 0.8636];
         pins = 7;
       }
@@ -360,8 +361,8 @@ export function getSymbolTerminals(symbol: SymbolItem): TerminalHotspot[] {
       // obok siebie z minimalnym odstępem. Rzędy bliżej góry bloku
       // (L1, L2) mają większy exitOffset, żeby przewody z różnych
       // rzędów nie kolidowały i tworzyły estetyczny pęk pod blokiem.
-      let yRatios = [0.38, 0.56, 0.73, 0.91]; // Domyślne dla innych bloków 4x
-      let paddingX = 0.08;
+      const yRatios = [0.38, 0.56, 0.73, 0.91]; // Domyślne dla innych bloków 4x
+      const paddingX = 0.08;
       
       const is7Pin = cols === 7 && (pathLower.includes("7 pin") || pathLower.includes("7pin"));
 

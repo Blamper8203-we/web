@@ -37,7 +37,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
       } else {
         setStatus("error");
       }
-    } catch (error) {
+    } catch (_error) {
       setStatus("error");
     }
   };

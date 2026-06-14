@@ -279,8 +279,8 @@ export function useDinRailConnectionsInteraction({
     }
 
     if (draggingSegment) {
-      let dx = logicalPos.x - draggingSegment.startX;
-      let dy = logicalPos.y - draggingSegment.startY;
+      const dx = logicalPos.x - draggingSegment.startX;
+      const dy = logicalPos.y - draggingSegment.startY;
 
       setLocalConnections((prev) =>
         prev.map((c) => {
@@ -288,7 +288,7 @@ export function useDinRailConnectionsInteraction({
 
           const newPoints = [...draggingSegment.basePoints];
           if (draggingSegment.isHorizontal) {
-            let currentY = draggingSegment.basePoints[draggingSegment.indexA]?.y || 0;
+            const currentY = draggingSegment.basePoints[draggingSegment.indexA]?.y || 0;
             let targetY = currentY + dy;
             if (draggingSegment.bounds) {
               if (draggingSegment.bounds.minY !== undefined) targetY = Math.max(targetY, draggingSegment.bounds.minY);
@@ -299,7 +299,7 @@ export function useDinRailConnectionsInteraction({
             if (newPoints[draggingSegment.indexA]) newPoints[draggingSegment.indexA] = { ...newPoints[draggingSegment.indexA], y: newPoints[draggingSegment.indexA].y + clampedDy };
             if (newPoints[draggingSegment.indexB]) newPoints[draggingSegment.indexB] = { ...newPoints[draggingSegment.indexB], y: newPoints[draggingSegment.indexB].y + clampedDy };
           } else {
-            let currentX = draggingSegment.basePoints[draggingSegment.indexA]?.x || 0;
+            const currentX = draggingSegment.basePoints[draggingSegment.indexA]?.x || 0;
             let targetX = currentX + dx;
             if (draggingSegment.bounds) {
               if (draggingSegment.bounds.minX !== undefined) targetX = Math.max(targetX, draggingSegment.bounds.minX);
@@ -354,7 +354,9 @@ export function useDinRailConnectionsInteraction({
   const handlePointerUp = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
     if (isPanning) {
       setIsPanning(false);
-      try { e.currentTarget.releasePointerCapture(e.pointerId); } catch(err) {}
+      try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (_err) {
+        // Pointer może być już zwolniony — bezpiecznie zignorować.
+      }
       return;
     }
 
@@ -363,7 +365,9 @@ export function useDinRailConnectionsInteraction({
       onConnectionsChange(finalState, "Przesuń trasę", "Przesunięto trasę przewodu");
       setDraggingHandle(null);
       setDraggingSegment(null);
-      try { e.currentTarget.releasePointerCapture(e.pointerId); } catch(err) {}
+      try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (_err) {
+        // Pointer może być już zwolniony — bezpiecznie zignorować.
+      }
       return;
     }
 
@@ -420,7 +424,9 @@ export function useDinRailConnectionsInteraction({
       setDrawingState(null);
       setCurrentMousePos(null);
       setHoveredHotspot(null);
-      try { e.currentTarget.releasePointerCapture(e.pointerId); } catch(err) {}
+      try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (_err) {
+        // Pointer może być już zwolniony — bezpiecznie zignorować.
+      }
     }
   }, [
     isPanning, draggingHandle, draggingSegment, localConnections,

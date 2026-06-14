@@ -5,7 +5,7 @@ import { serializeParameters } from "../lib/modules/rasterPreview";
 import { loadPreparedSvgMarkup, shouldRenderRawModuleAsset } from "../lib/modules/svgAsset";
 import { getSymbolRatingText } from "../lib/appHelpers";
 
-interface PreparedSymbolAsset {
+export interface PreparedSymbolAsset {
   imageSrc?: string;
   namespacedMarkup?: string;
 }
@@ -133,7 +133,7 @@ export function useDinRailPreparedAssets(symbols: SymbolItem[]) {
     return () => {
       cancelled = true;
     };
-  }, [assetRequestKey]);
+  }, [assetRequestKey, symbols]);
 
   return assetMap;
 }

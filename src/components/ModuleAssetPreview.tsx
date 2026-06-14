@@ -194,7 +194,7 @@ export function ModuleAssetPreview({
     return () => {
       cancelled = true;
     };
-  }, [preparedSvgUri, rasterDprCap, renderHeight, renderMode, renderRawAsset, renderWidth]);
+  }, [preparedSvgUri, rasterDprCap, renderHeight, renderMode, renderRawAsset, renderWidth, src]);
 
   if (renderRawAsset) {
     return <img alt={alt} className={className} src={src} />;
