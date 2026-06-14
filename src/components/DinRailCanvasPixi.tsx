@@ -1212,7 +1212,7 @@ export function DinRailCanvas({
           />
         )}
         {renderListwyPlaceholders()}
-        {rail.isVisible && showWires && connections && connections.length > 0 && (
+        {false && rail.isVisible && (
           <svg
             className="din-rail-wires-layer"
             aria-hidden="true"
