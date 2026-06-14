@@ -25,7 +25,7 @@ const DinRailConnectionsCanvas = lazy(async () => {
   return { default: module.DinRailConnectionsCanvas };
 });
 
-interface AppWorkspaceCanvasProps {
+export interface AppWorkspaceCanvasProps {
   activeSheet: SheetType;
   paletteTemplateMap: Map<string, PaletteTemplate>;
   dinRail: DinRailCanvasRail;

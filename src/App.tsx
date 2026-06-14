@@ -1,13 +1,9 @@
-import { useEffect, useState, useCallback, useMemo, Suspense, lazy } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import type { DinRailCanvasRail } from "./components/DinRailCanvasPixi";
 import { AppHeader } from "./components/AppHeader";
-import { AppRightPanel } from "./components/AppRightPanel";
-import { AppLeftPanel } from "./components/AppLeftPanel";
 import { AppStatusBar } from "./components/AppStatusBar";
-import { AppSheetTabs } from "./components/AppSheetTabs";
 import { AppDialogsLayer } from "./components/AppDialogsLayer";
-import { AppWorkspaceCanvas } from "./components/AppWorkspaceCanvas";
-const PdfWorkspaceShell = lazy(() => import("./components/PdfWorkspaceShell").then(m => ({ default: m.PdfWorkspaceShell })));
+import { MainWorkspace } from "./components/MainWorkspace";
 import type { RcdManagerEntry } from "./components/RcdManagementDialog";
 import { buildCircuitRowsFromSymbols } from "./lib/circuitRows";
 import { PROJECT_METADATA_STORAGE_KEY, loadProjectMetadata } from "./lib/projectMetadata";
@@ -378,7 +374,7 @@ function AppWorkspace({
   );
   const errorCount = validationResult.errors.length;
   const warningCount = validationResult.warnings.length;
-  const projectFileName = (currentFilePath ? currentFilePath.split(/[\\\/]/).pop() : "Nowe zlecenie") ?? "Nowe zlecenie";
+  const projectFileName = (currentFilePath ? currentFilePath.split(/[\\/]/).pop() : "Nowe zlecenie") ?? "Nowe zlecenie";
   const rcdManagerEntries = useMemo<RcdManagerEntry[]>(
     () =>
       symbols
@@ -466,7 +462,7 @@ function AppWorkspace({
   return (
     <main className={`app-shell ui-theme-${uiTheme}`}>
       <AppHeader
-        projectFileName={currentFilePath ? currentFilePath.split(/[\/\\]/).pop() || "Nowe zlecenie" : "Nowe zlecenie"}
+        projectFileName={currentFilePath ? currentFilePath.split(/[/\\]/).pop() || "Nowe zlecenie" : "Nowe zlecenie"}
         hasUnsavedChanges={hasUnsavedChanges}
         canUndo={history.canUndo}
         canRedo={history.canRedo}
@@ -500,128 +496,106 @@ function AppWorkspace({
         onOpenFeedback={onOpenFeedback}
       />
 
-      <div
-        className={`main-content ${sheetPanel.activeRightTab === "circuitEdit" ? "is-circuit-editing" : ""} ${
-          sheetPanel.activeSheet === "sheet4" ? "is-pdf-workspace" : ""
-        } ${sheetPanel.showRightPanel ? "" : "is-right-panel-hidden"} ${sheetPanel.showLeftPanel ? "" : "is-left-panel-hidden"}`}
-      >
-        {sheetPanel.activeSheet === "sheet4" ? (
-          <Suspense fallback={<div style={{ display: "flex", flex: 1, alignItems: "center", justifyContent: "center" }}>Ładowanie modułu PDF...</div>}>
-            <PdfWorkspaceShell
-              metadata={metadata}
-              symbols={symbols}
-              dinRail={dinRail}
-              circuitRows={circuitRows}
-              connections={connections}
-              handleMetadataChange={handleMetadataChange}
-              handleResetDocumentation={handleResetDocumentation}
-              showLeftPanel={sheetPanel.showLeftPanel}
-              showRightPanel={sheetPanel.showRightPanel}
-            />
-          </Suspense>
-        ) : (
-          <>
-            <AppLeftPanel
-              showLeftPanel={sheetPanel.showLeftPanel}
-              onClose={() => sheetPanel.setShowLeftPanel(false)}
-              activeSheet={sheetPanel.activeSheet}
-              metadata={metadata}
-              handleMetadataChange={handleMetadataChange}
-              handleExportPdf={handleExportPdf}
-              dinRail={dinRail}
-              paletteGroups={paletteGroups}
-              activePaletteGroupTitle={activePaletteGroupTitle}
-              setActivePaletteGroupTitle={setActivePaletteGroupTitle}
-              setPaletteContextMenu={setPaletteContextMenu}
-              handleOpenDinRailGenerator={handleOpenDinRailGenerator}
-              onPaletteItemTap={handlePaletteInsert}
-              defaultWireSettings={defaultWireSettings}
-              onChangeDefaultWireSettings={setDefaultWireSettings}
-              selectedConnectionId={selectedConnectionId}
-              connections={connections}
-              onConnectionsChange={handleConnectionsChange}
-            />
-
-            <AppWorkspaceCanvas
-              activeSheet={sheetPanel.activeSheet}
-              paletteTemplateMap={paletteTemplateMap}
-              dinRail={dinRail}
-              symbols={symbols}
-              dinRailGeneratorRequest={dinRailGeneratorRequest}
-              handlePaletteDrop={handlePaletteDrop}
-              handleUnsupportedDinRailDrop={handleUnsupportedDinRailDrop}
-              setWorkspaceZoomPercent={sheetPanel.setWorkspaceZoomPercent}
-              handleRailGenerated={handleRailGenerated}
-              handleSymbolMoveStart={handleSymbolMoveStart}
-              handleSymbolMove={handleSymbolMove}
-              handleSymbolMoveEnd={handleSymbolMoveEnd}
-              handleSymbolSelectionChange={handleSymbolSelectionChange}
-              handleSymbolSelect={handleSymbolSelect}
-              handleDeleteSelected={handleDeleteSelected}
-              selectedSymbolId={selectedSymbolId}
-              selectedSymbolIds={selectedSymbolIds}
-              handleToggleDinRailGroups={handleToggleDinRailGroups}
-              showDinRailGroups={sheetPanel.showDinRailGroups}
-              canShowSchematicAndCircuitList={canShowSchematicAndCircuitList}
-              handleSchematicCellEdit={handleSchematicCellEdit}
-              circuitRows={circuitRows}
-              metadata={metadata}
-              schematicViewportResetRequest={schematic.schematicViewportResetRequest}
-              schematicScrollToPageRequest={schematic.schematicScrollToPageRequest}
-              connections={connections}
-              onConnectionsChange={handleConnectionsChange}
-              selectedConnectionId={selectedConnectionId}
-              onConnectionSelect={setSelectedConnectionId}
-              defaultWireSettings={defaultWireSettings}
-              onRequestLeftPanelTab={(tabName) => {
-                sheetPanel.setShowLeftPanel(true);
-                setActivePaletteGroupTitle(tabName);
-                if (sheetPanel.activeSheet !== "sheet1") {
-                  sheetPanel.setActiveSheet("sheet1");
-                }
-              }}
-            />
-
-            <AppRightPanel
-              activeSheet={sheetPanel.activeSheet}
-              showRightPanel={sheetPanel.showRightPanel}
-              activeRightTab={sheetPanel.activeRightTab}
-              setActiveRightTab={sheetPanel.setActiveRightTab}
-              symbols={symbols}
-              handleAutoBalance={handleAutoBalance}
-              handleApplyPhaseMoveSuggestion={handleApplyPhaseMoveSuggestion}
-              validationResult={validationResult}
-              isDinRailGenerated={hasGeneratedDinRail}
-              selectedSymbol={selectedSymbol}
-              handleCircuitEditSave={handleCircuitEditSave}
-              handleSymbolSelectionChange={handleSymbolSelectionChange}
-              handleValidationSymbolSelect={handleValidationSymbolSelect}
-              handleValidationFieldEdit={handleValidationFieldEdit}
-              handleValidationQuickFix={handleValidationQuickFix}
-              highlightedCircuitEditFieldKey={
-                highlightedCircuitEditTarget?.symbolId === selectedSymbolId
-                  ? highlightedCircuitEditTarget.fieldKey
-                  : null
-              }
-              metadata={metadata}
-              handleMetadataChange={handleMetadataChange}
-              handleOpenRcdManager={handleOpenRcdManager}
-              onScrollToSchematicPage={schematic.handleScrollToSchematicPage}
-              connections={connections}
-              selectedConnectionId={selectedConnectionId}
-              onConnectionSelect={setSelectedConnectionId}
-              onConnectionsChange={handleConnectionsChange}
-            />
-          </>
-        )}
-
-        <AppSheetTabs
-          activeSheet={sheetPanel.activeSheet}
-          onChangeSheet={sheetPanel.setActiveSheet}
-          showLeftPanel={sheetPanel.showLeftPanel}
-          onOpenLeftPanel={() => sheetPanel.setShowLeftPanel(true)}
-        />
-      </div>
+      <MainWorkspace
+        activeSheet={sheetPanel.activeSheet}
+        showLeftPanel={sheetPanel.showLeftPanel}
+        showRightPanel={sheetPanel.showRightPanel}
+        onCloseLeftPanel={() => sheetPanel.setShowLeftPanel(false)}
+        onOpenLeftPanel={() => sheetPanel.setShowLeftPanel(true)}
+        onChangeSheet={sheetPanel.setActiveSheet}
+        onRequestLeftPanelTab={(tabName) => {
+          sheetPanel.setShowLeftPanel(true);
+          setActivePaletteGroupTitle(tabName);
+          if (sheetPanel.activeSheet !== "sheet1") {
+            sheetPanel.setActiveSheet("sheet1");
+          }
+        }}
+        leftPanelProps={{
+          activeSheet: sheetPanel.activeSheet,
+          metadata,
+          handleMetadataChange: handleMetadataChange,
+          handleExportPdf: handleExportPdf,
+          dinRail,
+          paletteGroups,
+          activePaletteGroupTitle,
+          setActivePaletteGroupTitle,
+          setPaletteContextMenu,
+          handleOpenDinRailGenerator: handleOpenDinRailGenerator,
+          onPaletteItemTap: handlePaletteInsert,
+          defaultWireSettings,
+          onChangeDefaultWireSettings: setDefaultWireSettings,
+          selectedConnectionId,
+          connections,
+          onConnectionsChange: handleConnectionsChange,
+        }}
+        workspaceCanvasProps={{
+          paletteTemplateMap,
+          dinRail,
+          symbols,
+          dinRailGeneratorRequest,
+          handlePaletteDrop: handlePaletteDrop,
+          handleUnsupportedDinRailDrop: handleUnsupportedDinRailDrop,
+          setWorkspaceZoomPercent: sheetPanel.setWorkspaceZoomPercent,
+          handleRailGenerated,
+          handleSymbolMoveStart: handleSymbolMoveStart,
+          handleSymbolMove: handleSymbolMove,
+          handleSymbolMoveEnd: handleSymbolMoveEnd,
+          handleSymbolSelectionChange: handleSymbolSelectionChange,
+          handleSymbolSelect: handleSymbolSelect,
+          handleDeleteSelected: handleDeleteSelected,
+          selectedSymbolId,
+          selectedSymbolIds,
+          handleToggleDinRailGroups: handleToggleDinRailGroups,
+          showDinRailGroups: sheetPanel.showDinRailGroups,
+          canShowSchematicAndCircuitList,
+          handleSchematicCellEdit: handleSchematicCellEdit,
+          circuitRows,
+          metadata,
+          schematicViewportResetRequest: schematic.schematicViewportResetRequest,
+          schematicScrollToPageRequest: schematic.schematicScrollToPageRequest,
+          connections,
+          onConnectionsChange: handleConnectionsChange,
+          selectedConnectionId,
+          onConnectionSelect: setSelectedConnectionId,
+          defaultWireSettings,
+        }}
+        rightPanelProps={{
+          activeRightTab: sheetPanel.activeRightTab,
+          setActiveRightTab: sheetPanel.setActiveRightTab,
+          symbols,
+          handleAutoBalance: handleAutoBalance,
+          handleApplyPhaseMoveSuggestion: handleApplyPhaseMoveSuggestion,
+          validationResult,
+          isDinRailGenerated: hasGeneratedDinRail,
+          selectedSymbol: selectedSymbol,
+          handleCircuitEditSave: handleCircuitEditSave,
+          handleSymbolSelectionChange: handleSymbolSelectionChange,
+          handleValidationSymbolSelect: handleValidationSymbolSelect,
+          handleValidationFieldEdit: handleValidationFieldEdit,
+          handleValidationQuickFix: handleValidationQuickFix,
+          highlightedCircuitEditFieldKey:
+            highlightedCircuitEditTarget?.symbolId === selectedSymbolId
+              ? highlightedCircuitEditTarget.fieldKey
+              : null,
+          metadata,
+          handleMetadataChange: handleMetadataChange,
+          handleOpenRcdManager: handleOpenRcdManager,
+          onScrollToSchematicPage: schematic.handleScrollToSchematicPage,
+          connections,
+          selectedConnectionId,
+          onConnectionSelect: setSelectedConnectionId,
+          onConnectionsChange: handleConnectionsChange,
+        }}
+        pdfProps={{
+          metadata,
+          symbols,
+          dinRail,
+          circuitRows,
+          connections,
+          handleMetadataChange: handleMetadataChange,
+          handleResetDocumentation: handleResetDocumentation,
+        }}
+      />
 
       <AppStatusBar
         projectFileName={projectFileName}
