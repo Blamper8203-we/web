@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { ConnectionItem } from "../types/connectionItem";
 import type { SymbolItem } from "../types/symbolItem";
-import { getSymbolTerminals, findTerminalByName } from "../lib/modules/moduleTerminals";
+import { getSymbolTerminals, findTerminalByName, resolveConnectionIsFromTop, resolveConnectionIsToTop } from "../lib/modules/moduleTerminals";
 import { calculateWirePath } from "../lib/routing/wireRoutingEngine";
 
 export function useDinRailWires(connections: ConnectionItem[], symbols: SymbolItem[]) {
@@ -34,6 +34,8 @@ export function useDinRailWires(connections: ConnectionItem[], symbols: SymbolIt
           toPt,
           fromHS,
           toHS,
+          fromSymbol,
+          toSymbol,
           key,
         };
       })
@@ -44,9 +46,9 @@ export function useDinRailWires(connections: ConnectionItem[], symbols: SymbolIt
         keyIndices[d.key] = index + 1;
 
         const path = calculateWirePath(d.fromPt, d.toPt, {
-          isFromTop: d.connection.isFromTop ?? d.fromHS.isTop,
+          isFromTop: resolveConnectionIsFromTop(d.fromSymbol, d.connection.isFromTop, d.fromHS),
           fromDirection: d.fromHS.direction,
-          isToTop: d.connection.isToTop ?? d.toHS.isTop,
+          isToTop: resolveConnectionIsToTop(d.toSymbol, d.connection.isToTop, d.toHS),
           toDirection: d.toHS.direction,
           fromVisualInset: d.fromHS.visualInset, // Wire starts at module edge, ferrule covers screw→edge gap
           toVisualInset: d.toHS.visualInset,

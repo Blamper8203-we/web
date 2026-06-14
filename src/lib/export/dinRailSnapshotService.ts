@@ -13,7 +13,7 @@ import {
 import { loadPreparedSvgDataUri } from "../modules/svgAsset";
 import { getSymbolRatingText } from "../appHelpers";
 import type { ConnectionItem } from "../../types/connectionItem";
-import { getSymbolTerminals, findTerminalByName } from "../modules/moduleTerminals";
+import { getSymbolTerminals, findTerminalByName, resolveConnectionIsFromTop, resolveConnectionIsToTop } from "../modules/moduleTerminals";
 import { calculateWirePoints, type Point } from "../routing/wireRoutingEngine";
 import { getFerruleLength } from "../connections/connectionsLogic";
 
@@ -349,8 +349,8 @@ async function renderDinRailSnapshotCanvas(
       const toExitOffsetVal = hasFerrule ? Math.max(toHS.exitOffset ?? 40, toFerruleLen) + customRadius : (toHS.exitOffset ?? 40) + customRadius;
 
       const routingOpts = {
-        isFromTop: conn.isFromTop ?? fromHS.isTop,
-        isToTop: conn.isToTop ?? toHS.isTop,
+        isFromTop: resolveConnectionIsFromTop(fromSymbol, conn.isFromTop, fromHS),
+        isToTop: resolveConnectionIsToTop(toSymbol, conn.isToTop, toHS),
         points: conn.points,
         customOffset: conn.customOffset,
         customOffsetX: conn.customOffsetX,
@@ -485,8 +485,8 @@ async function renderDinRailSnapshotCanvas(
       const toExitOffsetVal = hasFerrule ? Math.max(toHS.exitOffset ?? 40, toFerruleLen) + customRadius : (toHS.exitOffset ?? 40) + customRadius;
 
       const routingOpts = {
-        isFromTop: conn.isFromTop ?? fromHS.isTop,
-        isToTop: conn.isToTop ?? toHS.isTop,
+        isFromTop: resolveConnectionIsFromTop(fromSymbol, conn.isFromTop, fromHS),
+        isToTop: resolveConnectionIsToTop(toSymbol, conn.isToTop, toHS),
         points: conn.points,
         customOffset: conn.customOffset,
         customOffsetX: conn.customOffsetX,

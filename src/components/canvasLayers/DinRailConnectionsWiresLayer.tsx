@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 import { type ConnectionItem } from "../../types/connectionItem";
 import { type SymbolItem } from "../../types/symbolItem";
-import { getSymbolTerminals, findTerminalByName } from "../../lib/modules/moduleTerminals";
+import { getSymbolTerminals, findTerminalByName, resolveConnectionIsFromTop, resolveConnectionIsToTop } from "../../lib/modules/moduleTerminals";
 import { calculateWirePoints, calculateWirePath, type Point } from "../../lib/routing/wireRoutingEngine";
 import { WIRE_COLORS_MAP, WIRE_THICKNESS_MAP, getFerruleLength, isTerminalZlaczka } from "../../lib/connections/connectionsLogic";
 import type { DraggingHandle, DraggingSegment } from "../../hooks/useDinRailConnectionsInteraction";
-import { FerruleGraphic } from "./FerruleGraphic";
+import { FerruleGraphic, getFerruleRenderInsetForSymbol } from "./FerruleGraphic";
 
 interface DinRailConnectionsWiresLayerProps {
   connections: ConnectionItem[];
@@ -86,9 +86,9 @@ export function DinRailConnectionsWiresLayer({
         const toExitOffsetVal = hasFerrule ? Math.max(d.toHS.exitOffset ?? 40, toFerruleLen) + customRadius : (d.toHS.exitOffset ?? 40) + customRadius;
 
         const routingOpts = {
-          isFromTop: d.connection.isFromTop ?? d.fromHS.isTop,
+          isFromTop: resolveConnectionIsFromTop(d.fromSymbol, d.connection.isFromTop, d.fromHS),
           fromDirection: d.fromHS.direction,
-          isToTop: d.connection.isToTop ?? d.toHS.isTop,
+          isToTop: resolveConnectionIsToTop(d.toSymbol, d.connection.isToTop, d.toHS),
           toDirection: d.toHS.direction,
           points: d.connection.points,
           customOffset: d.connection.customOffset,
@@ -126,12 +126,17 @@ export function DinRailConnectionsWiresLayer({
           }
         }
 
+        const resolvedIsFromTop = resolveConnectionIsFromTop(d.fromSymbol, d.connection.isFromTop, d.fromHS);
+        const resolvedIsToTop = resolveConnectionIsToTop(d.toSymbol, d.connection.isToTop, d.toHS);
+
         return {
           ...d,
           pointsArr,
           pathData,
           actualFromDir,
           actualToDir,
+          resolvedIsFromTop,
+          resolvedIsToTop,
           parallelIndex: index,
           parallelCount: keyCounts[d.key],
         };
@@ -219,36 +224,42 @@ export function DinRailConnectionsWiresLayer({
 
             {/* Ferrules (only render in foreground mode or if not clipping) */}
             {w.connection.ferruleColor && w.connection.ferruleColor !== "none" && (
+              (() => {
+                const fromInset = getFerruleRenderInsetForSymbol(w.fromSymbol, w.fromHS);
+                const toInset = getFerruleRenderInsetForSymbol(w.toSymbol, w.toHS);
+                return (
               <>
                 <FerruleGraphic
                   x={w.fromPt.x}
                   y={w.fromPt.y}
-                  direction={w.connection.fromDirection || (w.connection.isFromTop ? "top" : "bottom")}
+                  direction={w.connection.fromDirection || (w.resolvedIsFromTop ? "top" : "bottom")}
                   color={w.connection.ferruleColor}
                   wireThickness={wireThickness}
                   wireCrossSection={w.connection.wireCrossSection}
                   isShort={w.fromSymbol?.deviceKind === "terminalBlock" && !isTerminalZlaczka(w.fromSymbol?.moduleRef)}
                   isExtraLong={isTerminalZlaczka(w.fromSymbol?.moduleRef)}
                   isSquare={w.fromSymbol?.deviceKind === "phaseIndicator"}
-                  isDouble={(ferruleCounts.get(`${w.connection.fromSymbolId}:${w.connection.fromTerminal}:${w.fromHS.isTop ? 'T' : 'B'}:${w.actualFromDir}`) || 0) >= 2}
-                  customOffset={w.fromHS?.visualInset}
-                  customLength={undefined}
+                  isDouble={(ferruleCounts.get(`${w.connection.fromSymbolId}:${w.connection.fromTerminal}:${w.resolvedIsFromTop ? 'T' : 'B'}:${w.actualFromDir}`) || 0) >= 2}
+                  customOffset={fromInset.customOffset}
+                  customLength={fromInset.customLength}
                 />
                 <FerruleGraphic
                   x={w.toPt.x}
                   y={w.toPt.y}
-                  direction={w.connection.toDirection || (w.connection.isToTop ? "top" : "bottom")}
+                  direction={w.connection.toDirection || (w.resolvedIsToTop ? "top" : "bottom")}
                   color={w.connection.ferruleColor}
                   wireThickness={wireThickness}
                   wireCrossSection={w.connection.wireCrossSection}
                   isShort={w.toSymbol?.deviceKind === "terminalBlock" && !isTerminalZlaczka(w.toSymbol?.moduleRef)}
                   isExtraLong={isTerminalZlaczka(w.toSymbol?.moduleRef)}
                   isSquare={w.toSymbol?.deviceKind === "phaseIndicator"}
-                  isDouble={(ferruleCounts.get(`${w.connection.toSymbolId}:${w.connection.toTerminal}:${w.toHS.isTop ? 'T' : 'B'}:${w.actualToDir}`) || 0) >= 2}
-                  customOffset={w.toHS?.visualInset}
-                  customLength={undefined}
+                  isDouble={(ferruleCounts.get(`${w.connection.toSymbolId}:${w.connection.toTerminal}:${w.resolvedIsToTop ? 'T' : 'B'}:${w.actualToDir}`) || 0) >= 2}
+                  customOffset={toInset.customOffset}
+                  customLength={toInset.customLength}
                 />
               </>
+                );
+              })()
             )}
 
             {/* Hover / click hit area - Only in background mode */}
@@ -323,8 +334,8 @@ export function DinRailConnectionsWiresLayer({
                       const toMargin = (hasFerrule ? Math.max(w.toHS?.exitOffset ?? 40, toFerruleLen) : (w.toHS?.exitOffset ?? 40)) + customRadius + 20;
 
                       if (isHorizontal) {
-                        const startDir = w.connection.fromDirection || (w.connection.isFromTop ? "top" : "bottom");
-                        const endDir = w.connection.toDirection || (w.connection.isToTop ? "top" : "bottom");
+                        const startDir = w.connection.fromDirection || (w.resolvedIsFromTop ? "top" : "bottom");
+                        const endDir = w.connection.toDirection || (w.resolvedIsToTop ? "top" : "bottom");
                         
                         if (startDir === "bottom") bounds.minY = Math.max(bounds.minY ?? -Infinity, w.fromPt.y + fromMargin);
                         if (startDir === "top") bounds.maxY = Math.min(bounds.maxY ?? Infinity, w.fromPt.y - fromMargin);

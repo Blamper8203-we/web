@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { ConnectionItem } from '../types/connectionItem';
 import type { SymbolItem } from '../types/symbolItem';
-import { findTerminalByName, getSymbolTerminals } from '../lib/modules/moduleTerminals';
+import { findTerminalByName, getSymbolTerminals, resolveConnectionIsFromTop, resolveConnectionIsToTop } from '../lib/modules/moduleTerminals';
 import { calculateWirePath, calculateWirePoints } from '../lib/routing/wireRoutingEngine';
 import { WIRE_THICKNESS_MAP, getFerruleLength } from '../lib/connections/connectionsLogic';
 
@@ -101,6 +101,8 @@ export function useDinRailWiresMemo(connections: ConnectionItem[], symbols: Symb
           toWireCount: toCount,
           fromHS,
           toHS,
+          fromSymbol,
+          toSymbol,
           fromDeviceKind: fromSymbol.deviceKind,
           fromModuleRef: fromSymbol.moduleRef,
           toDeviceKind: toSymbol.deviceKind,
@@ -124,8 +126,8 @@ export function useDinRailWiresMemo(connections: ConnectionItem[], symbols: Symb
         const toExitOffsetVal = hasFerrule ? Math.max(d.toHS.exitOffset ?? 40, toFerruleLen) + customRadius : (d.toHS.exitOffset ?? 40) + customRadius;
 
         const routingOpts = {
-          isFromTop: d.connection.isFromTop ?? d.fromHS.isTop,
-          isToTop: d.connection.isToTop ?? d.toHS.isTop,
+          isFromTop: resolveConnectionIsFromTop(d.fromSymbol, d.connection.isFromTop, d.fromHS),
+          isToTop: resolveConnectionIsToTop(d.toSymbol, d.connection.isToTop, d.toHS),
           points: d.connection.points,
           customOffset: d.connection.customOffset,
           customOffsetX: d.connection.customOffsetX,

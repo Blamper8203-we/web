@@ -558,3 +558,26 @@ export function findTerminalByName(terminals: TerminalHotspot[], terminalName: s
   return terminals.find(t => t.name === terminalName && (isTop === undefined || t.isTop === isTop)) || terminals.find(t => t.name === terminalName);
 }
 
+/**
+ * Runtime override for connection.isFromTop: distribution-block pins MUST
+ * always route from the bottom, even if a stored project file still has the
+ * old isFromTop:true value.  Centralised so every renderer agrees.
+ */
+export function resolveConnectionIsFromTop(
+  symbol: SymbolItem | undefined,
+  storedIsFromTop: boolean | undefined,
+  hotspot: TerminalHotspot | undefined,
+): boolean {
+  if (symbol && isDistributionBlockSymbol(symbol)) return false;
+  return storedIsFromTop ?? hotspot?.isTop ?? true;
+}
+
+export function resolveConnectionIsToTop(
+  symbol: SymbolItem | undefined,
+  storedIsToTop: boolean | undefined,
+  hotspot: TerminalHotspot | undefined,
+): boolean {
+  if (symbol && isDistributionBlockSymbol(symbol)) return false;
+  return storedIsToTop ?? hotspot?.isTop ?? true;
+}
+

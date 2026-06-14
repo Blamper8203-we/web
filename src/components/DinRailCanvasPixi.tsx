@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Application, Container, Text, TextStyle } from "pixi.js";
 import { type SymbolItem } from "../types/symbolItem";
 import type { ConnectionItem } from "../types/connectionItem";
-import { getSymbolTerminals } from "../lib/modules/moduleTerminals";
+import { getSymbolTerminals, resolveConnectionIsFromTop, resolveConnectionIsToTop } from "../lib/modules/moduleTerminals";
 import { calculateWirePath } from "../lib/routing/wireRoutingEngine";
 import {
   generateDinRailSvg,
@@ -227,6 +227,8 @@ export function DinRailCanvas({
         toPt,
         fromHS,
         toHS,
+        fromSymbol,
+        toSymbol,
         key,
       };
     }).filter(Boolean).map((d) => {
@@ -235,8 +237,8 @@ export function DinRailCanvas({
       keyIndices[d.key] = index + 1;
 
       const path = calculateWirePath(d.fromPt, d.toPt, {
-        isFromTop: d.connection.isFromTop ?? d.fromHS.isTop,
-        isToTop: d.connection.isToTop ?? d.toHS.isTop,
+        isFromTop: resolveConnectionIsFromTop(d.fromSymbol, d.connection.isFromTop, d.fromHS),
+        isToTop: resolveConnectionIsToTop(d.toSymbol, d.connection.isToTop, d.toHS),
         parallelIndex: index,
         parallelCount: keyCounts[d.key],
         customOffset: d.connection.customOffset,
