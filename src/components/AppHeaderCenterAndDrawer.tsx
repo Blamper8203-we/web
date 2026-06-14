@@ -1,0 +1,262 @@
+import { AppIcon } from "./AppIcon";
+
+interface AppHeaderCenterToolbarProps {
+  canUndo: boolean;
+  canRedo: boolean;
+  undoLabel: string | null;
+  redoLabel: string | null;
+  hasSelectedSymbol: boolean;
+  workspaceZoomPercent: number;
+  onUndo: () => void;
+  onRedo: () => void;
+  onDeleteSelected: () => void;
+  onOpenDinRailGenerator: () => void;
+  onOpenSvgImport: () => void;
+}
+
+/**
+ * Środkowy toolbar z ikonami — Undo/Redo, Usuń, Generator DIN, Import SVG, Zoom.
+ *
+ * Uwaga: przyciski Zoom (przybliż/oddal/dopasuj) są tu **wizualnie** ale
+ * nie mają onClick — to placeholder dla przyszłej implementacji zoom controls.
+ * Workspace zoom jest wyświetlany jako badge (workspaceZoomPercent%).
+ */
+export function AppHeaderCenterToolbar({
+  canUndo,
+  canRedo,
+  undoLabel,
+  redoLabel,
+  hasSelectedSymbol,
+  workspaceZoomPercent,
+  onUndo,
+  onRedo,
+  onDeleteSelected,
+  onOpenDinRailGenerator,
+  onOpenSvgImport,
+}: AppHeaderCenterToolbarProps) {
+  return (
+    <div className="toolbar-center">
+      <button
+        type="button"
+        className="toolbar-icon-btn"
+        aria-label="Cofnij"
+        title={undoLabel ? `Cofnij: ${undoLabel}` : "Cofnij"}
+        onClick={onUndo}
+        disabled={!canUndo}
+      >
+        <AppIcon name="undo" size={14} />
+      </button>
+      <button
+        type="button"
+        className="toolbar-icon-btn"
+        aria-label="Ponów"
+        title={redoLabel ? `Ponów: ${redoLabel}` : "Ponów"}
+        onClick={onRedo}
+        disabled={!canRedo}
+      >
+        <AppIcon name="redo" size={14} />
+      </button>
+      <span className="toolbar-separator" />
+      <button
+        type="button"
+        className="toolbar-icon-btn"
+        aria-label="Usuń zaznaczone"
+        title="Usuń zaznaczone"
+        disabled={!hasSelectedSymbol}
+        onClick={onDeleteSelected}
+      >
+        <AppIcon className="accent-red" name="delete" size={14} />
+      </button>
+      <button
+        type="button"
+        className="toolbar-icon-btn"
+        aria-label="Szyna DIN"
+        title="Szyna DIN"
+        onClick={onOpenDinRailGenerator}
+      >
+        <AppIcon className="accent-blue" name="module" size={14} />
+      </button>
+      <button
+        type="button"
+        className="toolbar-icon-btn"
+        aria-label="Import modułów"
+        title="Import modułów"
+        onClick={onOpenSvgImport}
+      >
+        <AppIcon name="import" size={14} />
+      </button>
+      <span className="toolbar-separator" />
+      <button
+        type="button"
+        className="toolbar-icon-btn"
+        aria-label="Przybliż"
+        title="Przybliż"
+      >
+        <AppIcon name="zoomIn" size={14} />
+      </button>
+      <span className="toolbar-zoom-badge">{workspaceZoomPercent}%</span>
+      <button
+        type="button"
+        className="toolbar-icon-btn"
+        aria-label="Oddal"
+        title="Oddal"
+      >
+        <AppIcon name="zoomOut" size={14} />
+      </button>
+      <button type="button" className="toolbar-icon-btn" aria-label="Dopasuj widok" title="Dopasuj widok">
+        <AppIcon className="accent-blue" name="zoomFit" size={14} />
+      </button>
+    </div>
+  );
+}
+
+interface AppHeaderMobileDrawerProps {
+  canUndo: boolean;
+  canRedo: boolean;
+  undoLabel: string | null;
+  redoLabel: string | null;
+  onClose: () => void;
+  onNewProject: () => void;
+  onOpenProject: () => void;
+  onSaveProject: (asNew: boolean) => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  onExportPdf: () => void;
+  onOpenDinRailGenerator: () => void;
+  onOpenSvgImport: () => void;
+  onOpenHelp: () => void;
+  onOpenFeedback: () => void;
+}
+
+/**
+ * Boczny drawer mobilny z sekcjami PROJEKT/EDYCJA/EKSPORT/INNE.
+ * Obsługuje gest swipe-left (>50px) do zamknięcia — to natywny wzorzec mobilny.
+ *
+ * Wydzielone z AppHeader bo ma własne touch handlers (touchstart/touchmove)
+ * i zupełnie inny layout niż desktop toolbar.
+ */
+export function AppHeaderMobileDrawer({
+  canUndo,
+  canRedo,
+  undoLabel,
+  redoLabel,
+  onClose,
+  onNewProject,
+  onOpenProject,
+  onSaveProject,
+  onUndo,
+  onRedo,
+  onExportPdf,
+  onOpenDinRailGenerator,
+  onOpenSvgImport,
+  onOpenHelp,
+  onOpenFeedback,
+}: AppHeaderMobileDrawerProps) {
+  return (
+    <div
+      className="mobile-side-drawer-overlay"
+      onClick={onClose}
+    >
+      <div
+        className="mobile-side-drawer"
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={(e) => {
+          const touch = e.touches[0];
+          if (!touch) return;
+          (e.currentTarget as HTMLElement).dataset.swipeStartX = String(touch.clientX);
+        }}
+        onTouchMove={(e) => {
+          const touch = e.touches[0];
+          if (!touch) return;
+          const startX = Number((e.currentTarget as HTMLElement).dataset.swipeStartX || 0);
+          const deltaX = touch.clientX - startX;
+          // Przeciągnięcie w lewo > 50px zamyka drawer
+          if (deltaX < -50) {
+            onClose();
+          }
+        }}
+      >
+        <div className="mobile-side-drawer-header">
+          <img src="/favicon-192.png" alt="Logo" width="32" height="32" />
+          <strong>DinBoard</strong>
+          <button className="drawer-close" onClick={onClose}>
+            <AppIcon name="close" size={20} />
+          </button>
+        </div>
+
+        <div className="mobile-side-drawer-content">
+          <span className="drawer-section">PROJEKT</span>
+          <button className="drawer-item" onClick={() => { onClose(); onNewProject(); }}>
+            <AppIcon className="drawer-icon" name="file" />
+            <span>Nowe zlecenie</span>
+          </button>
+          <button className="drawer-item" onClick={() => { onClose(); onOpenProject(); }}>
+            <AppIcon className="drawer-icon" name="folderOpen" />
+            <span>Otwórz projekt</span>
+          </button>
+          <button className="drawer-item" onClick={() => { onClose(); onSaveProject(false); }}>
+            <AppIcon className="drawer-icon" name="save" />
+            <span>Zapisz zmiany</span>
+          </button>
+
+          <span className="drawer-divider" />
+          <span className="drawer-section">EDYCJA</span>
+          <button
+            className="drawer-item"
+            disabled={!canUndo}
+            style={{ opacity: canUndo ? 1 : 0.4 }}
+            onClick={() => { onClose(); onUndo(); }}
+          >
+            <AppIcon className="drawer-icon" name="undo" />
+            <span>{undoLabel ? `Cofnij: ${undoLabel}` : "Cofnij"}</span>
+          </button>
+          <button
+            className="drawer-item"
+            disabled={!canRedo}
+            style={{ opacity: canRedo ? 1 : 0.4 }}
+            onClick={() => { onClose(); onRedo(); }}
+          >
+            <AppIcon className="drawer-icon" name="redo" />
+            <span>{redoLabel ? `Ponów: ${redoLabel}` : "Ponów"}</span>
+          </button>
+
+          <span className="drawer-divider" />
+          <span className="drawer-section">EKSPORT I NARZĘDZIA</span>
+          <button className="drawer-item" onClick={() => { onClose(); onExportPdf(); }}>
+            <AppIcon className="drawer-icon" name="pdf" />
+            <span>Eksportuj PDF</span>
+          </button>
+          <button className="drawer-item" onClick={() => { onClose(); onOpenDinRailGenerator(); }}>
+            <AppIcon className="drawer-icon accent-blue" name="module" />
+            <span>Generator Szyny DIN</span>
+          </button>
+          <button className="drawer-item" onClick={() => { onClose(); onOpenSvgImport(); }}>
+            <AppIcon className="drawer-icon" name="import" />
+            <span>Import modułów SVG</span>
+          </button>
+
+          <span className="drawer-divider" />
+          <span className="drawer-section">INNE</span>
+          <button className="drawer-item" onClick={() => { onClose(); onOpenHelp(); }}>
+            <AppIcon className="drawer-icon" name="help" />
+            <span>Pomoc i instrukcja</span>
+          </button>
+          <button className="drawer-item" onClick={() => { onClose(); onOpenFeedback(); }}>
+            <AppIcon className="drawer-icon" name="feedback" />
+            <span>Zgłoś pomysł / Błąd</span>
+          </button>
+          <a
+            href="https://suppi.pl/dinboard"
+            target="_blank"
+            rel="noreferrer"
+            className="drawer-item"
+            style={{ color: "#FFB020" }}
+          >
+            <AppIcon className="drawer-icon" name="coffee" />
+            <span>Postaw kawę</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
