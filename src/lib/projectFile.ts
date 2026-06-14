@@ -1,3 +1,4 @@
+import { invoke, isTauri } from "@tauri-apps/api/core";
 import type { ProjectMetadata } from "../types/projectMetadata";
 import { normalizeSymbolItems, type SymbolItem } from "../types/symbolItem";
 import type { ConnectionItem } from "../types/connectionItem";
@@ -507,23 +508,22 @@ function normalizeDownloadFileName(fileName: string | undefined): string {
 
 type TauriInvokeFn = (command: string, args?: Record<string, unknown>) => Promise<unknown>;
 
+/**
+ * Detect a Tauri runtime and return a function to invoke backend commands.
+ *
+ * Uses the official `isTauri()` from @tauri-apps/api/core which handles all
+ * known injection points (window.__TAURI_INTERNALS__ in Tauri 2.x,
+ * window.__TAURI__.core.invoke when withGlobalTauri is enabled, etc).
+ *
+ * Returns null on plain web, so the calling code can fall back to the
+ * browser File System Access API or <a download>.
+ */
 function getTauriInvoke(): TauriInvokeFn | null {
-  const w = window as unknown as {
-    __TAURI_INTERNALS__?: { invoke?: TauriInvokeFn };
-    __TAURI__?: { core?: { invoke?: TauriInvokeFn } };
-  };
-
-  const internalInvoke = w.__TAURI_INTERNALS__?.invoke;
-  if (typeof internalInvoke === "function") {
-    return internalInvoke;
+  if (!isTauri()) {
+    return null;
   }
-
-  const globalInvoke = w.__TAURI__?.core?.invoke;
-  if (typeof globalInvoke === "function") {
-    return globalInvoke;
-  }
-
-  return null;
+  // Wrap the typed `invoke` to match the call-site shape.
+  return (command, args) => invoke(command, args ?? {}) as Promise<unknown>;
 }
 
 function downloadTextFile(content: string, fileName: string): void {
