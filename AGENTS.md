@@ -232,3 +232,28 @@ Odpowiadaj konkretnie:
 - Nie wprowadzaj migotania ani regresji wydajnosci canvas.
 - Nie rob szerokich refaktorow przy okazji malej poprawki.
 
+## Znane ograniczenia narzedziowe
+
+### `@emnapi/wasi-threads` orphan w lockfile
+
+`package-lock.json` zawiera historyczny wpis `node_modules/@emnapi/wasi-threads@1.2.2`
+bedacy pozostaloscia z poprzedniej wersji lockfile (commit 7d715da). Zadna
+obecna paczka nie deklaruje `@emnapi/wasi-threads` jako bezposredniej
+zaleznosci - jest to staly `optional` dep `@rolldown/binding-wasm32-wasi`,
+ale w nowszej wersji `@rolldown` uzywa `@emnapi/wasi-threads@1.2.1` w
+nested `node_modules/@rolldown/binding-wasm32-wasi/node_modules/...`.
+
+`npm install` (z aktywnym instalowaniem) **zaciagnie ten wpis z powrotem**
+nawet po recznym usunieciu z `node_modules`, bo czyta istniejacy wpis
+z lockfile i uznaje go za wymagany. `npm ci` i `npm install
+--package-lock-only` go nie zaciagaja.
+
+Praktyczna regula:
+- Po `npm install` orphan prawdopodobnie wroci
+- Po `npm ci` orphan NIE powinien wrocic (czysta instalacja z lockfile)
+- Po `npm install --package-lock-only` orphan NIE wroci
+
+Nie jest to krytyczne - 220 KB paczki z 0 aktywnym uzyciem. Jesli chcesz
+trwale usunac: usun wpis z `package-lock.json` recznie (linie 2009-2019)
+i uzywaj `npm ci` zamiast `npm install` do reinstalacji.
+
