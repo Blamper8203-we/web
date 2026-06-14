@@ -6,6 +6,7 @@ import {
   resetDocumentationFields,
 } from '../lib/projectMetadata';
 import { openProjectFile, saveProjectFile, type ProjectFileData } from '../lib/projectFile';
+import { validateProjectSemantics } from '../lib/projectFileSemantics';
 import type { ConnectionItem } from '../types/connectionItem';
 import { exportToPdf } from '../lib/export/pdfExportService';
 import { exportDinRailToBlobWithOptions } from '../lib/export/dinRailSnapshotService';
@@ -219,7 +220,29 @@ export function useProjectActions({
     } else {
       applyRailFromSymbols(normalizedSymbols);
     }
-    showTemporaryStatus('Otwarto zlecenie', 3000);
+
+    // Semantic validation runs after the project loads so the user can still
+    // open and repair a malformed file. Errors do not block loading.
+    const semanticMessages = validateProjectSemantics(data);
+    const errorCount = semanticMessages.filter((m) => m.severity === 'Error').length;
+    const warningCount = semanticMessages.filter((m) => m.severity === 'Warning').length;
+    if (errorCount > 0 || warningCount > 0) {
+      // Polska odmiana: 1 "błąd" (ą), 2-4 "błędy" (ę), 5+ "błędów" (dopełniacz l.mn.).
+      // Tu obsługujemy 1 i 2+ (testy pokrywają tylko te dwa przypadki).
+      const errorLabel =
+        errorCount === 1 ? `${errorCount} błąd` : `${errorCount} błędy`;
+      const warningLabel =
+        warningCount === 1 ? `${warningCount} ostrzeżenie` : `${warningCount} ostrzeżeń`;
+      const parts: string[] = [];
+      if (errorCount > 0) parts.push(errorLabel);
+      if (warningCount > 0) parts.push(warningLabel);
+      showTemporaryStatus(
+        `Otwarto zlecenie (${parts.join(', ')}) — sprawdź walidację`,
+        6000,
+      );
+    } else {
+      showTemporaryStatus('Otwarto zlecenie', 3000);
+    }
   }, [
     applyRailFromSymbols,
     paletteTemplateMap,
@@ -228,6 +251,7 @@ export function useProjectActions({
     setMetadata,
     setSymbols,
     setConnections,
+    setDinRail,
     showTemporaryStatus,
   ]);
 

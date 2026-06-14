@@ -46,6 +46,10 @@ vi.mock("../lib/appHelpers", () => ({
   DEFAULT_DIN_RAIL_CONFIG: { rows: 1, modulesPerRow: 24 },
 }));
 
+vi.mock("../lib/projectFileSemantics", () => ({
+  validateProjectSemantics: vi.fn(() => [] as any[]),
+}));
+
 // Import mocked modules to get typed references
 import { saveProjectFile, openProjectFile } from "../lib/projectFile";
 import { exportToPdf } from "../lib/export/pdfExportService";
@@ -66,6 +70,7 @@ import {
   normalizeDinRailModuleOrdering,
   DEFAULT_DIN_RAIL_CONFIG,
 } from "../lib/appHelpers";
+import { validateProjectSemantics } from "../lib/projectFileSemantics";
 
 // --- Helpers ---
 
@@ -554,6 +559,51 @@ describe("useProjectActions", () => {
       });
       expect(statusMessages).toContain("Otwarto zlecenie");
     });
+
+    it("shows validation error count in status when semantic errors are present", () => {
+      // Moduł mockuje validateProjectSemantics na `[]` (vi.mock na górze pliku),
+      // więc w teście jawnie ustawiamy błąd SEM-002. Real-validator coverage
+      // (np. że faktycznie łapie duplikat id) jest w projectFileSemantics.test.ts.
+      vi.mocked(validateProjectSemantics).mockImplementationOnce(() => [
+        { code: "SEM-002", message: "Zduplikowane id", severity: "Error" },
+      ]);
+
+      const data = {
+        metadata: createMockMetadata(),
+        symbols: [
+          createDefaultSymbolItem({ id: "dup", label: "MCB" }),
+          createDefaultSymbolItem({ id: "dup", label: "MCB" }),
+        ],
+        connections: [],
+        version: "2.0",
+        rail: null,
+      };
+
+      const { result, statusMessages } = setup();
+      act(() => { result.current.handleLoadProjectData(data); });
+
+      expect(validateProjectSemantics).toHaveBeenCalled();
+      expect(statusMessages).toContain("Otwarto zlecenie (1 błąd) — sprawdź walidację");
+    });
+
+    it("shows validation warning count in status when only warnings are present", () => {
+      vi.mocked(validateProjectSemantics).mockImplementation(() => [
+        { code: "SEM-010", message: "Lekka moc", severity: "Warning" },
+      ]);
+
+      const data = {
+        metadata: createMockMetadata(),
+        symbols: [createDefaultSymbolItem({ id: "s1", label: "MCB" })],
+        connections: [],
+        version: "2.0",
+        rail: null,
+      };
+
+      const { result, statusMessages } = setup();
+      act(() => { result.current.handleLoadProjectData(data); });
+
+      expect(statusMessages).toContain("Otwarto zlecenie (1 ostrzeżenie) — sprawdź walidację");
+    });
   });
 
   // ===== handleExportBom =====
@@ -929,6 +979,126 @@ describe("useProjectActions", () => {
       await act(async () => { await result.current.handleExportDinRailPngWithDescriptionsNoBrackets(); });
 
       expect(statusMessages).toContain("Nie udało się wyeksportować rozdzielnicy");
+    });
+  });
+
+  // ===== Integration flow =====
+  // Pełen cykl: nowy projekt → załaduj dane → zapisz → eksport PDF.
+  // Sprawdza, że handlery hooka współpracują ze sobą (np. handleLoadProjectData
+  // ustawia stan, który później handleSaveProject poprawnie odczytuje).
+  describe("integration flow", () => {
+    it("new → load → save round-trips through file services", async () => {
+      vi.mocked(saveProjectFile).mockResolvedValue("/path/to/saved.dinboard");
+      vi.mocked(validateProjectSemantics).mockReturnValue([]);
+
+      const { result, setMetadata, setSymbols, setConnections, setCurrentFilePath, setHasUnsavedChanges } = setup();
+
+      // 1) Nowy projekt
+      act(() => { result.current.handleNewProject(); });
+      expect(setSymbols).toHaveBeenCalledWith([]);
+      expect(setConnections).toHaveBeenCalledWith([]);
+      expect(setCurrentFilePath).toHaveBeenCalledWith(null);
+      expect(setHasUnsavedChanges).toHaveBeenCalledWith(false);
+
+      // 2) Załaduj dane (symulujemy dane tak, jakby pochodziły z openProjectFile)
+      const loadedData: import("../lib/projectFile").ProjectFileData = {
+        metadata: createMockMetadata({ projectNumber: "ZL-LOAD-1" }),
+        symbols: [createDefaultSymbolItem({ id: "s1", label: "MCB 1P" })],
+        connections: [],
+        version: "2.0",
+        path: "/path/to/loaded.dinboard",
+        rail: null,
+      };
+      act(() => { result.current.handleLoadProjectData(loadedData); });
+      expect(setMetadata).toHaveBeenCalled();
+      expect(setSymbols).toHaveBeenCalled();
+      // path jest przekazywany jak w mocku
+      expect(setCurrentFilePath).toHaveBeenCalledWith("/path/to/loaded.dinboard");
+
+      // 3) Zapisz
+      let saved = false;
+      await act(async () => { saved = await result.current.handleSaveProject(); });
+      expect(saved).toBe(true);
+      expect(saveProjectFile).toHaveBeenCalled();
+    });
+
+    it("load → save → load round-trip: semantic validation runs at load time, not at save time", async () => {
+      // Validate only on load
+      vi.mocked(validateProjectSemantics).mockImplementationOnce(() => [
+        { code: "SEM-002", message: "Zduplikowane id", severity: "Error" },
+      ]);
+      vi.mocked(saveProjectFile).mockResolvedValue("/saved.dinboard");
+
+      const { result, statusMessages } = setup();
+      act(() => {
+        result.current.handleLoadProjectData({
+          metadata: createMockMetadata(),
+          symbols: [createDefaultSymbolItem({ id: "s1", label: "MCB" })],
+          connections: [],
+          version: "2.0",
+          rail: null,
+        });
+      });
+
+      // Validate ran once during load
+      expect(validateProjectSemantics).toHaveBeenCalledTimes(1);
+      expect(statusMessages.some((m) => m.includes("1 błąd"))).toBe(true);
+
+      // Save does NOT re-validate
+      await act(async () => { await result.current.handleSaveProject(); });
+      expect(validateProjectSemantics).toHaveBeenCalledTimes(1);
+    });
+
+    it("export PDF after load: handleExportPdf uses currently loaded metadata and symbols", async () => {
+      const pdfBlob = new Blob(["fake pdf"], { type: "application/pdf" });
+      vi.mocked(exportToPdf).mockResolvedValue(pdfBlob);
+
+      const { result } = setup({
+        symbols: [createDefaultSymbolItem({ id: "s1", label: "MCB" })],
+      });
+
+      // Create URL mock for the download
+      const createObjectURL = vi.fn(() => "blob:test-url");
+      const revokeObjectURL = vi.fn();
+      const originalCreate = URL.createObjectURL;
+      const originalRevoke = URL.revokeObjectURL;
+      URL.createObjectURL = createObjectURL;
+      URL.revokeObjectURL = revokeObjectURL;
+      try {
+        await act(async () => { await result.current.handleExportPdf(); });
+
+        expect(exportToPdf).toHaveBeenCalledTimes(1);
+        const [metaArg, symbolsArg] = vi.mocked(exportToPdf).mock.calls[0];
+        expect(metaArg).toMatchObject({ projectNumber: "ZL-001" });
+        expect(symbolsArg).toHaveLength(1);
+        expect(symbolsArg[0].id).toBe("s1");
+      } finally {
+        URL.createObjectURL = originalCreate;
+        URL.revokeObjectURL = originalRevoke;
+      }
+    });
+
+    it("exportPdf passes empty symbols array through (no early validation in hook)", async () => {
+      // Documenting current behavior: handleExportPdf does NOT skip empty
+      // symbol lists. The hook just calls exportToPdf. If we ever add
+      // early validation here, this test should be updated.
+      vi.mocked(exportToPdf).mockResolvedValue(new Blob(["pdf"], { type: "application/pdf" }));
+
+      const { result, statusMessages } = setup({ symbols: [] });
+
+      // Mock URL.createObjectURL so the download path doesn't crash
+      const originalCreate = URL.createObjectURL;
+      URL.createObjectURL = vi.fn(() => "blob:test");
+      try {
+        await act(async () => { await result.current.handleExportPdf(); });
+
+        expect(exportToPdf).toHaveBeenCalledTimes(1);
+        const [, symbolsArg] = vi.mocked(exportToPdf).mock.calls[0];
+        expect(symbolsArg).toEqual([]);
+        expect(statusMessages).toContain("Eksport PDF");
+      } finally {
+        URL.createObjectURL = originalCreate;
+      }
     });
   });
 });

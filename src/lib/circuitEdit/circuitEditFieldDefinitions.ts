@@ -303,6 +303,9 @@ export function applyCircuitEditValue(
     case "CableType":
       next.parameters[key] = value;
       break;
+    case "RemoveCover":
+      next.parameters.BLUE_COVER_VISIBILITY = rawValue ? "hidden" : "visible";
+      break;
   }
 
   return createDefaultSymbolItem(next);
@@ -329,6 +332,7 @@ function createDistributionBlockFields(symbol: SymbolItem): CircuitEditFieldDefi
   return [
     textField("ReferenceDesignation", "Oznaczenie", getManualReferenceDesignation(symbol)),
     textField("Label", "Etykieta", symbol.label),
+    checkboxField("RemoveCover", "Zdejmij osłonę", symbol.parameters.BLUE_COVER_VISIBILITY === "hidden" || symbol.parameters.BLUE_COVER_VISIBILITY === "none"),
   ];
 }
 
@@ -426,14 +430,21 @@ function createMcbFields(symbol: SymbolItem, poleCount: ModulePoleCount, locatio
 }
 
 function getModuleType(symbol: SymbolItem): ModuleType {
+  // Terminal block / listwa ma pierwszeństwo – nie może być wykryta jako RCD.
+  // Sprawdzamy przez `deviceKind` (bez `symbol.isTerminalBlock` w tym samym
+  // warunku) — TS inaczej zawęża discriminated union po `isTerminalBlock`
+  // i odrzuca `"terminalBlock"` jako niemożliwe.
+  if (symbol.deviceKind === "terminalBlock") return "terminalBlock";
+  if (symbol.isTerminalBlock) return "terminalBlock";
   if (symbol.deviceKind === "rcd") return "rcd";
   if (symbol.deviceKind === "mcb" || symbol.deviceKind === "rcbo") return "mcb";
   if (symbol.deviceKind === "spd") return "spd";
   if (symbol.deviceKind === "fr") return "switch";
   if (symbol.deviceKind === "phaseIndicator") return "phaseIndicator";
-  if (symbol.deviceKind === "terminalBlock") return "terminalBlock";
 
   const value = `${symbol.type} ${symbol.label} ${symbol.visualPath}`.toLocaleLowerCase("pl-PL");
+  const isListwa = value.includes("listwa") || value.includes("listwy");
+
   if (value.includes("rcd")) return "rcd";
   if (value.includes("mcb") || /s\s*-?\s*30\d/.test(value)) return "mcb";
   if (value.includes("spd")) return "spd";
@@ -450,7 +461,8 @@ function getModuleType(symbol: SymbolItem): ModuleType {
     value.includes("złączk") ||
     value.includes("zlacze") ||
     value.includes("terminal") ||
-    value.includes("listwa zacisk")
+    value.includes("listwa zacisk") ||
+    isListwa
   ) {
     return "terminalBlock";
   }
