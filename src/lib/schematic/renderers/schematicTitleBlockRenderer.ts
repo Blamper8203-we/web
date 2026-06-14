@@ -98,7 +98,7 @@ function drawTitleCell(
   // We can wrap text here simply
   const words = value.split(" ");
   let line = "";
-  let currentY = cellY + Math.max(13, labelSize + 9);
+  const currentY = cellY + Math.max(13, labelSize + 9);
   
   const lines = [];
   for (const word of words) {

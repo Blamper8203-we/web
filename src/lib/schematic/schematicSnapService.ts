@@ -40,7 +40,7 @@ export function snapToRail(
 
   let bestDistance = VERTICAL_SNAP_THRESHOLD;
   let nearestRail: { page: PageInfo; rail: DinRailInfo; y: number } | null = null;
-  let result: SnapResult = {
+  const result: SnapResult = {
     snappedX: worldX,
     snappedY: worldY,
     snappedToRail: false,

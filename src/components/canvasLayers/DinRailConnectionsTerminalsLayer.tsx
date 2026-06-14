@@ -55,10 +55,10 @@ export function DinRailConnectionsTerminalsLayer({
                     .replace(/[\u0300-\u036f]/g, "")
                     .includes("zlacz"))));
           
-          let visualRadius = hs.radius ?? (isListwa ? 28.0 : isZlaczka ? 52.0 : 31.3);
-          let hitRadius = Math.max(visualRadius + 4, 15);
-          let baseStrokeW = Math.max(1.5, visualRadius * 0.12);
-          let hoverStrokeW = baseStrokeW * 1.5;
+          const visualRadius = hs.radius ?? (isListwa ? 28.0 : isZlaczka ? 52.0 : 31.3);
+          const hitRadius = Math.max(visualRadius + 4, 15);
+          const baseStrokeW = Math.max(1.5, visualRadius * 0.12);
+          const hoverStrokeW = baseStrokeW * 1.5;
 
           return (
             <g
