@@ -157,8 +157,6 @@ export function DinRailCanvas({
   const lastGeneratorRequest = useRef(generatorRequest);
   const measuredNodesRef = useRef(new Map<string, HTMLDivElement>());
 
-  const [showWires, setShowWires] = useState(false);
-
   const viewportSize = useElementSize(containerRef);
   const [scale, setScale] = useState(1);
   const [pan, setPan] = useState<WorldPoint>({ x: 0, y: 0 });
@@ -1182,8 +1180,6 @@ export function DinRailCanvas({
         onZoomOut={zoomOut}
         onToggleGroups={onToggleGroups}
         showGroups={showGroups}
-        onToggleWires={() => setShowWires((w) => !w)}
-        showWires={showWires}
       />
 
       {rail.isVisible && selectedIds.size > 0 && onDeleteSelected && (
