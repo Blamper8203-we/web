@@ -5,7 +5,7 @@ import { getSymbolTerminals, findTerminalByName, resolveConnectionIsFromTop, res
 import { calculateWirePoints, calculateWirePath, type Point } from "../../lib/routing/wireRoutingEngine";
 import { WIRE_COLORS_MAP, WIRE_THICKNESS_MAP, getFerruleLength, isTerminalZlaczka } from "../../lib/connections/connectionsLogic";
 import type { DraggingHandle, DraggingSegment } from "../../hooks/useDinRailConnectionsInteraction";
-import { FerruleGraphic, getFerruleRenderInsetForSymbol } from "./FerruleGraphic";
+import { FerruleGraphic } from "./FerruleGraphic";
 
 interface DinRailConnectionsWiresLayerProps {
   connections: ConnectionItem[];
@@ -224,10 +224,6 @@ export function DinRailConnectionsWiresLayer({
 
             {/* Ferrules (only render in foreground mode or if not clipping) */}
             {w.connection.ferruleColor && w.connection.ferruleColor !== "none" && (
-              (() => {
-                const fromInset = getFerruleRenderInsetForSymbol(w.fromSymbol, w.fromHS);
-                const toInset = getFerruleRenderInsetForSymbol(w.toSymbol, w.toHS);
-                return (
               <>
                 <FerruleGraphic
                   x={w.fromPt.x}
@@ -240,8 +236,8 @@ export function DinRailConnectionsWiresLayer({
                   isExtraLong={isTerminalZlaczka(w.fromSymbol?.moduleRef)}
                   isSquare={w.fromSymbol?.deviceKind === "phaseIndicator"}
                   isDouble={(ferruleCounts.get(`${w.connection.fromSymbolId}:${w.connection.fromTerminal}:${w.resolvedIsFromTop ? 'T' : 'B'}:${w.actualFromDir}`) || 0) >= 2}
-                  customOffset={fromInset.customOffset}
-                  customLength={fromInset.customLength}
+                  customOffset={w.fromHS?.visualInset}
+                  customLength={undefined}
                 />
                 <FerruleGraphic
                   x={w.toPt.x}
@@ -254,12 +250,10 @@ export function DinRailConnectionsWiresLayer({
                   isExtraLong={isTerminalZlaczka(w.toSymbol?.moduleRef)}
                   isSquare={w.toSymbol?.deviceKind === "phaseIndicator"}
                   isDouble={(ferruleCounts.get(`${w.connection.toSymbolId}:${w.connection.toTerminal}:${w.resolvedIsToTop ? 'T' : 'B'}:${w.actualToDir}`) || 0) >= 2}
-                  customOffset={toInset.customOffset}
-                  customLength={toInset.customLength}
+                  customOffset={w.toHS?.visualInset}
+                  customLength={undefined}
                 />
               </>
-                );
-              })()
             )}
 
             {/* Hover / click hit area - Only in background mode */}

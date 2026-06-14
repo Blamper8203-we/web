@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import type { ConnectionItem, WireColor, WireType, RoutingMode, FerruleColor } from "../types/connectionItem";
 import { createDefaultConnection } from "../types/connectionItem";
-import { type SymbolItem } from "../types/symbolItem";
+import { type SymbolItem, isDistributionBlockSymbol } from "../types/symbolItem";
 import { getSymbolTerminals, type TerminalHotspot, findTerminalByName } from "../lib/modules/moduleTerminals";
 import { calculateWirePath, calculateWirePoints, getOrthoExit, pointsToRoundedPath, type Point } from "../lib/routing/wireRoutingEngine";
 import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
@@ -9,7 +9,7 @@ import { AppIcon } from "./AppIcon";
 import { useElementSize } from "../hooks/useElementSize";
 import { useDinRailForegroundSvgs } from "../hooks/useDinRailForegroundSvgs";
 import { DinRailConnectionsForegroundLayer } from "./canvasLayers/DinRailConnectionsForegroundLayer";
-import { FerruleGraphic, getFerruleRenderInsetForSymbol } from "./canvasLayers/FerruleGraphic";
+import { FerruleGraphic } from "./canvasLayers/FerruleGraphic";
 import { getFerruleLength, isTerminalZlaczka } from "../lib/connections/connectionsLogic";
 import {
   checkConnectionWarning,
@@ -1548,8 +1548,11 @@ export function DinRailConnectionsCanvas({
 
                 if (!renderedFerrules.has(fromKey)) {
                   renderedFerrules.add(fromKey);
-                  const fromSymbol = symbols.find(sym => sym.id === w.connection.fromSymbolId);
-                  const fromInset = getFerruleRenderInsetForSymbol(fromSymbol, w.fromHS);
+                  const fromSymbolForFerrule = symbols.find(sym => sym.id === w.connection.fromSymbolId);
+                  // For distribution-block pins the ferrule is a short 80px strip
+                  // anchored at the screw (the wire itself passes through the
+                  // module body and exits at the bottom edge).
+                  const fromIsDist = !!fromSymbolForFerrule && isDistributionBlockSymbol(fromSymbolForFerrule);
                   elements.push(
                     <FerruleGraphic
                       key={`ferrule-from-${fromKey}`}
@@ -1572,16 +1575,16 @@ export function DinRailConnectionsCanvas({
                         const s = symbols.find(sym => sym.id === w.connection.fromSymbolId);
                         return s?.deviceKind === "phaseIndicator";
                       })()}
-                      customOffset={fromInset.customOffset}
-                      customLength={fromInset.customLength}
+                      customOffset={fromIsDist ? 10 : w.fromHS.visualInset}
+                      customLength={undefined}
                     />
                   );
                 }
 
                 if (!renderedFerrules.has(toKey)) {
                   renderedFerrules.add(toKey);
-                  const toSymbol = symbols.find(sym => sym.id === w.connection.toSymbolId);
-                  const toInset = getFerruleRenderInsetForSymbol(toSymbol, w.toHS);
+                  const toSymbolForFerrule = symbols.find(sym => sym.id === w.connection.toSymbolId);
+                  const toIsDist = !!toSymbolForFerrule && isDistributionBlockSymbol(toSymbolForFerrule);
                   elements.push(
                     <FerruleGraphic
                       key={`ferrule-to-${toKey}`}
@@ -1604,8 +1607,8 @@ export function DinRailConnectionsCanvas({
                         const s = symbols.find(sym => sym.id === w.connection.toSymbolId);
                         return s?.deviceKind === "phaseIndicator";
                       })()}
-                      customOffset={toInset.customOffset}
-                      customLength={toInset.customLength}
+                      customOffset={toIsDist ? 10 : w.toHS.visualInset}
+                      customLength={undefined}
                     />
                   );
                 }

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import type { ConnectionItem } from "../types/connectionItem";
 import type { SymbolItem } from "../types/symbolItem";
 import { getSymbolTerminals, findTerminalByName, resolveConnectionIsFromTop, resolveConnectionIsToTop } from "../lib/modules/moduleTerminals";
+import { isDistributionBlockSymbol } from "../types/symbolItem";
 import { calculateWirePath } from "../lib/routing/wireRoutingEngine";
 
 export function useDinRailWires(connections: ConnectionItem[], symbols: SymbolItem[]) {
@@ -45,13 +46,23 @@ export function useDinRailWires(connections: ConnectionItem[], symbols: SymbolIt
         const index = keyIndices[d.key] || 0;
         keyIndices[d.key] = index + 1;
 
+        // For distribution-block pins, the wire starts AT the screw and passes
+        // through the module body, exiting at the bottom edge. The ferrule
+        // (80px short, drawn by FerruleGraphic) sits right at the screw.
+        // For all other modules we keep the historical "wire starts at module
+        // edge" behaviour with a long ferrule that bridges screw → edge.
+        const fromIsDist = isDistributionBlockSymbol(d.fromSymbol);
+        const toIsDist = isDistributionBlockSymbol(d.toSymbol);
+        const fromVisualInset = fromIsDist ? 0 : d.fromHS.visualInset;
+        const toVisualInset = toIsDist ? 0 : d.toHS.visualInset;
+
         const path = calculateWirePath(d.fromPt, d.toPt, {
           isFromTop: resolveConnectionIsFromTop(d.fromSymbol, d.connection.isFromTop, d.fromHS),
           fromDirection: d.fromHS.direction,
           isToTop: resolveConnectionIsToTop(d.toSymbol, d.connection.isToTop, d.toHS),
           toDirection: d.toHS.direction,
-          fromVisualInset: d.fromHS.visualInset, // Wire starts at module edge, ferrule covers screw→edge gap
-          toVisualInset: d.toHS.visualInset,
+          fromVisualInset,
+          toVisualInset,
           exitOffset: Math.max(d.fromHS.exitOffset ?? 40, d.toHS.exitOffset ?? 40),
           parallelIndex: index,
           parallelCount: keyCounts[d.key],
