@@ -1,0 +1,25 @@
+# Wymuś LF dla plików źródłowych — pasuje do .editorconfig (`end_of_line = lf`).
+# Bez tego pliki zapisywane na Windowsie dostają CRLF, co potem psuje diffy
+# i generuje ostrzeżenia `LF will be replaced by CRLF the next time Git touches it`.
+* text=auto eol=lf
+
+# Pliki binarne / natywne formaty — bez konwersji.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.webp  binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.eot   binary
+*.pdf   binary
+*.zip   binary
+*.tar   binary
+*.gz    binary
+*.7z    binary
+*.exe   binary
+*.dll   binary
+*.so    binary
+*.dylib binary

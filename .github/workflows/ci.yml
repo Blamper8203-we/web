@@ -7,8 +7,13 @@ on:
       - master
   pull_request:
 
+# Dwa joby:
+# - test: szybki feedback (build + unit testy). Musi przejść żeby PR mógł być zmergowany.
+# - smoke: wolniejszy, testuje czy zbudowana apka w ogóle startuje (predeploy). Można
+#   pominąć przez label `skip-smoke` na PR.
 jobs:
-  build-and-test:
+  test:
+    name: Build & test
     runs-on: ubuntu-latest
 
     steps:
@@ -18,11 +23,52 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # Zgodnie z .nvmrc i package.json engines.node — Node 22 LTS.
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Build, unit tests, and SPA smoke
-        run: npm run check:online
+      - name: Lint
+        # Lint jest teraz warnings-only (eslint --max-warnings 0 by failowało
+        # na istniejących 35 warningach). Gdy liczba spadnie, zmień na
+        # `npm run lint -- --max-warnings 0` żeby failować na nowych.
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Unit tests
+        run: npm run test
+
+  smoke:
+    name: Pre-deploy smoke
+    runs-on: ubuntu-latest
+    needs: test
+    # Smoke startuję zbudowaną apkę i sprawdza czy kluczowe routy odpowiadają.
+    # Wymaga działającego serwera (predeploy), więc jest wolniejszy i bardziej
+    # wrażliwy na network. Domyślnie włączony; do pominięcia na PR dodaj label
+    # `skip-smoke` (GitHub: gh pr edit --add-label skip-smoke).
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-smoke') }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Run smoke against local build
+        run: npm run smoke:online
+        env:
+          DINBOARD_SMOKE_PORT: "4173"
