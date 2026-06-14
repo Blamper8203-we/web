@@ -9,7 +9,7 @@ import { AppIcon } from "./AppIcon";
 import { useElementSize } from "../hooks/useElementSize";
 import { useDinRailForegroundSvgs } from "../hooks/useDinRailForegroundSvgs";
 import { DinRailConnectionsForegroundLayer } from "./canvasLayers/DinRailConnectionsForegroundLayer";
-import { FerruleGraphic } from "./canvasLayers/FerruleGraphic";
+import { FerruleGraphic, getFerruleRenderInsetForSymbol } from "./canvasLayers/FerruleGraphic";
 import { getFerruleLength, isTerminalZlaczka } from "../lib/connections/connectionsLogic";
 import {
   checkConnectionWarning,
@@ -1548,6 +1548,8 @@ export function DinRailConnectionsCanvas({
 
                 if (!renderedFerrules.has(fromKey)) {
                   renderedFerrules.add(fromKey);
+                  const fromSymbol = symbols.find(sym => sym.id === w.connection.fromSymbolId);
+                  const fromInset = getFerruleRenderInsetForSymbol(fromSymbol, w.fromHS);
                   elements.push(
                     <FerruleGraphic
                       key={`ferrule-from-${fromKey}`}
@@ -1570,14 +1572,16 @@ export function DinRailConnectionsCanvas({
                         const s = symbols.find(sym => sym.id === w.connection.fromSymbolId);
                         return s?.deviceKind === "phaseIndicator";
                       })()}
-                      customOffset={w.fromHS.visualInset}
-                      customLength={undefined}
+                      customOffset={fromInset.customOffset}
+                      customLength={fromInset.customLength}
                     />
                   );
                 }
 
                 if (!renderedFerrules.has(toKey)) {
                   renderedFerrules.add(toKey);
+                  const toSymbol = symbols.find(sym => sym.id === w.connection.toSymbolId);
+                  const toInset = getFerruleRenderInsetForSymbol(toSymbol, w.toHS);
                   elements.push(
                     <FerruleGraphic
                       key={`ferrule-to-${toKey}`}
@@ -1600,8 +1604,8 @@ export function DinRailConnectionsCanvas({
                         const s = symbols.find(sym => sym.id === w.connection.toSymbolId);
                         return s?.deviceKind === "phaseIndicator";
                       })()}
-                      customOffset={w.toHS.visualInset}
-                      customLength={undefined}
+                      customOffset={toInset.customOffset}
+                      customLength={toInset.customLength}
                     />
                   );
                 }
