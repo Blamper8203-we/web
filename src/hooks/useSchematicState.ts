@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 
 /**
  * Stan widoku schematu (sheet2) – wydzielony z App.tsx.
@@ -22,11 +22,20 @@ export function useSchematicState() {
     setSchematicViewportResetRequest((r) => r + 1);
   }, []);
 
-  return {
-    schematicViewportResetRequest,
-    schematicScrollToPageRequest,
-    setSchematicScrollToPageRequest,
-    handleScrollToSchematicPage,
-    requestViewportReset,
-  };
+  return useMemo(
+    () => ({
+      schematicViewportResetRequest,
+      schematicScrollToPageRequest,
+      setSchematicScrollToPageRequest,
+      handleScrollToSchematicPage,
+      requestViewportReset,
+    }),
+    [
+      schematicViewportResetRequest,
+      schematicScrollToPageRequest,
+      setSchematicScrollToPageRequest,
+      handleScrollToSchematicPage,
+      requestViewportReset,
+    ],
+  );
 }

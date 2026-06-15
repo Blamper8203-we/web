@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { App as CapApp } from "@capacitor/app";
 
 /**
@@ -90,26 +90,38 @@ export function useDialogState() {
     setUnsavedChangesActionType(null);
   }, []);
 
-  return {
-    // State
-    isRcdManagerOpen,
-    isHelpOpen,
-    svgImportDialogOpen,
-    importedModulesManagerOpen,
-    paletteContextMenu,
-    pendingPaletteRemoval,
-    unsavedChangesActionType,
+  return useMemo(
+    () => ({
+      // State
+      isRcdManagerOpen,
+      isHelpOpen,
+      svgImportDialogOpen,
+      importedModulesManagerOpen,
+      paletteContextMenu,
+      pendingPaletteRemoval,
+      unsavedChangesActionType,
 
-    // Setters
-    setIsRcdManagerOpen,
-    setIsHelpOpen,
-    setSvgImportDialogOpen,
-    setImportedModulesManagerOpen,
-    setPaletteContextMenu,
-    setPendingPaletteRemoval,
-    setUnsavedChangesActionType,
+      // Setters
+      setIsRcdManagerOpen,
+      setIsHelpOpen,
+      setSvgImportDialogOpen,
+      setImportedModulesManagerOpen,
+      setPaletteContextMenu,
+      setPendingPaletteRemoval,
+      setUnsavedChangesActionType,
 
-    // Handlers
-    closeAllDialogs,
-  };
+      // Handlers
+      closeAllDialogs,
+    }),
+    [
+      isRcdManagerOpen,
+      isHelpOpen,
+      svgImportDialogOpen,
+      importedModulesManagerOpen,
+      paletteContextMenu,
+      pendingPaletteRemoval,
+      unsavedChangesActionType,
+      closeAllDialogs,
+    ],
+  );
 }

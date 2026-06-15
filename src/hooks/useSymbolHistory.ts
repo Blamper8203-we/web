@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { UndoRedoService, createActionCommand } from '../lib/editing/undoRedoService';
 import {
   areSymbolSnapshotsEqual,
@@ -184,17 +184,20 @@ export function useSymbolHistory({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleUndo, handleRedo]);
 
-  return {
-    undoRedoServiceRef,
-    dragHistorySnapshotRef,
-    draggedSymbolIdsRef,
-    get canUndo() { return undoRedoServiceRef.current.canUndo; },
-    get canRedo() { return undoRedoServiceRef.current.canRedo; },
-    get undoLabel() { return undoRedoServiceRef.current.undoLabel; },
-    get redoLabel() { return undoRedoServiceRef.current.redoLabel; },
-    refreshHistoryState,
-    executeSymbolsCommand,
-    handleUndo,
-    handleRedo,
-  };
+  return useMemo(
+    () => ({
+      undoRedoServiceRef,
+      dragHistorySnapshotRef,
+      draggedSymbolIdsRef,
+      get canUndo() { return undoRedoServiceRef.current.canUndo; },
+      get canRedo() { return undoRedoServiceRef.current.canRedo; },
+      get undoLabel() { return undoRedoServiceRef.current.undoLabel; },
+      get redoLabel() { return undoRedoServiceRef.current.redoLabel; },
+      refreshHistoryState,
+      executeSymbolsCommand,
+      handleUndo,
+      handleRedo,
+    }),
+    [refreshHistoryState, executeSymbolsCommand, handleUndo, handleRedo],
+  );
 }

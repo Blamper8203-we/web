@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { safeGetItemSync } from "../lib/storageService";
 import type { SheetType, RightTab } from "../lib/appHelpers";
 
@@ -88,25 +88,43 @@ export function useSheetPanelState() {
     [activeSheet],
   );
 
-  return {
-    // State
-    activeSheet,
-    activeRightTab,
-    showRightPanel,
-    showLeftPanel,
-    workspaceZoomPercent,
-    showDinRailGroups,
+  return useMemo(
+    () => ({
+      // State
+      activeSheet,
+      activeRightTab,
+      showRightPanel,
+      showLeftPanel,
+      workspaceZoomPercent,
+      showDinRailGroups,
 
-    // Setters
-    setActiveSheet,
-    setActiveRightTab,
-    setShowRightPanel,
-    setShowLeftPanel,
-    setWorkspaceZoomPercent,
-    setShowDinRailGroups,
+      // Setters
+      setActiveSheet,
+      setActiveRightTab,
+      setShowRightPanel,
+      setShowLeftPanel,
+      setWorkspaceZoomPercent,
+      setShowDinRailGroups,
 
-    // Handlers
-    handleToggleDinRailGroups,
-    openLeftPanelWithTab,
-  };
+      // Handlers
+      handleToggleDinRailGroups,
+      openLeftPanelWithTab,
+    }),
+    [
+      activeSheet,
+      activeRightTab,
+      showRightPanel,
+      showLeftPanel,
+      workspaceZoomPercent,
+      showDinRailGroups,
+      setActiveSheet,
+      setActiveRightTab,
+      setShowRightPanel,
+      setShowLeftPanel,
+      setWorkspaceZoomPercent,
+      setShowDinRailGroups,
+      handleToggleDinRailGroups,
+      openLeftPanelWithTab,
+    ],
+  );
 }

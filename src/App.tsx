@@ -202,7 +202,7 @@ function AppWorkspace({
       { symbols, connections: nextConnections, selectedSymbolId, selectedSymbolIds },
       statusMessage
     );
-  }, [history.executeSymbolsCommand, symbols, connections, selectedSymbolId, selectedSymbolIds]);
+  }, [history, symbols, connections, selectedSymbolId, selectedSymbolIds]);
 
   const {
     handleNewProject, handleOpenProject, handleLoadProjectData, handleSaveProject, handleExportPdf, handleExportBom, handleExportPng,
@@ -255,7 +255,7 @@ function AppWorkspace({
     } else {
       handleNewProject();
     }
-  }, [hasUnsavedChanges, handleNewProject]);
+  }, [hasUnsavedChanges, handleNewProject, dialog]);
 
   const triggerOpenProject = useCallback(() => {
     if (hasUnsavedChanges) {
@@ -263,7 +263,7 @@ function AppWorkspace({
     } else {
       handleOpenProject();
     }
-  }, [hasUnsavedChanges, handleOpenProject]);
+  }, [hasUnsavedChanges, handleOpenProject, dialog]);
 
   const handleSaveUnsavedChanges = useCallback(async () => {
     const saved = await handleSaveProject();
@@ -276,22 +276,22 @@ function AppWorkspace({
         handleOpenProject();
       }
     }
-  }, [dialog.unsavedChangesActionType, handleSaveProject, handleNewProject, handleOpenProject]);
+  }, [dialog, handleSaveProject, handleNewProject, handleOpenProject]);
 
   const handleDiscardUnsavedChanges = useCallback(() => {
     const pendingAction = dialog.unsavedChangesActionType;
-    dialog.setUnsavedChangesActionType(null);
-    setHasUnsavedChanges(false);
     if (pendingAction === "new") {
       handleNewProject();
     } else if (pendingAction === "open") {
       handleOpenProject();
     }
-  }, [dialog.unsavedChangesActionType, handleNewProject, handleOpenProject, setHasUnsavedChanges]);
+    dialog.setUnsavedChangesActionType(null);
+    setHasUnsavedChanges(false);
+  }, [dialog, handleNewProject, handleOpenProject, setHasUnsavedChanges]);
 
   const handleCancelUnsavedChanges = useCallback(() => {
     dialog.setUnsavedChangesActionType(null);
-    }, []);
+    }, [dialog]);
 
     // ── Inicjalizacja storage (tylko Capacitor) ──────────────────────────────────
   useEffect(() => {
@@ -313,7 +313,7 @@ function AppWorkspace({
 
   useEffect(() => {
         if (sheetPanel.activeSheet === "sheet3" || sheetPanel.activeSheet === "sheet4") sheetPanel.setWorkspaceZoomPercent(100);
-  }, [sheetPanel.activeSheet]);
+  }, [sheetPanel, sheetPanel.activeSheet]);
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -346,7 +346,7 @@ function AppWorkspace({
     return () => {
       window.removeEventListener("keydown", handleGlobalKeyDown);
     };
-  }, [triggerNewProject, triggerOpenProject, handleSaveProject, dialog]);
+  }, [triggerNewProject, triggerOpenProject, handleSaveProject, dialog, schematic]);
 
   useEffect(() => {
     setSymbols((prev) => normalizeGroupConsistency(normalizePaletteAssetDimensions(prev, paletteTemplateMap)));
@@ -398,11 +398,11 @@ function AppWorkspace({
     }
 
     dialog.setIsRcdManagerOpen(true);
-  }, [rcdManagerEntries.length, showTemporaryStatus]);
+  }, [rcdManagerEntries.length, showTemporaryStatus, dialog]);
 
   const handleToggleDinRailGroups = useCallback(() => {
     sheetPanel.setShowDinRailGroups((previous: boolean) => !previous);
-  }, []);
+  }, [sheetPanel]);
 
   const handleSaveRcdManager = useCallback(
     (entries: RcdManagerEntry[]) => {
@@ -421,7 +421,7 @@ function AppWorkspace({
 
       dialog.setIsRcdManagerOpen(false);
     },
-    [history, selectedSymbolId, selectedSymbolIds, showTemporaryStatus, symbols],
+    [history, dialog, selectedSymbolId, selectedSymbolIds, showTemporaryStatus, symbols],
   );
 
     const handleValidationSymbolSelect = useCallback(
@@ -430,7 +430,7 @@ function AppWorkspace({
       sheetPanel.setActiveSheet("sheet1");
       handleSymbolSelectionChange([symbolId], symbolId);
     },
-    [handleSymbolSelectionChange],
+    [handleSymbolSelectionChange, sheetPanel],
   );
 
   const handleValidationFieldEdit = useCallback(
@@ -439,7 +439,7 @@ function AppWorkspace({
       sheetPanel.setActiveSheet("sheet1");
       handleSymbolSelectionChange([symbolId], symbolId);
     },
-    [handleSymbolSelectionChange],
+    [handleSymbolSelectionChange, sheetPanel],
   );
 
   const handleValidationQuickFix = useCallback(
@@ -455,7 +455,7 @@ function AppWorkspace({
       sheetPanel.setActiveSheet("sheet1");
       handleSymbolSelectionChange([symbolId], symbolId);
     },
-    [handleCircuitEditSave, handleSymbolSelectionChange, symbols],
+    [handleSymbolSelectionChange, sheetPanel, handleCircuitEditSave, symbols],
   );
 
     // ── Render ────────────────────────────────────────────────────────────────────
