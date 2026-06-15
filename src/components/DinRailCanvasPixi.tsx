@@ -19,7 +19,7 @@ import {
   getPaletteTemplateDimensions,
   supportsDinRailPlacement,
 } from "../lib/modules/moduleCatalog";
-import { useDinRailProcessedSvgs } from "../hooks/useDinRailForegroundSvgs";
+import { useDinRailForegroundSvgs } from "../hooks/useDinRailForegroundSvgs";
 import { useDinRailPreparedAssets } from "../hooks/useDinRailPreparedAssets";
 import { useDinRailRailGenerator } from "../hooks/useDinRailRailGenerator";
 import { useSvgTerminalsPreloader } from "../hooks/useSvgTerminalsPreloader";
@@ -170,7 +170,7 @@ export function DinRailCanvas({
   }, [symbols]);
 
   const assetMap = useDinRailPreparedAssets(snappedSymbols);
-  const { foregroundUrls } = useDinRailProcessedSvgs(snappedSymbols);
+  const foregroundUrls = useDinRailForegroundSvgs(snappedSymbols);
 
   const interactiveRects = useMemo(() => {
     const nextMap = new Map<string, WorldRect>();

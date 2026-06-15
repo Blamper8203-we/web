@@ -9,7 +9,7 @@ interface ConnectionsRightPanelProps {
   symbols: SymbolItem[];
 }
 
-export function ConnectionsRightPanel({}: ConnectionsRightPanelProps) {
+export function ConnectionsRightPanel(_props: ConnectionsRightPanelProps) {
   return (
     <div
       className="right-panel-content"

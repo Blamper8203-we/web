@@ -7,7 +7,7 @@ export function useDinRailForegroundSvgs(symbols: SymbolItem[]) {
 
   useEffect(() => {
     let isCancelled = false;
-    let createdUrls: string[] = [];
+    const createdUrls: string[] = [];
 
     const fetchForegrounds = async () => {
       const newUrls: Record<string, string> = {};

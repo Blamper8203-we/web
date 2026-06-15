@@ -7,7 +7,7 @@ import { calculateWirePath, calculateWirePoints, getOrthoExit, type Point } from
 import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
 import { AppIcon } from "./AppIcon";
 import { useElementSize } from "../hooks/useElementSize";
-import { useDinRailProcessedSvgs } from "../hooks/useDinRailForegroundSvgs";
+import { useDinRailForegroundSvgs } from "../hooks/useDinRailForegroundSvgs";
 import { DinRailConnectionsForegroundLayer } from "./canvasLayers/DinRailConnectionsForegroundLayer";
 import { FerruleGraphic } from "./canvasLayers/FerruleGraphic";
 import { getFerruleLength, isTerminalZlaczka } from "../lib/connections/connectionsLogic";
@@ -313,7 +313,7 @@ export function DinRailConnectionsCanvas({
   }, [symbols]);
 
 
-  const { foregroundUrls, baseUrls } = useDinRailProcessedSvgs(symbols);
+  const foregroundUrls = useDinRailForegroundSvgs(symbols);
 
   // Pre-calculate hotspots for symbols
   const hotspotsData = useMemo(() => {
@@ -1423,7 +1423,7 @@ export function DinRailConnectionsCanvas({
                 style={{ transition: "stroke 0.15s ease" }}
               />
               <image
-                href={baseUrls[symbol.id] || getSymbolAssetUrl(symbol)}
+                href={getSymbolAssetUrl(symbol)}
                 width={symbol.width}
                 height={symbol.height}
                 preserveAspectRatio={(symbol.moduleRef || "").toLowerCase().includes("listwy do rozdzielnicy") || (symbol.moduleRef || "").toLowerCase().includes("gsu") ? "none" : "xMidYMid meet"}
