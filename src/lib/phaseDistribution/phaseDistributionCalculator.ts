@@ -1,6 +1,7 @@
 import type { SymbolItem } from "../../types/symbolItem";
 import type { PhaseAssignment } from "../../types/symbolItem";
 import { detectPoleCount } from "../poleCount";
+import { isAuxiliaryNonCircuitSymbol } from "../../types/symbolItem";
 
 export type BalanceMode = "Power" | "Current";
 export type BalanceScope = "AllSinglePhase" | "OnlyUnlocked";
@@ -42,6 +43,14 @@ export function calculateTotalDistribution(symbols: SymbolItem[]): PhaseDistribu
   let l1 = 0, l2 = 0, l3 = 0;
 
   for (const symbol of symbols) {
+    // Skip auxiliary (non-circuit) symbols: terminal blocks (listwy),
+    // distribution blocks (bloki rozdzielcze), RCDs, phase indicators.
+    // They do not consume power themselves; they only pass it through
+    // or aggregate it. Including them in the total would falsely attribute
+    // upstream MCB loads to the listwa/busbar module.
+    if (isAuxiliaryNonCircuitSymbol(symbol)) {
+      continue;
+    }
     const [dl1, dl2, dl3] = distributePower(symbol.powerW, symbol.phase);
     l1 += dl1;
     l2 += dl2;
