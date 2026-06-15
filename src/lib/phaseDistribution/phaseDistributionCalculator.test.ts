@@ -160,4 +160,33 @@ describe('phaseDistributionCalculator', () => {
 
     expect(['L1', 'L2', 'L3']).toContain(assigned);
   });
+
+  it('excludes terminal blocks (Listwy do rozdzielnicy) from phase load totals', () => {
+    // Regression: previously a listwa with phase="L1+L2+L3" and any
+    // powerW > 0 would falsely contribute to the phase total. The
+    // '6M - L1' label observed by the user was the listwa's own
+    // module count and phase being attributed to phase load instead
+    // of being ignored as an auxiliary busbar.
+    const symbols: SymbolItem[] = [
+      createDefaultSymbolItem({ id: 'mcb', type: 'MCB 1P', deviceKind: 'mcb', phase: 'L1', powerW: 1000, width: 18, height: 90 }),
+      createDefaultSymbolItem({
+        id: 'listwa-n',
+        type: 'Listwy',
+        deviceKind: 'terminalBlock',
+        label: 'Listwa 15 pin N',
+        moduleRef: 'Listwy do rozdzielnicy/Listwa 15 pin N.svg',
+        phase: 'L1+L2+L3',
+        powerW: 0,
+        width: 1243,
+        height: 175,
+      }),
+    ];
+
+    const result = calculateTotalDistribution(symbols);
+
+    // Only the MCB contributes. The listwa is auxiliary (pass-through).
+    expect(result.l1PowerW).toBe(1000);
+    expect(result.l2PowerW).toBe(0);
+    expect(result.l3PowerW).toBe(0);
+  });
 });
