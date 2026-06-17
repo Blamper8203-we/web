@@ -1,3 +1,44 @@
+// =============================================================================
+// DinRailConnectionsCanvas — structural map
+// =============================================================================
+//
+// WHY: this file is ~2130 lines because it owns the whole "wire connections"
+// workspace (pan/zoom, wire drawing, terminal snapping, ferrule rendering,
+// inline edit, sidebar). Splitting it is a real refactor project (1-2 days,
+// touches canvas — a high-risk area per AGENTS.md). Until then, this header
+// is the safety net: read it before you edit.
+//
+// REGIONS (line numbers shift as the file grows):
+//
+//   imports + props  ........... ~L1-L40    (pure data, low risk)
+//   viewport state/refs ........ ~L41-L180  (zoom, pan, fit-to-rail)
+//   pan/zoom callbacks ......... ~L180-L220 (zoomAround / zoomIn / zoomOut)
+//   wheel + key listeners ...... ~L218-L450 (useEffect with native listeners;
+//                                                ESC cancels draw, Delete
+//                                                removes selected wire)
+//   derived geometry memos ..... ~L450-L800 (terminal positions, wire paths,
+//                                                ferrule data, foreground SVGs)
+//   edit/mutate callbacks ...... ~L800-L1117 (updateWire, deleteWire,
+//                                                 createConnection, etc.)
+//   JSX render .................. ~L1118-end (SVG tree: rail background,
+//                                                 wires layer, terminals,
+//                                                 ferrule graphics, toolbar)
+//
+// DO NOT touch regions without knowing which subsubsystem you are in.
+//   - Pan/zoom math  → changes affect the whole viewport, easy to regress
+//                      fit-to-rail on first mount.
+//   - Wire geometry  → changes affect routing (high-risk: touches real
+//                      electrical decisions about wire length).
+//   - Terminal snap  → must mirror `lib/modules/moduleTerminals.ts`; if you
+//                      change one, the other must follow.
+//   - Ferrule render → currently lives in `canvasLayers/FerruleGraphic`;
+//                      keep heavy parsing out of the render path.
+//
+// High-risk: this is canvas. Per AGENTS.md, prefer the smallest safe change,
+// and pair it with a test under `src/lib/connections/connectionsLogic.test.ts`
+// for any geometry that can be expressed as a pure function.
+// =============================================================================
+
 import React, { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import type { ConnectionItem, WireColor, WireType, RoutingMode, FerruleColor } from "../types/connectionItem";
 import { createDefaultConnection } from "../types/connectionItem";
@@ -10,7 +51,7 @@ import { useElementSize } from "../hooks/useElementSize";
 import { useDinRailForegroundSvgs } from "../hooks/useDinRailForegroundSvgs";
 import { DinRailConnectionsForegroundLayer } from "./canvasLayers/DinRailConnectionsForegroundLayer";
 import { FerruleGraphic } from "./canvasLayers/FerruleGraphic";
-import { getFerruleLength, isTerminalZlaczka } from "../lib/connections/connectionsLogic";
+import { getFerruleLength } from "../lib/connections/connectionsLogic";
 import {
   checkConnectionWarning,
   findConnectedComponent,
@@ -289,28 +330,9 @@ export function DinRailConnectionsCanvas({
     return rail.svg.replace(/<svg[^>]*>/, "").replace(/<\/svg>/, "");
   }, [rail.svg]);
 
-  // Dynamiczny CSS ukrywający grupę Osłona w tle szyny
-  // gdy użytkownik zdejmie osłonę przez przełącznik w prawym panelu.
-  // rail.svg jest statyczny (generowany raz), więc nie odzwierciedla zmian parametrów –
-  // dlatego nadpisujemy widoczność przez <style> wstrzyknięty do SVG.
-  const coverHiddenCss = useMemo(() => {
-    const hiddenIds = symbols
-      .filter(
-        (s) =>
-          s.deviceKind === "terminalBlock" &&
-          (s.parameters?.BLUE_COVER_VISIBILITY === "hidden" ||
-            s.parameters?.BLUE_COVER_VISIBILITY === "none")
-      )
-      .map((s) => s.id);
-
-    if (hiddenIds.length === 0) return "";
-
-    // Ukryj element o id="Osłona" w całym SVG canvasa.
-    // Jeśli na szynie jest wiele bloków z różnymi stanami, każdy ma własny
-    // placeholder zastąpiony przez rail generator – ale w tej wersji targetujemy
-    // po id grupy, które jest stałe ("Osłona").
-    return `[id="Osłona"] { display: none !important; }`;
-  }, [symbols]);
+  // Dynamiczny CSS: Osłona musi być nad przewodami, więc w głównym SVG szyny 
+  // (które jest pod przewodami) ZAWSZE ją ukrywamy. Wyświetlimy ją w ForegroundLayer.
+  const coverHiddenCss = `[id="Oslona"] { display: none !important; }`;
 
 
   const foregroundUrls = useDinRailForegroundSvgs(symbols);
@@ -1406,7 +1428,7 @@ export function DinRailConnectionsCanvas({
 
 
           {/* 2. Base Symbols (drawn under wires, e.g. terminal blocks base, RCD base) */}
-          {symbols.filter(s => (s.deviceKind === "terminalBlock" && !isTerminalZlaczka(s.moduleRef)) || s.deviceKind === "phaseIndicator").map((symbol) => (
+          {symbols.filter(s => s.deviceKind === "terminalBlock" || s.deviceKind === "phaseIndicator").map((symbol) => (
             <g
               key={symbol.id}
               transform={`translate(${symbol.x}, ${symbol.y})`}
@@ -1770,19 +1792,16 @@ export function DinRailConnectionsCanvas({
                       key={`ferrule-from-${fromKey}`}
                       x={w.fromTerminalPt.x}
                       y={w.fromTerminalPt.y}
-                      direction={(w.fromHS.direction || w.actualFromDir) as any}
+                      direction={w.actualFromDir as any}
                       color={w.connection.ferruleColor}
                       wireThickness={wireThickness}
                       wireCrossSection={w.connection.wireCrossSection}
                       isDouble={(ferruleCounts.get(fromKey) || 0) >= 2}
                       isShort={(() => {
                         const s = symbols.find(sym => sym.id === w.connection.fromSymbolId);
-                        return s?.deviceKind === "terminalBlock" && !isTerminalZlaczka(s.moduleRef);
+                        return s?.deviceKind === "terminalBlock";
                       })()}
-                      isExtraLong={(() => {
-                        const s = symbols.find(sym => sym.id === w.connection.fromSymbolId);
-                        return isTerminalZlaczka(s?.moduleRef);
-                      })()}
+                      isExtraLong={false}
                       isSquare={(() => {
                         const s = symbols.find(sym => sym.id === w.connection.fromSymbolId);
                         return s?.deviceKind === "phaseIndicator";
@@ -1802,19 +1821,16 @@ export function DinRailConnectionsCanvas({
                       key={`ferrule-to-${toKey}`}
                       x={w.toTerminalPt.x}
                       y={w.toTerminalPt.y}
-                      direction={(w.toHS.direction || w.actualToDir) as any}
+                      direction={w.actualToDir as any}
                       color={w.connection.ferruleColor}
                       wireThickness={wireThickness}
                       wireCrossSection={w.connection.wireCrossSection}
                       isDouble={(ferruleCounts.get(toKey) || 0) >= 2}
                       isShort={(() => {
                         const s = symbols.find(sym => sym.id === w.connection.toSymbolId);
-                        return s?.deviceKind === "terminalBlock" && !isTerminalZlaczka(s.moduleRef);
+                        return s?.deviceKind === "terminalBlock";
                       })()}
-                      isExtraLong={(() => {
-                        const s = symbols.find(sym => sym.id === w.connection.toSymbolId);
-                        return isTerminalZlaczka(s?.moduleRef);
-                      })()}
+                      isExtraLong={false}
                       isSquare={(() => {
                         const s = symbols.find(sym => sym.id === w.connection.toSymbolId);
                         return s?.deviceKind === "phaseIndicator";
@@ -1839,12 +1855,9 @@ export function DinRailConnectionsCanvas({
                 wireCrossSection={defaultWireSettings.wireCrossSection}
                 isShort={(() => {
                   const s = symbols.find(sym => sym.id === drawingState.startSymbolId);
-                  return s?.deviceKind === "terminalBlock" && !isTerminalZlaczka(s.moduleRef);
+                  return s?.deviceKind === "terminalBlock";
                 })()}
-                isExtraLong={(() => {
-                  const s = symbols.find(sym => sym.id === drawingState.startSymbolId);
-                  return isTerminalZlaczka(s?.moduleRef);
-                })()}
+                isExtraLong={false}
                 isSquare={(() => {
                   const s = symbols.find(sym => sym.id === drawingState.startSymbolId);
                   return s?.deviceKind === "phaseIndicator";
@@ -1877,12 +1890,9 @@ export function DinRailConnectionsCanvas({
                 wireCrossSection={defaultWireSettings.wireCrossSection}
                 isShort={(() => {
                   const s = symbols.find(sym => sym.id === hoveredHotspot.symbolId);
-                  return s?.deviceKind === "terminalBlock" && !isTerminalZlaczka(s.moduleRef);
+                  return s?.deviceKind === "terminalBlock";
                 })()}
-                isExtraLong={(() => {
-                  const s = symbols.find(sym => sym.id === hoveredHotspot.symbolId);
-                  return isTerminalZlaczka(s?.moduleRef);
-                })()}
+                isExtraLong={false}
                 isSquare={(() => {
                   const s = symbols.find(sym => sym.id === hoveredHotspot.symbolId);
                   return s?.deviceKind === "phaseIndicator";
@@ -1908,7 +1918,7 @@ export function DinRailConnectionsCanvas({
           </g>
 
           {/* 4. Normal Symbols (drawn over wires) */}
-          {symbols.filter(s => s.deviceKind !== "phaseIndicator" && (s.deviceKind !== "terminalBlock" || isTerminalZlaczka(s.moduleRef))).map((symbol) => (
+          {symbols.filter(s => s.deviceKind !== "phaseIndicator" && s.deviceKind !== "terminalBlock").map((symbol) => (
             <g
               key={symbol.id}
               transform={`translate(${symbol.x}, ${symbol.y})`}
@@ -2091,7 +2101,7 @@ export function DinRailConnectionsCanvas({
 
           {/* 5. Foreground parts of terminal blocks (brass/mosiądz on top) */}
           <DinRailConnectionsForegroundLayer
-            symbols={symbols.filter(s => s.deviceKind === "terminalBlock" && !isTerminalZlaczka(s.moduleRef))}
+            symbols={symbols.filter(s => s.deviceKind === "terminalBlock")}
             foregroundUrls={foregroundUrls}
           />
 
