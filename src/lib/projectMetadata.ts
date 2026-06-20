@@ -149,24 +149,6 @@ function createPlaceholderMeasurementProtocols(): MeasurementProtocolsData {
 
   return {
     ...base,
-    continuityHeader: {
-      headerTitle: "",
-      headerSubtitle: "",
-      measurementDate: "",
-      objectName: "",
-    },
-    loopHeader: {
-      headerTitle: "",
-      headerSubtitle: "",
-      measurementDate: "",
-      objectName: "",
-    },
-    insulationHeader: {
-      headerTitle: "",
-      headerSubtitle: "",
-      measurementDate: "",
-      objectName: "",
-    },
     rcdGroundHeader: {
       headerTitle: "",
       headerSubtitle: "",
@@ -217,7 +199,6 @@ export function createDefaultProjectMetadata(): ProjectMetadata {
     titlePageUseManualWorkScopeCheckboxes: false,
     titlePageCompanyLogoFileName: "",
     titlePageCompanyLogoDataUrl: "",
-    measurementProtocolStyle: "unified",
     measurementProtocols: createDefaultMeasurementProtocols(today, titlePageObjectType),
     supplyVoltageV: 230,
     supplyPhases: 3,
@@ -257,7 +238,6 @@ export function createEmptyProjectMetadata(): ProjectMetadata {
     titlePageUseManualWorkScopeCheckboxes: false,
     titlePageCompanyLogoFileName: "",
     titlePageCompanyLogoDataUrl: "",
-    measurementProtocolStyle: "unified",
     measurementProtocols: createPlaceholderMeasurementProtocols(),
     supplyVoltageV: 230,
     supplyPhases: 3,
@@ -353,8 +333,6 @@ export function normalizeProjectMetadata(
       raw?.titlePageCompanyLogoFileName ?? defaults.titlePageCompanyLogoFileName,
     titlePageCompanyLogoDataUrl:
       raw?.titlePageCompanyLogoDataUrl ?? defaults.titlePageCompanyLogoDataUrl,
-    measurementProtocolStyle:
-      raw?.measurementProtocolStyle ?? defaults.measurementProtocolStyle,
     measurementProtocols: normalizeMeasurementProtocolsData(
       raw?.measurementProtocols,
       measurementDate,
@@ -398,9 +376,6 @@ export function resetDocumentationFields(metadata: ProjectMetadata): ProjectMeta
     titlePageCompanyLogoDataUrl: "",
     measurementProtocols: {
       ...currentProtocols,
-      continuityHeader: resetHeaders.continuityHeader,
-      loopHeader: resetHeaders.loopHeader,
-      insulationHeader: resetHeaders.insulationHeader,
       rcdGroundHeader: resetHeaders.rcdGroundHeader,
     },
     dateModified: new Date().toISOString(),

@@ -2,6 +2,7 @@ import type { SymbolItem } from "../../types/symbolItem";
 import type { PhaseAssignment } from "../../types/symbolItem";
 import { detectPoleCount } from "../poleCount";
 import { isAuxiliaryNonCircuitSymbol } from "../../types/symbolItem";
+import { isGroupHeadSymbol } from "../domain/symbolGrouping";
 
 export type BalanceMode = "Power" | "Current";
 export type BalanceScope = "AllSinglePhase" | "OnlyUnlocked";
@@ -32,7 +33,6 @@ export function distributePower(powerW: number, phase: PhaseAssignment | string 
     case "3F": return [powerW / 3, powerW / 3, powerW / 3];
     case "L1+L2": return [powerW / 2, powerW / 2, 0];
     case "L1+L3": return [powerW / 2, 0, powerW / 2];
-    case "L3+L1": return [powerW / 2, 0, powerW / 2];
     case "L2+L3": return [0, powerW / 2, powerW / 2];
     // "L1" and default
     default: return [powerW, 0, 0];
@@ -71,7 +71,6 @@ export function calculateCurrent(powerW: number, phase: PhaseAssignment | string
     case "3F": return powerW / (3 * voltage * cosPhi);
     case "L1+L2":
     case "L1+L3":
-    case "L3+L1":
     case "L2+L3": return powerW / (2 * voltage * cosPhi);
     default: return powerW / (voltage * cosPhi);
   }
@@ -413,18 +412,7 @@ function isPhaseIndicator(symbol: SymbolItem): boolean {
     || value.includes("SYGNALIZAT");
 }
 
-function isGroupHeadSymbol(symbol: SymbolItem): boolean {
-  const value = `${symbol.type} ${symbol.visualPath}`.toUpperCase();
-  return (value.includes("RCD")
-    || value.includes("RÓŻNICOW")
-    || value.includes("ROZNICOW")
-    || value.includes("FR")
-    || value.includes("ROZŁĄCZNIK")
-    || value.includes("ROZLACZNIK")
-    || value.includes("ISOLATOR")
-    || value.includes("SWITCH"))
-    && !value.includes("RCBO");
-}
+
 
 function isRcdSinglePhase(rcd: SymbolItem): boolean {
   const poleCount = detectPoleCount(rcd);
@@ -444,6 +432,15 @@ function isSinglePhase(symbol: SymbolItem): boolean {
   }
 
   return false;
+}
+
+export function normalizeSinglePhase(phase: string | null | undefined): "L1" | "L2" | "L3" | null {
+  if (!phase) return null;
+  const p = phase.toUpperCase();
+  if (p === "L1" || p === "L2" || p === "L3") {
+    return p as "L1" | "L2" | "L3";
+  }
+  return null;
 }
 
 function getWeight(powerW: number, mode: BalanceMode, voltage: number = 230): number {

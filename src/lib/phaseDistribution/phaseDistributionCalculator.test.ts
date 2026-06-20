@@ -128,8 +128,8 @@ describe('phaseDistributionCalculator', () => {
     const mcb2p = applied.symbols.find((symbol) => symbol.id === 'mcb-2p');
     const mcb1p = applied.symbols.find((symbol) => symbol.id === 'mcb-1p');
 
-    expect(mcb2p?.phase).toBe('L1+L2');
-    expect(mcb1p?.phase).toBe('L3');
+    expect(mcb2p?.phase).toBe('L2+L3');
+    expect(mcb1p?.phase).toBe('L1');
   });
 
   it('should keep locked circuit phase when scope is OnlyUnlocked', () => {

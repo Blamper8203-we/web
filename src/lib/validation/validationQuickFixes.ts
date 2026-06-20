@@ -1,4 +1,4 @@
-import { devLog } from "../../lib/runtimeDiagnostics";
+
 import { createDefaultSymbolItem, type SymbolItem } from "../../types/symbolItem";
 import type { ValidationMessage } from "./electricalValidationService";
 
@@ -66,7 +66,7 @@ export function getValidationQuickFixesForMessage(
 export function applyValidationQuickFix(symbol: SymbolItem, fixId: ValidationQuickFixId): SymbolItem {
   switch (fixId) {
     case "set-protection-b16":
-      devLog("⚠️ [applyValidationQuickFix] Applying set-protection-b16! Symbol before:", { id: symbol.id, protectionType: symbol.protectionType });
+
       return createDefaultSymbolItem({
         ...symbol,
         protectionType: "B16",

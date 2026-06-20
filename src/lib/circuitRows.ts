@@ -5,6 +5,7 @@ import {
   isTerminalOrConnectorSymbol,
   type SymbolItem,
 } from "../types/symbolItem";
+import { firstNonEmpty } from "./stringHelpers";
 
 export const CIRCUIT_ROWS_STORAGE_KEY = "dinboard-web.circuit-rows.v1";
 const LEGACY_CIRCUIT_ROWS_STORAGE_KEY = "dinboard-tauri.circuit-rows.v1";
@@ -200,8 +201,8 @@ export function createDemoCircuitRows(): CircuitRow[] {
     },
     {
       id: "phase-indicator",
-      type: "Kontrolki faz",
-      deviceKind: "phase-indicator",
+      type: "phaseIndicator",
+      deviceKind: "phaseIndicator",
       x: 6,
       y: 20,
       label: "Kontrolki faz",
@@ -220,9 +221,9 @@ export function createDemoCircuitRows(): CircuitRow[] {
       visualPath: "KONTROLKI_FAZ.svg",
     },
     {
-      id: "terminal-block",
-      type: "TerminalBlock",
-      deviceKind: "terminal-block",
+      id: "terminalBlock",
+      type: "terminalBlock",
+      deviceKind: "terminalBlock",
       x: 120,
       y: 20,
       label: "Listwa N/PE",
@@ -245,28 +246,11 @@ export function createDemoCircuitRows(): CircuitRow[] {
 
 function toCircuitDeviceKind(symbol: SymbolItem): CircuitRow["deviceKind"] {
   if (isTerminalOrConnectorSymbol(symbol)) {
-    return "terminal-block";
+    return "terminalBlock";
   }
-
-  switch (symbol.deviceKind) {
-    case "mcb":
-    case "rcbo":
-    case "fr":
-    case "spd":
-    case "rcd":
-      return symbol.deviceKind;
-    case "phaseIndicator":
-      return "phase-indicator";
-    case "terminalBlock":
-      return "terminal-block";
-    default:
-      return symbol.isTerminalBlock ? "terminal-block" : "aux";
-  }
+  return symbol.deviceKind;
 }
 
-function firstNonEmpty(...values: Array<string | null | undefined>): string {
-  return values.find((v) => typeof v === "string" && v.trim().length > 0)?.trim() ?? "";
-}
 
 function compareCircuitRowPosition(left: CircuitRow, right: CircuitRow): number {
   if (left.y !== right.y) {
@@ -365,7 +349,7 @@ export function loadCircuitRows(): CircuitRow[] {
 }
 
 export function isCircuitElement(item: CircuitRow): boolean {
-  if (item.deviceKind === "phase-indicator") {
+  if (item.deviceKind === "phaseIndicator") {
     return false;
   }
 
@@ -390,7 +374,7 @@ export function isTerminalBlockOrAux(item: CircuitRow): boolean {
     label: item.label,
     visualPath: item.visualPath,
     isTerminalBlock: item.isTerminalBlock,
-    deviceKind: item.deviceKind === "terminal-block" ? "terminalBlock" : "other",
+    deviceKind: item.deviceKind === "terminalBlock" ? "terminalBlock" : "other",
   });
 }
 

@@ -284,7 +284,7 @@ describe("normalizePaletteAssetDimensions", () => {
       const block = createDefaultSymbolItem({
         id: "block-1",
         type: "Blok rozdzielczy",
-        label: "Blok rozdzielczy 4 15",
+        label: "Blok rozdzielczy",
         deviceKind: "other",
         isSnappedToRail: true,
         x: 100,

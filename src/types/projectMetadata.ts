@@ -10,43 +10,7 @@ export interface MeasurementProtocolHeaderSettings {
   objectName: string;
 }
 
-export interface MeasurementContinuityProtocolRow {
-  index: number;
-  sourceCircuitId: string;
-  referenceDesignation: string;
-  circuitName: string;
-  location: string;
-  connectionType: string;
-  measuredResistance: string;
-  assessment: string;
-}
 
-export interface MeasurementLoopProtocolRow {
-  index: number;
-  sourceCircuitId: string;
-  referenceDesignation: string;
-  circuitName: string;
-  location: string;
-  protectionType: string;
-  ratedCurrent: string;
-  tripCurrent: string;
-  measuredImpedance: string;
-  allowedImpedance: string;
-  assessment: string;
-}
-
-export interface MeasurementInsulationProtocolRow {
-  index: number;
-  sourceCircuitId: string;
-  referenceDesignation: string;
-  circuitName: string;
-  location: string;
-  lnResistance: string;
-  lpeResistance: string;
-  npeResistance: string;
-  requiredResistance: string;
-  assessment: string;
-}
 
 export interface MeasurementRcdProtocolRow {
   index: number;
@@ -78,11 +42,8 @@ export interface MeasurementUnifiedProtocolRow {
 
 
 export interface MeasurementProtocolsData {
-  continuityHeader: MeasurementProtocolHeaderSettings;
-  loopHeader: MeasurementProtocolHeaderSettings;
-  insulationHeader: MeasurementProtocolHeaderSettings;
-  rcdGroundHeader: MeasurementProtocolHeaderSettings;
   unifiedHeader: MeasurementProtocolHeaderSettings;
+  rcdGroundHeader: MeasurementProtocolHeaderSettings;
   continuityMeterName: string;
   continuityMeterSerialNumber: string;
   continuityMeasurementCurrent: string;
@@ -101,9 +62,6 @@ export interface MeasurementProtocolsData {
   groundRequiredResistance: string;
   groundConclusionText: string;
   recommendationsText: string;
-  continuityRows: MeasurementContinuityProtocolRow[];
-  loopImpedanceRows: MeasurementLoopProtocolRow[];
-  insulationRows: MeasurementInsulationProtocolRow[];
   rcdRows: MeasurementRcdProtocolRow[];
   unifiedRows: MeasurementUnifiedProtocolRow[];
 }
@@ -145,7 +103,6 @@ export interface ProjectMetadata {
   titlePageUseManualWorkScopeCheckboxes: boolean;
   titlePageCompanyLogoFileName: string;
   titlePageCompanyLogoDataUrl: string;
-  measurementProtocolStyle: "separate" | "unified";
   measurementProtocols: MeasurementProtocolsData;
 
   // Power supply configuration

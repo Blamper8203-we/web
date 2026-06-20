@@ -1,4 +1,5 @@
 import type { PhaseBalanceRow } from "./phaseBalanceRows";
+import { normalizeSinglePhase } from "./phaseDistributionCalculator";
 
 export interface PhaseImbalanceInsights {
   heaviestPhase: string | null;
@@ -49,11 +50,4 @@ export function buildPhaseImbalanceInsights(
   };
 }
 
-function normalizeSinglePhase(phase: string): "L1" | "L2" | "L3" | null {
-  const normalized = phase.toUpperCase();
-  if (normalized === "L1" || normalized === "L2" || normalized === "L3") {
-    return normalized;
-  }
 
-  return null;
-}

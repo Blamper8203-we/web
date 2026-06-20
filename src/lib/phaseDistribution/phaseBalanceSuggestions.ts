@@ -1,4 +1,4 @@
-import { calculateImbalancePercent } from "./phaseDistributionCalculator";
+import { calculateImbalancePercent, normalizeSinglePhase } from "./phaseDistributionCalculator";
 import type { PhaseBalanceRow } from "./phaseBalanceRows";
 
 export interface PhaseMoveSuggestion {
@@ -83,11 +83,4 @@ function calculateSinglePhaseLoads(rows: PhaseBalanceRow[]): Record<"L1" | "L2" 
   return loads;
 }
 
-function normalizeSinglePhase(phase: string): "L1" | "L2" | "L3" | null {
-  const normalized = phase.toUpperCase();
-  if (normalized === "L1" || normalized === "L2" || normalized === "L3") {
-    return normalized;
-  }
 
-  return null;
-}

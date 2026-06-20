@@ -1,3 +1,12 @@
+import {
+  computeDisplayLocation,
+  computeDisplayModuleNumber,
+  computeDisplayProtection,
+  computeIsTerminalBlock,
+  computeRcdInfo,
+  computeSpdInfo,
+} from "../lib/domain/displayFields";
+
 export type DeviceKind =
   | "mcb"
   | "rcd"
@@ -15,13 +24,14 @@ export type PhaseAssignment =
   | "L1+L2"
   | "L2+L3"
   | "L1+L3"
-  | "L3+L1"
   | "L1+L2+L3"
   | "3F"
   | "PE"
   | "N";
 
 export type CircuitTypeValue = "Oswietlenie" | "Gniazdo" | "Sila" | "Inne";
+
+export const MANUAL_REFERENCE_DESIGNATION_KEY = "ManualReferenceDesignation";
 
 export interface SymbolBase {
   id: string;
@@ -234,48 +244,6 @@ export function createDefaultSymbolItem(overrides?: Partial<SymbolBase>): Symbol
   return base as SymbolItem;
 }
 
-function computeDisplayProtection(symbol: SymbolBase): string {
-  const typeUpper = symbol.type.toUpperCase();
-  if (typeUpper.includes("SPD")) return symbol.spdInfo;
-  if (typeUpper.includes("RCD")) return symbol.rcdInfo;
-  if (typeUpper.includes("FR") || typeUpper.includes("SWITCH") || typeUpper.includes("ROZLACZNIK")) {
-    return `${symbol.frRatedCurrent} (FR)`;
-  }
-  if (typeUpper.includes("KONTROLKI")) return symbol.phaseIndicatorFuseRating;
-  return symbol.protectionType && symbol.protectionType.trim().length > 0
-    ? symbol.protectionType
-    : "Brak";
-}
-
-function computeDisplayLocation(symbol: SymbolBase): string {
-  return symbol.location && symbol.location.trim().length > 0 ? symbol.location : "Brak lokalizacji";
-}
-
-function computeDisplayModuleNumber(symbol: SymbolBase): string {
-  if (isTerminalOrConnectorSymbol(symbol) || isDistributionBlockSymbol(symbol)) {
-    return symbol.referenceDesignation || `X${symbol.moduleNumber}`;
-  }
-  if (symbol.type.toUpperCase().includes("RCD")) return "#0";
-  return `#${symbol.moduleNumber}`;
-}
-
-function computeRcdInfo(symbol: SymbolBase): string {
-  if (symbol.rcdRatedCurrent > 0 && symbol.rcdResidualCurrent > 0) {
-    return `RCD ${symbol.rcdRatedCurrent}A/${symbol.rcdResidualCurrent}mA Typ ${symbol.rcdType}`;
-  }
-  return "";
-}
-
-function computeSpdInfo(symbol: SymbolBase): string {
-  if (symbol.spdType && symbol.spdVoltage > 0) {
-    return `SPD ${symbol.spdType} ${symbol.spdVoltage}V ${symbol.spdDischargeCurrent}kA`;
-  }
-  return "";
-}
-
-function computeIsTerminalBlock(symbol: SymbolBase): boolean {
-  return isTerminalOrConnectorSymbol(symbol);
-}
 
 function normalizeSymbolIdentityText(...values: Array<string | undefined>): string {
   return values
@@ -389,13 +357,26 @@ export function normalizeSymbolItems(
 
   return raw
     .filter((item): item is Partial<SymbolBase> => typeof item === "object" && item !== null)
-    .map((item) =>
-      createDefaultSymbolItem({
+    .map((item) => {
+      const symbol = createDefaultSymbolItem({
         ...item,
         id:
           typeof item.id === "string" && item.id.trim().length > 0
             ? item.id
             : crypto.randomUUID(),
-      }),
-    );
+      });
+
+      // Migration: fix labels for PE and distribution blocks that incorrectly got "Listwa 15 pin N"
+      if (symbol.moduleRef.includes("Listwa 15 pin PE")) {
+        if (symbol.label === "Listwa 15 pin N" || symbol.label === "Listwa 15 pin PE") {
+          symbol.label = "PE";
+        }
+      } else if (symbol.moduleRef.includes("blok rozdzielczy") || symbol.moduleRef.includes("Blok rozdzielczy")) {
+        if (symbol.label === "Listwa 15 pin N" || symbol.label === "Blok rozdzielczy 7 pin") {
+          symbol.label = "Blok rozdzielczy";
+        }
+      }
+
+      return symbol;
+    });
 }

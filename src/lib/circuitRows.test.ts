@@ -38,7 +38,7 @@ describe("circuitRows", () => {
     const distributionBlock = createDefaultSymbolItem({
       id: "distribution-block",
       type: "Blok rozdzielczy",
-      label: "Blok rozdzielczy 4 15",
+      label: "Blok rozdzielczy",
       referenceDesignation: "X3",
       x: 400,
     });

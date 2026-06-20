@@ -32,21 +32,7 @@ export function getCableCapacity(crossSectionMm2: number): number {
   return CABLE_CAPACITY_BY_CROSS_SECTION[crossSectionMm2] ?? 0;
 }
 
-/**
- * Reduce a phase string to a single-phase identifier. Multi-phase inputs
- * (e.g. "L1+L2") and unknown values return null. Caller decides what to
- * do with non-single-phase circuits.
- */
-export function normalizeSinglePhase(
-  phase: string | undefined | null,
-): "L1" | "L2" | "L3" | null {
-  const normalized = (phase || "").toUpperCase();
-  if (normalized === "L1" || normalized === "L2" || normalized === "L3") {
-    return normalized;
-  }
-
-  return null;
-}
+export { normalizeSinglePhase } from "../phaseDistribution/phaseDistributionCalculator";
 
 /**
  * Normalize a free-text field for keyword matching.

@@ -1,12 +1,6 @@
-export type CircuitDeviceKind =
-  | "mcb"
-  | "rcbo"
-  | "fr"
-  | "spd"
-  | "rcd"
-  | "phase-indicator"
-  | "terminal-block"
-  | "aux";
+import { type DeviceKind } from "./symbolItem";
+
+export type CircuitDeviceKind = DeviceKind;
 
 export interface CircuitRow {
   id: string;

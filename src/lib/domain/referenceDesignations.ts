@@ -1,9 +1,9 @@
-import { isDistributionBlockSymbol, isTerminalOrConnectorSymbol, type SymbolItem } from "../../types/symbolItem";
+import { isDistributionBlockSymbol, isTerminalOrConnectorSymbol, type SymbolItem, MANUAL_REFERENCE_DESIGNATION_KEY } from "../../types/symbolItem";
 import type { PaletteTemplate } from "../modules/moduleCatalog";
 import { compareDinPosition } from "./dinRailArrangement";
-import { devLog } from "../runtimeDiagnostics";
 
-const MANUAL_REFERENCE_DESIGNATION_KEY = "ManualReferenceDesignation";
+
+
 
 export function getReferencePrefix(template: PaletteTemplate): string {
   if (template.templateId.includes("przelacznik-siec") || template.category.includes("sieci")) {
@@ -92,25 +92,25 @@ export function shouldUseAuxiliaryReferenceDesignation(symbol: SymbolItem): bool
 
 export function getAuxiliaryPrefix(symbol: SymbolItem): string {
   if (isDistributionBlockSymbol(symbol)) {
-    devLog('[AUX] BL prefix for:', symbol.label, symbol.moduleRef);
+
     return "BL";
   }
   
   const text = `${symbol.type} ${symbol.label} ${symbol.circuitName} ${symbol.circuitDescription} ${symbol.visualPath} ${symbol.moduleRef} ${symbol.phase}`.toUpperCase();
   
-  devLog('[AUX] text for prefix check:', JSON.stringify(text.substring(0, 120)));
+
   
   if (/(^|[\s/-])PE([\s/-]|$)/.test(text) || text.includes("ZIELON") || text.includes("OCHRON")) {
-    devLog('[AUX] PE prefix for:', symbol.label);
+
     return "PE";
   }
   
   if (/(^|[\s/-])N[\d_]*([\s/-]|$)/.test(text) || text.includes("NIEBIESK") || text.includes("NEUTRAL")) {
-    devLog('[AUX] N prefix for:', symbol.label);
+
     return "N";
   }
   
-  devLog('[AUX] X prefix for:', symbol.label, symbol.moduleRef);
+
   return "X";
 }
 

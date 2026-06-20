@@ -102,7 +102,7 @@ export function detectPoleCountWithFallback(symbol: SymbolItem): ModulePoleCount
 /**
  * Count phases from a phase string.
  *   "L1+L2+L3" / "3F" / "3P" → 3
- *   "L1+L2" / "L2+L3" / "L3+L1" → 2
+ *   "L1+L2" / "L2+L3" / "L1+L3" → 2
  *   "L1" / "L2" / "L3" / undefined / "PENDING" → 1
  */
 export function detectPhaseCount(phase: string): number {

@@ -92,3 +92,10 @@ export function isEditableShortcutTarget(target: EventTarget | null): boolean {
   const tagName = target.tagName.toLowerCase();
   return target.isContentEditable || tagName === "input" || tagName === "textarea" || tagName === "select";
 }
+
+export function getProjectFileName(filePath: string | null): string {
+  if (!filePath) {
+    return "Nowe zlecenie";
+  }
+  return filePath.split(/[/\\]/).pop() || "Nowe zlecenie";
+}
