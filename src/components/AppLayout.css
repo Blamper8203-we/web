@@ -1,0 +1,222 @@
+/* ================================================================
+   App Shell Grid: Toolbar / Content / Statusbar
+   + Left Panel (absolute overlay)
+   + Right Panel (absolute overlay)
+   ================================================================ */
+
+.app-shell {
+  /* dvh = Dynamic Viewport Height – shrinks when iOS Safari toolbar is visible */
+  height: 100vh;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr var(--statusbar-height);
+  background: var(--app-background);
+  overflow: hidden;
+  position: relative;
+  padding-top: env(safe-area-inset-top);
+}
+
+
+
+/* Flyout menus */
+.flyout-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+}
+
+.flyout-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  width: 304px;
+  background: rgba(24, 25, 30, 0.92);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(0, 0, 0, 0.15);
+  padding: 4px;
+  animation: flyout-enter 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes flyout-enter {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.flyout-menu.wide { width: 284px; }
+
+.flyout-section {
+  display: block;
+  padding: 8px 12px 4px;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.flyout-divider {
+  display: block;
+  height: 1px;
+  margin: 6px 8px;
+  background: var(--menu-border);
+  opacity: 1;
+}
+
+.flyout-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: var(--font-size-md);
+  color: var(--text-main);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  text-align: left;
+}
+
+.flyout-item:hover { background: var(--panel-background-alt); }
+
+.flyout-item .flyout-icon {
+  display: inline-flex;
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  color: var(--text-secondary);
+}
+
+.flyout-item .flyout-label { flex: 1; }
+
+.flyout-item .flyout-shortcut {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  margin-left: auto;
+  padding-left: 12px;
+}
+
+.flyout-item.danger .flyout-label { color: var(--accent-red); }
+.flyout-item.danger .flyout-icon { color: var(--accent-red); }
+
+.flyout-item .flyout-check {
+  width: 8px;
+  height: 8px;
+  margin-left: auto;
+  border-radius: 999px;
+  background: var(--accent-green);
+}
+
+.flyout-check-icon {
+  width: 14px;
+  height: 14px;
+  margin-left: auto;
+  color: var(--accent-green);
+}
+
+.settings-menu {
+  left: auto;
+  right: 0;
+  width: 320px;
+}
+
+.flyout-card {
+  margin: 2px 8px 6px;
+  padding: 12px;
+  border-radius: 8px;
+  background: transparent;
+}
+
+.settings-row {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  min-height: 28px;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.settings-row strong {
+  color: var(--text-main);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.settings-segmented {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  margin-top: 10px;
+  padding: 4px;
+  background: var(--panel-background-alt);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+}
+
+.settings-segmented button {
+  min-height: 30px;
+  padding: 6px 8px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.settings-segmented button:hover {
+  color: var(--text-main);
+  background: var(--hover-background);
+}
+
+.settings-segmented button.active {
+  color: var(--accent-primary-hover);
+  background: var(--accent-primary-soft);
+  border-color: var(--state-info-border);
+}
+
+.settings-slider {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.settings-slider span {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.settings-slider input {
+  width: 100%;
+  accent-color: var(--accent-primary);
+}
+
+.app-shell.ui-theme-classic {
+  --shadow-sm: none;
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.28), 0 6px 20px rgba(0, 0, 0, 0.18);
+  --shadow-hover: 0 2px 8px rgba(0, 0, 0, 0.15);
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.28), 0 6px 20px rgba(0, 0, 0, 0.18);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.48), 0 2px 8px rgba(0, 0, 0, 0.24);
+}
+
+.app-shell.ui-theme-classic .right-tab-btn.active,
+.app-shell.ui-theme-classic .pdf-right-panel-tab.active {
+  box-shadow: none;
+}
+
+.accent-blue { color: var(--accent-blue) !important; }
+.accent-red { color: var(--accent-red) !important; }
+.accent-primary { color: var(--accent-primary) !important; }
+.accent-orange { color: var(--accent-orange) !important; }
+.accent-green { color: var(--accent-green) !important; }
+

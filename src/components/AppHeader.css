@@ -1,0 +1,189 @@
+.toolbar-shell {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.022) 0%, transparent 100%),
+    var(--toolbar-background);
+  border-bottom: 1px solid var(--panel-border);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  min-height: 92px;
+  gap: 0;
+}
+
+.toolbar-shell--compact {
+  grid-template-rows: auto;
+  min-height: 56px;
+}
+
+.toolbar-left {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 10px 0 8px 14px;
+}
+
+.toolbar-center {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  min-height: 54px;
+  padding: 10px 14px 12px;
+  border-top: 1px solid var(--panel-border);
+}
+
+.toolbar-right {
+  grid-column: 3;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 10px 14px 8px 0;
+}
+
+.toolbar-project-name {
+  max-width: 280px;
+  overflow: hidden;
+  color: var(--text-tertiary);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Menu buttons (Plik, Widok, Narzędzia) */
+.toolbar-menu-btn {
+  min-height: 30px;
+  padding: 6px 10px;
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--text-main);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+  white-space: nowrap;
+}
+
+.toolbar-menu-btn:hover {
+  color: var(--accent-primary-hover);
+  background: var(--hover-background);
+}
+
+.toolbar-menu-btn.active {
+  color: var(--accent-primary-hover);
+}
+
+/* Icon toolbar buttons */
+.toolbar-icon-btn {
+  min-width: 34px;
+  min-height: 32px;
+  padding: 6px 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: var(--font-size-md);
+  color: var(--text-main);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.toolbar-icon-btn:hover {
+  color: var(--accent-primary-hover);
+  background: var(--accent-primary-soft);
+}
+
+.toolbar-icon-btn.active {
+  color: var(--text-inverse);
+  background: var(--accent-primary);
+  border: 1px solid var(--accent-primary);
+  box-shadow: 0 0 8px rgba(47, 128, 237, 0.25);
+}
+
+.toolbar-icon-btn:active {
+  background: var(--panel-border);
+}
+
+.toolbar-icon-btn:disabled {
+  color: var(--text-tertiary);
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+  opacity: 0.55;
+}
+
+.toolbar-icon-btn .zoom-badge {
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  min-width: 42px;
+  text-align: center;
+}
+
+.toolbar-icon-symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.toolbar-context {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 4px;
+}
+
+.toolbar-context-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  max-width: 160px;
+  padding: 0 10px;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--panel-border);
+  border-radius: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toolbar-separator {
+  width: 1px;
+  height: 20px;
+  margin: 0 8px;
+  background: linear-gradient(180deg, transparent, var(--panel-border) 20%, var(--panel-border) 80%, transparent);
+}
+
+.toolbar-zoom-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  min-height: 30px;
+  padding: 6px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}

@@ -1,0 +1,47 @@
+/* ================================================================
+   PHASE LIST (migration status)
+   ================================================================ */
+
+.phase-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+}
+
+.phase-list li {
+  margin-bottom: 6px;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.phase-list li p {
+  margin: 4px 0 0;
+  color: var(--text-tertiary);
+  font-size: var(--font-size-xs);
+}
+
+.phase-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-main);
+}
+
+.phase-badge {
+  min-width: 42px;
+  padding: 2px 5px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-align: center;
+  border-radius: var(--radius-sm);
+  background: var(--state-warning-soft);
+  color: var(--accent-warning);
+  border: 1px solid var(--state-warning-border);
+}
+
+.phase-badge.ready {
+  background: var(--state-info-soft);
+  color: var(--accent-blue);
+  border-color: var(--state-info-border);
+}
+

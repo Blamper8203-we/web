@@ -1,0 +1,544 @@
+/* ================================================================
+   Circuit Edit Panel
+   ================================================================ */
+
+.circuit-edit-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--panel-background);
+}
+
+.circuit-edit-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--panel-header-background);
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.circuit-edit-header strong {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-md);
+  color: var(--text-main);
+}
+
+.circuit-edit-header span:not(.circuit-edit-icon) {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.circuit-edit-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  color: #fff;
+  background: var(--accent-blue);
+}
+
+.circuit-edit-header.green .circuit-edit-icon {
+  background: var(--accent-green);
+}
+
+.circuit-edit-header.orange .circuit-edit-icon {
+  background: var(--accent-warning);
+}
+
+.circuit-edit-header.red .circuit-edit-icon {
+  background: var(--accent-red);
+}
+
+.circuit-edit-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+}
+
+.circuit-edit-close:hover {
+  color: var(--text-main);
+  background: var(--hover-background);
+}
+
+.circuit-edit-fields {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.circuit-edit-field {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 7px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  background: var(--card-background);
+}
+
+.circuit-edit-field span,
+.circuit-edit-checkbox span {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.circuit-edit-checkbox {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  margin: 0;
+  padding: 7px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  background: var(--card-background);
+  cursor: pointer;
+}
+
+/* ── Toggle Switch ─────────────────────────────────────── */
+.circuit-edit-toggle {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.circuit-edit-toggle input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.circuit-edit-toggle-track {
+  display: block;
+  width: 36px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  transition: background 0.18s ease, border-color 0.18s ease;
+  position: relative;
+}
+
+.circuit-edit-toggle-track::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  transition: transform 0.18s ease;
+}
+
+.circuit-edit-toggle input:checked + .circuit-edit-toggle-track {
+  background: var(--accent-primary, #3b82f6);
+  border-color: var(--accent-primary, #3b82f6);
+}
+
+.circuit-edit-toggle input:checked + .circuit-edit-toggle-track::after {
+  transform: translateX(16px);
+}
+
+.circuit-edit-toggle input:focus-visible + .circuit-edit-toggle-track {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.circuit-edit-field.is-highlighted,
+.circuit-edit-checkbox.is-highlighted {
+  border-color: var(--state-info-border);
+  background: var(--state-info-soft);
+  box-shadow: 0 0 0 2px rgba(47, 128, 237, 0.14);
+}
+
+.circuit-edit-footer {
+  position: sticky;
+  bottom: 0;
+  padding: 10px;
+  background: var(--panel-header-background);
+  border-top: 1px solid var(--panel-border);
+}
+
+.circuit-edit-footer .accent-btn {
+  width: 100%;
+  background: var(--panel-border-strong);
+}
+
+.circuit-edit-footer .accent-btn.dirty {
+  background: var(--accent-primary);
+}
+
+.circuit-edit-footer .accent-btn:disabled {
+  color: var(--text-secondary);
+  cursor: default;
+  opacity: 0.78;
+}
+
+.circuit-edit-empty {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.circuit-edit-empty strong {
+  color: var(--text-main);
+  font-size: var(--font-size-md);
+}
+
+.circuit-edit-empty p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.45;
+}
+
+.svg-import-dialog {
+  width: min(780px, calc(100vw - 32px));
+  height: min(780px, calc(100vh - 32px));
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  background: var(--panel-background);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.42);
+}
+
+.svg-import-dialog__header,
+.svg-import-dialog__topbar,
+.svg-import-dialog__footer {
+  padding: 14px 16px;
+}
+
+.svg-import-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--panel-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
+    var(--panel-background);
+}
+
+.svg-import-dialog__heading {
+  display: grid;
+  gap: 4px;
+}
+
+.svg-import-dialog__subtitle {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.svg-import-dialog__topbar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  border-bottom: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.svg-import-dialog__source {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  background: var(--panel-background-alt);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.svg-import-dialog__label {
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+}
+
+.svg-import-dialog__controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.svg-import-dialog__controls > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 7px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  color: var(--text-main);
+  font: inherit;
+  cursor: pointer;
+}
+
+.svg-import-dialog__controls > button:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: #3b4048;
+}
+
+.svg-import-dialog__hint {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.svg-import-dialog__checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-main);
+  font-size: var(--font-size-sm);
+}
+
+.svg-import-dialog__body {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
+}
+
+.svg-import-dialog__list {
+  min-height: 0;
+  overflow: auto;
+  border-right: 1px solid var(--panel-border);
+  background: rgba(8, 10, 14, 0.28);
+}
+
+.svg-import-dialog__list-actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  position: sticky;
+  top: 0;
+  background: rgba(19, 22, 28, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--panel-border);
+  z-index: 1;
+}
+
+.svg-import-dialog__list-actions > button {
+  min-height: 30px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  color: var(--text-main);
+  font: inherit;
+  cursor: pointer;
+}
+
+.svg-import-dialog__list-actions > button:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.svg-import-dialog__empty {
+  display: grid;
+  gap: 8px;
+  padding: 28px 22px;
+  color: var(--text-secondary);
+}
+
+.svg-import-dialog__empty strong {
+  color: var(--text-main);
+  font-size: var(--font-size-md);
+}
+
+.svg-import-dialog__row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 18px 58px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  margin: 8px 10px 0;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.svg-import-dialog__row:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.svg-import-dialog__row.is-active {
+  background: var(--state-info-soft);
+  border-color: var(--state-info-border);
+  box-shadow: inset 0 0 0 1px rgba(47, 128, 237, 0.18);
+}
+
+.svg-import-dialog__row-preview {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 54px;
+  padding: 4px;
+  background: var(--panel-background-alt);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+}
+
+.svg-import-dialog__row-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.svg-import-dialog__row-copy strong {
+  color: var(--text-main);
+  font-size: var(--font-size-sm);
+}
+
+.svg-import-dialog__row-copy span,
+.svg-import-dialog__row-copy em {
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  font-style: normal;
+}
+
+.svg-import-dialog__row-copy em {
+  color: var(--accent-primary-hover);
+}
+
+.svg-import-dialog__preview {
+  min-height: 0;
+  overflow: auto;
+  padding: 20px;
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.svg-import-dialog__preview-card {
+  display: grid;
+  place-items: center;
+  height: 260px;
+  min-height: 260px;
+  padding: 22px;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0)),
+    var(--panel-background-alt);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.svg-import-dialog__hero-preview {
+  display: block;
+  width: min(100%, 190px);
+  height: 220px;
+  max-width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+}
+
+.svg-import-dialog__form {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.svg-import-dialog__form label {
+  display: grid;
+  gap: 6px;
+}
+
+.svg-import-dialog__form label > span {
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+}
+
+.svg-import-dialog__form input,
+.svg-import-dialog__form select {
+  min-height: 36px;
+  padding: 8px 11px;
+  background: var(--panel-background-alt);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  color: var(--text-main);
+  font: inherit;
+}
+
+.svg-import-dialog__form input:focus,
+.svg-import-dialog__form select:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-primary-soft);
+}
+
+.svg-import-dialog__dimensions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.svg-import-dialog__meta {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  background: var(--panel-background-alt);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.svg-import-dialog__meta strong {
+  color: var(--text-main);
+}
+
+.svg-import-dialog__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.svg-import-dialog__status {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+

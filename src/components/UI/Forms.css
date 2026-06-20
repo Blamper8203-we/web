@@ -1,0 +1,40 @@
+/* ================================================================
+   FORM ELEMENTS
+   ================================================================ */
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+textarea,
+select {
+  width: 100%;
+  min-height: 32px;
+  padding: 6px 8px;
+  font-family: var(--font-family);
+  font-size: var(--font-size-md);
+  color: var(--text-main);
+  background: var(--panel-background-alt);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--accent-primary);
+  background: #1e2025;
+  box-shadow: 0 0 0 2px var(--accent-primary-soft);
+}
+
+input::placeholder, textarea::placeholder { color: var(--text-tertiary); }
+
+label {
+  display: block;
+  margin-bottom: 2px;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+

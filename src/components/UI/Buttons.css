@@ -1,0 +1,32 @@
+/* ================================================================
+   BUTTONS
+   ================================================================ */
+
+button {
+  font-family: var(--font-family);
+  cursor: pointer;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.accent-btn {
+  min-height: 32px;
+  padding: 6px 12px;
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--text-inverse);
+  background: linear-gradient(180deg, var(--accent-primary-hover) 0%, var(--accent-primary) 100%);
+  border: none;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 1px 3px rgba(47, 128, 237, 0.22);
+  transition: all var(--transition-fast);
+}
+
+.accent-btn:hover {
+  background: linear-gradient(180deg, var(--accent-primary-hover) 0%, var(--accent-primary-hover) 100%);
+  box-shadow: 0 2px 8px rgba(47, 128, 237, 0.3);
+}
+

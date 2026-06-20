@@ -1,0 +1,136 @@
+/* ================================================================
+   Schematic Canvas Container
+   ================================================================ */
+
+.schematic-container,
+.schematic-workspace {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 72px),
+    var(--app-background);
+}
+
+.schematic-workspace.is-drop-target {
+  box-shadow: inset 0 0 0 1px var(--state-info-border);
+}
+
+.schematic-zoom-dock {
+  position: absolute;
+  right: 14px;
+  bottom: 48px;
+  z-index: 16;
+  display: grid;
+  gap: 6px;
+}
+
+.schematic-zoom-dock .workspace-tool-btn {
+  width: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  border-radius: 0;
+  background: rgba(22, 23, 25, 0.94);
+}
+
+.schematic-zoom-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 0 8px;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: rgba(22, 23, 25, 0.94);
+  border: 1px solid var(--panel-border);
+  border-radius: 0;
+}
+
+.schematic-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+
+input[type="text"].schematic-cell-editor,
+.schematic-cell-editor {
+  position: absolute;
+  z-index: 18;
+  width: auto;
+  box-sizing: border-box;
+  min-width: 32px;
+  min-height: 0;
+  color: #0f172a;
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-weight: 400;
+  line-height: 1;
+  background: rgba(250, 251, 254, 0.96);
+  border: 1px solid var(--state-info-border);
+  border-radius: 0;
+  outline: none;
+  box-shadow: inset 0 0 0 1px var(--state-info-soft);
+  text-align: center;
+  appearance: none;
+}
+
+input[type="text"].schematic-cell-editor:focus,
+.schematic-cell-editor:focus {
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.98);
+  border-color: var(--accent-primary);
+  box-shadow: inset 0 0 0 1px rgba(47, 128, 237, 0.18), 0 0 0 1px rgba(47, 128, 237, 0.2);
+}
+
+.schematic-drop-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  background: rgba(17, 18, 20, 0.18);
+}
+
+.schematic-drop-card {
+  display: grid;
+  gap: 8px;
+  min-width: 320px;
+  padding: 16px 18px;
+  color: var(--text-main);
+  background: rgba(22, 23, 25, 0.96);
+  border: 1px solid var(--state-info-border);
+  border-radius: 0;
+  box-shadow: var(--shadow-lg);
+}
+
+.schematic-drop-card--compact {
+  min-width: 0;
+  padding: 10px 14px;
+  border-color: var(--state-info-border);
+}
+
+.schematic-drop-card strong {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+
+.schematic-drop-card span:not(.workspace-tag) {
+  font-size: var(--font-size-sm);
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+/* Validation item (legacy) styles → components/ValidationPanel.css */
+/* Power Balance styles → components/PowerBalancePage.css */
+
+
+
+
+
+
+
+/* Validation Panel styles → components/ValidationPanel.css */
+

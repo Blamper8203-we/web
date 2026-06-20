@@ -1,0 +1,535 @@
+/* ================================================================
+   Responsive
+   ================================================================ */
+
+@media (max-width: 1024px) {
+  :root {
+    --left-panel-width: 240px;
+    --right-panel-width: 280px;
+  }
+
+  .main-content.is-pdf-workspace {
+    grid-template-columns: 280px minmax(0, 1fr) var(--right-panel-width);
+  }
+
+  .main-content.is-pdf-workspace.is-right-panel-hidden {
+    grid-template-columns: 280px minmax(0, 1fr) 0;
+  }
+}
+
+/* ----------------------------------------------------------------
+   Tablet (769px – 900px): toolbar może się nie zmieścić w linii
+   ---------------------------------------------------------------- */
+@media (max-width: 900px) and (min-width: 769px) {
+  .toolbar-shell {
+    /* Umożliwia przewijanie gdy menu textowe się nie mieszczą */
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+
+  .toolbar-shell::-webkit-scrollbar {
+    display: none;
+  }
+
+  .toolbar-left {
+    flex-shrink: 0;
+    margin-left: 10px;
+  }
+
+  .toolbar-right {
+    flex-shrink: 0;
+    margin-right: 10px;
+  }
+
+  /* Skróć nieco padding przycisków menu tekstowego */
+  .toolbar-menu-btn {
+    padding: 6px 8px;
+    font-size: var(--font-size-sm);
+  }
+
+  /* Na tablecie ukryj "Postaw kawę" – priorytet mniejszy */
+  .toolbar-menu-btn--donate-tablet {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --left-panel-width: 100vw;
+    --right-panel-width: 0px;
+    --statusbar-height: 0px;
+  }
+
+    .app-shell {
+    grid-template-rows: auto 1fr 0;
+  }
+
+        .main-content {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr) auto; /* Row 1 = sheet tabs, Row 3 = panels */
+  }
+
+  .main-content.is-right-panel-hidden {
+    grid-template-columns: 1fr;
+  }
+
+  .main-content.is-left-panel-hidden.is-right-panel-hidden:not(.is-pdf-workspace) {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .main-content.is-pdf-workspace {
+      grid-template-columns: 1fr;
+      grid-template-rows: 44px minmax(0, 1fr) minmax(200px, 40vh);
+    }
+
+    .toolbar-shell {
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 6px;
+    overflow-x: auto;
+    grid-template-rows: auto;
+    min-height: 56px;
+  }
+
+  .toolbar-left,
+  .toolbar-center,
+  .toolbar-right {
+    flex: 0 0 auto;
+  }
+
+  .toolbar-context {
+    display: none;
+  }
+
+  .toolbar-menu-btn,
+  .toolbar-icon-btn {
+    min-height: 34px;
+    padding: 6px 8px;
+  }
+
+  .toolbar-center {
+    display: none;
+  }
+
+  .toolbar-shell .toolbar-right {
+    margin: 0;
+  }
+
+  .mobile-hamburger {
+    padding: 8px;
+    margin: 0;
+  }
+
+  .flyout-menu,
+  .flyout-menu.wide {
+    position: fixed;
+    top: 52px;
+    left: 6px;
+    right: 6px;
+    width: auto;
+    max-height: calc(100vh - 70px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .canvas-area {
+    grid-column: 1;
+    grid-row: 2;
+    min-height: 0;
+  }
+
+  .left-panel {
+    grid-column: 1;
+    grid-row: 3;
+    width: auto;
+    height: auto;
+    border-right: 0;
+    border-top: 1px solid var(--panel-border);
+    display: flex;
+  }
+
+  .main-content.is-pdf-workspace .left-panel {
+    border-top-color: var(--state-info-border);
+    box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.12);
+  }
+
+  .main-content.is-pdf-workspace .panel-content {
+    overflow: hidden;
+  }
+
+  .main-content:not(.is-right-panel-hidden) .left-panel {
+    display: none;
+  }
+
+  .main-content:not(.is-right-panel-hidden) .right-panel,
+  .main-content.is-circuit-editing .right-panel {
+    grid-column: 1;
+    grid-row: 3;
+    width: auto;
+    height: auto;
+    display: flex;
+    border-left: 0;
+    border-top: 1px solid var(--panel-border);
+  }
+
+  .main-content.is-right-panel-hidden .right-panel {
+    display: none;
+  }
+
+  .main-content.is-circuit-editing .right-panel-header,
+  .main-content.is-circuit-editing .inspector-summary,
+  .main-content.is-circuit-editing .right-tabs {
+    display: none;
+  }
+
+  .main-content.is-circuit-editing .right-panel-content {
+    padding: 8px;
+  }
+
+
+
+  .pdf-workspace-tabs {
+    padding: 8px;
+  }
+
+  .pdf-workspace-tab {
+    min-height: 32px;
+    padding: 7px 10px;
+  }
+
+
+
+    .workspace-statusbar,
+  .workspace-hud--bottom-left {
+    display: none;
+  }
+
+  /* Minimalny statusbar na mobile – tylko nazwa pliku i kropka niezapisane */
+  .statusbar {
+    display: flex;
+    position: fixed;
+    bottom: 8px;
+    bottom: calc(8px + env(safe-area-inset-bottom));
+    left: 8px;
+    right: 8px;
+    z-index: 30;
+    min-height: 24px;
+    height: auto;
+    padding: 2px 10px;
+    background: rgba(22, 23, 25, 0.92);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid var(--panel-border);
+    border-radius: 6px;
+    box-shadow: var(--shadow-sm);
+    gap: 4px;
+    overflow: hidden;
+    /* Nie blokuje dotyku na canvasie pod spodem */
+    pointer-events: none;
+  }
+
+  .statusbar .statusbar-right,
+  .statusbar .statusbar-divider,
+  .statusbar .statusbar-item:not(.statusbar-project) {
+    display: none;
+  }
+
+  .statusbar .statusbar-left {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .statusbar-project {
+    font-size: 11px;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .statusbar-project strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    display: inline;
+  }
+
+  .statusbar-icon {
+    flex: 0 0 auto;
+  }
+
+  .workspace-hud {
+    max-width: calc(100% - 16px);
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px 8px;
+  }
+
+  .workspace-hud--top-left {
+    top: 8px;
+    left: 8px;
+    right: 122px;
+    max-width: calc(100% - 138px);
+  }
+
+  .workspace-hud--top-right {
+    top: 8px;
+    right: 8px;
+    bottom: auto;
+  }
+
+  .din-rail-empty-action {
+    min-width: 0;
+    width: calc(100% - 32px);
+    padding: 18px;
+  }
+
+  .din-rail-dialog {
+    grid-template-columns: 1fr;
+    width: min(520px, calc(100% - 16px));
+        height: min(620px, calc(100vh - 120px));
+    overflow: auto;
+  }
+
+  .din-rail-dialog-preview {
+    margin: 0 0 12px;
+  }
+
+  .din-rail-dialog-preview-canvas {
+    width: 100%;
+    height: 240px;
+  }
+
+    .schematic-zoom-dock {
+    bottom: calc(48px + 68px);
+  }
+
+  .schematic-drop-card {
+    min-width: 0;
+    width: calc(100% - 32px);
+  }
+
+  .svg-import-dialog {
+        width: min(calc(100vw - 16px), 680px);
+    height: min(calc(100vh - 120px), 680px);
+  }
+
+  .svg-import-dialog__topbar,
+  .svg-import-dialog__body,
+  .svg-import-dialog__dimensions {
+    grid-template-columns: 1fr;
+  }
+
+  .svg-import-dialog__body {
+    grid-template-rows: minmax(220px, 42vh) minmax(0, 1fr);
+  }
+
+  .svg-import-dialog__list {
+    border-right: 0;
+    border-bottom: 1px solid var(--panel-border);
+  }
+
+}
+
+/* Mobile Side Drawer */
+.mobile-side-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  animation: fade-in 0.2s ease-out;
+}
+
+.mobile-side-drawer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 80%;
+  max-width: 320px;
+  background: var(--panel-background);
+  box-shadow: 10px 0 20px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  animation: slide-in-left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mobile-side-drawer-header {
+  padding: 24px 20px;
+  background: var(--panel-header-background);
+  border-bottom: 1px solid var(--panel-border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mobile-side-drawer-header strong {
+  font-size: 18px;
+  color: var(--text-main);
+}
+
+.drawer-close {
+  margin-left: auto;
+  background: transparent;
+  border: 0;
+  color: var(--text-secondary);
+}
+
+.mobile-side-drawer-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 0;
+  overscroll-behavior: contain;
+}
+
+.drawer-section {
+  display: block;
+  padding: 16px 20px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  letter-spacing: 0.1em;
+}
+
+.drawer-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 20px;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  color: var(--text-main);
+  text-align: left;
+  font-size: 14px;
+  transition: background 0.2s;
+  text-decoration: none;
+}
+
+.drawer-item:active {
+  background: var(--hover-background);
+}
+
+.drawer-icon {
+  color: var(--text-secondary);
+}
+
+.drawer-divider {
+  display: block;
+  height: 1px;
+  background: var(--panel-border);
+  margin: 8px 20px;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@media (max-width: 768px) {
+  .toolbar-shell.is-native {
+    grid-template-rows: auto;
+    min-height: 56px;
+    padding: 0 12px;
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .toolbar-shell.is-native .toolbar-center {
+    display: none; /* Hide standard center icons, we can add a mini bar later */
+  }
+
+  .toolbar-shell.is-native .toolbar-right {
+    margin: 0;
+  }
+
+  .mobile-hamburger {
+    padding: 8px;
+    margin: 0;
+  }
+}
+
+/* Pływający przycisk kasowania... */
+.workspace-floating-delete-btn {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  background: var(--bg-panel);
+  padding: 4px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  border: 1px solid var(--border-color);
+}
+.workspace-floating-delete-btn button {
+  width: auto;
+  padding: 0 16px;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--accent-red);
+}
+
+@media (max-width: 768px) {
+  .workspace-floating-delete-btn {
+    bottom: auto;
+    top: 16px;
+    left: auto;
+    right: 16px;
+    transform: none;
+    padding: 2px;
+    border-radius: 99px;
+  }
+  .workspace-floating-delete-btn button {
+    padding: 8px;
+    gap: 0;
+  }
+  .workspace-floating-delete-btn .delete-label {
+    display: none;
+  }
+}
+
+/* Przyciski i zachowania pokazywania palety modułów zoptymalizowane pod telefony */
+.mobile-only-tab {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .mobile-only-tab {
+    display: inline-flex !important;
+  }
+
+    .main-content.is-left-panel-hidden .left-panel {
+    display: none !important;
+  }
+
+  /* Gdy lewy panel ma byc widoczny, dajemy wierszowi 3 auto wysokosc */
+        .main-content:not(.is-left-panel-hidden):not(.is-pdf-workspace) {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  /* PDF workspace: gdy panel lewy ukryty, canvas zajmuje cala wysokosc */
+  .main-content.is-pdf-workspace.is-left-panel-hidden {
+    grid-template-rows: 44px 1fr 0;
+  }
+
+  /* PDF workspace: gdy panel lewy widoczny */
+  .main-content.is-pdf-workspace:not(.is-left-panel-hidden) {
+    grid-template-rows: 44px minmax(0, 1fr) minmax(200px, 40vh);
+  }
+
