@@ -368,7 +368,7 @@ export const currentModuleEntries: ModuleEntry[] = [
     label: "Moduł zabezpieczający 3P",
     type: "Zabezpieczenia",
     category: "Zabezpieczenia",
-    deviceKind: "other",
+    deviceKind: "phaseIndicator",
     phase: "L1+L2+L3",
     modules: 1,
     moduleRef: "Zabezpieczenia/Moduł zabezpieczający 3P.svg",
