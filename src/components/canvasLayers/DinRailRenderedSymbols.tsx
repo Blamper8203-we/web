@@ -40,9 +40,19 @@ export function DinRailRenderedSymbols({
     Math.max(13.5 / zoom, 10 / zoom),
     18 / zoom
   );
+  // Cap height in effective pixels (0.7em is typical for Segoe UI).
+  const capHeightPx = 0.7 * labelFontSize;
   return (
     <>
-      {symbols.filter(filterFn).map((symbol) => (
+      {symbols.filter(filterFn).map((symbol) => {
+        // Match DinRailDesignationLabelsOverlay's vertical placement: top of
+        // text sits 4px below the module's bottom edge. SVG <text y> is the
+        // baseline, not the top, so the baseline offset is 4 + capHeightPx.
+        // Divide by zoom to convert px -> user units. Net effect: visual top
+        // of text = 4px below module at any zoom, identical to the main
+        // workspace.
+        const labelY = symbol.height + (4 + capHeightPx) / zoom;
+        return (
         <g
           key={symbol.id}
           transform={`translate(${symbol.x}, ${symbol.y})`}
@@ -75,7 +85,7 @@ export function DinRailRenderedSymbols({
           {/* Reference designation / Name indicator (Floating text below the module, matching main workspace) */}
           <text
             x={symbol.width / 2}
-            y={symbol.height + 25}
+            y={labelY}
             textAnchor="middle"
             fill="#f8fafc"
             fontSize={labelFontSize}
@@ -90,7 +100,8 @@ export function DinRailRenderedSymbols({
             {symbol.referenceDesignation || symbol.label || "Aparat"}
           </text>
         </g>
-      ))}
+        );
+      })}
     </>
   );
 }
