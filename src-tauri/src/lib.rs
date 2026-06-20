@@ -12,11 +12,6 @@ pub struct FileContent {
 }
 
 #[command]
-async fn read_project_file(path: String) -> Result<String, String> {
-    fs::read_to_string(&path).map_err(|e| format!("Nie mozna odczytac pliku: {}", e))
-}
-
-#[command]
 async fn open_project_file_with_dialog(app: tauri::AppHandle) -> Result<Option<FileContent>, String> {
     let documents_dir = app
         .path()
@@ -48,11 +43,6 @@ async fn open_project_file_with_dialog(app: tauri::AppHandle) -> Result<Option<F
         path: path_buf.to_string_lossy().to_string(),
         content,
     }))
-}
-
-#[command]
-async fn write_project_file(path: String, content: String) -> Result<(), String> {
-    fs::write(&path, content).map_err(|e| format!("Nie mozna zapisac pliku: {}", e))
 }
 
 #[command]
@@ -104,8 +94,6 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
-            read_project_file,
-            write_project_file,
             open_project_file_with_dialog,
             save_project_file_with_dialog,
         ])
