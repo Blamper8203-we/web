@@ -24,6 +24,9 @@ vite-dev.out.log
 # One-off debug scripts kept locally but never tracked
 scripts/debug/
 
+# Scratchpad for one-off scripts and generated test outputs
+scratch/
+
 # One-off scratch SVGs / Python helpers from SVG import sessions
 /rrrrrr.svg
 /testt.svg

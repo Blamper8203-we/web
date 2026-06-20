@@ -1,5 +1,4 @@
-import { devLog } from "../../lib/runtimeDiagnostics";
-import { createDefaultSymbolItem, type PhaseAssignment, type SymbolItem } from "../../types/symbolItem";
+import { createDefaultSymbolItem, type PhaseAssignment, type SymbolItem, MANUAL_REFERENCE_DESIGNATION_KEY } from "../../types/symbolItem";
 import { detectPoleCount as getPoleCount } from "../../lib/poleCount";
 
 export type CircuitEditFieldKind = "text" | "number" | "combo" | "checkbox";
@@ -73,7 +72,7 @@ const PHASE_INDICATOR_MODEL_PRESETS = [
 
 const PHASE_INDICATOR_FUSE_PRESETS = ["2A gG", "4A gG", "6A gG", "10A gG"];
 const CIRCUIT_TYPE_PRESETS = ["Oswietlenie", "Gniazdo", "Sila", "Inne"];
-const MANUAL_REFERENCE_DESIGNATION_KEY = "ManualReferenceDesignation";
+
 
 function textField(
   key: string,
@@ -238,11 +237,8 @@ export function applyCircuitEditValue(
       next.circuitType = normalizeCircuitType(value);
       break;
     case "ProtectionType":
-      devLog("🔵 [applyCircuitEditValue] ProtectionType BEFORE:", { symbolId: symbol.id, currentValue: symbol.protectionType, newValue: value });
       next.protectionType = value;
-      devLog("🔵 [applyCircuitEditValue] ProtectionType AFTER:", { symbolId: next.id, protectionType: next.protectionType, parametersCURRENT: next.parameters.CURRENT });
       syncVisibleModuleParameters(next);
-      devLog("🔵 [applyCircuitEditValue] After syncVisibleModuleParameters:", { protectionType: next.protectionType, parametersCURRENT: next.parameters.CURRENT });
       break;
     case "PowerW":
       applyNumber(value, (numberValue) => {
@@ -304,6 +300,7 @@ export function applyCircuitEditValue(
       next.parameters[key] = value;
       break;
     case "RemoveCover":
+      if (!next.parameters) next.parameters = {};
       next.parameters.BLUE_COVER_VISIBILITY = rawValue ? "hidden" : "visible";
       break;
   }
@@ -332,7 +329,7 @@ function createDistributionBlockFields(symbol: SymbolItem): CircuitEditFieldDefi
   return [
     textField("ReferenceDesignation", "Oznaczenie", getManualReferenceDesignation(symbol)),
     textField("Label", "Etykieta", symbol.label),
-    checkboxField("RemoveCover", "Zdejmij osłonę", symbol.parameters.BLUE_COVER_VISIBILITY === "hidden" || symbol.parameters.BLUE_COVER_VISIBILITY === "none"),
+    checkboxField("RemoveCover", "Zdejmij osłonę", symbol.parameters?.BLUE_COVER_VISIBILITY === "hidden" || symbol.parameters?.BLUE_COVER_VISIBILITY === "none"),
   ];
 }
 
@@ -434,8 +431,13 @@ function getModuleType(symbol: SymbolItem): ModuleType {
   // Sprawdzamy przez `deviceKind` (bez `symbol.isTerminalBlock` w tym samym
   // warunku) — TS inaczej zawęża discriminated union po `isTerminalBlock`
   // i odrzuca `"terminalBlock"` jako niemożliwe.
-  if (symbol.deviceKind === "terminalBlock") return "terminalBlock";
-  if (symbol.isTerminalBlock) return "terminalBlock";
+  if (symbol.deviceKind === "terminalBlock" || symbol.isTerminalBlock) {
+    const value = `${symbol.type} ${symbol.label} ${symbol.visualPath}`.toLocaleLowerCase("pl-PL");
+    if (value.includes("blok") || value.includes("block") || value.includes("rozdzielcz") || value.includes("distribution")) {
+      return "distributionBlock";
+    }
+    return "terminalBlock";
+  }
   if (symbol.deviceKind === "rcd") return "rcd";
   if (symbol.deviceKind === "mcb" || symbol.deviceKind === "rcbo") return "mcb";
   if (symbol.deviceKind === "spd") return "spd";
@@ -484,11 +486,11 @@ function getPhaseOptions(poleCount: ModulePoleCount): string[] {
   switch (poleCount) {
     case 3:
     case 4:
-      return ["L1+L2+L3", "L1", "L2", "L3", "L1+L2", "L2+L3", "L3+L1"];
+      return ["L1+L2+L3", "L1", "L2", "L3", "L1+L2", "L2+L3", "L1+L3"];
     case 2:
-      return ["L1+L2", "L2+L3", "L3+L1", "L1", "L2", "L3", "L1+L2+L3"];
+      return ["L1+L2", "L2+L3", "L1+L3", "L1", "L2", "L3", "L1+L2+L3"];
     default:
-      return ["L1", "L2", "L3", "L1+L2", "L2+L3", "L3+L1", "L1+L2+L3"];
+      return ["L1", "L2", "L3", "L1+L2", "L2+L3", "L1+L3", "L1+L2+L3"];
   }
 }
 
@@ -501,7 +503,6 @@ function normalizePhase(value: string): PhaseAssignment {
     normalized === "L1+L2" ||
     normalized === "L2+L3" ||
     normalized === "L1+L3" ||
-    normalized === "L3+L1" ||
     normalized === "L1+L2+L3" ||
     normalized === "3F"
   ) {

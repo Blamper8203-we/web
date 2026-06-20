@@ -6,6 +6,7 @@ import { SchematicCanvas } from "./SchematicCanvas";
 import type { SheetType, PaletteTemplate } from "../lib/appHelpers";
 import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
 import type { SymbolItem } from "../types/symbolItem";
+import { type DefaultWireSettings } from "../lib/connections/connectionsLogic";
 import type { ConnectionItem } from "../types/connectionItem";
 import type { ProjectMetadata } from "../types/projectMetadata";
 
@@ -55,7 +56,7 @@ export interface AppWorkspaceCanvasProps {
   onConnectionsChange: (newConnections: ConnectionItem[], label: string, statusMsg: string) => void;
   selectedConnectionId: string | null;
   onConnectionSelect: (id: string | null) => void;
-  defaultWireSettings?: any;
+  currentWireSettings?: DefaultWireSettings;
   onRequestLeftPanelTab?: (tabName: string) => void;
 }
 
@@ -89,7 +90,7 @@ export function AppWorkspaceCanvas({
   onConnectionsChange,
   selectedConnectionId,
   onConnectionSelect,
-  defaultWireSettings,
+  currentWireSettings,
   onRequestLeftPanelTab,
 }: AppWorkspaceCanvasProps) {
   return (
@@ -147,8 +148,15 @@ export function AppWorkspaceCanvas({
               onConnectionsChange={onConnectionsChange}
               selectedConnectionId={selectedConnectionId}
               onConnectionSelect={onConnectionSelect}
+              onSymbolSelect={handleSymbolSelect}
+              selectedSymbolId={selectedSymbolId}
               setWorkspaceZoomPercent={setWorkspaceZoomPercent}
-              defaultWireSettings={defaultWireSettings}
+              currentWireSettings={currentWireSettings || {
+                wireColor: "black",
+                wireCrossSection: 2.5,
+                wireType: "LgY",
+                routingMode: "manhattan"
+              }}
               onRequestLeftPanelTab={onRequestLeftPanelTab}
             />
           )}

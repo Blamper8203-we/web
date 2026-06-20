@@ -6,9 +6,7 @@ import { AppDialogsLayer } from "./components/AppDialogsLayer";
 import { MainWorkspace } from "./components/MainWorkspace";
 import type { RcdManagerEntry } from "./components/RcdManagementDialog";
 import { buildCircuitRowsFromSymbols } from "./lib/circuitRows";
-import { PROJECT_METADATA_STORAGE_KEY, loadProjectMetadata } from "./lib/projectMetadata";
-import { handleGlobalAppShortcut } from "./lib/appShortcuts";
-import { reportRuntimeError } from "./lib/runtimeDiagnostics";
+import { loadProjectMetadata } from "./lib/projectMetadata";
 import { validateProject, type ValidationResult } from "./lib/validation/electricalValidationService";
 import {
   applyValidationQuickFix,
@@ -32,7 +30,6 @@ import { useImportedModules } from "./hooks/useImportedModules";
 import { useSheetPanelState } from "./hooks/useSheetPanelState";
 import { useDialogState } from "./hooks/useDialogState";
 import { useSchematicState } from "./hooks/useSchematicState";
-import { useDebouncedPersist } from "./hooks/useDebouncedPersist";
 import { applyRcdManagerUpdates } from "./lib/circuitEdit/rcdManagerLogic";
 import type { ProjectMetadata } from "./types/projectMetadata";
 import type { SymbolItem } from "./types/symbolItem";
@@ -40,18 +37,30 @@ import type { ConnectionItem, WireColor, WireType, RoutingMode, FerruleColor } f
 import { PublicLandingPage } from "./components/PublicLandingPage";
 import { FeedbackModal } from "./components/FeedbackModal";
 import "./App.css";
+import "./components/AppLayout.css";
+import "./components/Responsive.css";
+import "./components/MainContent.css";
+import "./components/PhaseList.css";
+import "./components/UI/Cards.css";
+import "./components/UI/Forms.css";
+import "./components/UI/Buttons.css";
+import "./components/WorkspaceHUD.css";
+
+import type { ProjectFileData } from "./lib/projectFile";
+import { openProjectFile } from "./lib/projectFile";
+import { safeGetItemSync, initStorageService } from "./lib/storageService";
+
+import { useAppPersistence, type AppUiTheme, UI_THEME_STORAGE_KEY } from "./hooks/app/useAppPersistence";
+import { useAppEventBindings } from "./hooks/app/useAppEventBindings";
+import { useUnsavedChangesFlow } from "./hooks/app/useUnsavedChangesFlow";
 
 const APP_ROUTE_PATH = "/app";
-const LOCAL_STORAGE_WRITE_DEBOUNCE_MS = 250;
-const CONNECTIONS_STORAGE_KEY = "dinboard.connections";
-const UI_THEME_STORAGE_KEY = "dinboard.ui_theme";
 const EMPTY_VALIDATION_RESULT: ValidationResult = {
   isValid: true,
   errors: [],
   warnings: [],
   info: [],
 };
-export type AppUiTheme = "modern" | "classic";
 
 function normalizeRoutePath(pathname: string): "/" | "/app" {
   if (pathname === APP_ROUTE_PATH || pathname === `${APP_ROUTE_PATH}/`) {
@@ -61,6 +70,8 @@ function normalizeRoutePath(pathname: string): "/" | "/app" {
   return "/";
 }
 
+export type { AppUiTheme } from "./hooks/app/useAppPersistence";
+
 function loadUiTheme(): AppUiTheme {
   try {
     const value = safeGetItemSync(UI_THEME_STORAGE_KEY);
@@ -69,10 +80,6 @@ function loadUiTheme(): AppUiTheme {
     return "modern";
   }
 }
-
-import type { ProjectFileData } from "./lib/projectFile";
-import { openProjectFile } from "./lib/projectFile";
-import { safeGetItemSync, safeSetItem, initStorageService } from "./lib/storageService";
 
 function AppWorkspace({
   initialAction,
@@ -85,7 +92,7 @@ function AppWorkspace({
 }) {
   // ── Core state ───────────────────────────────────────────────────────────────
   const [metadata, setMetadata] = useState<ProjectMetadata>(() => loadProjectMetadata());
-    const [symbols, setSymbols] = useState<SymbolItem[]>(() => {
+  const [symbols, setSymbols] = useState<SymbolItem[]>(() => {
     try {
       const raw =
         safeGetItemSync(SYMBOLS_STORAGE_KEY) ??
@@ -99,12 +106,12 @@ function AppWorkspace({
   });
   const [connections, setConnections] = useState<ConnectionItem[]>(() => {
     try {
-      const raw = safeGetItemSync(CONNECTIONS_STORAGE_KEY);
+      const raw = safeGetItemSync("dinboard.connections");
       if (raw) return JSON.parse(raw) as ConnectionItem[];
     } catch { /* ignore */ }
     return [];
   });
-  const [defaultWireSettings, setDefaultWireSettings] = useState<{
+  const [currentWireSettings, setCurrentWireSettings] = useState<{
     wireColor: WireColor;
     wireCrossSection: number;
     wireType: WireType;
@@ -139,24 +146,23 @@ function AppWorkspace({
     fieldKey: string;
   } | null>(null);
 
-    const showTemporaryStatus = useCallback((message: string, timeoutMs = 3500) => {
+  const showTemporaryStatus = useCallback((message: string, timeoutMs = 3500) => {
     setSaveStatus(message);
     window.setTimeout(() => setSaveStatus(""), timeoutMs);
   }, []);
 
-    // ── State hooks (wydzielone dla czytelności) ─────────────────────────────────
-    const sheetPanel = useSheetPanelState();
-    const dialog = useDialogState();
-    const schematic = useSchematicState();
+  // ── State hooks ──────────────────────────────────────────────────────────────
+  const sheetPanel = useSheetPanelState();
+  const dialog = useDialogState();
+  const schematic = useSchematicState();
 
-
-  // ── Hooks ─────────────────────────────────────────────────────────────────────
+  // ── Hooks ────────────────────────────────────────────────────────────────────
   const {
     importedModules,
     paletteGroups,
     paletteTemplateMap,
     importedModuleCategoryOptions,
-        activePaletteGroupTitle,
+    activePaletteGroupTitle,
     setActivePaletteGroupTitle,
     handleHidePaletteTemplate,
     handleSvgImportCommit,
@@ -164,7 +170,7 @@ function AppWorkspace({
     handleRemoveImportedModule,
   } = useImportedModules(showTemporaryStatus);
 
-    const history = useSymbolHistory({
+  const history = useSymbolHistory({
     connections,
     setSymbols,
     setConnections,
@@ -174,18 +180,18 @@ function AppWorkspace({
     showTemporaryStatus,
   });
 
-    const selectedSymbol = symbols.find((s) => s.id === selectedSymbolId) ?? null;
+  const selectedSymbol = symbols.find((s) => s.id === selectedSymbolId) ?? null;
 
-    const {
-      handleSymbolMoveStart, handleSymbolMove, handleSymbolMoveEnd,
-      handleSymbolSelect, handleSymbolSelectionChange,
-      handleCircuitEditSave, handleSchematicCellEdit,
-      handleDeleteSelected,
-    } = useSymbolActions({
+  const {
+    handleSymbolMoveStart, handleSymbolMove, handleSymbolMoveEnd,
+    handleSymbolSelect, handleSymbolSelectionChange,
+    handleCircuitEditSave, handleSchematicCellEdit,
+    handleDeleteSelected,
+  } = useSymbolActions({
     symbols, setSymbols,
     selectedSymbolId, setSelectedSymbolId,
-        selectedSymbolIds, setSelectedSymbolIds,
-        setActiveRightTab: (tab: RightTab) => sheetPanel.setActiveRightTab(tab), setHasUnsavedChanges,
+    selectedSymbolIds, setSelectedSymbolIds,
+    setActiveRightTab: (tab: RightTab) => sheetPanel.setActiveRightTab(tab), setHasUnsavedChanges,
     executeSymbolsCommand: history.executeSymbolsCommand,
     dragHistorySnapshotRef: history.dragHistorySnapshotRef,
     draggedSymbolIdsRef: history.draggedSymbolIdsRef,
@@ -221,19 +227,19 @@ function AppWorkspace({
     dragHistorySnapshotRef: history.dragHistorySnapshotRef,
     refreshHistoryState: history.refreshHistoryState,
     executeSymbolsCommand: history.executeSymbolsCommand,
-        showTemporaryStatus,
+    showTemporaryStatus,
   });
 
   const { paletteContextMenu, setPaletteContextMenu,
-        pendingPaletteRemoval, setPendingPaletteRemoval,
-        handlePaletteDrop, handlePaletteInsert, handleUnsupportedDinRailDrop, handleConfirmPaletteRemoval,
+    pendingPaletteRemoval, setPendingPaletteRemoval,
+    handlePaletteDrop, handlePaletteInsert, handleUnsupportedDinRailDrop, handleConfirmPaletteRemoval,
   } = usePaletteActions({
-        symbols, paletteTemplateMap, dinRail, activeSheet: sheetPanel.activeSheet,
-        selectedSymbol, selectedSymbolId, selectedSymbolIds,
-            setActiveRightTab: (tab: RightTab) => sheetPanel.setActiveRightTab(tab),
-        setActiveSheet: (sheet: SheetType) => sheetPanel.setActiveSheet(sheet),
-        executeSymbolsCommand: history.executeSymbolsCommand,
-        showTemporaryStatus, handleOpenDinRailGenerator, handleHidePaletteTemplate,
+    symbols, paletteTemplateMap, dinRail, activeSheet: sheetPanel.activeSheet,
+    selectedSymbol, selectedSymbolId, selectedSymbolIds,
+    setActiveRightTab: (tab: RightTab) => sheetPanel.setActiveRightTab(tab),
+    setActiveSheet: (sheet: SheetType) => sheetPanel.setActiveSheet(sheet),
+    executeSymbolsCommand: history.executeSymbolsCommand,
+    showTemporaryStatus, handleOpenDinRailGenerator, handleHidePaletteTemplate,
   });
 
   const [didHandleInitialAction, setDidHandleInitialAction] = useState(false);
@@ -249,104 +255,43 @@ function AppWorkspace({
     }
   }, [initialAction, initialData, didHandleInitialAction, handleNewProject, handleLoadProjectData]);
 
-  const triggerNewProject = useCallback(() => {
-    if (hasUnsavedChanges) {
-      dialog.setUnsavedChangesActionType("new");
-    } else {
-      handleNewProject();
-    }
-  }, [hasUnsavedChanges, handleNewProject, dialog]);
+  // ── Refactored Hooks ──────────────────────────────────────────────────────────
+  useAppPersistence({
+    metadata,
+    symbols,
+    connections,
+    currentWireSettings,
+    showDinRailGroups: sheetPanel.showDinRailGroups,
+    uiTheme,
+  });
 
-  const triggerOpenProject = useCallback(() => {
-    if (hasUnsavedChanges) {
-      dialog.setUnsavedChangesActionType("open");
-    } else {
-      handleOpenProject();
-    }
-  }, [hasUnsavedChanges, handleOpenProject, dialog]);
+  const {
+    triggerNewProject,
+    triggerOpenProject,
+    handleSaveUnsavedChanges,
+    handleDiscardUnsavedChanges,
+    handleCancelUnsavedChanges,
+  } = useUnsavedChangesFlow({
+    hasUnsavedChanges,
+    dialog,
+    handleNewProject,
+    handleOpenProject,
+    handleSaveProject,
+    setHasUnsavedChanges,
+  });
 
-  const handleSaveUnsavedChanges = useCallback(async () => {
-    const saved = await handleSaveProject();
-    if (saved) {
-      const pendingAction = dialog.unsavedChangesActionType;
-      dialog.setUnsavedChangesActionType(null);
-      if (pendingAction === "new") {
-        handleNewProject();
-      } else if (pendingAction === "open") {
-        handleOpenProject();
-      }
-    }
-  }, [dialog, handleSaveProject, handleNewProject, handleOpenProject]);
-
-  const handleDiscardUnsavedChanges = useCallback(() => {
-    const pendingAction = dialog.unsavedChangesActionType;
-    if (pendingAction === "new") {
-      handleNewProject();
-    } else if (pendingAction === "open") {
-      handleOpenProject();
-    }
-    dialog.setUnsavedChangesActionType(null);
-    setHasUnsavedChanges(false);
-  }, [dialog, handleNewProject, handleOpenProject, setHasUnsavedChanges]);
-
-  const handleCancelUnsavedChanges = useCallback(() => {
-    dialog.setUnsavedChangesActionType(null);
-    }, [dialog]);
-
-    // ── Inicjalizacja storage (tylko Capacitor) ──────────────────────────────────
-  useEffect(() => {
-    initStorageService();
-  }, []);
-
-  // ── Persistence ───────────────────────────────────────────────────────────────
-  useDebouncedPersist(PROJECT_METADATA_STORAGE_KEY, metadata, LOCAL_STORAGE_WRITE_DEBOUNCE_MS);
-  useDebouncedPersist(SYMBOLS_STORAGE_KEY, symbols, LOCAL_STORAGE_WRITE_DEBOUNCE_MS);
-  useDebouncedPersist(CONNECTIONS_STORAGE_KEY, connections, LOCAL_STORAGE_WRITE_DEBOUNCE_MS);
-  useDebouncedPersist("dinboard.default_wire_settings", defaultWireSettings, LOCAL_STORAGE_WRITE_DEBOUNCE_MS);
-  useDebouncedPersist("dinboard.show_din_rail_groups", sheetPanel.showDinRailGroups, LOCAL_STORAGE_WRITE_DEBOUNCE_MS);
+  useAppEventBindings({
+    hasUnsavedChanges,
+    dialog,
+    triggerNewProject,
+    triggerOpenProject,
+    handleSaveProject,
+    schematic,
+  });
 
   useEffect(() => {
-    safeSetItem(UI_THEME_STORAGE_KEY, uiTheme).catch((error) =>
-      reportRuntimeError(error, { source: "unhandled-error" })
-    );
-  }, [uiTheme]);
-
-  useEffect(() => {
-        if (sheetPanel.activeSheet === "sheet3" || sheetPanel.activeSheet === "sheet4") sheetPanel.setWorkspaceZoomPercent(100);
+    if (sheetPanel.activeSheet === "sheet3" || sheetPanel.activeSheet === "sheet4") sheetPanel.setWorkspaceZoomPercent(100);
   }, [sheetPanel, sheetPanel.activeSheet]);
-
-  useEffect(() => {
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (!hasUnsavedChanges) {
-        return;
-      }
-
-      event.preventDefault();
-      event.returnValue = "";
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [hasUnsavedChanges]);
-
-  useEffect(() => {
-    const handleGlobalKeyDown = (event: KeyboardEvent) => {
-      handleGlobalAppShortcut(event, {
-                openHelp: () => dialog.setIsHelpOpen(true),
-        newProject: triggerNewProject,
-        openProject: triggerOpenProject,
-        saveProject: handleSaveProject,
-        print: () => window.print(),
-        resetSchematicViewport: () => schematic.requestViewportReset(),
-      });
-    };
-
-    window.addEventListener("keydown", handleGlobalKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleGlobalKeyDown);
-    };
-  }, [triggerNewProject, triggerOpenProject, handleSaveProject, dialog, schematic]);
 
   useEffect(() => {
     setSymbols((prev) => normalizeGroupConsistency(normalizePaletteAssetDimensions(prev, paletteTemplateMap)));
@@ -391,7 +336,7 @@ function AppWorkspace({
     [symbols],
   );
 
-    const handleOpenRcdManager = useCallback(() => {
+  const handleOpenRcdManager = useCallback(() => {
     if (rcdManagerEntries.length === 0) {
       showTemporaryStatus("Brak modułów RCD do konfiguracji", 3200);
       return;
@@ -415,7 +360,7 @@ function AppWorkspace({
         "Zapisano ustawienia RCD",
       );
 
-            if (!changed) {
+      if (!changed) {
         showTemporaryStatus("Brak zmian w ustawieniach RCD", 2600);
       }
 
@@ -424,7 +369,7 @@ function AppWorkspace({
     [history, dialog, selectedSymbolId, selectedSymbolIds, showTemporaryStatus, symbols],
   );
 
-    const handleValidationSymbolSelect = useCallback(
+  const handleValidationSymbolSelect = useCallback(
     (symbolId: string) => {
       setHighlightedCircuitEditTarget(null);
       sheetPanel.setActiveSheet("sheet1");
@@ -458,11 +403,11 @@ function AppWorkspace({
     [handleSymbolSelectionChange, sheetPanel, handleCircuitEditSave, symbols],
   );
 
-    // ── Render ────────────────────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────────────────────
   return (
     <main className={`app-shell ui-theme-${uiTheme}`}>
       <AppHeader
-        projectFileName={currentFilePath ? currentFilePath.split(/[/\\]/).pop() || "Nowe zlecenie" : "Nowe zlecenie"}
+        projectFileName={projectFileName}
         hasUnsavedChanges={hasUnsavedChanges}
         canUndo={history.canUndo}
         canRedo={history.canRedo}
@@ -522,8 +467,8 @@ function AppWorkspace({
           setPaletteContextMenu,
           handleOpenDinRailGenerator: handleOpenDinRailGenerator,
           onPaletteItemTap: handlePaletteInsert,
-          defaultWireSettings,
-          onChangeDefaultWireSettings: setDefaultWireSettings,
+          currentWireSettings,
+          onChangeDefaultWireSettings: setCurrentWireSettings,
           selectedConnectionId,
           connections,
           onConnectionsChange: handleConnectionsChange,
@@ -557,7 +502,7 @@ function AppWorkspace({
           onConnectionsChange: handleConnectionsChange,
           selectedConnectionId,
           onConnectionSelect: setSelectedConnectionId,
-          defaultWireSettings,
+          currentWireSettings,
         }}
         rightPanelProps={{
           activeRightTab: sheetPanel.activeRightTab,
@@ -679,6 +624,10 @@ export default function App() {
       console.error(e);
     }
   }, [navigateToApp]);
+
+  useEffect(() => {
+    initStorageService();
+  }, []);
 
   if (routePath !== APP_ROUTE_PATH) {
     return (

@@ -1,11 +1,12 @@
-
 import { AppIcon } from "./AppIcon";
 import { ModuleAssetPreview } from "./ModuleAssetPreview";
 import { ProjectPropertiesPage } from "./ProjectPropertiesPage";
 import { ConnectionsLeftPanel } from "./ConnectionsLeftPanel";
+import "./LeftPanel.css";
 import { getPaletteTemplateDimensions, type PaletteGroup } from "../lib/modules/moduleCatalog";
 import { getPaletteIconName, getPaletteDescription, createPaletteDragPreview, type SheetType } from "../lib/appHelpers";
 import type { ProjectMetadata } from "../types/projectMetadata";
+import { type DefaultWireSettings } from "../lib/connections/connectionsLogic";
 import type { ConnectionItem } from "../types/connectionItem";
 
 import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
@@ -25,8 +26,8 @@ export interface AppLeftPanelProps {
   onPaletteItemTap?: (templateId: string) => void;
   showLeftPanel?: boolean;
   onClose?: () => void;
-  defaultWireSettings?: any;
-  onChangeDefaultWireSettings?: (settings: any) => void;
+  currentWireSettings?: DefaultWireSettings;
+  onChangeDefaultWireSettings?: (settings: DefaultWireSettings) => void;
   selectedConnectionId?: string | null;
   connections?: ConnectionItem[];
   onConnectionsChange?: (newConnections: ConnectionItem[], label: string, statusMsg: string) => void;
@@ -46,7 +47,7 @@ export function AppLeftPanel({
   handleOpenDinRailGenerator,
   onPaletteItemTap,
   onClose,
-  defaultWireSettings,
+  currentWireSettings,
   onChangeDefaultWireSettings,
   selectedConnectionId = null,
   connections = [],
@@ -60,9 +61,9 @@ export function AppLeftPanel({
   return (
     <aside className="left-panel">
       <div className="panel-content">
-        {activeSheet === "sheet1_connections" && defaultWireSettings && onChangeDefaultWireSettings && (
+        {activeSheet === "sheet1_connections" && currentWireSettings && onChangeDefaultWireSettings && (
           <ConnectionsLeftPanel
-            defaultWireSettings={defaultWireSettings}
+            defaultWireSettings={currentWireSettings}
             onChangeDefaultWireSettings={onChangeDefaultWireSettings}
             selectedConnectionId={selectedConnectionId}
             connections={connections}

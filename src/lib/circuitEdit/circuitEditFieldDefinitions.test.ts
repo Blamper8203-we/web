@@ -244,7 +244,7 @@ describe("applyCircuitEditValue", () => {
     const symbol = createDefaultSymbolItem({
       deviceKind: "terminalBlock",
       type: "Blok rozdzielczy",
-      label: "Blok rozdzielczy 4-7",
+      label: "Blok rozdzielczy 4\\7",
       isTerminalBlock: true,
       parameters: {},
     });
@@ -258,7 +258,7 @@ describe("applyCircuitEditValue", () => {
     const symbol = createDefaultSymbolItem({
       deviceKind: "terminalBlock",
       type: "Blok rozdzielczy",
-      label: "Blok rozdzielczy 4-7",
+      label: "Blok rozdzielczy 4\\7",
       isTerminalBlock: true,
       parameters: { BLUE_COVER_VISIBILITY: "hidden" },
     });
@@ -349,7 +349,7 @@ describe("getCircuitEditHeader", () => {
     const symbol = createDefaultSymbolItem({
       deviceKind: "terminalBlock",
       type: "Blok rozdzielczy",
-      label: "Blok rozdzielczy 4-7",
+      label: "Blok rozdzielczy 4\\7",
       isTerminalBlock: true,
     });
 
@@ -411,7 +411,7 @@ describe("getCircuitEditFields", () => {
     const symbol = createDefaultSymbolItem({
       deviceKind: "terminalBlock",
       type: "Blok rozdzielczy",
-      label: "Blok rozdzielczy 4-7",
+      label: "Blok rozdzielczy 4\\7",
       isTerminalBlock: true,
     });
 

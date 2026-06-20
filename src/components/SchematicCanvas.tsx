@@ -15,6 +15,7 @@ import { useSchematicCellEdit } from "../hooks/useSchematicCellEdit";
 import { SchematicZoomDock } from "./SchematicZoomDock";
 import { SchematicCellEditor } from "./SchematicCellEditor";
 import { SchematicScrollbars } from "./SchematicScrollbars";
+import "./SchematicCanvas.css";
 
 interface SchematicCanvasProps {
   symbols: SymbolItem[];

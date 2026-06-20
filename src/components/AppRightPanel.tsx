@@ -8,6 +8,7 @@ import type { SymbolItem } from "../types/symbolItem";
 import type { ConnectionItem } from "../types/connectionItem";
 import { AppIcon } from "./AppIcon";
 import { CircuitEditPanel } from "./CircuitEditPanel";
+import "./RightPanel.css";
 import { PowerBalancePage, type BalanceApplyHandler, type PhaseMoveApplyHandler } from "./PowerBalancePage";
 import { ValidationPanel } from "./ValidationPanel";
 import { ConnectionsRightPanel } from "./ConnectionsRightPanel";
@@ -170,6 +171,9 @@ export function AppRightPanel({
           onConnectionSelect={onConnectionSelect}
           onConnectionsChange={onConnectionsChange}
           symbols={symbols}
+          selectedSymbol={selectedSymbol}
+          onSymbolSave={handleCircuitEditSave}
+          onClearSymbolSelection={() => handleSymbolSelectionChange([], null)}
         />
       </aside>
     );
@@ -222,6 +226,7 @@ export function AppRightPanel({
               symbol={selectedSymbol}
               symbols={symbols}
               highlightedFieldKey={highlightedCircuitEditFieldKey}
+              hideRemoveCover={true}
               onSave={handleCircuitEditSave}
               onClearSelection={() => handleSymbolSelectionChange([], null)}
             />

@@ -1,4 +1,4 @@
-import { devLog } from "../lib/runtimeDiagnostics";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   applyCircuitEditValues,
@@ -8,11 +8,14 @@ import {
 } from "../lib/circuitEdit/circuitEditFieldDefinitions";
 import type { SymbolItem } from "../types/symbolItem";
 import { AppIcon } from "./AppIcon";
+import "./CircuitEditPanel.css";
 
 interface CircuitEditPanelProps {
   symbol: SymbolItem | null;
   symbols?: SymbolItem[];
   highlightedFieldKey?: string | null;
+  /** Gdy true — ukrywa pole "Zdejmij osłonę" (tylko dla rozdzielnicy połączeń) */
+  hideRemoveCover?: boolean;
   onSave: (nextSymbol: SymbolItem) => void;
   onClearSelection: () => void;
 }
@@ -21,25 +24,24 @@ type FieldValue = string | number | boolean;
 
 import { CircuitCalculators } from "./CircuitCalculators";
 
-export function CircuitEditPanel({ symbol, symbols, highlightedFieldKey, onSave, onClearSelection }: CircuitEditPanelProps) {
-  const fields = useMemo(() => (symbol ? getCircuitEditFields(symbol, symbols) : []), [symbol, symbols]);
+export function CircuitEditPanel({ symbol, symbols, highlightedFieldKey, hideRemoveCover, onSave, onClearSelection }: CircuitEditPanelProps) {
+  const allFields = useMemo(() => (symbol ? getCircuitEditFields(symbol, symbols) : []), [symbol, symbols]);
+  const fields = useMemo(
+    () => (hideRemoveCover ? allFields.filter((f) => f.key !== "RemoveCover") : allFields),
+    [allFields, hideRemoveCover],
+  );
   const header = useMemo(() => (symbol ? getCircuitEditHeader(symbol) : null), [symbol]);
   const [values, setValues] = useState<Record<string, FieldValue>>({});
-  const [isDirty, setIsDirty] = useState(false);
   const fieldsRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    // Ustaw wartości TYLKO dla nowych pól, nie resetuj już zmienione
-    setValues((prevValues) => {
-      const newValues = { ...prevValues };
+    setValues(() => {
+      const newValues: Record<string, FieldValue> = {};
       fields.forEach((field) => {
-        if (!(field.key in prevValues)) {
-          newValues[field.key] = field.value;
-        }
+        newValues[field.key] = field.value;
       });
       return newValues;
     });
-    setIsDirty(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [symbol?.id]);
 
@@ -55,21 +57,22 @@ export function CircuitEditPanel({ symbol, symbols, highlightedFieldKey, onSave,
 
   const updateValue = (key: string, value: FieldValue) => {
     setValues((prev) => ({ ...prev, [key]: value }));
-    setIsDirty(true);
+  };
+
+  /** Natychmiastowy zapis bez czekania na React state — używane przez toggle switch. */
+  const updateValueAndSaveNow = (key: string, value: FieldValue) => {
+    // WHY: setState jest asynchroniczny, więc nie można wywołać handleSave() zaraz po
+    // updateValue() — stare `values` byłoby użyte do budowania nextSymbol.
+    // Budujemy nextSymbol ręcznie z aktualnym values + nową wartością.
+    const mergedValues = { ...values, [key]: value };
+    setValues(mergedValues);
+    const nextSymbol = applyCircuitEditValues(symbol, mergedValues);
+    onSave(nextSymbol);
   };
 
   const handleSave = () => {
-    devLog("🟡 [CircuitEditPanel.handleSave] values:", values);
     const nextSymbol = applyCircuitEditValues(symbol, values);
-    devLog("🟡 [CircuitEditPanel.handleSave] nextSymbol FULL OBJECT:", nextSymbol);
-    devLog("🟡 [CircuitEditPanel.handleSave] nextSymbol.parameters DETAILED:", {
-      parameters: nextSymbol.parameters,
-      parametersCURRENT: nextSymbol.parameters?.CURRENT,
-      protectionType: nextSymbol.protectionType,
-      displayProtection: nextSymbol.displayProtection,
-    });
     onSave(nextSymbol);
-    setIsDirty(false);
   };
 
   const focusNextField = (currentKey: string) => {
@@ -114,6 +117,7 @@ export function CircuitEditPanel({ symbol, symbols, highlightedFieldKey, onSave,
             value={values[field.key] ?? field.value}
             isHighlighted={field.key === highlightedFieldKey}
             onChange={(value) => updateValue(field.key, value)}
+            onAutoSave={(value) => updateValueAndSaveNow(field.key, value)}
             onCommit={handleSave}
             onFocusNext={() => focusNextField(field.key)}
           />
@@ -123,14 +127,7 @@ export function CircuitEditPanel({ symbol, symbols, highlightedFieldKey, onSave,
       <CircuitCalculators values={values} moduleType={moduleTypeForCalc} />
 
       <div className="circuit-edit-footer">
-        <button
-          type="button"
-          className={`accent-btn ${isDirty ? "dirty" : ""}`}
-          onClick={handleSave}
-          disabled={!isDirty}
-        >
-          Zapisz zmiany
-        </button>
+        {/* Przycisk Zapisz usunięto zgodnie z życzeniem, panel zapisuje automatycznie. */}
       </div>
     </div>
   );
@@ -141,11 +138,13 @@ interface CircuitEditFieldProps {
   value: FieldValue;
   isHighlighted: boolean;
   onChange: (value: FieldValue) => void;
+  /** Wywoływane dla pól toggle/checkbox — od razu zapisuje bez klikania przycisku. */
+  onAutoSave: (value: FieldValue) => void;
   onCommit: () => void;
   onFocusNext: () => boolean;
 }
 
-function CircuitEditField({ field, value, isHighlighted, onChange, onCommit, onFocusNext }: CircuitEditFieldProps) {
+function CircuitEditField({ field, value, isHighlighted, onChange, onAutoSave, onCommit, onFocusNext }: CircuitEditFieldProps) {
   const controlRef = useRef<HTMLInputElement | HTMLSelectElement | null>(null);
   const options = field.kind === "combo" ? withCurrentOption(field.options ?? [], String(value)) : [];
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -174,15 +173,21 @@ function CircuitEditField({ field, value, isHighlighted, onChange, onCommit, onF
     return (
       <label className={`circuit-edit-checkbox ${isHighlighted ? "is-highlighted" : ""}`}>
         <span>{field.label}</span>
-        <input
-          ref={controlRef as React.RefObject<HTMLInputElement>}
-          data-circuit-edit-control="true"
-          data-circuit-edit-key={field.key}
-          type="checkbox"
-          checked={Boolean(value)}
-          onChange={(event) => onChange(event.currentTarget.checked)}
-          onKeyDown={handleKeyDown}
-        />
+        <span className="circuit-edit-toggle">
+          <input
+            ref={controlRef as React.RefObject<HTMLInputElement>}
+            data-circuit-edit-control="true"
+            data-circuit-edit-key={field.key}
+            type="checkbox"
+            checked={Boolean(value)}
+            onChange={(event) => {
+              const checked = event.currentTarget.checked;
+              onAutoSave(checked); // natychmiastowy zapis bez przycisku
+            }}
+            onKeyDown={handleKeyDown}
+          />
+          <span className="circuit-edit-toggle-track" aria-hidden="true" />
+        </span>
       </label>
     );
   }
@@ -196,7 +201,10 @@ function CircuitEditField({ field, value, isHighlighted, onChange, onCommit, onF
           data-circuit-edit-control="true"
           data-circuit-edit-key={field.key}
           value={String(value)}
-          onChange={(event) => onChange(event.currentTarget.value)}
+          onChange={(event) => {
+            onChange(event.currentTarget.value);
+            onAutoSave(event.currentTarget.value);
+          }}
           onKeyDown={handleKeyDown}
         >
           {options.map((option) => (
@@ -218,6 +226,7 @@ function CircuitEditField({ field, value, isHighlighted, onChange, onCommit, onF
             onChange={(event) =>
               onChange(field.kind === "number" ? event.currentTarget.value : event.currentTarget.value)
             }
+            onBlur={() => onCommit()}
             onKeyDown={handleKeyDown}
             list={field.options && field.options.length > 0 ? `${field.key}-datalist` : undefined}
           />
