@@ -33,13 +33,16 @@ export function DinRailRenderedSymbols({
   isDrawing = false,
   zoom,
 }: DinRailRenderedSymbolsProps) {
-  // SVG text fontSize is in user units; effective pixels = fontSize * zoom.
-  // Invert the clamp from DinRailDesignationLabelsOverlay (effective 10..18px)
-  // so the rendered label stays in the same readable range at any zoom.
-  const labelFontSize = Math.min(
-    Math.max(13.5 / zoom, 10 / zoom),
-    18 / zoom
-  );
+  // Match DinRailDesignationLabelsOverlay's effective font size at every
+  // zoom. HTML overlay: fontSize = clamp(13.5 * zoom, 10, 18) px.
+  // SVG fontSize is in user units; effective pixels = fontSize * zoom.
+  // So we compute the desired effective size, then divide by zoom to get
+  // user units. Order matters: clamp first, then divide. Doing the clamp
+  // on 13.5 alone (as in the previous attempt) made the SVG font
+  // effectively fixed at 13.5px regardless of zoom, ignoring the
+  // 10..18 clamp at extreme zoom levels.
+  const effectiveFontPx = Math.min(Math.max(13.5 * zoom, 10), 18);
+  const labelFontSize = effectiveFontPx / zoom;
   return (
     <>
       {symbols.filter(filterFn).map((symbol) => {
