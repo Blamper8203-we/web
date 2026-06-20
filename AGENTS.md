@@ -1,259 +1,250 @@
 # AGENTS.md
 
-## Projekt
-DINBoard Web / Tauri
+This file is the **first thing any AI agent (or human) should read** before touching this codebase. It exists because DINBoard is engineering software, not a demo, and silent changes have real-world consequences in distribution-board projects.
 
-## Zrodlo zasad
-Ten plik przenosi zasady pracy ze starego projektu Avalonia:
-`C:\Users\blamp\Desktop\Avalonia`.
+The detailed rules per role live in `.harness/reins/<role>/agent.md`. The project-wide standards live in `.harness/docs/code-standards.md` and `.harness/docs/test-policy.md`. The layout map lives in `.harness/docs/architecture-map.md`. The team-orchestrator description lives in `.harness/agent.md`. **This file points at all of those and adds the things only an outside agent would otherwise miss.**
 
-Najwazniejsze dokumenty zrodlowe:
-- `AGENTS.md`
-- `AI_CONTEXT.md`
-- `ARCHITECTURE_MAP.md`
-- `CODE_QUALITY.md`
-- `DOMAIN_RULES.md`
-- `PREVENTING_CODE_MESS.md`
-- `.cursorrules`
+---
 
-## Czym jest projekt
-DINBoard to aplikacja inzynierska dla elektrykow. Nie jest to demo ani
-zwykla aplikacja wizualna. Zmiany moga wplywac na realne decyzje projektowe:
-rozdzielnice, obwody, RCD/MCB, bilans faz, walidacje, zapis projektu i PDF.
+## What this project is
 
-## Stos technologiczny nowego projektu
-- TypeScript
-- React
-- Vite
-- Tauri
-- Pixi.js / DOM SVG dla widokow graficznych
-- Vitest
+DINBoard Web — a desktop/mobile/PWA tool for electricians to design distribution boards (rozdzielnice), wire circuits, balance phases, validate the project, and generate the as-built PDF documentation required by PN-HD 60364. Built in TypeScript + React 19 + Vite 8, packaged with Tauri 2 (desktop) and Capacitor (iOS/Android). One main app state (`symbols` + `metadata`) is rendered in 4 sheets: DIN rail, schematic, circuit list, PDF documentation.
 
-## Cel pracy agenta
-Agent ma rozwijac istniejaca aplikacje produkcyjna z naciskiem na:
-1. poprawnosc
-2. stabilnosc
-3. bezpieczenstwo zmian
-4. utrzymanie architektury
-5. czytelnosc kodu
-6. wydajnosc
-7. jakosc eksportu i zapisu danych
+**Solo developer**, electrical-engineer by trade, not a TypeScript native. Decisions lean toward concrete engineering correctness over architectural elegance. When in doubt, ask the developer before changing a high-risk subsystem — they will tell you what the right answer is for the user, not for the code.
 
-## Glowna zasada
-Preferuj najmniejsza bezpieczna zmiane, ktora rozwiazuje problem bez
-przypadkowej zmiany zachowania aplikacji.
+---
 
-Nie poprawiaj "przy okazji" niezaleznch subsystemow.
+## Distribution target and audience
 
-## Zanim zrobisz nietrywialna zmiane
-1. Ustal, ktorego subsystemu dotyczy zadanie.
-2. Sprawdz, czy subsystem jest krytyczny.
-3. Przeczytaj lokalne typy, helpery i testy dotyczace zmiany.
-4. Zastosuj najmniejszy bezpieczny zakres.
-5. Nie zmieniaj logiki domenowej bez wyraznej prosby.
-6. Uruchom testy odpowiednie dla dotknietego obszaru.
+DINBoard is being prepared for **public distribution** to other electricians (not only the developer's own practice). This changes priorities — what was nice-to-have for a personal tool becomes mandatory before v1.0 release.
 
-## Obszary wysokiego ryzyka
+**Full plan:** [`docs/distribution-roadmap.md`](docs/distribution-roadmap.md) (read it before touching any user-facing feature).
 
-### Logika elektryczna i domenowa
-Traktuj jako krytyczne:
-- `src/lib/phaseDistribution/**`
-- `src/lib/validation/**`
-- `src/lib/circuitRows.ts`
-- `src/lib/circuitEdit/**`
-- `src/lib/projectMetadata.ts`
-- `src/types/symbolItem.ts`
-- `src/types/circuitRow.ts`
+**Hard rules for any rein touching DINBoard:**
 
-Nie wolno po cichu zmieniac:
-- bilansowania faz
-- sumowania obciazen
-- progow i wynikow walidacji
-- relacji RCD -> MCB/RCBO
-- interpretacji faz L1/L2/L3
-- danych trafiajacych do zestawien i PDF
+1. **Audience test** — Would an electrician who has never seen this code understand the feature without explanation? If no, simplify or add contextual help. **The developer knows the code; customers do not.**
 
-Jesli aktualne zachowanie wydaje sie bledne, najpierw opisz:
-- obecne zachowanie
-- dlaczego jest ryzykowne lub bledne
-- wplyw poprawki na wyniki
-- testy, ktore to zabezpieczaja
+2. **Empty state test** — Does every feature have a sensible message when the project is empty / data is missing? An empty canvas must not look like a crash.
 
-### Szyna DIN, canvas, schemat, interakcje
-Traktuj jako krytyczne:
+3. **Cross-platform test** — Does the change pass the compatibility matrix in `docs/distribution-roadmap.md`? Web (PWA), Desktop (Tauri), and Mobile (Capacitor) must all open the same `.dinboard` file with identical results.
+
+4. **Schema migration safety** — Any change to `src/lib/projectFile.ts`, `src/types/symbolItem.ts`, or related persistence must include a backward-compatible migration path. Round-trip test required for every format change.
+
+5. **Test count stability** — Test count must never decrease. New features must add tests. Baseline: 249 unit tests across 33 files (2026-06-07).
+
+6. **Friendly errors only** — No stack traces in the user UI. Every error must have a message in domain language (Polish, electrical terms) and at least one recovery action ("Unlock project", "Undo last change", "Restart session").
+
+7. **No silent regressions** — If the change affects a high-risk area listed in AGENTS.md below, the diff must include: current behaviour, why it's risky, the impact on real engineering decisions, and a test that pins the new behaviour.
+
+When in doubt about a distribution decision: read `docs/distribution-roadmap.md` first, then ask the developer before implementing.
+
+---
+
+## Stack and commands
+
+- Test: `npm.cmd run test` (Vitest, jsdom). Targeted: `npm.cmd run test -- <path>`.
+- Lint: `npm.cmd run lint`. Auto-fix: `npm.cmd run lint:fix`.
+- Build: `npm.cmd run build` (tsc + Vite).
+- Pre-merge gate: `npm.cmd run check` (= build + test).
+- Online smoke: `npm.cmd run smoke:production` (after `check`).
+- Dev: `npm.cmd run dev` (Vite). Host: `npm.cmd run dev:host`.
+- Preview built bundle: `npm.cmd run preview`.
+- Node ≥ 22.12.0. Use PowerShell syntax on Windows (no `&&`, no Unix `ls` flags).
+
+---
+
+## Layer discipline (MVVM-ish, hard rule)
+
+| Layer | Folder | May compute | May render | May persist |
+|---|---|---|---|---|
+| UI | `src/components/**` | — | yes | — |
+| Orchestration | `src/hooks/**` | UI state flow, debounced persist | — | via lib, not direct |
+| Domain | `src/lib/**` | everything (calc, validation, parse, export, geometry) | — | — |
+| Contracts | `src/types/**` | types + normalizers | — | — |
+| Desktop | `src-tauri/**` | OS integration | — | OS-level only |
+
+**No domain logic in components.** A component that needs a domain result calls into `lib/`. `lib/` never imports from `components/`. `types/` never contains logic that computes things.
+
+Files: one concern per file. `*.test.ts(x)` co-located with the file under test.
+
+---
+
+## High-risk areas (touch = PR must explain behaviour before/after + test)
+
+If you change any of these, the diff must include: current behaviour, why it's risky, the impact on real engineering decisions, and a test that pins the new behaviour. Do not change silently.
+
+**Electrical domain (delegate to `electrical-expert` rein if outside your scope):**
+- `src/lib/phaseDistribution/**` — phase balance, L1/L2/L3 assignment
+- `src/lib/validation/**` — validation thresholds and severity
+- `src/lib/circuitRows.ts` — circuit-list rows feeding UI and PDF
+- `src/lib/circuitEdit/**` — circuit-edit form logic
+- `src/lib/projectMetadata.ts` — project metadata defaults
+- `src/types/symbolItem.ts` — symbol data shape
+- `src/types/circuitRow.ts` — circuit-row data shape
+
+**Canvas / interactions (delegate to `canvas-expert`):**
 - `src/components/DinRailCanvasPixi.tsx`
-- `src/lib/dinRailSelection.ts`
-- `src/lib/dinRailSnap.ts`
+- `src/lib/dinRailSelection.ts`, `src/lib/dinRailSnap.ts`
 - `src/lib/schematic/**`
+- `src/lib/connections/**` (geometric aspects)
+- `src/lib/dinRailCanvas/**`
 - `src/lib/export/dinRailSnapshotService.ts`
 
-Przy zmianach w tym obszarze pilnuj:
-- wydajnosci przy duzej liczbie modulow
-- jakosci SVG przy malym i duzym zoomie
-- braku migotania
-- pointer events
-- drag and drop
-- snappingu
-- zaznaczania grup
-- zgodnosci widoku z eksportem/snapshotem
-
-Nie mieszaj geometrii logicznej z dekoracja wizualna. Przyklad: bounding box
-grupy powinien pozostac danymi logicznymi, a pozycja ozdobnej klamry powinna
-byc liczona osobno w rendererze albo miec osobne pole.
-
-### Import SVG i assety modulow
-Traktuj jako krytyczne:
+**SVG module assets (delegate to `canvas-expert`):**
 - `src/lib/modules/importedModuleCatalog.ts`
 - `src/lib/modules/svgAsset.ts`
 - `src/lib/modules/svgNormalization.ts`
 - `src/lib/modules/rasterPreview.ts`
 - `src/components/SvgImportDialog.tsx`
 - `src/components/ModuleAssetPreview.tsx`
-- `public/assets/modules/**`
+- `public/assets/modules/**` — never degrade original SVG quality; validate imports; keep `dangerouslySetInnerHTML` sanitised
 
-Zasady:
-- nie pogarszaj jakosci oryginalnego SVG
-- nie dodawaj stylow zmieniajacych kreski/wypelnienia bez wyraznej potrzeby
-- waliduj importowane SVG
-- zachowuj bezpieczenstwo `dangerouslySetInnerHTML`
-- cache'uj kosztowne przetwarzanie, ale nie kosztem jakosci obrazu
-
-### Zapis, odczyt, migracje projektu
-Traktuj jako krytyczne:
+**Project I/O (delegate to `project-io-expert`):**
 - `src/lib/projectFile.ts`
 - `src/hooks/useProjectActions.ts`
 - `src/hooks/useSymbolHistory.ts`
-- `src-tauri/**`
+- `src-tauri/**` — never silently change the file contract, never break backward compat, never drop data without migration, never change model field semantics. Round-trip test required for any format change.
 
-Nie wolno po cichu:
-- zmieniac kontraktu pliku projektu
-- psuc zgodnosci wstecznej
-- usuwac danych bez migracji
-- zmieniac semantyki pol modelu
-
-Kazda zmiana formatu danych wymaga jasnego opisu i testu round-trip albo
-innego sprawdzenia zapisu/odczytu.
-
-### Eksport PDF i dokumentacja wynikowa
-Traktuj jako krytyczne:
+**PDF export (delegate to `pdf-expert`):**
 - `src/lib/export/**`
 - `src/components/PdfDocumentationPage.tsx`
 - `src/components/PdfPreviewWorkspace.tsx`
-- `src/lib/measurementProtocols.ts`
+- `src/lib/measurementProtocols.ts` — PDF is the engineering deliverable; don't change report input data, order, sections, or UI↔PDF consistency without explicit request.
 
-Eksport PDF jest czescia wyniku inzynierskiego. Nie zmieniaj po cichu:
-- danych wejsciowych raportu
-- kolejnosci informacji o znaczeniu technicznym
-- sekcji dokumentacji
-- zgodnosci miedzy UI a PDF
+---
 
-## Granice architektury w projekcie webowym
-Odpowiednik zasad MVVM ze starego Avalonia:
+## Things that are NOT obvious and WILL trip you up
 
-- `components`: UI, layout, kontrolki i zachowanie wizualne.
-- `hooks`: orkiestracja stanu UI i przeplywow uzytkownika.
-- `lib`: logika domenowa, obliczenia, walidacja, eksport, import, parsery.
-- `types`: kontrakty danych i modele.
-- `src-tauri`: integracja desktopowa/systemowa.
+### 1. Three sources of truth for module assets
 
-Nie przenos logiki domenowej do komponentow React ani CSS.
-Komponenty moga skladac UI, ale obliczenia, walidacja, eksport i transformacje
-danych powinny byc w `lib` lub w wyspecjalizowanych hookach.
+A module in DINBoard lives in **three places that must stay in sync**. Missing one is the #1 silent-failure mode of this codebase.
 
-## Zasady wydajnosci
-- Nie wykonuj ciezkiego parsowania SVG w renderze React.
-- Nie wykonuj kosztownych obliczen na kazdym pointer move, wheel albo drag.
-- Cache'uj wyniki zalezne od stabilnych kluczy.
-- Przy pan/zoom pilnuj plynnosci, ale nie rasteryzuj SVG w sposob psujacy jakosc.
-- Unikaj niepotrzebnego przebudowywania duzych warstw DOM.
-- Dla wypelnionej szyny DIN testuj zachowanie na duzej liczbie modulow.
+1. **The SVG file** at `public/assets/modules/<Category>/<filename>.svg`. This is the actual asset.
+2. **The catalogue entry** in `src/lib/modules/moduleCatalog.ts` (the `currentModuleEntries` array — `moduleEntries` is **legacy, disabled by `INCLUDE_LEGACY_BUILT_IN_MODULES = false`**, do not add to it). Each entry is a `ModuleEntry` (templateId, code, label, type, category, deviceKind, phase, modules, moduleRef, etc.). `moduleRef` must equal the path under `public/assets/modules/`.
+3. **The manifest** at `public/assets/modules/module-manifest.json` is **generated from disk by the Vite plugin** in `vite.config.ts` (`dinboard-module-asset-manifest`). It is rebuilt on every `npm run build` and on every dev-server request. You do NOT edit it by hand.
 
-## Zasady refaktoryzacji
-Wolno:
-- wyodrebniac male helpery
-- poprawiac nazwy
-- rozdzielac odpowiedzialnosci
-- dodawac testy charakterystyki przed zmiana ryzykownej logiki
-- usuwac martwy kod, jesli jest pewnosc, ze nie jest uzywany
+A fourth, hidden source: `src/lib/modules/moduleAssetDiscovery.ts` defines `FALLBACK_MODULE_ASSETS` — a hardcoded fallback used only if the manifest fetch fails. New modules don't need to be added there (it's just a safety net), but if you see a module that "exists in code but the manifest never gets it", check that the file is on disk under `public/assets/modules/`.
 
-Nie wolno bez wyraznej potrzeby:
-- przepisywac duzych dzialajacych fragmentow
-- mieszac refaktoru z nowa funkcja
-- zmieniac wielu subsystemow naraz
-- dodawac nowych frameworkow lub zaleznosci
-- "ulepszac" algorytmow domenowych bez celu inzynierskiego
+**Before adding a new module:** drop the SVG into `public/assets/modules/<Category>/`, then add the matching `ModuleEntry` to `currentModuleEntries` in `moduleCatalog.ts` with the correct `moduleRef` (= path under `public/assets/modules/`). Build runs once and the manifest regenerates. The PWA Service Worker cache (`vite.config.ts` `workbox.runtimeCaching` for `/assets/modules/*.svg`, `CacheFirst`, 30-day TTL) will hold the old SVG until the user clears site data or hard-reloads after a service-worker update — see "Known tool quirks" below.
 
-## Zasady testow
-Uruchamiaj testy adekwatne do zmiany:
+### 2. The "Blok rozdzielczy" string-dispatch pattern (do not refactor without thinking)
 
-```powershell
-npm.cmd run build
-npm.cmd run test
-```
+`Blok rozdzielczy` is a category of terminal block (e.g. 4×7 pin, 4×15 pin). The codebase dispatches on it as a **string** in many places:
 
-Dla zmian lokalnych preferuj najpierw test celowany, potem caly zestaw:
+- `symbol.type === "Blok rozdzielczy"` (`moduleTerminals.ts:346`, `FerruleDistributionPolicy.test.ts`, `referenceDesignations.test.ts`, `geometry.test.ts`, `appHelpers.test.ts`, `schematicLayoutEngine.test.ts`, `circuitRows.test.ts`, `symbolItem.test.ts`, `useSvgTerminalsPreloader.ts:21`)
+- `symbol.moduleRef.includes("blok rozdzielczy")` (`symbolItem.ts:406`, `moduleCatalog.ts:788,801`, `moduleTerminals.ts:74,119,346-388`, `paletteFormatting.ts:192`)
+- `category === "Blok rozdzielczy"` in `moduleCatalog.ts:688` (group order)
+- `// WHY:` comments in `moduleTerminals.ts:74,119,346-388` explain the "meet" scaling and wire-routing special cases (it never uses "none" scaling, it always routes wires for distribution)
 
-```powershell
-npm.cmd run test -- src/lib/dinRailSelection.test.ts
-```
+This is intentional. Refactoring to a typed enum is a real PR, not a "while-I'm-here" change — talk to the user first. If you are adding a new special case for terminal blocks, mirror the existing pattern (string compare + comment), don't introduce a new dispatch mechanism.
 
-Dodawaj testy dla:
-- nowej logiki domenowej
-- zmian w walidacji
-- zmian w grupowaniu RCD/MCB
-- zmian w zapisie/odczycie
-- zmian w parserach/importerach
-- zmian w algorytmach layoutu/snapowania
+The same string-dispatch pattern exists for `Listwy zaciskowe` and `Złącza` in `moduleCatalog.ts:764, 798-806` (height/scaling rules) and `moduleTerminals.ts`.
 
-## Review przed zakonczeniem pracy
-Przed uznaniem zadania za gotowe sprawdz:
-- czy zmiana miesci sie w zamierzonym subsystemie
-- czy nie ma przypadkowych zmian domenowych
-- czy UI i eksport dalej uzywaja tej samej semantyki danych
-- czy build przechodzi
-- czy odpowiednie testy przechodza
-- czy opisales ryzyko, jesli dotknieto obszaru krytycznego
+### 3. Files that are too big to read in one pass (container files)
 
-## Preferowany styl odpowiedzi przy zadaniach nietrywialnych
-Odpowiadaj konkretnie:
-1. Problem
-2. Przyczyna
-3. Bezpieczna poprawka
-4. Co zmieniono
-5. Co przetestowano
+These are working code, not junk drawers, but they mix concerns enough that an AI agent will lose context if it reads them sequentially. If you are touching one of them, read it in pieces (specific functions), not the whole file:
 
-## Najwazniejsze zakazy
-- Nie zmieniaj po cichu logiki elektrycznej.
-- Nie psuj relacji RCD -> MCB/RCBO.
-- Nie psuj zapisu/odczytu projektu.
-- Nie psuj undo/historii zmian.
-- Nie psuj eksportu PDF.
-- Nie pogarszaj jakosci SVG modulow.
-- Nie wprowadzaj migotania ani regresji wydajnosci canvas.
-- Nie rob szerokich refaktorow przy okazji malej poprawki.
+| File | Size | Concerns mixed |
+|---|---|---|
+| `src/components/DinRailConnectionsCanvas.tsx` | 94 KB | canvas + connections + UI + state |
+| `src/components/MeasurementProtocolsWorkspacePage.tsx` | 53 KB | UI + form state + table composition |
+| `src/lib/schematic/schematicLayoutEngine.ts` | 34 KB | layout + geometry + per-element rules |
+| `src/lib/modules/moduleTerminals.ts` | 33 KB | terminal detection + pin layout + "Blok rozdzielczy" special cases |
+| `src/components/PublicLandingPage.tsx` | 31 KB | marketing copy + animations + image carousel |
+| `src/components/DinRailCanvasPixi.tsx` | 30 KB | Pixi scene + pointer events + selection + snapping |
+| `src/App.tsx` | 29 KB | top-level shell + sheet routing + dialogs |
+| `src/lib/measurementProtocols.ts` | 28 KB | protocol data shape + table generation |
+| `src/lib/modules/importedModuleCatalog.ts` | 28 KB | import flow + category inference + parameter parsing |
+| `src/lib/validation/electricalValidationService.ts` | 26 KB | rule engine + result formatting |
+| `src/lib/modules/moduleCatalog.ts` | 22 KB | built-in catalogue + `currentModuleEntries` + `groupOrder` + dimension helpers |
 
-## Znane ograniczenia narzedziowe
+Splitting these is a real refactor project, not a side effect. Each one needs a `// WHY:` review of every section before moving it.
 
-### `@emnapi/wasi-threads` orphan w lockfile
+### 4. PWA Service Worker cache will eat your changes
 
-`package-lock.json` zawiera historyczny wpis `node_modules/@emnapi/wasi-threads@1.2.2`
-bedacy pozostaloscia z poprzedniej wersji lockfile (commit 7d715da). Zadna
-obecna paczka nie deklaruje `@emnapi/wasi-threads` jako bezposredniej
-zaleznosci - jest to staly `optional` dep `@rolldown/binding-wasm32-wasi`,
-ale w nowszej wersji `@rolldown` uzywa `@emnapi/wasi-threads@1.2.1` w
-nested `node_modules/@rolldown/binding-wasm32-wasi/node_modules/...`.
+`vite.config.ts` uses `VitePWA` with `registerType: "autoUpdate"` and `workbox.runtimeCaching`:
 
-`npm install` (z aktywnym instalowaniem) **zaciagnie ten wpis z powrotem**
-nawet po recznym usunieciu z `node_modules`, bo czyta istniejacy wpis
-z lockfile i uznaje go za wymagany. `npm ci` i `npm install
---package-lock-only` go nie zaciagaja.
+- `/assets/modules/*.svg` → **CacheFirst**, 30-day TTL, 200 entries (`din-module-svgs`).
+- `/assets/modules/module-manifest.json` → **NetworkFirst**, 1 entry, 24h TTL.
 
-Praktyczna regula:
-- Po `npm install` orphan prawdopodobnie wroci
-- Po `npm ci` orphan NIE powinien wrocic (czysta instalacja z lockfile)
-- Po `npm install --package-lock-only` orphan NIE wroci
+If a user says "I rebuilt and the new module still doesn't appear in the palette", it is almost always the SW cache, not a code bug. The user has to: DevTools → Application → Service Workers → Unregister, then Application → Storage → Clear site data, then hard-reload (`Ctrl+Shift+R`). The auto-update only kicks in on a reload after the new SW installs, and only if no old client is still controlling the page.
 
-Nie jest to krytyczne - 220 KB paczki z 0 aktywnym uzyciem. Jesli chcesz
-trwale usunac: usun wpis z `package-lock.json` recznie (linie 2009-2019)
-i uzywaj `npm ci` zamiast `npm install` do reinstalacji.
+Don't add new `runtimeCaching` rules casually. They will surprise the user.
 
+### 5. Native-only code paths via `import.meta.env.DEV` / `isNativePlatform()`
+
+- `moduleCatalog.ts:827` (`getModuleAssetUrl`) has a Windows+Vite-dev-server-specific workaround: in dev, `%2B` is decoded back to `+` because Vite's filesystem on Windows fails to find files with `+` if they are percent-encoded. This is a real fix, not dead code.
+- `App.tsx`, `moduleCatalog.ts:824-829`, and `useProjectActions.ts` branch on `y.isNativePlatform()` (Capacitor) for haptics, storage, and the preferences plugin. Wrap Capacitor calls in try/catch — the web build runs the same code without Capacitor.
+
+### 6. The label-normaliser in `symbolItem.ts:406-408`
+
+A late-stage label rewrite for terminal-block symbols that were created with the wrong label. If you add a new terminal-block label format, add it to the list there too — otherwise the new label will be silently rewritten to "Blok rozdzielczy" downstream.
+
+### 7. Build is built on Windows with PowerShell
+
+Path separators, BOM, CP936 vs UTF-8, and the Windows-only `mavis-trash` deletion all matter here. Never use `Get-Content | Set-Content` pipelines to edit files — use the Read/Write/Edit tools, which are UTF-8 safe. If you must pipe, pass `-Encoding UTF8` and remember PowerShell 5.1's `-Encoding UTF8` adds a BOM.
+
+---
+
+## Code style (the short version)
+
+- **Smallest safe change.** Bug fix in `validation/` is a bug fix in `validation/`, not a refactor of the file.
+- **No new dependencies** unless the existing stack (React, Vite, Tauri, Pixi, Vitest) cannot do the job.
+- **No domain logic in components.** Components consume, hooks orchestrate, `lib/` computes, `types/` declares.
+- **No heavy SVG parsing inside React render.** Precompute in `lib/` or a memoized hook.
+- **No expensive work on `pointermove` / `wheel` / drag tick.** Debounce or move to event boundary.
+- **`// WHY:` comments** for non-obvious decisions (e.g. why phase balance ignores FR/SPD).
+- **5-field report** at the end of non-trivial work: Problem / Cause / Safe fix / What changed / What was tested.
+
+---
+
+## Test discipline (the short version)
+
+- Vitest + jsdom + @testing-library/react. Fixed stack.
+- Tests next to the file they test (`*.test.ts(x)`).
+- Test names describe the **property**, not the implementation.
+- High-risk subsystems: characterisation test for current behaviour **before** the change, then a test for the new behaviour.
+- Project file format: round-trip test (save → load → deep-equal). One per format version.
+- For canvas: deterministic unit tests over snapshot tests (snapshots drift).
+- No network in tests. No real filesystem outside per-test temp. No `Date.now()` / `Math.random()` — inject or stub.
+
+Test counts at baseline (2026-06-07): 249 unit tests across 33 test files. Don't let this number drop.
+
+---
+
+## Known tool quirks
+
+- `package-lock.json` has a historical orphan `@emnapi/wasi-threads@1.2.2`. Not a bug; lives in lockfile only. Use `npm ci` for clean re-installs.
+- `moduleAssetDiscovery.ts` polls the manifest every 3 s in dev. That's intentional for live SVG-import workflows; don't "optimise" it away.
+- 68 `console.*` calls remain in the codebase as diagnostic traces. They are not bugs, but they are noise — when you remove one, check it wasn't guarding a real diagnostic.
+- 28 `any` type usages (one per ~1000 LOC). Low but non-zero. The rule is: don't add a new one without a comment explaining why the type is genuinely unknowable.
+
+---
+
+## Before you write any code
+
+1. Read this file end to end. Yes, all of it.
+2. Read `.harness/docs/architecture-map.md` for the layout.
+3. Read `.harness/docs/code-standards.md` for the layer rules.
+4. Read `.harness/docs/test-policy.md` for the test rules.
+5. If your task touches a high-risk area, read the matching `.harness/reins/<role>/agent.md` for the subsystem's "immutable contracts" list.
+6. If you are about to refactor a file in the "container files" table, read it in pieces, not in one shot.
+7. If the user is asking for a non-obvious behaviour change, run the diagnosis first, describe what you found, propose the change, and **wait for confirmation** before editing. This is engineering software; the user is the domain expert.
+
+If a step above sends you to a rein (e.g. "this is a `canvas-expert` task"), stop and route to that role instead of doing it yourself. The reins exist for a reason.
+
+---
+
+## Routing quick reference
+
+| You want to... | Route to |
+|---|---|
+| Change code that crosses multiple subsystems equally, or build/CI/Vite glue | `developer` |
+| Add or refactor tests, analyse coverage | `tester` |
+| Review a diff, audit code, before-merge checklist | `code-reviewer` |
+| Phase balance, validation, RCD/MCB, project metadata, electrical types | `electrical-expert` |
+| DIN rail canvas, schematic, SVG modules, snap/selection, wires, geometry | `canvas-expert` |
+| PDF generator, preview, measurement protocols, PDF templates | `pdf-expert` |
+| Project file format, save/load, migrations, undo/redo, Tauri | `project-io-expert` |
+
+The orchestrator (this harness) is `Mavis` (mavis). It does not edit code; it routes and verifies.
