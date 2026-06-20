@@ -145,6 +145,32 @@ describe("projectFile serialization/parsing with connections", () => {
     };
     expect(() => parseProjectFileContent(JSON.stringify(futureSchema))).toThrow();
   });
+
+  it("migrates from older web schema versions", () => {
+    const oldWebProject = {
+      schemaVersion: 1, // starsza wersja, WEB_PROJECT_SCHEMA_VERSION to 2
+      version: "1.0",
+      metadata: createEmptyProjectMetadata(),
+      symbols: [
+        {
+          id: "sym-1",
+          type: "MCB 1P",
+          label: "MCB 1P",
+          phase: "L1",
+          parameters: {},
+        },
+      ],
+      rail: null,
+    };
+
+    const json = JSON.stringify(oldWebProject);
+    const parsed = parseProjectFileContent(json);
+
+    expect(parsed.symbols).toBeDefined();
+    // Powinien uruchomić migrateProjectData, który nie psuje pliku.
+    expect(parsed.symbols.length).toBe(1);
+    expect(parsed.symbols[0].id).toBe("sym-1");
+  });
 });
 
 describe("projectFile round-trip (no data loss)", () => {

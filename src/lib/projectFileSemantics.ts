@@ -22,7 +22,6 @@ const VALID_PHASES: ReadonlySet<string> = new Set([
   "L1+L2",
   "L2+L3",
   "L1+L3",
-  "L3+L1",
   "L1+L2+L3",
   "3F",
   "PE",

@@ -1,15 +1,16 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import type { ProjectMetadata } from "../types/projectMetadata";
-import { normalizeSymbolItems, type SymbolItem } from "../types/symbolItem";
-import type { ConnectionItem } from "../types/connectionItem";
+import { normalizeSymbolItems, type SymbolItem, MANUAL_REFERENCE_DESIGNATION_KEY } from "../types/symbolItem";
+import { createDefaultConnection, type ConnectionItem } from "../types/connectionItem";
 import { createEmptyProjectMetadata } from "./projectMetadata";
 import { getModuleAssetUrl } from "./modules/moduleCatalog";
 import { buildSchematicLayout } from "./schematic/schematicLayoutEngine";
+import { migrateProjectData } from "./projectMigrations";
 
 const DEFAULT_PROJECT_FILE_NAME = "zlecenie.dinboard";
 const PROJECT_FILE_ACCEPT = ".dinboard,.json,application/json";
 const WEB_PROJECT_SCHEMA_VERSION = 2;
-const MANUAL_REFERENCE_DESIGNATION_KEY = "ManualReferenceDesignation";
+
 
 export type ProjectFileData = {
   metadata: ProjectMetadata | null;
@@ -393,10 +394,15 @@ function migrateLegacyManualReferenceDesignations(symbols: SymbolItem[]): Symbol
 }
 
 export function parseProjectFileContent(content: string, fileName?: string): ProjectFileData {
-  const parsed = normalizeNullableObject(JSON.parse(content) as RawProjectFileData);
-  const symbols = extractProjectSymbols(parsed);
+  let parsed = normalizeNullableObject(JSON.parse(content) as RawProjectFileData);
   const hasWebShape = "metadata" in parsed && "symbols" in parsed && "version" in parsed;
   const hasAvaloniaSchema = typeof parsed.schemaVersion === "number" && parsed.schemaVersion > 0 && !hasWebShape;
+
+  if (hasWebShape && parsed.schemaVersion !== undefined && parsed.schemaVersion < WEB_PROJECT_SCHEMA_VERSION) {
+    parsed = migrateProjectData(parsed, parsed.schemaVersion, WEB_PROJECT_SCHEMA_VERSION);
+  }
+
+  const symbols = extractProjectSymbols(parsed);
 
   if (symbols === null || (!hasWebShape && !hasAvaloniaSchema)) {
     throw new Error("Nieprawidlowy format pliku zlecenia");
@@ -413,31 +419,61 @@ export function parseProjectFileContent(content: string, fileName?: string): Pro
 
   let connections: ConnectionItem[] = [];
   if (hasWebShape && Array.isArray(parsed.connections)) {
-    connections = parsed.connections.map((conn: any) => ({
-      id: typeof conn.id === "string" && conn.id.trim().length > 0 ? conn.id : crypto.randomUUID(),
-      fromSymbolId: typeof conn.fromSymbolId === "string" ? conn.fromSymbolId : "",
-      fromTerminal: typeof conn.fromTerminal === "string" ? conn.fromTerminal : "",
-      toSymbolId: typeof conn.toSymbolId === "string" ? conn.toSymbolId : "",
-      toTerminal: typeof conn.toTerminal === "string" ? conn.toTerminal : "",
-      wireColor: typeof conn.wireColor === "string" ? conn.wireColor : "black",
-      wireCrossSection: typeof conn.wireCrossSection === "number" ? conn.wireCrossSection : 2.5,
-      wireType: typeof conn.wireType === "string" ? conn.wireType : "LgY",
-      ferruleColor: typeof conn.ferruleColor === "string" ? conn.ferruleColor : undefined,
-      routingMode: typeof conn.routingMode === "string" ? conn.routingMode : "manhattan",
-      customOffset: typeof conn.customOffset === "number" ? conn.customOffset : undefined,
-      customOffsetX: typeof conn.customOffsetX === "number" ? conn.customOffsetX : undefined,
-      customOffsetY1: typeof conn.customOffsetY1 === "number" ? conn.customOffsetY1 : undefined,
-      customOffsetY2: typeof conn.customOffsetY2 === "number" ? conn.customOffsetY2 : undefined,
-      isFromTop: typeof conn.isFromTop === "boolean" ? conn.isFromTop : undefined,
-      isToTop: typeof conn.isToTop === "boolean" ? conn.isToTop : undefined,
-      points: Array.isArray(conn.points) ? conn.points.filter((p: any) => typeof p.x === 'number' && typeof p.y === 'number') : undefined,
-    }));
+    connections = parsed.connections.map((conn: any) => {
+      const overrides: Partial<ConnectionItem> = {};
+      if (typeof conn.id === "string" && conn.id.trim().length > 0) overrides.id = conn.id;
+      if (typeof conn.fromSymbolId === "string") overrides.fromSymbolId = conn.fromSymbolId;
+      if (typeof conn.fromTerminal === "string") overrides.fromTerminal = conn.fromTerminal;
+      if (typeof conn.toSymbolId === "string") overrides.toSymbolId = conn.toSymbolId;
+      if (typeof conn.toTerminal === "string") overrides.toTerminal = conn.toTerminal;
+      if (typeof conn.wireColor === "string") overrides.wireColor = conn.wireColor;
+      if (typeof conn.wireCrossSection === "number") overrides.wireCrossSection = conn.wireCrossSection;
+      if (typeof conn.wireType === "string") overrides.wireType = conn.wireType;
+      if (typeof conn.ferruleColor === "string") overrides.ferruleColor = conn.ferruleColor;
+      if (typeof conn.routingMode === "string") overrides.routingMode = conn.routingMode;
+      if (typeof conn.customOffset === "number") overrides.customOffset = conn.customOffset;
+      if (typeof conn.customOffsetX === "number") overrides.customOffsetX = conn.customOffsetX;
+      if (typeof conn.customOffsetY1 === "number") overrides.customOffsetY1 = conn.customOffsetY1;
+      if (typeof conn.customOffsetY2 === "number") overrides.customOffsetY2 = conn.customOffsetY2;
+      if (typeof conn.isFromTop === "boolean") overrides.isFromTop = conn.isFromTop;
+      if (typeof conn.isToTop === "boolean") overrides.isToTop = conn.isToTop;
+      if (Array.isArray(conn.points)) {
+        overrides.points = conn.points.filter((p: any) => typeof p.x === "number" && typeof p.y === "number");
+      }
+      return createDefaultConnection(overrides);
+    });
+  }
+
+  // Drop connections referencing symbols that don't exist (data integrity).
+  // WHY: routing engine uses `symbols.find(s => s.id === connection.fromSymbolId)`
+  // which returns `undefined` for orphans → tulejka renders with default 150px
+  // length in random position. This was the cause of "tulejka w nieodpowiednim
+  // miejscu" edge case observed in testProject.dinboard (2026-06-20).
+  const symbolIds = new Set(migratedSymbols.map((s) => s.id));
+  const validConnections = connections.filter((c) => {
+    const hasFrom = symbolIds.has(c.fromSymbolId);
+    const hasTo = symbolIds.has(c.toSymbolId);
+    if (!hasFrom || !hasTo) {
+      console.warn(
+        `[projectFile] Dropping orphan connection ${c.id}: ` +
+        `fromSymbolId=${c.fromSymbolId} (${hasFrom ? "OK" : "MISSING"}), ` +
+        `toSymbolId=${c.toSymbolId} (${hasTo ? "OK" : "MISSING"})`,
+      );
+      return false;
+    }
+    return true;
+  });
+  const droppedCount = connections.length - validConnections.length;
+  if (droppedCount > 0) {
+    console.warn(
+      `[projectFile] Dropped ${droppedCount} orphan connection(s) — references symbols that don't exist in this project file`,
+    );
   }
 
   return {
     metadata: hasWebShape ? parsed.metadata ?? null : toProjectMetadataFromAvalonia(parsed),
     symbols: migratedSymbols,
-    connections,
+    connections: validConnections,
     version: parsed.version ?? String(parsed.schemaVersion ?? "1.0"),
     path: fileName,
     rail: hasAvaloniaSchema ? toRailFromAvalonia(parsed) : toRailFromWeb(parsed),
@@ -664,16 +700,3 @@ export async function saveProjectFile(
   }
 }
 
-export async function loadProjectFromPath(filePath: string): Promise<ProjectFileData | null> {
-  try {
-    const response = await fetch(filePath);
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    return parseProjectFileContent(await response.text(), filePath.split(/[\\/]/).pop());
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Nieznany błąd";
-    throw new Error(`Nie można załadować pliku: ${message}`, { cause: error });
-  }
-}
