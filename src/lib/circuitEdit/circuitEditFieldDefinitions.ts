@@ -450,6 +450,12 @@ function getModuleType(symbol: SymbolItem): ModuleType {
   if (value.includes("rcd")) return "rcd";
   if (value.includes("mcb") || /s\s*-?\s*30\d/.test(value)) return "mcb";
   if (value.includes("spd")) return "spd";
+  // Fallback for "Moduł zabezpieczający 3P" and similar surge-protector
+  // modules whose type/label/visualPath contains 'zabezpiecz' but whose
+  // deviceKind is not set to "spd" (e.g. the built-in entry at
+  // templateId "modul-zabezpieczajacy-svg" was originally registered with
+  // deviceKind: "other" and would otherwise fall through to createMcbFields).
+  if (value.includes("zabezpiecz")) return "spd";
   if (/\bfr\b/.test(value) || value.includes("switch") || value.includes("rozlacznik")) return "switch";
   if (
     value.includes("kontrolk") ||
