@@ -255,14 +255,19 @@ export function PdfDocumentationPage() {
                       onChange={(value) => updateMetadata({ author: value })}
                     />
                     <Field
-                      label="Numer uprawnienia SEP"
+                      label="Uprawnienie SEP — Eksploatacja (E)"
                       value={metadata.designerId ?? ""}
-                      placeholder="E + D / 123/2026"
+                      placeholder="E / 123/2026"
                       onChange={(value) =>
-                        updateMetadata({
-                          designerId: value,
-                          authorLicense: value,
-                        })
+                        updateMetadata({ designerId: value })
+                      }
+                    />
+                    <Field
+                      label="Uprawnienie SEP — Dozór (D)"
+                      value={metadata.authorLicense ?? ""}
+                      placeholder="D / 456/2026"
+                      onChange={(value) =>
+                        updateMetadata({ authorLicense: value })
                       }
                     />
                     <Field

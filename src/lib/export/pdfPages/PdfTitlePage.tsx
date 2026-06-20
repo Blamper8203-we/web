@@ -1,5 +1,5 @@
 import { Image, Page, Text, View } from "@react-pdf/renderer";
-import type { ProjectMetadata } from "../../../types/projectMetadata";
+import type { ProjectMetadata, TitlePageChecklistItem } from "../../../types/projectMetadata";
 import { pdfStyles as styles } from "./pdfStyles";
 import { TITLE_WORK_SCOPE_COLUMN_SIZE, TITLE_WORK_SCOPE_MAX_ITEMS } from "./pdfHelpers";
 import { chunkRows } from "../../measurementProtocolHelpers";
@@ -26,9 +26,13 @@ export function PdfTitlePage({ metadata, displayDate }: PdfTitlePageProps) {
 
   const objectType = metadata.titlePageObjectType || "Budynek jednorodzinny / Lokal mieszkalny";
   const contractorName = metadata.contractor || metadata.author || "................................";
-  const sepE = metadata.designerId || metadata.authorLicense || "................................";
-  const sepD = metadata.authorLicense || metadata.designerId || "................................";
+  const sepE = metadata.designerId || "................................";
+  const sepD = metadata.authorLicense || "................................";
+  const sepValidUntil = metadata.titlePageSepValidUntil?.trim() || "........................";
   const stampText = metadata.contractorSignature || "PIECZĘĆ WYKONAWCY";
+  const designerSignatureText = metadata.designerSignature?.trim() || "";
+  const investorSignatureText = metadata.investorSignature?.trim() || "";
+  const useManualCheckboxes = Boolean(metadata.titlePageUseManualWorkScopeCheckboxes);
 
   const defaultWorkScope = DEFAULT_WORK_SCOPE_ITEMS.map((text) => ({ text, isChecked: true }));
   const workScopeItems = metadata.titlePageWorkScopeItems?.length ? metadata.titlePageWorkScopeItems : defaultWorkScope;
@@ -94,14 +98,16 @@ export function PdfTitlePage({ metadata, displayDate }: PdfTitlePageProps) {
         <View style={[styles.border, styles.roundedXl, styles.p3, styles.grid2Col]}>
           <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb2]}>Zakres prac</Text>
           <View style={titleWorkScopeColumns.length > 1 ? styles.grid2 : styles.flexCol}>
-            {titleWorkScopeColumns.map((columnItems: any[], columnIndex: number) => (
+            {titleWorkScopeColumns.map((columnItems: TitlePageChecklistItem[], columnIndex: number) => (
               <View key={columnIndex} style={titleWorkScopeColumns.length > 1 ? styles.grid2Col : undefined}>
-                {columnItems.map((item: any, itemIndex: number) => {
+                {columnItems.map((item: TitlePageChecklistItem, itemIndex: number) => {
                   const absoluteIndex = columnIndex * TITLE_WORK_SCOPE_COLUMN_SIZE + itemIndex;
                   return (
                     <View key={absoluteIndex} style={[styles.flexRow, styles.itemsCenter, styles.mb2]}>
                       <View style={styles.checkboxContainer}>
-                        {item.isChecked ? <Text style={styles.checkboxChecked}>✓</Text> : null}
+                        {!useManualCheckboxes && item.isChecked ? (
+                          <Text style={styles.checkboxChecked}>✓</Text>
+                        ) : null}
                       </View>
                       <Text style={[styles.textXs, styles.fontMedium, styles.textGray700, { flex: 1 }]}>{item.text}</Text>
                     </View>
@@ -114,12 +120,14 @@ export function PdfTitlePage({ metadata, displayDate }: PdfTitlePageProps) {
         <View style={[styles.border, styles.roundedXl, styles.p3, styles.grid2Col]}>
           <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb2]}>Załączniki do protokołu</Text>
           <View style={titleAttachmentColumns.length > 1 ? styles.grid2 : styles.flexCol}>
-            {titleAttachmentColumns.map((columnItems: any[], columnIndex: number) => (
+            {titleAttachmentColumns.map((columnItems: string[], columnIndex: number) => (
               <View key={columnIndex} style={titleAttachmentColumns.length > 1 ? styles.grid2Col : undefined}>
-                {columnItems.map((item: any, itemIndex: number) => (
+                {columnItems.map((item: string, itemIndex: number) => (
                   <View key={`${columnIndex}-${itemIndex}`} style={[styles.flexRow, styles.itemsCenter, styles.mb2]}>
                     <View style={styles.checkboxContainer}>
-                      <Text style={styles.checkboxChecked}>✓</Text>
+                      {!useManualCheckboxes ? (
+                        <Text style={styles.checkboxChecked}>✓</Text>
+                      ) : null}
                     </View>
                     <Text style={[styles.textXs, styles.fontMedium, styles.textGray700, { flex: 1 }]}>{item}</Text>
                   </View>
@@ -147,6 +155,10 @@ export function PdfTitlePage({ metadata, displayDate }: PdfTitlePageProps) {
               <Text style={[styles.fontSemiBold, styles.textGray700, styles.textSm, { width: 110 }]}>Dozór (D):</Text>
               <Text style={[styles.fontBold, styles.textGray950, styles.textSm, styles.flex1]}>{sepD}</Text>
             </View>
+            <View style={[styles.flexRow, styles.mt1]}>
+              <Text style={[styles.fontSemiBold, styles.textGray700, styles.textSm, { width: 110 }]}>Ważne do:</Text>
+              <Text style={[styles.fontBold, styles.textGray950, styles.textSm, styles.flex1]}>{sepValidUntil}</Text>
+            </View>
           </View>
         </View>
       </View>
@@ -160,16 +172,36 @@ export function PdfTitlePage({ metadata, displayDate }: PdfTitlePageProps) {
 
       <View style={[styles.mtAuto]}>
         <View style={[styles.flexRow, styles.borderT, styles.pt4, { alignItems: 'flex-end', justifyContent: 'space-between' }]}>
-          <View style={[styles.textCenter, styles.itemsCenter, { width: 200 }]}>
+          <View style={[styles.textCenter, styles.itemsCenter, { width: 165 }]}>
             <View style={[styles.borderDashed, styles.roundedLg, styles.bgGray50, styles.titleStampSlot, styles.mb1]}>
               <Text style={[styles.textXs, styles.textGray400, styles.fontSemiBold, styles.uppercase]}>{stampText}</Text>
             </View>
+            <Text style={[styles.textXs, styles.textGray500]}>Pieczęć wykonawcy</Text>
           </View>
-          <View style={[styles.textCenter, { width: 200 }]}>
-            <View style={styles.signatureSlot}><Text style={[styles.textXs, styles.textGray300, styles.italic]}>miejsce na podpis</Text></View>
+          <View style={[styles.textCenter, { width: 165 }]}>
+            <View style={styles.signatureSlot}>
+              {designerSignatureText ? (
+                <Text style={[styles.textSm, styles.fontSemiBold, styles.textGray700]}>{designerSignatureText}</Text>
+              ) : (
+                <Text style={[styles.textXs, styles.textGray300, styles.italic]}>miejsce na podpis</Text>
+              )}
+            </View>
             <View style={[styles.borderT, styles.pt2]}>
               <Text style={[styles.textSm, styles.fontBold, styles.textGray700, styles.uppercase]}>Podpis Elektryka</Text>
               <Text style={[styles.textXs, styles.textGray400, styles.mt1]}>Osoba uprawniona (pomiarowiec)</Text>
+            </View>
+          </View>
+          <View style={[styles.textCenter, { width: 165 }]}>
+            <View style={styles.signatureSlot}>
+              {investorSignatureText ? (
+                <Text style={[styles.textSm, styles.fontSemiBold, styles.textGray700]}>{investorSignatureText}</Text>
+              ) : (
+                <Text style={[styles.textXs, styles.textGray300, styles.italic]}>miejsce na podpis</Text>
+              )}
+            </View>
+            <View style={[styles.borderT, styles.pt2]}>
+              <Text style={[styles.textSm, styles.fontBold, styles.textGray700, styles.uppercase]}>Podpis Inwestora</Text>
+              <Text style={[styles.textXs, styles.textGray400, styles.mt1]}>Właściciel / zarządca obiektu</Text>
             </View>
           </View>
         </View>
