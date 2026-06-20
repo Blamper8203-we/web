@@ -426,6 +426,28 @@ export function normalizeSvgMarkup(
 
     const svgRoot = svgRootElement as unknown as SVGSVGElement;
 
+    // Zabezpieczenie przed XSS (usuwamy skrypty i atrybuty eventowe)
+    const scripts = Array.from(svgRoot.querySelectorAll("script"));
+    for (const script of scripts) {
+      script.remove();
+    }
+
+    const allElements = Array.from(svgRoot.querySelectorAll("*"));
+    for (const el of allElements) {
+      const attrsToRemove: string[] = [];
+      for (let i = 0; i < el.attributes.length; i++) {
+        const attr = el.attributes[i];
+        if (attr.name.toLowerCase().startsWith("on")) {
+          attrsToRemove.push(attr.name);
+        } else if ((attr.name.toLowerCase() === "href" || attr.name.toLowerCase() === "xlink:href") && attr.value.toLowerCase().trim().startsWith("javascript:")) {
+          attrsToRemove.push(attr.name);
+        }
+      }
+      for (const attrName of attrsToRemove) {
+        el.removeAttribute(attrName);
+      }
+    }
+
     const bodyRect = findLargestVisibleRect(svgRoot);
     if (bodyRect.found && bodyRect.width > 10 && bodyRect.height > 10) {
       const originalViewBox = parseViewBox(svgRoot.getAttribute("viewBox"));

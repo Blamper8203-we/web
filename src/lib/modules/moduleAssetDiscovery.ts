@@ -15,8 +15,8 @@ interface ModuleAssetManifest {
 const FALLBACK_MODULE_ASSETS: DiscoveredModuleAsset[] = [
   {
     category: "Blok rozdzielczy",
-    fileName: "Blok rozdzielczy 7 pin.svg",
-    moduleRef: "Blok rozdzielczy/Blok rozdzielczy 7 pin.svg",
+    fileName: "blok rozdzielczy 4x7.svg",
+    moduleRef: "Blok rozdzielczy/blok rozdzielczy 4x7.svg",
   },
   {
     category: "FR",

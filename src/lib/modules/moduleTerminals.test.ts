@@ -3,7 +3,7 @@ import { getSymbolTerminals, resolveConnectionIsFromTop, resolveConnectionIsToTo
 import { svgTerminalCache } from "./svgTerminalCache";
 import { createDefaultSymbolItem } from "../../types/symbolItem";
 
-const DIST_BLOCK_REF = "Blok rozdzielczy/blok rozdzielczy 4-7.svg";
+const DIST_BLOCK_REF = "Blok rozdzielczy/blok rozdzielczy 4x7.svg";
 
 function seedDistributionBlockCache() {
   // Seed the cache with 4 groups (L1, L2, L3, N), 7 pins each.

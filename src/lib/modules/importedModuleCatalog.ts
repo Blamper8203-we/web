@@ -1,23 +1,42 @@
-import type { CircuitTypeValue, DeviceKind, PhaseAssignment } from "../../types/symbolItem";
+import type { DeviceKind, PhaseAssignment } from "../../types/symbolItem";
 import type { PaletteGroup, PaletteTemplate } from "./moduleCatalog";
 import { getModuleAssetUrl, MODULE_PX_PER_MM, MODULE_UNIT_MM_WIDTH } from "./moduleCatalog";
 import { safeGetItemSync, safeSetItem, safeRemoveItem } from "../storageService";
 import { reportRuntimeError } from "../runtimeDiagnostics";
-import { detectTerminalBlockPinPositions, serialisePinPositions } from "./svgNormalization";
+
+import {
+  type SvgDimensions,
+  parseSvgDimensions,
+  createSvgDataUri,
+  isValidSvgMarkup,
+  sanitizeSvg,
+  parseExplicitMmDimensions,
+} from "./svgParsing";
+
+import {
+  CATEGORY_DEFAULT_HEIGHT_MM,
+  normalizeDetectionText,
+  detectPoleCount,
+  detectCategory,
+  detectDeviceKind,
+  detectType,
+  detectPhase,
+  storeTerminalBlockPinPositions,
+  detectCircuitType,
+  extractPlaceholderDefaults,
+  detectRcdRatedCurrent,
+  detectRcdResidualCurrent,
+  detectRcdType,
+  deriveImportTraits,
+  detectExplicitPoleCount,
+} from "./moduleHeuristics";
+
+export { deriveImportTraits, detectExplicitPoleCount };
 
 const IMPORTED_MODULES_STORAGE_KEY = "dinboard.importedModules";
 const IMPORTED_MODULES_CATALOG_VERSION_KEY = "dinboard.importedModules.catalogVersion";
 const IMPORTED_MODULES_CATALOG_VERSION = "new-svg-models-2026-05-30-fr-1p-fix";
 const HIDDEN_PALETTE_TEMPLATE_IDS_STORAGE_KEY = "dinboard.hiddenPaletteTemplateIds";
-
-const CATEGORY_DEFAULT_HEIGHT_MM: Record<string, number> = {
-  FR: 80,
-  SPD: 90,
-  RCD: 83,
-  MCB: 83,
-  "Kontrolki faz": 83,
-  Inne: 85,
-};
 
 export interface ImportedModuleDefinition {
   assetPath: string;
@@ -68,11 +87,6 @@ interface ImportedFilePayload {
   name: string;
 }
 
-interface SvgDimensions {
-  height: number;
-  width: number;
-}
-
 export interface DiscoveredModuleAsset {
   category: string;
   fileName: string;
@@ -93,472 +107,6 @@ function ensureImportedModulesCatalogVersion(): void {
   safeRemoveItem(IMPORTED_MODULES_STORAGE_KEY);
   safeRemoveItem(HIDDEN_PALETTE_TEMPLATE_IDS_STORAGE_KEY);
   safeSetItem(IMPORTED_MODULES_CATALOG_VERSION_KEY, IMPORTED_MODULES_CATALOG_VERSION);
-}
-
-function parseSvgDimensions(svgMarkup: string): SvgDimensions | null {
-  if (typeof DOMParser === "undefined") {
-    return null;
-  }
-
-  try {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(svgMarkup, "image/svg+xml");
-    const root = doc.documentElement;
-    if (!root || root.tagName.toLowerCase() !== "svg") {
-      return null;
-    }
-
-    const viewBox = root.getAttribute("viewBox");
-    if (viewBox) {
-      const parts = viewBox
-        .split(/[\s,]+/)
-        .map((part) => Number.parseFloat(part))
-        .filter((part) => Number.isFinite(part));
-      if (parts.length >= 4 && parts[2] > 0 && parts[3] > 0) {
-        return { width: parts[2], height: parts[3] };
-      }
-    }
-
-    const width = Number.parseFloat((root.getAttribute("width") ?? "").replace(/px$/i, ""));
-    const height = Number.parseFloat((root.getAttribute("height") ?? "").replace(/px$/i, ""));
-    if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
-      return { width, height };
-    }
-  } catch {
-    return null;
-  }
-
-  return null;
-}
-
-function createSvgDataUri(svgMarkup: string): string {
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgMarkup)}`;
-}
-
-function parseSvgLengthToMm(value: string | null): number | null {
-  if (!value) {
-    return null;
-  }
-
-  const trimmed = value.trim().toLowerCase();
-  if (!trimmed || trimmed.endsWith("%")) {
-    return null;
-  }
-
-  const match = trimmed.match(/^(-?\d*\.?\d+)(mm|cm|in|pt|pc|q|px)?$/);
-  if (!match) {
-    return null;
-  }
-
-  const numericValue = Number.parseFloat(match[1] ?? "");
-  if (!Number.isFinite(numericValue) || numericValue <= 0) {
-    return null;
-  }
-
-  const unit = match[2] ?? "px";
-  switch (unit) {
-    case "mm":
-      return numericValue;
-    case "cm":
-      return numericValue * 10;
-    case "in":
-      return numericValue * 25.4;
-    case "pt":
-      return numericValue * (25.4 / 72);
-    case "pc":
-      return numericValue * (25.4 / 6);
-    case "q":
-      return numericValue * 0.25;
-    case "px":
-      return numericValue * (25.4 / 96);
-    default:
-      return null;
-  }
-}
-
-function isPercentSvgLength(value: string | null): boolean {
-  return typeof value === "string" && value.trim().endsWith("%");
-}
-
-function normalizeDetectionText(value: string): string {
-  return value
-    .replace(/ł/g, "l")
-    .replace(/Ł/g, "L")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toUpperCase();
-}
-
-function matchExplicitPoleCount(value: string): RegExpMatchArray | null {
-  const normalizedName = normalizeDetectionText(value);
-  return normalizedName.match(/(^|[^0-9])([1-9]|1[0-2])\s*(?:P|POL[A-Z]*|BIEG[A-Z]*|TOR[A-Z]*)([^A-Z0-9]|$)/);
-}
-
-function detectPoleCount(fileName: string): number {
-  const normalizedName = normalizeDetectionText(fileName);
-  const polePlusNeutralMatch = normalizedName.match(/(^|[^0-9])([1-9]|1[0-2])\s*P\s*\+\s*N([^A-Z0-9]|$)/);
-  if (polePlusNeutralMatch) {
-    return Number.parseInt(polePlusNeutralMatch[2]!, 10) + 1;
-  }
-
-  const match = matchExplicitPoleCount(fileName);
-  if (match) {
-    return Number.parseInt(match[2]!, 10);
-  }
-
-  if (normalizedName.includes("3XPEN")) {
-    return 2;
-  }
-
-  const trailingNumberMatch = normalizedName.match(/(?:^|[^0-9])(1[0-2]|[2-9])(?:[^0-9]*)$/);
-  if (trailingNumberMatch) {
-    return Number.parseInt(trailingNumberMatch[1]!, 10);
-  }
-
-  return 1;
-}
-
-export function detectExplicitPoleCount(fileName: string): number | null {
-  const match = matchExplicitPoleCount(fileName);
-  if (!match) {
-    return null;
-  }
-
-  return Number.parseInt(match[2]!, 10);
-}
-
-function isRcdDetectionText(value: string): boolean {
-  return value.includes("RCD") || value.includes("RCCB") || value.includes("ROZNIC");
-}
-
-function detectCategory(fileName: string): string {
-  const upperName = normalizeDetectionText(fileName);
-
-  if (isRcdDetectionText(upperName)) return "RCD";
-  if (upperName.includes("MCB")) return "MCB";
-  if (upperName.includes("SPD")) return "SPD";
-  if (upperName.includes("FR")) return "FR";
-  if (upperName.includes("BLOK")) return "Blok rozdzielczy";
-  if (upperName.includes("LISTWA")) return "Listwy zaciskowe";
-  if (upperName.includes("ZLACZ") || upperName.includes("PEN")) return "Z\u0142\u0105cza";
-  if (upperName.includes("KONTROLK")) return "Kontrolki faz";
-
-  return "Inne";
-}
-
-function detectDeviceKind(category: string): DeviceKind {
-  switch (category) {
-    case "FR":
-      return "fr";
-    case "RCD":
-      return "rcd";
-    case "MCB":
-      return "mcb";
-    case "SPD":
-      return "spd";
-    case "Kontrolki faz":
-      return "phaseIndicator";
-    case "Listwy zaciskowe":
-    case "Z\u0142\u0105cza":
-    case "Blok rozdzielczy":
-      return "terminalBlock";
-    default:
-      return "other";
-  }
-}
-
-function detectType(category: string): string {
-  switch (category) {
-    case "Kontrolki faz":
-      return "Controls";
-    default:
-      return category;
-  }
-}
-
-function detectPhase(category: string, fileName = ""): PhaseAssignment {
-  switch (category) {
-    case "RCD":
-    case "MCB":
-    case "FR":
-    case "SPD":
-      {
-        const poleCount = detectExplicitPoleCount(fileName);
-        if (poleCount !== null && poleCount < 3) {
-          return "L1";
-        }
-        return "L1+L2+L3";
-      }
-    case "Listwy zaciskowe":
-    case "Z\u0142\u0105cza":
-      return "L1+L2+L3";
-    default:
-      return "L1";
-  }
-}
-
-export function deriveImportTraits(category: string, fileName = "") {
-  return {
-    deviceKind: detectDeviceKind(category),
-    phase: detectPhase(category, fileName),
-    type: detectType(category),
-    defaultHeightMm: CATEGORY_DEFAULT_HEIGHT_MM[category],
-  };
-}
-
-/**
- * For terminal block modules, detect screw positions from the SVG
- * and store them in parameters as a serialised string.
- */
-function storeTerminalBlockPinPositions(
-  parameters: Record<string, string>,
-  rawSvg: string,
-  deviceKind: DeviceKind,
-): void {
-  if (deviceKind !== "terminalBlock") {
-    return;
-  }
-
-  const positions = detectTerminalBlockPinPositions(rawSvg);
-  if (positions.length >= 2) {
-    parameters["_TERMINAL_PIN_POSITIONS"] = serialisePinPositions(positions);
-  }
-}
-
-function detectCircuitType(category: string): CircuitTypeValue | undefined {
-  return category === "Inne" ? "Inne" : undefined;
-}
-
-function extractPlaceholderDefaults(svgMarkup: string, category: string): Record<string, string> {
-  const matches = svgMarkup.match(/\{\{([A-Z0-9_]+)\}\}/g) ?? [];
-  const defaults: Record<string, string> = {};
-
-  for (const match of matches) {
-    const key = match.slice(2, -2);
-    if (defaults[key]) {
-      continue;
-    }
-
-    switch (key) {
-      case "CURRENT":
-        defaults[key] = category === "MCB" ? "B16" : "40A";
-        break;
-      case "SENSITIVITY":
-        defaults[key] = "30mA";
-        break;
-      case "TYPE":
-        defaults[key] = "Typ A";
-        break;
-      case "LABEL":
-        defaults[key] = category === "FR" ? "63A" : "";
-        break;
-      case "BLUE_COVER_VISIBILITY":
-      case "BLUE_COVER_VISIBLE":
-        defaults[key] = "visible";
-        break;
-      default:
-        defaults[key] = "";
-        break;
-    }
-  }
-
-  return defaults;
-}
-
-function detectRcdRatedCurrent(fileName: string, category: string): number | undefined {
-  if (category !== "RCD") {
-    return undefined;
-  }
-
-  const match = fileName.match(/(?:^|[^0-9])(\d{2,3})\s*A(?:[^a-z]|$)/i);
-  if (!match) {
-    return undefined;
-  }
-
-  const current = Number.parseInt(match[1] ?? "", 10);
-  return Number.isFinite(current) && current > 0 ? current : undefined;
-}
-
-function detectRcdResidualCurrent(fileName: string, category: string): number | undefined {
-  if (category !== "RCD") {
-    return undefined;
-  }
-
-  const match = fileName.match(/(?:^|[^0-9])(\d{2,3})\s*mA(?:[^a-z]|$)/i);
-  if (!match) {
-    return 30;
-  }
-
-  const current = Number.parseInt(match[1] ?? "", 10);
-  return Number.isFinite(current) && current > 0 ? current : 30;
-}
-
-function detectRcdType(fileName: string, category: string): string | undefined {
-  if (category !== "RCD") {
-    return undefined;
-  }
-
-  const match = fileName.match(/(?:typ|type)\s*([A-Z]{1,2})/i);
-  return match?.[1]?.toUpperCase() ?? "A";
-}
-
-function parseSvgDocument(svgMarkup: string): Document | null {
-  if (typeof DOMParser === "undefined") {
-    return null;
-  }
-
-  try {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(svgMarkup, "image/svg+xml");
-    const root = doc.documentElement;
-    const hasParserError = doc.querySelector("parsererror") !== null;
-    if (hasParserError || !root || root.tagName.toLowerCase() !== "svg") {
-      return null;
-    }
-
-    return doc;
-  } catch {
-    return null;
-  }
-}
-
-function isLikelySvgMarkup(svgMarkup: string): boolean {
-  let remaining = svgMarkup.replace(/^\uFEFF/, "").trimStart();
-  remaining = remaining.replace(/^<\?xml[^>]*>\s*/i, "");
-
-  while (true) {
-    const trimmed = remaining.trimStart();
-    if (trimmed.startsWith("<!--")) {
-      const commentEnd = trimmed.indexOf("-->");
-      if (commentEnd < 0) {
-        return false;
-      }
-      remaining = trimmed.slice(commentEnd + 3);
-      continue;
-    }
-
-    if (/^<!doctype/i.test(trimmed)) {
-      const doctypeEnd = trimmed.indexOf(">");
-      if (doctypeEnd < 0) {
-        return false;
-      }
-      remaining = trimmed.slice(doctypeEnd + 1);
-      continue;
-    }
-
-    return /^<svg(?:\s|>)/i.test(trimmed);
-  }
-}
-
-function isValidSvgMarkup(svgMarkup: string): boolean {
-  if (!isLikelySvgMarkup(svgMarkup)) {
-    return false;
-  }
-
-  if (typeof DOMParser === "undefined") {
-    return true;
-  }
-
-  return parseSvgDocument(svgMarkup) !== null;
-}
-
-function sanitizeSvg(svgMarkup: string): string {
-  if (typeof DOMParser === "undefined" || typeof XMLSerializer === "undefined") {
-    return svgMarkup;
-  }
-
-  try {
-    const doc = parseSvgDocument(svgMarkup);
-    if (!doc) {
-      return "";
-    }
-
-    for (const node of Array.from(doc.querySelectorAll("script, foreignObject"))) {
-      node.remove();
-    }
-
-    for (const element of Array.from(doc.querySelectorAll("*"))) {
-      for (const attribute of Array.from(element.attributes)) {
-        if (/^on/i.test(attribute.name)) {
-          element.removeAttribute(attribute.name);
-          continue;
-        }
-
-        if (attribute.name === "href" || attribute.name === "xlink:href") {
-          const value = attribute.value.trim();
-          const safeReference =
-            value.startsWith("#")
-            || value.startsWith("data:image/")
-            || value.startsWith("data:application/octet-stream");
-          if (!safeReference) {
-            element.removeAttribute(attribute.name);
-          }
-        }
-      }
-    }
-
-    return new XMLSerializer().serializeToString(doc.documentElement);
-  } catch {
-    return svgMarkup;
-  }
-}
-
-function parseExplicitMmDimensions(
-  svgMarkup: string,
-  svgDimensions: SvgDimensions | null,
-): { heightMm: number; source: "svg-300dpi" | "svg-ratio" | "svg-units"; widthMm: number } | null {
-  if (typeof DOMParser === "undefined") {
-    return null;
-  }
-
-  try {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(svgMarkup, "image/svg+xml");
-    const root = doc.documentElement;
-    if (!root || root.tagName.toLowerCase() !== "svg") {
-      return null;
-    }
-
-    const widthMm = parseSvgLengthToMm(root.getAttribute("width"));
-    const heightMm = parseSvgLengthToMm(root.getAttribute("height"));
-    if (widthMm && heightMm) {
-      return { widthMm, heightMm, source: "svg-units" };
-    }
-
-    if (svgDimensions && svgDimensions.width > 0 && svgDimensions.height > 0) {
-      if (widthMm && !heightMm) {
-        return {
-          widthMm,
-          heightMm: Math.round(((widthMm * svgDimensions.height) / svgDimensions.width) * 100) / 100,
-          source: "svg-ratio",
-        };
-      }
-
-      if (!widthMm && heightMm) {
-        return {
-          widthMm: Math.round(((heightMm * svgDimensions.width) / svgDimensions.height) * 100) / 100,
-          heightMm,
-          source: "svg-ratio",
-        };
-      }
-    }
-
-    const hasPercentDimensions =
-      isPercentSvgLength(root.getAttribute("width")) || isPercentSvgLength(root.getAttribute("height"));
-    const looksLikeSerifExport = root.hasAttribute("xmlns:serif");
-    if (svgDimensions && svgDimensions.width > 0 && svgDimensions.height > 0 && (hasPercentDimensions || looksLikeSerifExport)) {
-      const mmPerPxAt300Dpi = 25.4 / 300;
-      return {
-        widthMm: Math.round(svgDimensions.width * mmPerPxAt300Dpi * 100) / 100,
-        heightMm: Math.round(svgDimensions.height * mmPerPxAt300Dpi * 100) / 100,
-        source: "svg-300dpi",
-      };
-    }
-  } catch {
-    return null;
-  }
-
-  return null;
 }
 
 function calculateDefaultHeightMm(category: string, modules: number, svgDimensions: SvgDimensions | null): number {

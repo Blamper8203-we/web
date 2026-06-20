@@ -6,7 +6,7 @@ export const MIN_SCALE = 0.1;
 export const MAX_SCALE = 5;
 export const PIXI_MAX_RESOLUTION = 2;
 export const PIXI_LABEL_SYMBOL_LIMIT = 64;
-export const MANUAL_REFERENCE_DESIGNATION_KEY = "ManualReferenceDesignation";
+
 
 export const DIN_RAIL_PREVIEW_CANVAS_WIDTH = 360;
 export const DIN_RAIL_PREVIEW_CANVAS_HEIGHT = 280;
@@ -25,11 +25,4 @@ export const WIRE_COLORS_MAP: Record<string, { hex: string; highlight: string; d
   other: { hex: "#a855f7", highlight: "#c084fc", dark: "#6b21a8" },
 };
 
-export const WIRE_THICKNESS_MAP: Record<number, number> = {
-  1.5: 24.0,
-  2.5: 30.0,
-  4.0: 36.0,
-  6.0: 42.0,
-  10.0: 50.0,
-  16.0: 60.0,
-};
+export { WIRE_THICKNESS_MAP } from "../connections/connectionsLogic";

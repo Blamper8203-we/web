@@ -176,12 +176,18 @@ export async function loadPreparedSvgMarkup(
   
   const dynamicRatingText = parameters["_DYNAMIC_RATING_"];
   
-  const preparedSvg = (shouldNormalizeSvgSource(src) || dynamicRatingText)
+  let preparedSvg = (shouldNormalizeSvgSource(src) || dynamicRatingText)
     ? normalizeSvgMarkup(parameterizedSvg, {
         normalizeStrokeWidths: false,
         dynamicRatingText: dynamicRatingText,
       })
     : parameterizedSvg;
+
+  if (parameters["BLUE_COVER_VISIBILITY"] === "hidden" || parameters["BLUE_COVER_VISIBILITY"] === "none") {
+    const hideCoverStyle = `<style>#Oslona, [id="Oslona"], #Osłona, [id="Osłona"] { visibility: hidden; }</style>`;
+    preparedSvg = preparedSvg.replace("</svg>", `${hideCoverStyle}</svg>`);
+  }
+
   preparedSvgMarkupCache.set(cacheKey, preparedSvg);
   if (!preparedSvgDataUriCache.has(cacheKey)) {
     preparedSvgDataUriCache.set(

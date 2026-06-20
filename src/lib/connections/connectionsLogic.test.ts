@@ -62,8 +62,8 @@ describe("connectionsLogic - isTerminalZlaczka", () => {
 });
 
 describe("connectionsLogic - getFerruleLength", () => {
-  it("returns 240 for Złączka (extra-long for visibility behind plastic)", () => {
-    expect(getFerruleLength("terminalBlock", "zlaczka-3pin")).toBe(240);
+  it("returns 90 for Złączka (short, just like other terminal blocks)", () => {
+    expect(getFerruleLength("terminalBlock", "zlaczka-3pin")).toBe(90);
   });
 
   it("returns 90 for terminal block that is not a Złączka", () => {
@@ -82,8 +82,8 @@ describe("connectionsLogic - getFerruleLength", () => {
     expect(getFerruleLength(undefined, undefined)).toBe(160);
   });
 
-  it("returns 240 even when deviceKind is unusual, if moduleRef marks it as Złączka", () => {
+  it("returns 90 even when deviceKind is unusual, if moduleRef marks it as Złączka", () => {
     // Złączka detection is based on moduleRef, not deviceKind
-    expect(getFerruleLength("other", "złączka-5pin")).toBe(240);
+    expect(getFerruleLength("other", "złączka-5pin")).toBe(90);
   });
 });

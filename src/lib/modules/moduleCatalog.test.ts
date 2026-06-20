@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { getModuleSnapAnchorRatioY, getPaletteTemplateDimensions, PALETTE_GROUPS } from "./moduleCatalog";
+// @ts-ignore
+import { existsSync } from "fs";
+// @ts-ignore
+import { resolve } from "path";
+import { getModuleSnapAnchorRatioY, getPaletteTemplateDimensions, PALETTE_GROUPS, currentModuleEntries } from "./moduleCatalog";
 import { mergePaletteGroups, type ImportedModuleDefinition } from "./importedModuleCatalog";
 import { getSymbolTerminals } from "./moduleTerminals";
 import { createDefaultSymbolItem } from "../../types/symbolItem";
@@ -75,11 +79,39 @@ describe("module catalog groups", () => {
   });
 });
 
+describe("module catalog integrity", () => {
+  it("every currentModuleEntries moduleRef points to an existing SVG file on disk", () => {
+    // WHY: literówki w moduleRef (np. rozłacznik vs rozłącznik) powodują że moduły
+    // są niewidoczne w palecie — 404 przy ładowaniu SVG. Ten test łapie takie błędy w CI.
+    // Używamy PALETTE_GROUPS które są budowane z currentModuleEntries (nie z legacy moduleEntries).
+    // @ts-ignore
+    const publicModulesDir = resolve(__dirname, "../../../public/assets/modules");
+    const missing: string[] = [];
+    for (const group of PALETTE_GROUPS) {
+      for (const item of group.items) {
+        if (!item.moduleRef) continue;
+        // Imported modules (z assetPath zawierającym importedSvg) są na dysku w innym miejscu
+        // i nie mają stałego moduleRef na dysku — pomijamy je.
+        if (item.assetPath.includes("imported/")) continue;
+        const fullPath = resolve(publicModulesDir, item.moduleRef);
+        if (!existsSync(fullPath)) {
+          missing.push(`${item.templateId}: moduleRef="${item.moduleRef}" → brak pliku: ${fullPath}`);
+        }
+      }
+    }
+    if (missing.length > 0) {
+      throw new Error(
+        `Brakujące pliki SVG dla wpisów katalogu:\n${missing.map((m) => `  - ${m}`).join("\n")}`
+      );
+    }
+  });
+});
+
 describe("getSymbolTerminals for 28-pin block", () => {
   it("maps 28 terminals with correct names and phases for 7-pin block", () => {
     const symbol = createDefaultSymbolItem({
       type: "Blok rozdzielczy",
-      moduleRef: "Blok rozdzielczy/Blok rozdzielczy 7 pin.svg",
+      moduleRef: "Blok rozdzielczy/blok rozdzielczy 4x7.svg",
       width: 840,
       height: 1150,
     });
@@ -106,9 +138,9 @@ describe("getSymbolTerminals for 28-pin block", () => {
 
 import { svgTerminalCache } from "./svgTerminalCache";
 
-describe("getSymbolTerminals uniform scaling (meet) for custom block", () => {
-  it("calculates terminal positions and radiuses using meet scaling", () => {
-    const moduleRef = "Blok rozdzielczy/blok rozdzielczy 4-7.svg";
+describe("getSymbolTerminals uniform scaling (none) for custom block", () => {
+  it("calculates terminal positions and radiuses using none scaling", () => {
+    const moduleRef = "Blok rozdzielczy/blok rozdzielczy 4x7.svg";
     const groups = [
       {
         prefix: "L1",
@@ -138,15 +170,15 @@ describe("getSymbolTerminals uniform scaling (meet) for custom block", () => {
 
     const l1_1 = terminals[0]!;
     expect(l1_1.name).toBe("L1-1");
-    // scale = Math.min(1395.48 / 841, 1170 / 1148) = 1170 / 1148 = 1.01916376
-    // dx = (1395.48 - 841 * scale) / 2 = (1395.48 - 857.1167) / 2 = 269.1816
-    // dy = (1170 - 1148 * scale) / 2 = 0
-    // x = dx + cx * scale = 269.1816 + 172.025 * 1.01916376 = 269.1816 + 175.3216 = 444.503
-    // y = dy + cy * scale = 0 + 242.834 * 1.01916376 = 247.487
-    // radius = r * scale = 23.622 * 1.01916376 = 24.0747
-    expect(l1_1.x).toBeCloseTo(444.503, 1);
+    // scaleX = 1395.48 / 841 = 1.659
+    // scaleY = 1170 / 1148 = 1.019
+    // none scaling
+    // x = width * xRatio = 1395.48 * (172.025 / 841) = 285.45
+    // y = height * yRatio = 1170 * (242.834 / 1148) = 247.487
+    // radius = width * rRatio = 1395.48 * (23.622 / 841) = 39.19
+    expect(l1_1.x).toBeCloseTo(285.45, 1);
     expect(l1_1.y).toBeCloseTo(247.487, 1);
-    expect(l1_1.radius).toBeCloseTo(24.0747, 1);
+    expect(l1_1.radius).toBeCloseTo(39.19, 1);
   });
 });
 
@@ -169,5 +201,28 @@ describe("parseSvgForTerminals with data URI", () => {
     expect(cached?.[0].terminals[0].name).toBe("L1-1");
     expect(cached?.[0].terminals[0].xRatio).toBe(20 / 100);
     expect(cached?.[0].terminals[0].yRatio).toBe(30 / 200);
+  });
+});
+
+describe("module catalog integrity", () => {
+  it("every moduleRef points to an existing SVG file on disk", () => {
+    // @ts-ignore
+    const publicAssetsDir = resolve(process.cwd(), "public/assets/modules");
+    
+    const missingFiles: string[] = [];
+    for (const entry of currentModuleEntries) {
+      if (entry.moduleRef) {
+        const fullPath = resolve(publicAssetsDir, entry.moduleRef);
+        if (!existsSync(fullPath)) {
+          missingFiles.push(`Missing: ${entry.moduleRef} (resolved to ${fullPath})`);
+        }
+      }
+    }
+
+    if (missingFiles.length > 0) {
+      console.error(missingFiles.join("\\n"));
+    }
+    
+    expect(missingFiles.length).toBe(0);
   });
 });

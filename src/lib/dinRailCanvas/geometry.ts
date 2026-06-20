@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { isAuxiliaryNonCircuitSymbol, type SymbolItem } from "../../types/symbolItem";
-import { MANUAL_REFERENCE_DESIGNATION_KEY } from "./constants";
+import { MANUAL_REFERENCE_DESIGNATION_KEY } from "../../types/symbolItem";
 import type { NormalizedRect, WorldRect } from "./types";
 
 export function clamp(value: number, min: number, max: number): number {
