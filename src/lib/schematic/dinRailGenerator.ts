@@ -4,9 +4,10 @@
 // ================================================================
 
 const UNIT_PER_MODULE = 250.0;
-const RAIL_HEIGHT = 1642.0;
+export const RAIL_HEIGHT = 1642.0;
 const PADDING_X = 55.0;
-const ROW_SPACING = 50.0;
+export const ROW_SPACING = 50.0;
+export const LISTWY_ROW_SPACING = RAIL_HEIGHT + ROW_SPACING;
 
 const VERTICAL_GUIDE_WIDTH = 177.167;
 const VERTICAL_GUIDE_Y = 5.449;

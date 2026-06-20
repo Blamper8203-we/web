@@ -1,4 +1,4 @@
-import { createDefaultSymbolItem, type SymbolItem } from "../../types/symbolItem";
+import { createDefaultSymbolItem, type SymbolItem, MANUAL_REFERENCE_DESIGNATION_KEY } from "../../types/symbolItem";
 import type { SchematicLayout, SchematicNode } from "./schematicLayout";
 import {
   A4_WIDTH_PX,
@@ -35,7 +35,7 @@ export interface SchematicCellHit {
   rect: SchematicCellRect;
 }
 
-const MANUAL_REFERENCE_DESIGNATION_KEY = "ManualReferenceDesignation";
+
 const TABLE_ROW_CIRCUIT = Y_ROW_DESIGNATION + ROW_HEIGHT;
 const TABLE_ROW_LOCATION = Y_ROW_DESIGNATION + ROW_HEIGHT * 2;
 const TABLE_ROW_CABLE = Y_ROW_DESIGNATION + ROW_HEIGHT * 3;

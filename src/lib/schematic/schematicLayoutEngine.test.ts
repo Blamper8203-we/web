@@ -60,7 +60,7 @@ describe("schematicLayoutEngine (Avalonia parity & stable sorting)", () => {
     const distributionBlock = createDefaultSymbolItem({
       id: "distribution-block",
       type: "Blok rozdzielczy",
-      label: "Blok rozdzielczy 4 15",
+      label: "Blok rozdzielczy",
       group: "G1",
       groupName: "Grupa-1",
       x: 500,
