@@ -1,6 +1,6 @@
 import { devWarn } from "../runtimeDiagnostics";
 import type { DinRailCanvasRail } from "../../components/DinRailCanvasPixi";
-import { isAuxiliaryNonCircuitSymbol, type SymbolItem } from "../../types/symbolItem";
+import { isAuxiliaryNonCircuitSymbol, type SymbolItem, MANUAL_REFERENCE_DESIGNATION_KEY } from "../../types/symbolItem";
 import { buildSchematicLayout } from "../schematic/schematicLayoutEngine";
 import {
   DIN_RAIL_GROUP_BRACKET_BAR_HEIGHT,
@@ -15,9 +15,9 @@ import { getSymbolRatingText } from "../appHelpers";
 import type { ConnectionItem } from "../../types/connectionItem";
 import { getSymbolTerminals, findTerminalByName, resolveConnectionIsFromTop, resolveConnectionIsToTop } from "../modules/moduleTerminals";
 import { calculateWirePoints, type Point } from "../routing/wireRoutingEngine";
-import { getFerruleLength } from "../connections/connectionsLogic";
+import { getFerruleLength, WIRE_THICKNESS_MAP, WIRE_COLORS_MAP } from "../connections/connectionsLogic";
 
-const MANUAL_REFERENCE_DESIGNATION_KEY = "ManualReferenceDesignation";
+
 
 export interface DinRailSnapshotExportOptions {
   includeDesignations?: boolean;
@@ -143,26 +143,7 @@ function getSymbolDesignationLabel(
   return automaticDesignationBySymbolId.get(symbol.id) ?? "";
 }
 
-const WIRE_COLORS_MAP: Record<string, { hex: string; highlight: string; dark: string }> = {
-  black: { hex: "#333333", highlight: "#666666", dark: "#000000" }, // L2
-  brown: { hex: "#8B4513", highlight: "#c4763a", dark: "#4a2007" }, // L1
-  grey: { hex: "#888888", highlight: "#bbbbbb", dark: "#555555" },  // L3
-  gray: { hex: "#888888", highlight: "#bbbbbb", dark: "#555555" },  // L3
-  blue: { hex: "#1565C0", highlight: "#4a9ed6", dark: "#0a2f6b" },  // N
-  "green-yellow": { hex: "#2e7d32", highlight: "#5ab55e", dark: "#143b16" }, // PE
-  pe: { hex: "#2e7d32", highlight: "#5ab55e", dark: "#143b16" }, // PE
-  red: { hex: "#ef4444", highlight: "#f87171", dark: "#991b1b" },
-  other: { hex: "#a855f7", highlight: "#c084fc", dark: "#6b21a8" },
-};
 
-const WIRE_THICKNESS_MAP: Record<number, number> = {
-  1.5: 24.0,
-  2.5: 30.0,
-  4.0: 36.0,
-  6.0: 42.0,
-  10.0: 48.0,
-  16.0: 54.0,
-};
 
 function drawWireOnCanvas(
   ctx: CanvasRenderingContext2D,
@@ -290,25 +271,23 @@ export async function exportDinRailToDataURL(
   return exportDinRailToDataURLWithOptions(symbols, rail, {}, connections);
 }
 
-async function renderDinRailSnapshotCanvas(
+// ── Helpers for renderDinRailSnapshotCanvas ─────────────────────────────────
+
+interface BoundingBox {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+}
+
+function calculateSnapshotBounds(
   symbols: SymbolItem[],
+  snappedSymbols: SymbolItem[],
   rail: DinRailCanvasRail,
-  options: DinRailSnapshotExportOptions,
-  connections?: ConnectionItem[],
-): Promise<HTMLCanvasElement | null> {
-  if (!rail.isVisible || rail.width <= 0 || rail.height <= 0) {
-    return null;
-  }
-
-  const includeDesignations = options.includeDesignations !== false;
-  const includeGroupFrames = options.includeGroupFrames !== false;
-
-  const snappedSymbols = symbols.filter((symbol) => symbol.isSnappedToRail);
-  const groupFrames = includeGroupFrames
-    ? buildDinRailGroupFrames(snappedSymbols, DIN_RAIL_GROUP_FRAME_PADDING)
-    : [];
-
-  // Calculate bounding box of everything (rail, symbols, labels, groups, wires)
+  connections: ConnectionItem[] | undefined,
+  includeDesignations: boolean,
+  groupFrames: ReturnType<typeof buildDinRailGroupFrames>,
+): BoundingBox {
   let minX = 0;
   let minY = 0;
   let maxX = rail.width;
@@ -325,7 +304,6 @@ async function renderDinRailSnapshotCanvas(
     }
   }
 
-  // Include wire points in bounding box
   if (connections && connections.length > 0) {
     for (const conn of connections) {
       const fromSymbol = symbols.find((s) => s.id === conn.fromSymbolId);
@@ -371,52 +349,39 @@ async function renderDinRailSnapshotCanvas(
     }
   }
 
-  if (includeGroupFrames && groupFrames.length > 0) {
+  if (groupFrames.length > 0) {
     for (const group of groupFrames) {
       minY = Math.min(minY, group.y - 120);
     }
   }
 
-  // Add a nice padding margin
   const padding = 40;
   minX -= padding;
   minY -= padding;
   maxX += padding;
   maxY += padding;
 
-  const contentWidth = maxX - minX;
-  const contentHeight = maxY - minY;
+  return { minX, minY, maxX, maxY };
+}
 
-  const offsetX = -minX;
-  const offsetY = -minY;
-
-  // Browsers enforce a hard canvas dimension limit (Chrome: 16384px, Firefox: 32767px).
-  // A 24-module DIN rail is ~6120 logical units wide. At scale 4 that's 24480px — way over the limit.
-  // We automatically clamp the scale so the largest dimension stays within safe bounds.
+function getSafeScaleForCanvas(
+  contentWidth: number,
+  contentHeight: number,
+  optionsScale: number | undefined
+): number {
   const MAX_CANVAS_DIMENSION = 3840;
-  const requestedScale = clamp(options.scale ?? 2, 1, 8);
+  const requestedScale = clamp(optionsScale ?? 2, 1, 8);
   const maxDimension = Math.max(contentWidth, contentHeight);
   const safeScale = maxDimension * requestedScale > MAX_CANVAS_DIMENSION
     ? Math.floor((MAX_CANVAS_DIMENSION / maxDimension) * 100) / 100
     : requestedScale;
-  const scale = Math.max(1, safeScale);
+  return Math.max(1, safeScale);
+}
 
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(contentWidth * scale);
-  canvas.height = Math.round(contentHeight * scale);
-  const ctx = canvas.getContext("2d");
-
-  if (!ctx) {
-    return null;
-  }
-
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
-  ctx.scale(scale, scale);
-  ctx.translate(offsetX, offsetY);
-
+async function drawRailBackground(
+  ctx: CanvasRenderingContext2D,
+  rail: DinRailCanvasRail,
+): Promise<void> {
   if (rail.svg) {
     const svgDataUri = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(rail.svg)}`;
     try {
@@ -426,14 +391,11 @@ async function renderDinRailSnapshotCanvas(
       devWarn("Nie udalo sie narysowac tla szyny DIN:", err);
     }
   }
-  const automaticDesignationBySymbolId = includeDesignations
-    ? buildAutomaticDesignationMap(symbols)
-    : new Map<string, string>();
+}
 
+async function loadSymbolImages(snappedSymbols: SymbolItem[]): Promise<{ img: HTMLImageElement; symbol: SymbolItem }[]> {
   const drawPromises = snappedSymbols.map(async (symbol) => {
-    if (!symbol.visualPath) {
-      return null;
-    }
+    if (!symbol.visualPath) return null;
 
     try {
       const rating = getSymbolRatingText(symbol);
@@ -450,121 +412,192 @@ async function renderDinRailSnapshotCanvas(
     }
   });
 
-  const loadedImages = (await Promise.all(drawPromises)).filter(Boolean) as {
-    img: HTMLImageElement;
-    symbol: SymbolItem;
-  }[];
+  return (await Promise.all(drawPromises)).filter((item): item is { img: HTMLImageElement; symbol: SymbolItem } => Boolean(item));
+}
 
-  // 1. Draw Terminal Blocks (background part) FIRST so wires go over them
+function drawTerminalBlocksBackground(
+  ctx: CanvasRenderingContext2D,
+  loadedImages: { img: HTMLImageElement; symbol: SymbolItem }[]
+): void {
   const bgImages = loadedImages.filter(li => li.symbol.deviceKind === "terminalBlock");
   for (const { img, symbol } of bgImages) {
     ctx.drawImage(img, symbol.x, symbol.y, symbol.width, symbol.height);
   }
+}
 
-  // Draw wires/connections FIRST (so they appear behind normal modules)
-  if (connections && connections.length > 0) {
-    for (const conn of connections) {
-      const fromSymbol = symbols.find((s) => s.id === conn.fromSymbolId);
-      const toSymbol = symbols.find((s) => s.id === conn.toSymbolId);
-      if (!fromSymbol || !toSymbol) continue;
+function drawWiresConnections(
+  ctx: CanvasRenderingContext2D,
+  symbols: SymbolItem[],
+  connections: ConnectionItem[] | undefined
+): void {
+  if (!connections || connections.length === 0) return;
 
-      const fromHS = findTerminalByName(getSymbolTerminals(fromSymbol), conn.fromTerminal, conn.isFromTop);
-      const toHS = findTerminalByName(getSymbolTerminals(toSymbol), conn.toTerminal, conn.isToTop);
-      if (!fromHS || !toHS) continue;
+  for (const conn of connections) {
+    const fromSymbol = symbols.find((s) => s.id === conn.fromSymbolId);
+    const toSymbol = symbols.find((s) => s.id === conn.toSymbolId);
+    if (!fromSymbol || !toSymbol) continue;
 
-      const fromPt = { x: fromSymbol.x + fromHS.x, y: fromSymbol.y + fromHS.y };
-      const toPt = { x: toSymbol.x + toHS.x, y: toSymbol.y + toHS.y };
+    const fromHS = findTerminalByName(getSymbolTerminals(fromSymbol), conn.fromTerminal, conn.isFromTop);
+    const toHS = findTerminalByName(getSymbolTerminals(toSymbol), conn.toTerminal, conn.isToTop);
+    if (!fromHS || !toHS) continue;
 
-      const hasFerrule = conn.ferruleColor && conn.ferruleColor !== "none";
-      const customRadius = conn.customRadius ?? 0;
-      
-      const fromFerruleLen = getFerruleLength(fromSymbol.deviceKind, fromSymbol.moduleRef);
-      const toFerruleLen = getFerruleLength(toSymbol.deviceKind, toSymbol.moduleRef);
+    const fromPt = { x: fromSymbol.x + fromHS.x, y: fromSymbol.y + fromHS.y };
+    const toPt = { x: toSymbol.x + toHS.x, y: toSymbol.y + toHS.y };
 
-      const fromExitOffsetVal = hasFerrule ? Math.max(fromHS.exitOffset ?? 40, fromFerruleLen) + customRadius : (fromHS.exitOffset ?? 40) + customRadius;
-      const toExitOffsetVal = hasFerrule ? Math.max(toHS.exitOffset ?? 40, toFerruleLen) + customRadius : (toHS.exitOffset ?? 40) + customRadius;
+    const hasFerrule = conn.ferruleColor && conn.ferruleColor !== "none";
+    const customRadius = conn.customRadius ?? 0;
+    
+    const fromFerruleLen = getFerruleLength(fromSymbol.deviceKind, fromSymbol.moduleRef);
+    const toFerruleLen = getFerruleLength(toSymbol.deviceKind, toSymbol.moduleRef);
 
-      const routingOpts = {
-        isFromTop: resolveConnectionIsFromTop(fromSymbol, conn.isFromTop, fromHS),
-        isToTop: resolveConnectionIsToTop(toSymbol, conn.isToTop, toHS),
-        points: conn.points,
-        customOffset: conn.customOffset,
-        customOffsetX: conn.customOffsetX,
-        customOffsetY1: conn.customOffsetY1,
-        customOffsetY2: conn.customOffsetY2,
-        customRadius,
-        fromExitOffset: fromExitOffsetVal,
-        toExitOffset: toExitOffsetVal,
-      };
+    const fromExitOffsetVal = hasFerrule ? Math.max(fromHS.exitOffset ?? 40, fromFerruleLen) + customRadius : (fromHS.exitOffset ?? 40) + customRadius;
+    const toExitOffsetVal = hasFerrule ? Math.max(toHS.exitOffset ?? 40, toFerruleLen) + customRadius : (toHS.exitOffset ?? 40) + customRadius;
 
-      const pointsArr = calculateWirePoints(fromPt, toPt, routingOpts);
-      const wireThickness = WIRE_THICKNESS_MAP[conn.wireCrossSection] || 4.5;
-      const colors = WIRE_COLORS_MAP[conn.wireColor] || { hex: "#555", highlight: "#888", dark: "#1a1a1a" };
+    const routingOpts = {
+      isFromTop: resolveConnectionIsFromTop(fromSymbol, conn.isFromTop, fromHS),
+      isToTop: resolveConnectionIsToTop(toSymbol, conn.isToTop, toHS),
+      points: conn.points,
+      customOffset: conn.customOffset,
+      customOffsetX: conn.customOffsetX,
+      customOffsetY1: conn.customOffsetY1,
+      customOffsetY2: conn.customOffsetY2,
+      customRadius,
+      fromExitOffset: fromExitOffsetVal,
+      toExitOffset: toExitOffsetVal,
+    };
 
-      // 1. Dark outline (gray for black wires to prevent blending with dark background)
-      const outlineColor = conn.wireColor === "black" ? "#888888" : colors.dark;
-      drawWireOnCanvas(ctx, pointsArr, conn.customRadius ?? 0, outlineColor, wireThickness + 1.8, "");
+    const pointsArr = calculateWirePoints(fromPt, toPt, routingOpts);
+    const wireThickness = WIRE_THICKNESS_MAP[conn.wireCrossSection] || 4.5;
+    const colors = WIRE_COLORS_MAP[conn.wireColor] || { hex: "#555", highlight: "#888", dark: "#1a1a1a" };
 
-      // 2. Main color
-      drawWireOnCanvas(ctx, pointsArr, conn.customRadius ?? 0, colors.hex, wireThickness, conn.wireColor);
-    }
+    const outlineColor = conn.wireColor === "black" ? "#888888" : colors.dark;
+    drawWireOnCanvas(ctx, pointsArr, conn.customRadius ?? 0, outlineColor, wireThickness + 1.8, "");
+    drawWireOnCanvas(ctx, pointsArr, conn.customRadius ?? 0, colors.hex, wireThickness, conn.wireColor);
   }
+}
 
-  // Draw normal modules (on top of wires)
+function drawForegroundModules(
+  ctx: CanvasRenderingContext2D,
+  loadedImages: { img: HTMLImageElement; symbol: SymbolItem }[]
+): void {
   const fgImages = loadedImages.filter(li => li.symbol.deviceKind !== "terminalBlock");
   fgImages.sort((a, b) => {
     if (Math.abs(a.symbol.y - b.symbol.y) > 5) {
       return a.symbol.y - b.symbol.y;
     }
-
     return a.symbol.x - b.symbol.x;
   });
 
   for (const { img, symbol } of fgImages) {
     ctx.drawImage(img, symbol.x, symbol.y, symbol.width, symbol.height);
   }
+}
+
+function drawDesignationLabels(
+  ctx: CanvasRenderingContext2D,
+  snappedSymbols: SymbolItem[],
+  automaticDesignationBySymbolId: Map<string, string>
+): void {
+  const fontSize = 36;
+  const labelPadX = 14;
+  const labelPadY = 6;
+  const labelRadius = 8;
+  const labelOffsetY = 44;
+
+  ctx.font = `700 ${fontSize}px 'Inter', 'Segoe UI', Arial, sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  for (const symbol of snappedSymbols) {
+    const label = getSymbolDesignationLabel(symbol, automaticDesignationBySymbolId);
+    if (label.length === 0) continue;
+
+    const cx = symbol.x + Math.max(symbol.width, 48) / 2;
+    const cy = symbol.y + symbol.height + labelOffsetY;
+    const metrics = ctx.measureText(label);
+    const textWidth = metrics.width;
+
+    const bgX = cx - textWidth / 2 - labelPadX;
+    const bgY = cy - fontSize / 2 - labelPadY;
+    const bgW = textWidth + labelPadX * 2;
+    const bgH = fontSize + labelPadY * 2;
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.96)";
+    ctx.beginPath();
+    ctx.roundRect(bgX, bgY, bgW, bgH, labelRadius);
+    ctx.fill();
+
+    ctx.strokeStyle = "#94a3b8";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = "#0f172a";
+    ctx.fillText(label, cx, cy);
+  }
+}
+
+async function renderDinRailSnapshotCanvas(
+  symbols: SymbolItem[],
+  rail: DinRailCanvasRail,
+  options: DinRailSnapshotExportOptions,
+  connections?: ConnectionItem[],
+): Promise<HTMLCanvasElement | null> {
+  if (!rail.isVisible || rail.width <= 0 || rail.height <= 0) {
+    return null;
+  }
+
+  const includeDesignations = options.includeDesignations !== false;
+  const includeGroupFrames = options.includeGroupFrames !== false;
+
+  const snappedSymbols = symbols.filter((symbol) => symbol.isSnappedToRail);
+  const groupFrames = includeGroupFrames
+    ? buildDinRailGroupFrames(snappedSymbols, DIN_RAIL_GROUP_FRAME_PADDING)
+    : [];
+
+  const { minX, minY, maxX, maxY } = calculateSnapshotBounds(
+    symbols,
+    snappedSymbols,
+    rail,
+    connections,
+    includeDesignations,
+    groupFrames
+  );
+
+  const contentWidth = maxX - minX;
+  const contentHeight = maxY - minY;
+  const offsetX = -minX;
+  const offsetY = -minY;
+
+  const scale = getSafeScaleForCanvas(contentWidth, contentHeight, options.scale);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(contentWidth * scale);
+  canvas.height = Math.round(contentHeight * scale);
+  const ctx = canvas.getContext("2d");
+
+  if (!ctx) return null;
+
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.scale(scale, scale);
+  ctx.translate(offsetX, offsetY);
+
+  await drawRailBackground(ctx, rail);
+
+  const automaticDesignationBySymbolId = includeDesignations
+    ? buildAutomaticDesignationMap(symbols)
+    : new Map<string, string>();
+
+  const loadedImages = await loadSymbolImages(snappedSymbols);
+
+  drawTerminalBlocksBackground(ctx, loadedImages);
+  drawWiresConnections(ctx, symbols, connections);
+  drawForegroundModules(ctx, loadedImages);
 
   if (includeDesignations) {
-    // Label sizes are in the same logical coordinate space as the DIN rail.
-    // A single module is ~250px wide and ~1200px tall, so 36px font is well-proportioned.
-    const fontSize = 36;
-    const labelPadX = 14;
-    const labelPadY = 6;
-    const labelRadius = 8;
-    const labelOffsetY = 44;
-
-    ctx.font = `700 ${fontSize}px 'Inter', 'Segoe UI', Arial, sans-serif`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    for (const symbol of snappedSymbols) {
-      const label = getSymbolDesignationLabel(symbol, automaticDesignationBySymbolId);
-      if (label.length === 0) {
-        continue;
-      }
-
-      const cx = symbol.x + Math.max(symbol.width, 48) / 2;
-      const cy = symbol.y + symbol.height + labelOffsetY;
-      const metrics = ctx.measureText(label);
-      const textWidth = metrics.width;
-
-      const bgX = cx - textWidth / 2 - labelPadX;
-      const bgY = cy - fontSize / 2 - labelPadY;
-      const bgW = textWidth + labelPadX * 2;
-      const bgH = fontSize + labelPadY * 2;
-
-      ctx.fillStyle = "rgba(255, 255, 255, 0.96)";
-      ctx.beginPath();
-      ctx.roundRect(bgX, bgY, bgW, bgH, labelRadius);
-      ctx.fill();
-
-      ctx.strokeStyle = "#94a3b8";
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      ctx.fillStyle = "#0f172a";
-      ctx.fillText(label, cx, cy);
-    }
+    drawDesignationLabels(ctx, snappedSymbols, automaticDesignationBySymbolId);
   }
 
   if (includeGroupFrames) {

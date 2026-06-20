@@ -2,6 +2,7 @@ import { useMemo, useRef, useState, type ChangeEvent } from "react";
 import {
   getProtocolLabel,
   getSelectedProtocolHeader,
+  parseChecklistItems,
   type PdfDocumentationPreviewTab,
   updateSelectedProtocolHeader,
 } from "../lib/pdfDocumentation";
@@ -76,21 +77,6 @@ function serializeChecklistItems(items: TitlePageChecklistItem[]) {
     .join("\n");
 }
 
-function parseChecklistItems(value: string): TitlePageChecklistItem[] {
-  return value
-    .replace(/\r/g, "")
-    .split("\n")
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0)
-    .map((item) => {
-      const isUnchecked = item.startsWith("[ ]");
-      const normalized = item.replace(/^\[(?: |x|X)\]\s*/, "").trim();
-      return {
-        text: normalized,
-        isChecked: !isUnchecked,
-      };
-    });
-}
 
 export function PdfDocumentationPage() {
   const {

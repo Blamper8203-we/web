@@ -1,15 +1,16 @@
 import { Image, Page, Text, View } from "@react-pdf/renderer";
 import type { ProjectMetadata } from "../../../types/projectMetadata";
 import { pdfStyles as styles } from "./pdfStyles";
-import { TITLE_WORK_SCOPE_COLUMN_SIZE, TITLE_WORK_SCOPE_MAX_ITEMS, chunkArray } from "./pdfHelpers";
-import { DEFAULT_ATTACHMENT_ITEMS, DEFAULT_WORK_SCOPE_ITEMS, formatDateForField, mergeDefaultAttachmentItems } from "../../projectMetadata";
+import { TITLE_WORK_SCOPE_COLUMN_SIZE, TITLE_WORK_SCOPE_MAX_ITEMS } from "./pdfHelpers";
+import { chunkRows } from "../../measurementProtocolHelpers";
+import { DEFAULT_ATTACHMENT_ITEMS, DEFAULT_WORK_SCOPE_ITEMS, mergeDefaultAttachmentItems } from "../../projectMetadata";
 
 interface PdfTitlePageProps {
   metadata: ProjectMetadata;
+  displayDate: string;
 }
 
-export function PdfTitlePage({ metadata }: PdfTitlePageProps) {
-  const displayDate = formatDateForField(metadata.drawingDate) || formatDateForField(new Date().toISOString());
+export function PdfTitlePage({ metadata, displayDate }: PdfTitlePageProps) {
 
   const drawingDateStr = metadata.drawingDate?.trim() || "";
   let resolvedYear = new Date().getFullYear();
@@ -32,13 +33,13 @@ export function PdfTitlePage({ metadata }: PdfTitlePageProps) {
   const defaultWorkScope = DEFAULT_WORK_SCOPE_ITEMS.map((text) => ({ text, isChecked: true }));
   const workScopeItems = metadata.titlePageWorkScopeItems?.length ? metadata.titlePageWorkScopeItems : defaultWorkScope;
   const titleWorkScopeItems = workScopeItems.slice(0, TITLE_WORK_SCOPE_MAX_ITEMS);
-  const titleWorkScopeColumns = chunkArray(titleWorkScopeItems, TITLE_WORK_SCOPE_COLUMN_SIZE);
+  const titleWorkScopeColumns = chunkRows(titleWorkScopeItems, TITLE_WORK_SCOPE_COLUMN_SIZE);
 
   const titleAttachmentItems = mergeDefaultAttachmentItems(
     metadata.titlePageAttachmentItems?.length ? metadata.titlePageAttachmentItems : DEFAULT_ATTACHMENT_ITEMS,
   );
   const titleAttachmentColumns = titleAttachmentItems.length > 3
-    ? chunkArray(titleAttachmentItems, Math.ceil(titleAttachmentItems.length / 2))
+    ? chunkRows(titleAttachmentItems, Math.ceil(titleAttachmentItems.length / 2))
     : [titleAttachmentItems];
 
   return (
@@ -93,9 +94,9 @@ export function PdfTitlePage({ metadata }: PdfTitlePageProps) {
         <View style={[styles.border, styles.roundedXl, styles.p3, styles.grid2Col]}>
           <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb2]}>Zakres prac</Text>
           <View style={titleWorkScopeColumns.length > 1 ? styles.grid2 : styles.flexCol}>
-            {titleWorkScopeColumns.map((columnItems, columnIndex) => (
+            {titleWorkScopeColumns.map((columnItems: any[], columnIndex: number) => (
               <View key={columnIndex} style={titleWorkScopeColumns.length > 1 ? styles.grid2Col : undefined}>
-                {columnItems.map((item, itemIndex) => {
+                {columnItems.map((item: any, itemIndex: number) => {
                   const absoluteIndex = columnIndex * TITLE_WORK_SCOPE_COLUMN_SIZE + itemIndex;
                   return (
                     <View key={absoluteIndex} style={[styles.flexRow, styles.itemsCenter, styles.mb2]}>
@@ -113,9 +114,9 @@ export function PdfTitlePage({ metadata }: PdfTitlePageProps) {
         <View style={[styles.border, styles.roundedXl, styles.p3, styles.grid2Col]}>
           <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb2]}>Załączniki do protokołu</Text>
           <View style={titleAttachmentColumns.length > 1 ? styles.grid2 : styles.flexCol}>
-            {titleAttachmentColumns.map((columnItems, columnIndex) => (
+            {titleAttachmentColumns.map((columnItems: any[], columnIndex: number) => (
               <View key={columnIndex} style={titleAttachmentColumns.length > 1 ? styles.grid2Col : undefined}>
-                {columnItems.map((item, itemIndex) => (
+                {columnItems.map((item: any, itemIndex: number) => (
                   <View key={`${columnIndex}-${itemIndex}`} style={[styles.flexRow, styles.itemsCenter, styles.mb2]}>
                     <View style={styles.checkboxContainer}>
                       <Text style={styles.checkboxChecked}>✓</Text>
@@ -172,8 +173,11 @@ export function PdfTitlePage({ metadata }: PdfTitlePageProps) {
             </View>
           </View>
         </View>
-        <View style={[styles.textCenter, styles.mt6]}>
-          <Text style={[styles.textXs, styles.textGray400, styles.uppercase]}>Strona 1 z 3 • Dokument wygenerowany cyfrowo • Zgodny z normą PN-HD 60364</Text>
+        <View style={[styles.textCenter, styles.mt6]} fixed>
+          <Text
+            style={[styles.textXs, styles.textGray400, styles.uppercase]}
+            render={({ pageNumber, totalPages }) => `Strona ${pageNumber} z ${totalPages} • Dokument wygenerowany cyfrowo • Zgodny z normą PN-HD 60364`}
+          />
         </View>
       </View>
     </Page>

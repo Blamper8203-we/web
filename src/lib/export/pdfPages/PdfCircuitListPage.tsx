@@ -1,6 +1,7 @@
 import { Page, Text, View } from "@react-pdf/renderer";
 import type { CircuitListTableRow } from "../../circuitRows";
 import { pdfStyles as styles } from "./pdfStyles";
+import { EMPTY_FIELD_PLACEHOLDER } from "./pdfHelpers";
 
 interface PdfCircuitListPageProps {
   chunk: CircuitListTableRow[];
@@ -62,18 +63,18 @@ export function PdfCircuitListPage({
           {chunk.map(({ index, location, rcdLabel, rcdProtection, row }) => (
             <View style={[styles.flexRow, styles.borderB, styles.bgWhite]} key={row.id}>
               <View style={[styles.tableCell, { width: "4%", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontSemiBold, styles.textGray500]}>{index}</Text></View>
-              <View style={[styles.tableCell, { width: "8%", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontSemiBold, styles.textGray900]}>{row.referenceDesignation || "-"}</Text></View>
-              <View style={[styles.tableCell, { width: "20%" }]}><Text style={[styles.textXs, styles.fontMedium, styles.textGray900]}>{row.circuitName || row.label || "-"}</Text></View>
-              <View style={[styles.tableCell, { width: "13%" }]}><Text style={[styles.textXs, styles.textGray600]}>{location || row.displayLocation || "-"}</Text></View>
-              <View style={[styles.tableCell, { width: "7%", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontMedium, styles.textGray900]}>{row.phase || "-"}</Text></View>
-              <View style={[styles.tableCell, { width: "12%", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontMedium, styles.textGray900]}>{row.displayProtection || row.protectionType || "-"}</Text></View>
+              <View style={[styles.tableCell, { width: "8%", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontSemiBold, styles.textGray900]}>{row.referenceDesignation || EMPTY_FIELD_PLACEHOLDER}</Text></View>
+              <View style={[styles.tableCell, { width: "20%" }]}><Text style={[styles.textXs, styles.fontMedium, styles.textGray900]}>{row.circuitName || row.label || EMPTY_FIELD_PLACEHOLDER}</Text></View>
+              <View style={[styles.tableCell, { width: "13%" }]}><Text style={[styles.textXs, styles.textGray600]}>{location || row.displayLocation || EMPTY_FIELD_PLACEHOLDER}</Text></View>
+              <View style={[styles.tableCell, { width: "7%", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontMedium, styles.textGray900]}>{row.phase || EMPTY_FIELD_PLACEHOLDER}</Text></View>
+              <View style={[styles.tableCell, { width: "12%", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontMedium, styles.textGray900]}>{row.displayProtection || row.protectionType || EMPTY_FIELD_PLACEHOLDER}</Text></View>
               <View style={[styles.tableCell, { width: "14%" }]}>
-                <Text style={[styles.textXs, styles.fontSemiBold, styles.textGray900]}>{rcdLabel || "-"}</Text>
+                <Text style={[styles.textXs, styles.fontSemiBold, styles.textGray900]}>{rcdLabel || EMPTY_FIELD_PLACEHOLDER}</Text>
                 {rcdProtection ? <Text style={[styles.textXs, styles.textGray500]}>{rcdProtection}</Text> : null}
               </View>
-              <View style={[styles.tableCell, { width: "8%", alignItems: "center" }]}><Text style={[styles.textXs, styles.textGray900]}>{row.cableCrossSection ? `${row.cableCrossSection} mm²` : "-"}</Text></View>
-              <View style={[styles.tableCell, { width: "7%", alignItems: "center" }]}><Text style={[styles.textXs, styles.textGray900]}>{row.cableLength || "-"}</Text></View>
-              <View style={[styles.tableCell, { width: "7%", borderRightWidth: 0, alignItems: "center" }]}><Text style={[styles.textXs, styles.textGray900]}>{row.powerW || "-"}</Text></View>
+              <View style={[styles.tableCell, { width: "8%", alignItems: "center" }]}><Text style={[styles.textXs, styles.textGray900]}>{row.cableCrossSection ? `${row.cableCrossSection} mm²` : EMPTY_FIELD_PLACEHOLDER}</Text></View>
+              <View style={[styles.tableCell, { width: "7%", alignItems: "center" }]}><Text style={[styles.textXs, styles.textGray900]}>{row.cableLength || EMPTY_FIELD_PLACEHOLDER}</Text></View>
+              <View style={[styles.tableCell, { width: "7%", borderRightWidth: 0, alignItems: "center" }]}><Text style={[styles.textXs, styles.textGray900]}>{row.powerW || EMPTY_FIELD_PLACEHOLDER}</Text></View>
             </View>
           ))}
 
@@ -85,8 +86,11 @@ export function PdfCircuitListPage({
         </View>
       </View>
 
-      <View style={[styles.mtAuto, styles.textCenter, styles.borderT, styles.pt4]}>
-        <Text style={[styles.textXs, styles.textGray400, styles.uppercase]}>Lista obwodów • dokumentacja powykonawcza • PN-HD 60364</Text>
+      <View style={[styles.mtAuto, styles.textCenter, styles.borderT, styles.pt4]} fixed>
+        <Text
+          style={[styles.textXs, styles.textGray400, styles.uppercase]}
+          render={({ pageNumber, totalPages }) => `Strona ${pageNumber} z ${totalPages} • Dokument wygenerowany cyfrowo • Zgodny z normą PN-HD 60364`}
+        />
       </View>
     </Page>
   );

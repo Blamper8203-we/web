@@ -81,8 +81,6 @@ export function PdfPreviewWorkspace({
           <PdfProtocolDocument
             metadata={metadata}
             symbols={symbols}
-            phaseDistribution={phaseDistribution}
-            validationResult={validationResult}
             schematicImages={[]}
             dinRailImages={dinRailImages}
             previewOnly={activeTab}

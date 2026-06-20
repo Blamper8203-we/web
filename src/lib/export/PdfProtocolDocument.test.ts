@@ -201,21 +201,6 @@ describe("PdfProtocolDocument", () => {
         titlePageObjectType: "Dom jednorodzinny",
       },
       symbols: [rcd, mcb],
-      phaseDistribution: {
-        l1PowerW: 450,
-        l2PowerW: 0,
-        l3PowerW: 0,
-        l1CurrentA: 2.2,
-        l2CurrentA: 0,
-        l3CurrentA: 0,
-        imbalancePercent: 200,
-      },
-      validationResult: {
-        isValid: true,
-        errors: [],
-        warnings: [],
-        info: [],
-      },
       schematicImages: ["data:image/png;base64,iVBORw0KGgo="],
       dinRailImages: ["data:image/png;base64,iVBORw0KGgo="],
     });
@@ -235,7 +220,6 @@ describe("PdfProtocolDocument", () => {
     expect(text).toContain("Tabela zbiorcza");
     expect(text).toContain("RCD i uziemienie");
     expect(text).toContain("WIDOK ELEWACJI ROZDZIELNICY");
-    expect(text).toContain("Strona 1 z 3");
   });
 
   it("renders an uploaded company logo on the title page instead of the logo placeholder", () => {
@@ -247,21 +231,6 @@ describe("PdfProtocolDocument", () => {
         titlePageCompanyLogoDataUrl: logoDataUrl,
       },
       symbols: [],
-      phaseDistribution: {
-        l1PowerW: 0,
-        l2PowerW: 0,
-        l3PowerW: 0,
-        l1CurrentA: 0,
-        l2CurrentA: 0,
-        l3CurrentA: 0,
-        imbalancePercent: 0,
-      },
-      validationResult: {
-        isValid: true,
-        errors: [],
-        warnings: [],
-        info: [],
-      },
       schematicImages: [],
       dinRailImages: [],
       previewOnly: "title-page",
@@ -284,21 +253,6 @@ describe("PdfProtocolDocument", () => {
         })),
       },
       symbols: [],
-      phaseDistribution: {
-        l1PowerW: 0,
-        l2PowerW: 0,
-        l3PowerW: 0,
-        l1CurrentA: 0,
-        l2CurrentA: 0,
-        l3CurrentA: 0,
-        imbalancePercent: 0,
-      },
-      validationResult: {
-        isValid: true,
-        errors: [],
-        warnings: [],
-        info: [],
-      },
       schematicImages: [],
       dinRailImages: [],
       previewOnly: "title-page",
@@ -333,21 +287,6 @@ describe("PdfProtocolDocument", () => {
         },
       },
       symbols: [],
-      phaseDistribution: {
-        l1PowerW: 0,
-        l2PowerW: 0,
-        l3PowerW: 0,
-        l1CurrentA: 0,
-        l2CurrentA: 0,
-        l3CurrentA: 0,
-        imbalancePercent: 0,
-      },
-      validationResult: {
-        isValid: true,
-        errors: [],
-        warnings: [],
-        info: [],
-      },
       schematicImages: [],
       dinRailImages: [],
       previewOnly: "rcd-ground",
@@ -389,21 +328,6 @@ describe("PdfProtocolDocument", () => {
     const document = PdfProtocolDocument({
       metadata: createEmptyProjectMetadata(),
       symbols: [rcd, mcb],
-      phaseDistribution: {
-        l1PowerW: 0,
-        l2PowerW: 0,
-        l3PowerW: 0,
-        l1CurrentA: 0,
-        l2CurrentA: 0,
-        l3CurrentA: 0,
-        imbalancePercent: 0,
-      },
-      validationResult: {
-        isValid: true,
-        errors: [],
-        warnings: [],
-        info: [],
-      },
       schematicImages: [],
       dinRailImages: [],
       previewOnly: "circuit-list",
@@ -433,21 +357,6 @@ describe("PdfProtocolDocument", () => {
     const document = PdfProtocolDocument({
       metadata: createEmptyProjectMetadata(),
       symbols,
-      phaseDistribution: {
-        l1PowerW: 0,
-        l2PowerW: 0,
-        l3PowerW: 0,
-        l1CurrentA: 0,
-        l2CurrentA: 0,
-        l3CurrentA: 0,
-        imbalancePercent: 0,
-      },
-      validationResult: {
-        isValid: true,
-        errors: [],
-        warnings: [],
-        info: [],
-      },
       schematicImages: [],
       dinRailImages: [],
       previewOnly: "circuit-list",
@@ -469,21 +378,6 @@ describe("PdfProtocolDocument", () => {
     const document = PdfProtocolDocument({
       metadata: createEmptyProjectMetadata(),
       symbols: [],
-      phaseDistribution: {
-        l1PowerW: 0,
-        l2PowerW: 0,
-        l3PowerW: 0,
-        l1CurrentA: 0,
-        l2CurrentA: 0,
-        l3CurrentA: 0,
-        imbalancePercent: 0,
-      },
-      validationResult: {
-        isValid: true,
-        errors: [],
-        warnings: [],
-        info: [],
-      },
       schematicImages: [],
       dinRailImages: [dinRailImage],
       previewOnly: "din-rail",
@@ -519,7 +413,6 @@ describe("PdfProtocolDocument", () => {
       metadata: {
         ...createEmptyProjectMetadata(),
         projectNumber: "PDF-1",
-        measurementProtocolStyle: "unified",
         measurementProtocols: {
           ...defaultProtocols,
           unifiedRows,
@@ -532,21 +425,6 @@ describe("PdfProtocolDocument", () => {
         },
       },
       symbols: [],
-      phaseDistribution: {
-        l1PowerW: 0,
-        l2PowerW: 0,
-        l3PowerW: 0,
-        l1CurrentA: 0,
-        l2CurrentA: 0,
-        l3CurrentA: 0,
-        imbalancePercent: 0,
-      },
-      validationResult: {
-        isValid: true,
-        errors: [],
-        warnings: [],
-        info: [],
-      },
       schematicImages: [],
       dinRailImages: [],
       previewOnly: "unified",
@@ -583,7 +461,6 @@ describe("PdfProtocolDocument", () => {
       metadata: {
         ...createEmptyProjectMetadata(),
         projectNumber: "PDF-1",
-        measurementProtocolStyle: "unified",
         measurementProtocols: {
           ...defaultProtocols,
           unifiedRows,
@@ -596,21 +473,6 @@ describe("PdfProtocolDocument", () => {
         },
       },
       symbols: [],
-      phaseDistribution: {
-        l1PowerW: 0,
-        l2PowerW: 0,
-        l3PowerW: 0,
-        l1CurrentA: 0,
-        l2CurrentA: 0,
-        l3CurrentA: 0,
-        imbalancePercent: 0,
-      },
-      validationResult: {
-        isValid: true,
-        errors: [],
-        warnings: [],
-        info: [],
-      },
       schematicImages: [],
       dinRailImages: [],
       previewOnly: "unified",

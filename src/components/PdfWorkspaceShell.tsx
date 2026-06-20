@@ -135,7 +135,7 @@ export function PdfWorkspaceShell({
           <div className="panel-content">
             <div className="right-panel-content">
               <div className="pdf-right-panel-nav">
-                {getPdfDocumentationTabs(effectiveMetadata.measurementProtocolStyle).map((tab) => (
+                {getPdfDocumentationTabs().map((tab) => (
                   <button
                     key={tab.id}
                     type="button"

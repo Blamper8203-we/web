@@ -9,9 +9,6 @@ export type PdfDocumentationPreviewTab =
   | "circuit-list"
   | "din-rail"
   | "unified"
-  | "continuity"
-  | "loop"
-  | "insulation"
   | "rcd-ground";
 
 export const pdfDocumentationTabs: Array<{
@@ -19,27 +16,16 @@ export const pdfDocumentationTabs: Array<{
   label: string;
 }> = [
   { id: "title-page", label: "Strona główna" },
-  { id: "continuity", label: "Ciągłość PE" },
-  { id: "loop", label: "Pętla zwarcia" },
-  { id: "insulation", label: "Rezystancja izolacji" },
+  { id: "unified", label: "Tabela zbiorcza" },
   { id: "rcd-ground", label: "RCD i uziemienie" },
   { id: "circuit-list", label: "Lista obwodów" },
   { id: "din-rail", label: "Rozdzielnica elektryczna" },
 ];
 
-export function getPdfDocumentationTabs(style: "separate" | "unified"): Array<{
+export function getPdfDocumentationTabs(): Array<{
   id: PdfDocumentationPreviewTab;
   label: string;
 }> {
-  if (style === "unified") {
-    return [
-      { id: "title-page", label: "Strona główna" },
-      { id: "unified", label: "Tabela zbiorcza" },
-      { id: "rcd-ground", label: "RCD i uziemienie" },
-      { id: "circuit-list", label: "Lista obwodów" },
-      { id: "din-rail", label: "Rozdzielnica elektryczna" },
-    ];
-  }
   return pdfDocumentationTabs;
 }
 
@@ -51,12 +37,6 @@ export function getProtocolLabel(tab: PdfDocumentationPreviewTab): string {
       return "Rozdzielnica elektryczna";
     case "unified":
       return "Tabela zbiorcza";
-    case "continuity":
-      return "Ciągłość PE";
-    case "loop":
-      return "Pętla zwarcia";
-    case "insulation":
-      return "Rezystancja izolacji";
     case "rcd-ground":
       return "RCD i uziemienie";
     default:
@@ -121,12 +101,6 @@ export function getSelectedProtocolHeader(
   switch (tab) {
     case "unified":
       return metadata.measurementProtocols.unifiedHeader;
-    case "continuity":
-      return metadata.measurementProtocols.continuityHeader;
-    case "loop":
-      return metadata.measurementProtocols.loopHeader;
-    case "insulation":
-      return metadata.measurementProtocols.insulationHeader;
     case "rcd-ground":
       return metadata.measurementProtocols.rcdGroundHeader;
     default:
@@ -146,30 +120,6 @@ export function updateSelectedProtocolHeader(
         measurementProtocols: {
           ...metadata.measurementProtocols,
           unifiedHeader: nextHeader,
-        },
-      };
-    case "continuity":
-      return {
-        ...metadata,
-        measurementProtocols: {
-          ...metadata.measurementProtocols,
-          continuityHeader: nextHeader,
-        },
-      };
-    case "loop":
-      return {
-        ...metadata,
-        measurementProtocols: {
-          ...metadata.measurementProtocols,
-          loopHeader: nextHeader,
-        },
-      };
-    case "insulation":
-      return {
-        ...metadata,
-        measurementProtocols: {
-          ...metadata.measurementProtocols,
-          insulationHeader: nextHeader,
         },
       };
     case "rcd-ground":

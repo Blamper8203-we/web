@@ -6,8 +6,6 @@ import type { SymbolItem } from "../../types/symbolItem";
 import type { ConnectionItem } from "../../types/connectionItem";
 import { buildCircuitRowsFromSymbols } from "../circuitRows";
 import { buildEditableMeasurementProtocols } from "../measurementProtocols";
-import { calculateTotalDistribution } from "../phaseDistribution/phaseDistributionCalculator";
-import { validateProject } from "../validation/electricalValidationService";
 import { exportDinRailToDataURL } from "./dinRailSnapshotService";
 import { PdfProtocolDocument } from "./PdfProtocolDocument";
 import { exportSchematicToDataURL } from "./schematicSnapshotService";
@@ -34,11 +32,6 @@ export async function exportToPdf(
   const documentNode = createElement(PdfProtocolDocument, {
     metadata: effectiveMetadata,
     symbols,
-    phaseDistribution: calculateTotalDistribution(symbols),
-    validationResult: validateProject(symbols, {
-      supplyVoltageV: effectiveMetadata.supplyVoltageV,
-      mainBreakerA: effectiveMetadata.mainBreakerA,
-    }),
     schematicImages,
     dinRailImages,
   }) as unknown as ReactElement<DocumentProps>;

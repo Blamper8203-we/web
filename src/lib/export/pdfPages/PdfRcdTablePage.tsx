@@ -133,6 +133,12 @@ export function PdfRcdTablePage({
             </View>
           </View>
         </View>
+        <View style={[styles.textCenter, styles.mt6]} fixed>
+          <Text
+            style={[styles.textXs, styles.textGray400, styles.uppercase]}
+            render={({ pageNumber, totalPages }) => `Strona ${pageNumber} z ${totalPages} • Dokument wygenerowany cyfrowo • Zgodny z normą PN-HD 60364`}
+          />
+        </View>
       </View>
     </Page>
   );

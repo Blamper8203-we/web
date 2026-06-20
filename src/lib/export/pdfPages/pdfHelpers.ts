@@ -4,6 +4,7 @@ export const UNIFIED_ROWS_PER_PAGE = 7;
 export const CIRCUIT_LIST_ROWS_PER_PAGE = 10;
 export const TITLE_WORK_SCOPE_MAX_ITEMS = 12;
 export const TITLE_WORK_SCOPE_COLUMN_SIZE = 6;
+export const EMPTY_FIELD_PLACEHOLDER = "---";
 
 export interface PdfCircuitGroup {
   groupKey: string;
@@ -54,11 +55,6 @@ export function buildPdfCircuitGroups(symbols: SymbolItem[]): PdfCircuitGroup[] 
   return Object.values(groupedCircuits);
 }
 
-export function chunkArray<T>(arr: T[], size: number): T[][] {
-  const chunks: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) chunks.push(arr.slice(i, i + size));
-  return chunks;
-}
 
 export function getSuffix(total: number, index: number): string {
   if (total <= 1) return "";
