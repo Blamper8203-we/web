@@ -40,18 +40,18 @@ export function DinRailRenderedSymbols({
     Math.max(13.5 / zoom, 10 / zoom),
     18 / zoom
   );
-  // Cap height in effective pixels (0.7em is typical for Segoe UI).
-  const capHeightPx = 0.7 * labelFontSize;
   return (
     <>
       {symbols.filter(filterFn).map((symbol) => {
         // Match DinRailDesignationLabelsOverlay's vertical placement: top of
-        // text sits 4px below the module's bottom edge. SVG <text y> is the
-        // baseline, not the top, so the baseline offset is 4 + capHeightPx.
-        // Divide by zoom to convert px -> user units. Net effect: visual top
-        // of text = 4px below module at any zoom, identical to the main
-        // workspace.
-        const labelY = symbol.height + (4 + capHeightPx) / zoom;
+        // text sits 4px below the module's bottom edge.
+        //
+        // We use dominantBaseline="text-before-edge" so that y is the top of
+        // the text, not the baseline. This avoids guessing cap height per
+        // font, which is what made the previous attempt (baseline + cap
+        // height factor) sit too low. y is in user units, so 4/zoom converts
+        // the desired 4px effective offset back to user units at any zoom.
+        const labelY = symbol.height + 4 / zoom;
         return (
         <g
           key={symbol.id}
@@ -87,6 +87,7 @@ export function DinRailRenderedSymbols({
             x={symbol.width / 2}
             y={labelY}
             textAnchor="middle"
+            dominantBaseline="text-before-edge"
             fill="#f8fafc"
             fontSize={labelFontSize}
             fontWeight={700}
