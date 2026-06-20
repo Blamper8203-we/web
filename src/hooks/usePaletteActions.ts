@@ -16,7 +16,7 @@ import {
   type RightTab,
   type SheetType,
 } from '../lib/appHelpers';
-import { getDinRailDimensions } from '../lib/schematic/dinRailGenerator';
+import { getDinRailDimensions, LISTWY_ROW_SPACING } from '../lib/schematic/dinRailGenerator';
 import {
   DIN_RAIL_PADDING_X,
   MODULE_UNIT_WIDTH,
@@ -24,11 +24,10 @@ import {
   supportsDinRailPlacement,
 } from '../lib/modules/moduleCatalog';
 import { snapModulePlacementToDinRail } from '../lib/dinRailSnap';
-import { createDefaultSymbolItem } from '../types/symbolItem';
-import type { SymbolItem } from '../types/symbolItem';
+import { createDefaultSymbolItem, type SymbolItem, MANUAL_REFERENCE_DESIGNATION_KEY } from "../types/symbolItem";
 import type { DinRailCanvasRail } from '../components/DinRailCanvasPixi';
 
-const MANUAL_REFERENCE_DESIGNATION_KEY = 'ManualReferenceDesignation';
+
 
 interface UsePaletteActionsParams {
   symbols: SymbolItem[];
@@ -191,7 +190,7 @@ export function usePaletteActions({
         if (isTerminalBlock) {
           const topY = -1200;
           const rectHeight = 300;
-          const bottomY = (dinRail.config.rows - 1) * (1642.0 + 50.0) + 2400;
+          const bottomY = (dinRail.config.rows - 1) * LISTWY_ROW_SPACING + 2400;
 
           const gap = 300;
           const railDims = getDinRailDimensions(dinRail.config.rows, dinRail.config.modulesPerRow);

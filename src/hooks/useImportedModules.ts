@@ -38,8 +38,6 @@ export function useImportedModules(showTemporaryStatus: (msg: string, ms?: numbe
   const [hiddenPaletteTemplateIds, setHiddenPaletteTemplateIds] = useState<string[]>(loadHiddenPaletteTemplateIds);
   const [hasSyncedCatalogStorage, setHasSyncedCatalogStorage] = useState(false);
 
-  const [svgImportDialogOpen, setSvgImportDialogOpen] = useState(false);
-  const [importedModulesManagerOpen, setImportedModulesManagerOpen] = useState(false);
   const [activePaletteGroupTitle, setActivePaletteGroupTitle] = useState('');
 
   const paletteGroups = useMemo(() => {
@@ -134,18 +132,18 @@ export function useImportedModules(showTemporaryStatus: (msg: string, ms?: numbe
   }, []);
 
   const handleSvgImportCommit = useCallback(
-    (modules: ImportedModuleDefinition[], preferredCategory: string) => {
+    (modules: ImportedModuleDefinition[], preferredCategory: string): boolean => {
       if (modules.length === 0) {
         showTemporaryStatus('Nie wybrano żadnych modułów do importu.', 4000);
-        return;
+        return false;
       }
       setImportedModules((prev) => upsertImportedModules(prev, modules));
       setActivePaletteGroupTitle(preferredCategory);
-      setSvgImportDialogOpen(false);
       showTemporaryStatus(
         `Zaimportowano ${modules.length} moduł${modules.length === 1 ? '' : 'y'} SVG`,
         4000,
       );
+      return true;
     },
     [showTemporaryStatus],
   );
@@ -171,10 +169,6 @@ export function useImportedModules(showTemporaryStatus: (msg: string, ms?: numbe
     importedModuleCategoryOptions,
     activePaletteGroupTitle,
     setActivePaletteGroupTitle,
-    svgImportDialogOpen,
-    setSvgImportDialogOpen,
-    importedModulesManagerOpen,
-    setImportedModulesManagerOpen,
     hiddenPaletteTemplateIds,
     handleHidePaletteTemplate,
     handleSvgImportCommit,

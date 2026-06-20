@@ -1,4 +1,4 @@
-import { devLog } from "../lib/runtimeDiagnostics";
+
 import { useEffect, useState } from "react";
 import type { SymbolItem } from "../types/symbolItem";
 import { serializeParameters } from "../lib/modules/rasterPreview";
@@ -86,8 +86,7 @@ export function useDinRailPreparedAssets(symbols: SymbolItem[]) {
     .map(buildSymbolAssetKey)
     .join("\u0002");
 
-  devLog("🔷 [useDinRailPreparedAssets] assetRequestKey changed, reloading assets. symbols count:", symbols.length);
-  devLog("🔷 [useDinRailPreparedAssets] assetRequestKey:", assetRequestKey);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -119,7 +118,7 @@ export function useDinRailPreparedAssets(symbols: SymbolItem[]) {
           entries.push([symbol.id, asset]);
         } catch (error) {
           // Indywidualny blad ladowania SVG – nie niszczy pozostalych modulow
-          devLog("🔶 [useDinRailPreparedAssets] Failed to load SVG for", symbol.id, symbol.label, String(error));
+
         }
       }
 

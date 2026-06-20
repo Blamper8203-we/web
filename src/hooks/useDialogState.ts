@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { App as CapApp } from "@capacitor/app";
+import { Capacitor } from "@capacitor/core";
 
 /**
  * Stan wszystkich dialogów i modalnych nakładek – wydzielony z App.tsx.
@@ -19,8 +20,6 @@ export function useDialogState() {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [svgImportDialogOpen, setSvgImportDialogOpen] = useState(false);
   const [importedModulesManagerOpen, setImportedModulesManagerOpen] = useState(false);
-  const [paletteContextMenu, setPaletteContextMenu] = useState<{ x: number; y: number; groupTitle: string } | null>(null);
-  const [pendingPaletteRemoval, setPendingPaletteRemoval] = useState<{ groupTitle: string; templateId: string } | null>(null);
   const [unsavedChangesActionType, setUnsavedChangesActionType] = useState<"new" | "open" | null>(null);
 
   // Ref do przechowywania aktualnego stanu dla backButton handlera
@@ -30,8 +29,6 @@ export function useDialogState() {
     unsavedChangesActionType,
     svgImportDialogOpen,
     importedModulesManagerOpen,
-    paletteContextMenu,
-    pendingPaletteRemoval,
   });
 
   useEffect(() => {
@@ -41,8 +38,6 @@ export function useDialogState() {
       unsavedChangesActionType,
       svgImportDialogOpen,
       importedModulesManagerOpen,
-      paletteContextMenu,
-      pendingPaletteRemoval,
     };
   }, [
     isRcdManagerOpen,
@@ -50,12 +45,12 @@ export function useDialogState() {
     unsavedChangesActionType,
     svgImportDialogOpen,
     importedModulesManagerOpen,
-    paletteContextMenu,
-    pendingPaletteRemoval,
   ]);
 
   // Obsługa przycisku Back w Capacitor
   useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
     const backListener = CapApp.addListener("backButton", () => {
       const s = stateRef.current;
       if (s.isRcdManagerOpen) {
@@ -68,10 +63,6 @@ export function useDialogState() {
         setSvgImportDialogOpen(false);
       } else if (s.importedModulesManagerOpen) {
         setImportedModulesManagerOpen(false);
-      } else if (s.paletteContextMenu) {
-        setPaletteContextMenu(null);
-      } else if (s.pendingPaletteRemoval) {
-        setPendingPaletteRemoval(null);
       }
     });
 
@@ -85,8 +76,6 @@ export function useDialogState() {
     setIsHelpOpen(false);
     setSvgImportDialogOpen(false);
     setImportedModulesManagerOpen(false);
-    setPaletteContextMenu(null);
-    setPendingPaletteRemoval(null);
     setUnsavedChangesActionType(null);
   }, []);
 
@@ -97,8 +86,6 @@ export function useDialogState() {
       isHelpOpen,
       svgImportDialogOpen,
       importedModulesManagerOpen,
-      paletteContextMenu,
-      pendingPaletteRemoval,
       unsavedChangesActionType,
 
       // Setters
@@ -106,8 +93,6 @@ export function useDialogState() {
       setIsHelpOpen,
       setSvgImportDialogOpen,
       setImportedModulesManagerOpen,
-      setPaletteContextMenu,
-      setPendingPaletteRemoval,
       setUnsavedChangesActionType,
 
       // Handlers
@@ -118,8 +103,6 @@ export function useDialogState() {
       isHelpOpen,
       svgImportDialogOpen,
       importedModulesManagerOpen,
-      paletteContextMenu,
-      pendingPaletteRemoval,
       unsavedChangesActionType,
       closeAllDialogs,
     ],
