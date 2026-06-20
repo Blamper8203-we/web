@@ -1,13 +1,14 @@
 import { Document, Image, Page, View, Text } from "@react-pdf/renderer";
-import type { ProjectMetadata } from "../../types/projectMetadata";
+import type { ProjectMetadata, MeasurementUnifiedProtocolRow } from "../../types/projectMetadata";
 import type { SymbolItem } from "../../types/symbolItem";
-import { buildCircuitListTableRows, buildCircuitRowsFromSymbols } from "../circuitRows";
+import { buildCircuitListTableRows, buildCircuitRowsFromSymbols, type CircuitListTableRow } from "../circuitRows";
 import { formatDateForField } from "../projectMetadata";
 
 import { pdfStyles as styles } from "./pdfPages/pdfStyles";
 import { CIRCUIT_LIST_ROWS_PER_PAGE, UNIFIED_ROWS_PER_PAGE, buildPdfCircuitGroups } from "./pdfPages/pdfHelpers";
 import { chunkRows } from "../measurementProtocolHelpers";
 import { PdfTitlePage } from "./pdfPages/PdfTitlePage";
+import { PdfProjectSummaryPage } from "./pdfPages/PdfProjectSummaryPage";
 import { PdfCircuitListPage } from "./pdfPages/PdfCircuitListPage";
 import { PdfUnifiedTablePage } from "./pdfPages/PdfUnifiedTablePage";
 import { PdfRcdTablePage } from "./pdfPages/PdfRcdTablePage";
@@ -46,10 +47,18 @@ export function PdfProtocolDocument({
         <PdfTitlePage metadata={metadata} displayDate={displayDate} />
       )}
 
+      {(!previewOnly || previewOnly === "summary") && (
+        <PdfProjectSummaryPage
+          metadata={metadata}
+          groupedCircuits={groupedCircuits}
+          displayDate={displayDate}
+        />
+      )}
+
       {(!previewOnly || previewOnly !== "title-page") && (
         <>
           {(previewOnly === "circuit-list" || (!previewOnly && circuitListRows.length > 0)) &&
-            circuitListChunks.map((chunk: any[], chunkIdx: number) => (
+            circuitListChunks.map((chunk: CircuitListTableRow[], chunkIdx: number) => (
               <PdfCircuitListPage
                 key={`circuit-list-${chunkIdx}`}
                 chunk={chunk}
@@ -61,7 +70,7 @@ export function PdfProtocolDocument({
             ))}
 
           {(previewOnly === "unified" || (!previewOnly && unifiedRows.length > 0)) &&
-            unifiedChunks.map((chunk: any[], chunkIdx: number) => (
+            unifiedChunks.map((chunk: MeasurementUnifiedProtocolRow[], chunkIdx: number) => (
               <PdfUnifiedTablePage
                 key={`unified-${chunkIdx}`}
                 metadata={metadata}
@@ -109,11 +118,7 @@ export function PdfProtocolDocument({
               </Page>
             ))}
             
-          {/* Dummy element to suppress unused variable errors for things not currently rendered in unified mode */}
-          <View style={{ display: 'none' }}>
-             <Text>{!!groupedCircuits ? '' : ''}</Text>
-          </View>
-        </>
+          </>
       )}
     </Document>
   );
