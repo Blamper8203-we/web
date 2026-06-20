@@ -18,6 +18,7 @@ import {
   Y_PE,
   Y_PE_WITH_TOP,
   Y_TOP_BUS_WITH_TOP,
+  Y_TOP_SWITCH_WITH_TOP,
   Y_WIRE_END,
   Y_WIRE_END_WITH_TOP,
 } from "../schematicLayout";
@@ -105,15 +106,54 @@ export function drawDevice(ctx: CanvasRenderingContext2D, device: SchematicNode,
   const cx = device.x + MODULE_WIDTH / 2;
   const mainBusY = hasTopSwitch ? Y_MAIN_BUS_WITH_TOP : Y_MAIN_BUS;
 
+  const isMainBreaker = device.nodeType === "MainBreaker";
+
   if (!device.topBusConnected) {
-    wireDot(ctx, cx, y(page, mainBusY), symbolTopY(device.y));
+    if (isMainBreaker) {
+      const isTopDevice = hasTopSwitch && isNetworkSwitchNode(device) && Math.abs(device.y - y(page, Y_TOP_SWITCH_WITH_TOP)) < 5;
+      
+      if (isTopDevice) {
+        const topBusY = y(page, Y_TOP_BUS_WITH_TOP);
+        wireDot(ctx, cx, topBusY, symbolBottomY(device.y));
+        phaseMarks(
+          ctx,
+          cx,
+          (topBusY + symbolBottomY(device.y)) / 2,
+          device.phaseCount,
+          device.phase,
+          false,
+        );
+      } else {
+        wireDot(ctx, cx, y(page, mainBusY), symbolBottomY(device.y));
+        phaseMarks(
+          ctx,
+          cx,
+          (y(page, mainBusY) + symbolBottomY(device.y)) / 2,
+          device.phaseCount,
+          device.phase,
+          false,
+        );
+      }
+    } else {
+      wireDot(ctx, cx, y(page, mainBusY), symbolTopY(device.y));
+      phaseMarks(
+        ctx,
+        cx,
+        (y(page, mainBusY) + symbolTopY(device.y)) / 2,
+        device.phaseCount,
+        device.phase,
+        device.nodeType === "SPD",
+      );
+    }
+  } else if (isMainBreaker) {
+    wireDot(ctx, cx, y(page, mainBusY), symbolBottomY(device.y));
     phaseMarks(
       ctx,
       cx,
-      y(page, mainBusY) + (symbolTopY(device.y) - y(page, mainBusY)) / 2,
+      (y(page, mainBusY) + symbolBottomY(device.y)) / 2,
       device.phaseCount,
       device.phase,
-      device.nodeType === "SPD",
+      false,
     );
   }
 
@@ -160,11 +200,11 @@ export function drawGroupedMainBreaker(ctx: CanvasRenderingContext2D, device: Sc
   const color = isSwitch ? COLORS.textDes : COLORS.fr;
   const mainBusY = hasTopSwitch ? Y_MAIN_BUS_WITH_TOP : Y_MAIN_BUS;
 
-  wireDot(ctx, cx, y(page, mainBusY), symbolTopY(device.y));
+  wireDot(ctx, cx, y(page, mainBusY), symbolBottomY(device.y));
   phaseMarks(
     ctx,
     cx,
-    y(page, mainBusY) + (symbolTopY(device.y) - y(page, mainBusY)) / 2,
+    (y(page, mainBusY) + symbolBottomY(device.y)) / 2,
     device.phaseCount,
     device.phase,
     false,
@@ -229,12 +269,6 @@ export function drawRcd(ctx: CanvasRenderingContext2D, rcd: SchematicNode, page:
   drawWireLine(ctx, rcdCx, symbolBottomY(rcd.y), phaseBusY, COLORS.wire, 1.2);
 
   const nBusY = phaseBusY + RCD_NEUTRAL_BUS_OFFSET_Y;
-
-  ctx.save();
-  ctx.setLineDash([3, 2]);
-  strokeLine(ctx, rcdCx - 4, symbolBottomY(rcd.y), rcdCx - 4, nBusY, COLORS.n, 1);
-  drawDot(ctx, rcdCx - 4, nBusY, COLORS.n, 2.0);
-  ctx.restore();
 
   if (mcbChildren.length > 0) {
     const lastMcb = mcbChildren[mcbChildren.length - 1];
