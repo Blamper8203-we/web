@@ -27,7 +27,7 @@ describe("isDistributionBlockSymbol — ferrule / wire-inset dispatch", () => {
     const s = createDefaultSymbolItem({
       type: "Złączka listwowa",
       deviceKind: "terminalBlock",
-      moduleRef: "Blok rozdzielczy/blok rozdzielczy 4-7.svg",
+      moduleRef: "Blok rozdzielczy/blok rozdzielczy 4x7.svg",
     });
     expect(isDistributionBlockSymbol(s)).toBe(true);
   });
