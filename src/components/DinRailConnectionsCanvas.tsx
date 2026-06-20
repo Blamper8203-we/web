@@ -467,6 +467,7 @@ export function DinRailConnectionsCanvas({
             filterFn={(s) => isDistributionBlockSymbol(s) || s.deviceKind === "phaseIndicator" || !!foregroundUrls[s.id] || (s.moduleRef || "").toLowerCase().includes("zabezpieczajacy") || (s.moduleRef || "").toLowerCase().includes("zabezpieczenia")}
             overrideUrls={baseModifiedUrls}
             isDrawing={!!drawingState}
+            zoom={zoom}
           />
 
           {/* 2.8 Visual Hotspot circles layered UNDER wires (excluding distribution blocks
@@ -510,6 +511,7 @@ export function DinRailConnectionsCanvas({
             selectedSymbolId={selectedSymbolId}
             filterFn={(s) => s.deviceKind !== "phaseIndicator" && !isDistributionBlockSymbol(s) && !foregroundUrls[s.id] && !(s.moduleRef || "").toLowerCase().includes("zabezpieczajacy") && !(s.moduleRef || "").toLowerCase().includes("zabezpieczenia")}
             isDrawing={!!drawingState}
+            zoom={zoom}
           />
 
           {/* 4. Active drawing rubber-band preview */}

@@ -12,6 +12,14 @@ export interface DinRailRenderedSymbolsProps {
   onSymbolSelect?: (id: string | null) => void;
   selectedSymbolId?: string | null;
   isDrawing?: boolean;
+  /**
+   * Current zoom (1.0 = 100%). The whole SVG is wrapped in a `<g>` with
+   * `scale(${zoom})`, so SVG text fontSize is in user units and the
+   * effective pixel size = fontSize * zoom. We invert the zoom here so
+   * the effective size stays in the 10-18px range regardless of zoom,
+   * matching DinRailDesignationLabelsOverlay.tsx (clamp 13.5*scale, 10, 18).
+   */
+  zoom: number;
 }
 
 export function DinRailRenderedSymbols({
@@ -23,7 +31,15 @@ export function DinRailRenderedSymbols({
   onSymbolSelect,
   selectedSymbolId,
   isDrawing = false,
+  zoom,
 }: DinRailRenderedSymbolsProps) {
+  // SVG text fontSize is in user units; effective pixels = fontSize * zoom.
+  // Invert the clamp from DinRailDesignationLabelsOverlay (effective 10..18px)
+  // so the rendered label stays in the same readable range at any zoom.
+  const labelFontSize = Math.min(
+    Math.max(13.5 / zoom, 10 / zoom),
+    18 / zoom
+  );
   return (
     <>
       {symbols.filter(filterFn).map((symbol) => (
@@ -62,7 +78,7 @@ export function DinRailRenderedSymbols({
             y={symbol.height + 25}
             textAnchor="middle"
             fill="#f8fafc"
-            fontSize={12}
+            fontSize={labelFontSize}
             fontWeight={700}
             fontFamily="Segoe UI, Arial, sans-serif"
             style={{
