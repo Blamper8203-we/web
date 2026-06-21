@@ -65,10 +65,12 @@
     grid-template-rows: auto 1fr 0;
   }
 
-        .main-content {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(0, 1fr) auto; /* Row 1 = sheet tabs, Row 3 = panels */
-  }
+  /* WHY: removed `.main-content { grid-template-columns: 1fr; ... }` from this
+     @media block. The base rule in MainContent.css already handles the
+     mobile grid layout via var(--left-panel-width: 100vw) on :root, and
+     keeping both rules here was triggering a Vite/Lightning CSS bundler
+     bug that wrapped the base rule inside this @media block (so the
+     desktop layout stopped applying). Tracked 2026-06-21. */
 
   .main-content.is-right-panel-hidden {
     grid-template-columns: 1fr;
