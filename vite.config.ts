@@ -162,6 +162,15 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
   },
   build: {
+    // WHY: lightningcss (Vite 8 default) has a bundler bug that wraps
+    // bare `.main-content { display: grid; ... }` rules inside
+    // `@media (max-width: 768px)` even when the source rule is at top
+    // level, breaking the desktop grid layout. Switching to esbuild
+    // would require a new dependency, so we disable CSS minification
+    // entirely as a lighter workaround. The unminified CSS adds ~30KB
+    // to the initial bundle (gzipped: ~5KB) but the layout bug is gone.
+    // Tracked 2026-06-21.
+    cssMinify: false,
     rollupOptions: {
       output: {
         manualChunks(id) {
