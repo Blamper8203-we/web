@@ -116,7 +116,7 @@ export function useDinRailPreparedAssets(symbols: SymbolItem[]) {
           }
 
           entries.push([symbol.id, asset]);
-        } catch (error) {
+        } catch {
           // Indywidualny blad ladowania SVG – nie niszczy pozostalych modulow
 
         }
