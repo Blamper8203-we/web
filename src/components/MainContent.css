@@ -9,8 +9,8 @@
      was being applied on desktop viewports, dropping display:grid and
      collapsing the sidebar/canvas layout. Tracked 2026-06-21. */
   display: grid !important;
-  grid-template-columns: var(--left-panel-width) minmax(0, 1fr) var(--right-panel-width);
-  grid-template-rows: var(--workspace-tabs-height) minmax(0, 1fr);
+  grid-template-columns: 280px minmax(0, 1fr) 320px;
+  grid-template-rows: 57px minmax(0, 1fr);
   min-height: 0;
   overflow: hidden;
   background: var(--app-background);
