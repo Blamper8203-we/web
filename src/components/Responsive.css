@@ -453,4 +453,5 @@
 
   /* NOTE: All `.main-content*` rules for this breakpoint live in
      MainContent.css (consolidated to avoid Vite bundler bug). */
+}
 
