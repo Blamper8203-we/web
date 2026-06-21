@@ -27,30 +27,6 @@
       crossorigin="anonymous"
     />
     <title>DINBoard Web – Projektowanie schematu instalacji elektrycznej</title>
-    <!-- Layout fix for .main-content on desktop viewports.
-         The Vite/Rollup bundler has a bug where bare `.main-content { display: grid }`
-         rules end up wrapped inside `@media (max-width: 768px)` in the bundled
-         CSS, so the desktop grid layout never applies. An inline <style> tag
-         here bypasses the CSS bundler entirely, and the !important declarations
-         win over any future rule that might slip past the bundler. This is the
-         only reliable fix found so far — see commit history for the consolidation
-         attempt that didn't work. Tracked 2026-06-21. -->
-    <style>
-      .main-content {
-        display: grid !important;
-        grid-template-columns: var(--left-panel-width) minmax(0, 1fr) var(--right-panel-width) !important;
-        grid-template-rows: var(--workspace-tabs-height) minmax(0, 1fr) !important;
-        min-height: 0 !important;
-        overflow: hidden !important;
-        background: var(--app-background);
-      }
-      @media (max-width: 768px) {
-        .main-content {
-          grid-template-columns: 1fr !important;
-          grid-template-rows: auto minmax(0, 1fr) auto !important;
-        }
-      }
-    </style>
   </head>
 
   <body>
