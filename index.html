@@ -27,6 +27,29 @@
       crossorigin="anonymous"
     />
     <title>DINBoard Web – Projektowanie schematu instalacji elektrycznej</title>
+    <!-- Layout fix for .main-content on desktop viewports.
+         Vite's Lightning CSS minifier has a bug where rules targeting
+         .main-content get wrapped inside @media (max-width: 768px)
+         during bundling, so the desktop grid layout never applies.
+         An inline <style> tag here bypasses the CSS bundler entirely,
+         and the !important declarations win over any future rule that
+         might slip past the bundler. Tracked 2026-06-21. -->
+    <style>
+      .main-content {
+        display: grid !important;
+        grid-template-columns: var(--left-panel-width) minmax(0, 1fr) var(--right-panel-width) !important;
+        grid-template-rows: var(--workspace-tabs-height) minmax(0, 1fr) !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+        background: var(--app-background);
+      }
+      @media (max-width: 768px) {
+        .main-content {
+          grid-template-columns: 1fr !important;
+          grid-template-rows: auto minmax(0, 1fr) auto !important;
+        }
+      }
+    </style>
   </head>
 
   <body>
