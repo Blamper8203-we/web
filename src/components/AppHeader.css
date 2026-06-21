@@ -110,7 +110,7 @@
   color: var(--text-inverse);
   background: var(--accent-primary);
   border: 1px solid var(--accent-primary);
-  box-shadow: 0 0 8px rgba(47, 128, 237, 0.25);
+  box-shadow: 0 0 8px rgba(30, 58, 95, 0.25);
 }
 
 .toolbar-icon-btn:active {

@@ -470,14 +470,7 @@ export function DinRailConnectionsCanvas({
             zoom={zoom}
           />
 
-          {/* 2.8 Visual Hotspot circles layered UNDER wires (excluding distribution blocks
-               which have their own top-layer hotspots in layer 5.5) */}
-          <DinRailVisualHotspots
-            hotspotsData={hotspotsData.filter(d => !(d.moduleRef || "").toLowerCase().includes("blok rozdzielczy"))}
-            hoveredHotspot={hoveredHotspot}
-            drawingState={drawingState}
-            highlightedComponent={highlightedComponent}
-          />
+
 
           {/* 3. Render connection wires */}
           <DinRailConnectionWires
@@ -532,11 +525,10 @@ export function DinRailConnectionsCanvas({
             isDrawing={!!drawingState}
           />
 
-          {/* 5.5 Visual Hotspots for distribution blocks rendered on top of the SVG body,
-               because their terminals (screw holes) are embedded inside the opaque graphic
-               and the generic 2.8 layer is hidden behind the SVG fill. */}
+          {/* 5.5 Visual Hotspots for all modules rendered on top of the SVG body,
+               so they are not hidden behind the SVG fill of normal modules. */}
           <DinRailVisualHotspots
-            hotspotsData={hotspotsData.filter(d => (d.moduleRef || "").toLowerCase().includes("blok rozdzielczy"))}
+            hotspotsData={hotspotsData}
             hoveredHotspot={hoveredHotspot}
             drawingState={drawingState}
             highlightedComponent={highlightedComponent}

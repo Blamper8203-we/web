@@ -3,7 +3,8 @@ import type {
   MeasurementProtocolsData,
 } from "../types/projectMetadata";
 import { buildCircuitListTableRows } from "../lib/circuitRows";
-import { exportDinRailToDataURL } from "../lib/export/dinRailSnapshotService";
+import { exportDinRailToDataURLWithOptions } from "../lib/export/dinRailSnapshotService";
+import { exportSchematicToDataURL } from "../lib/export/schematicSnapshotService";
 import { chunkRows } from "../lib/measurementProtocolHelpers";
 import {
   CIRCUIT_LIST_ROWS_PER_PAGE,
@@ -18,6 +19,7 @@ import { CircuitListTab } from "./measurementProtocols/CircuitListTab";
 import { UnifiedProtocolsTab } from "./measurementProtocols/UnifiedProtocolsTab";
 import { RcdProtocolsTab } from "./measurementProtocols/RcdProtocolsTab";
 import { DinRailProtocolTab } from "./measurementProtocols/DinRailProtocolTab";
+import { SchematicTab } from "./measurementProtocols/SchematicTab";
 
 type ProtocolTableRowsMap = Pick<
   MeasurementProtocolsData,
@@ -41,13 +43,17 @@ export function MeasurementProtocolsWorkspacePage() {
   const [dinRailPreviewUrl, setDinRailPreviewUrl] = useState<string | null>(null);
   const [dinRailPreviewError, setDinRailPreviewError] = useState<string | null>(null);
 
+  const [schematicImages, setSchematicImages] = useState<string[]>([]);
+  const [schematicError, setSchematicError] = useState<string | null>(null);
+  const [schematicIsLoading, setSchematicIsLoading] = useState(false);
+
   const protocols = metadata.measurementProtocols;
   const unifiedPages = chunkRows(protocols.unifiedRows, UNIFIED_ROWS_PER_PAGE);
   const circuitListRows = buildCircuitListTableRows(circuitRows);
   const circuitListPages = chunkRows(circuitListRows, CIRCUIT_LIST_ROWS_PER_PAGE);
 
   useEffect(() => {
-    if (activeTab !== "din-rail") {
+    if (activeTab !== "din-rail" && activeTab !== "din-rail-connections") {
       return;
     }
 
@@ -57,14 +63,19 @@ export function MeasurementProtocolsWorkspacePage() {
 
     async function refreshDinRailPreview() {
       try {
-        const images = await exportDinRailToDataURL(symbols, rail, connections);
+        // Portrait preview mirrors the PDF (A4 portrait, rail horizontal). The cap
+        // 800×1130 px ≈ 210mm × 297mm at 96 dpi.
+        const options = activeTab === "din-rail"
+          ? { drawConnections: false, scale: 2 }
+          : { drawConnections: true, scale: 2 };
+        const svgs = await exportDinRailToDataURLWithOptions(symbols, rail, options, connections);
         if (isCancelled) {
           return;
         }
 
-        const previewUrl = images[0] ?? null;
-        setDinRailPreviewUrl(previewUrl);
-        if (!previewUrl) {
+        const previewSvg = svgs[0] ?? null;
+        setDinRailPreviewUrl(previewSvg);
+        if (!previewSvg) {
           setDinRailPreviewError("Brak widoku szyny DIN do pokazania w dokumentacji.");
         }
       } catch (error) {
@@ -86,6 +97,53 @@ export function MeasurementProtocolsWorkspacePage() {
       isCancelled = true;
     };
   }, [activeTab, symbols, rail, connections]);
+
+  useEffect(() => {
+    if (activeTab !== "schematic") {
+      return;
+    }
+
+    let isCancelled = false;
+    setSchematicImages([]);
+    setSchematicError(null);
+    setSchematicIsLoading(true);
+
+    async function refreshSchematicPreview() {
+      try {
+        const images = await exportSchematicToDataURL(symbols, metadata);
+        if (isCancelled) {
+          return;
+        }
+
+        setSchematicImages(images);
+        if (images.length === 0) {
+          setSchematicError(
+            "Brak schematu do pokazania — dodaj obwody, fazy i zabezpieczenia.",
+          );
+        }
+      } catch (error) {
+        if (isCancelled) {
+          return;
+        }
+
+        setSchematicError(
+          error instanceof Error
+            ? error.message
+            : "Nie udało się przygotować schematu.",
+        );
+      } finally {
+        if (!isCancelled) {
+          setSchematicIsLoading(false);
+        }
+      }
+    }
+
+    void refreshSchematicPreview();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [activeTab, symbols, metadata]);
 
   const updateProtocols = (patch: Partial<MeasurementProtocolsData>) => {
     onChange({
@@ -126,14 +184,24 @@ export function MeasurementProtocolsWorkspacePage() {
   const objectType = metadata.titlePageObjectType || "Budynek jednorodzinny / Lokal mieszkalny";
   const stampText = metadata.contractorSignature || "PIECZĘĆ WYKONAWCY";
 
+  // WHY: the page counter here mirrors PdfProtocolDocument's actual page output so
+  // the footer "STRONA X Z Y" stays internally consistent. We MUST include
+  // every section the PDF renders, otherwise the "Z Y" total under-counts and the
+  // footer prints "STRONA 8 Z 7" for an 8-page document.
   let currentUiPage = 1;
   const titlePageIndex = currentUiPage++;
+  currentUiPage++; // PdfProjectSummaryPage (always rendered when previewOnly is undefined)
   const circuitListStartPage = currentUiPage;
   currentUiPage += circuitListPages.length;
   const unifiedStartPage = currentUiPage;
   if (unifiedPages.length > 0) currentUiPage += unifiedPages.length;
   const rcdPageIndex = currentUiPage;
   if ((protocols.rcdRows?.length ?? 0) > 0) currentUiPage++;
+  // WHY: schematic snapshots can span multiple A4 landscape sheets (one per circuit
+  // group). We reserve at least 1 slot so totalUiPages stays consistent before the
+  // async snapshot completes, then expand it once the real image count lands.
+  const schematicStartPage = currentUiPage;
+  currentUiPage += Math.max(1, schematicImages.length);
   const dinRailPageIndex = currentUiPage++;
   const totalUiPages = currentUiPage - 1;
 
@@ -163,14 +231,27 @@ export function MeasurementProtocolsWorkspacePage() {
           />
         )}
 
-        {activeTab === "din-rail" && (
-          <DinRailProtocolTab 
+        {(activeTab === "din-rail" || activeTab === "din-rail-connections") && (
+          <DinRailProtocolTab
             dinRailPreviewUrl={dinRailPreviewUrl}
             dinRailPreviewError={dinRailPreviewError}
             displayDate={displayDate}
             objectType={objectType}
-            dinRailPageIndex={dinRailPageIndex}
+            dinRailPageIndex={activeTab === "din-rail-connections" ? dinRailPageIndex + 1 : dinRailPageIndex}
             totalUiPages={totalUiPages}
+            mode={activeTab === "din-rail-connections" ? "connections" : "clean"}
+          />
+        )}
+
+        {activeTab === "schematic" && (
+          <SchematicTab
+            schematicImages={schematicImages}
+            schematicError={schematicError}
+            displayDate={displayDate}
+            objectType={objectType}
+            schematicStartPage={schematicStartPage}
+            totalUiPages={totalUiPages}
+            isLoading={schematicIsLoading}
           />
         )}
 

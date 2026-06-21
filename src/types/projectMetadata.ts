@@ -74,11 +74,17 @@ export interface ProjectMetadata {
   titlePageObjectType: string;
   address: string;
   investor: string;
+  investorAddress: string;
   contractor: string;
+  contractorNip: string;
+  contractorRegon: string;
+  contractorPhone: string;
+  contractorEmail: string;
   designerId: string;
   revision: string;
   drawingScale: string;
   drawingDate: string;
+  statementDate: string;
   sheetNumber: string;
   designerSignature: string;
   investorSignature: string;

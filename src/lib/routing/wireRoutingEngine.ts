@@ -181,18 +181,18 @@ export function calculateWirePoints(from: Point, to: Point, options: WireRouting
 
   if (endDir) {
     if (endDir === "top" || endDir === "bottom") {
-      let fallbackEndEntryY = to.y + (endDir === "top" ? -endExitOffset : endExitOffset);
+      const fallbackEndEntryY = to.y + (endDir === "top" ? -endExitOffset : endExitOffset);
       if (from) {
-        if (endDir === "top" && from.y < to.y) fallbackEndEntryY = Math.min(from.y, to.y - endExitOffset);
-        if (endDir === "bottom" && from.y > to.y) fallbackEndEntryY = Math.max(from.y, to.y + endExitOffset);
+        // if (endDir === "top" && from.y < to.y) fallbackEndEntryY = Math.min(from.y, to.y - endExitOffset);
+        // if (endDir === "bottom" && from.y > to.y) fallbackEndEntryY = Math.max(from.y, to.y + endExitOffset);
       }
       fallbackEndEntry = { x: to.x, y: fallbackEndEntryY, axis: 'y' as const };
       endVisFallback = { x: to.x, y: to.y + (endDir === "top" ? -toInset : toInset) };
     } else {
-      let fallbackEndEntryX = to.x + (endDir === "left" ? -endExitOffset : endExitOffset);
+      const fallbackEndEntryX = to.x + (endDir === "left" ? -endExitOffset : endExitOffset);
       if (from) {
-        if (endDir === "left" && from.x < to.x) fallbackEndEntryX = Math.min(from.x, to.x - endExitOffset);
-        if (endDir === "right" && from.x > to.x) fallbackEndEntryX = Math.max(from.x, to.x + endExitOffset);
+        // if (endDir === "left" && from.x < to.x) fallbackEndEntryX = Math.min(from.x, to.x - endExitOffset);
+        // if (endDir === "right" && from.x > to.x) fallbackEndEntryX = Math.max(from.x, to.x + endExitOffset);
       }
       fallbackEndEntry = { x: fallbackEndEntryX, y: to.y, axis: 'x' as const };
       endVisFallback = { x: to.x + (endDir === "left" ? -toInset : toInset), y: to.y };

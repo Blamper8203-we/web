@@ -8,6 +8,7 @@ interface DinRailProtocolTabProps {
   objectType: string;
   dinRailPageIndex: number;
   totalUiPages: number;
+  mode?: "clean" | "connections";
 }
 
 export function DinRailProtocolTab({
@@ -17,22 +18,23 @@ export function DinRailProtocolTab({
   objectType,
   dinRailPageIndex,
   totalUiPages,
+  mode = "clean",
 }: DinRailProtocolTabProps) {
-  return (
-    <div className="a4-page a4-page--landscape" key="din-rail-page">
+  const isConnections = mode === "connections";
+  const altText = isConnections
+    ? "Widok rozdzielnicy z połączeniami"
+    : "Widok rozdzielnicy elektrycznej";
+
+return (
+    <div className="a4-page a4-page--portrait" key="din-rail-page">
       <div>
-        <div className="flex justify-between items-start border-b-2 border-gray-800 pb-3 gap-4">
+        {/* Compact header — keeps the badge + project info but drops the
+            secondary title and the "1. Widok..." frame so the rail image gets
+            as much vertical space as possible on A4 portrait. */}
+        <div className="flex justify-between items-start border-b-2 border-gray-800 pb-2 gap-4">
           <div className="flex items-center gap-3 flex-grow" style={{ minWidth: 0 }}>
             <div className="px-3 py-1 bg-brand text-white font-bold rounded text-xs uppercase tracking-wider">
-              Rozdzielnica elektryczna
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <h2 className="text-sm font-extrabold text-gray-900 tracking-wider uppercase">
-                Widok elewacji rozdzielnicy
-              </h2>
-              <p className="text-[9px] text-gray-500 font-medium">
-                Dane z aktualnej szyny DIN i modułów w projekcie
-              </p>
+              {isConnections ? "Rozdzielnica połączenia" : "Rozdzielnica elektryczna"}
             </div>
           </div>
           <div className="text-right shrink-0">
@@ -41,24 +43,21 @@ export function DinRailProtocolTab({
           </div>
         </div>
 
-        <div className="mt-4">
-          <div className="bg-gray-100 text-gray-800 text-[10px] font-bold px-3 py-1.5 rounded-t-lg border border-gray-300">
-            1. Widok rozdzielnicy elektrycznej
-          </div>
-          <div className="mp-din-rail-preview-frame border-x border-b border-gray-300 rounded-b-lg">
-            {dinRailPreviewUrl ? (
-              <img
-                className="mp-din-rail-preview-image"
-                src={dinRailPreviewUrl}
-                alt="Widok rozdzielnicy elektrycznej"
+        <div className="mt-3 mp-din-rail-preview-frame">
+          {dinRailPreviewUrl ? (
+            <div className="mp-din-rail-preview-image text-center">
+              <img 
+                src={dinRailPreviewUrl} 
+                alt={altText} 
+                style={{ maxWidth: "100%", height: "auto", display: "inline-block" }} 
               />
-            ) : (
-              <div className="mp-din-rail-preview-empty">
-                <strong>{dinRailPreviewError ? "Nie udało się odświeżyć widoku." : "Odświeżanie widoku rozdzielnicy..."}</strong>
-                <span>{dinRailPreviewError ?? "Podgląd zostanie pokazany po przygotowaniu snapshotu szyny DIN."}</span>
-              </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="mp-din-rail-preview-empty">
+              <strong>{dinRailPreviewError ? "Nie udało się odświeżyć widoku." : "Odświeżanie widoku rozdzielnicy..."}</strong>
+              <span>{dinRailPreviewError ?? "Podgląd zostanie pokazany po przygotowaniu snapshotu szyny DIN."}</span>
+            </div>
+          )}
         </div>
       </div>
 

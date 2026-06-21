@@ -24,7 +24,7 @@ export const COLUMN_WIDTH = 142;
 export const COLUMN_GAP = 12;
 export const COLUMN_STEP = COLUMN_WIDTH + COLUMN_GAP;
 export const MAX_COLUMNS_PER_PAGE = 5;
-export const MAX_MODULES_PER_CARD = 9;
+export const MAX_MODULES_PER_CARD = 12;
 export const MAX_MODULES_PER_ROW = MAX_MODULES_PER_CARD;
 
 export const Y_PATH_NUMBERS = 10;

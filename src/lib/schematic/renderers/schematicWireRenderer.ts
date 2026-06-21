@@ -251,7 +251,7 @@ export function drawRcd(ctx: CanvasRenderingContext2D, rcd: SchematicNode, page:
   text(ctx, rcd.designation, rcdCx + 12, rcd.y + 25, 8.5, COLORS.rcd, true);
 
   if (rcd.protection) {
-    textCenteredBox(ctx, rcd.protection, rcdCx - 35, rcd.y + MODULE_HEIGHT + 22, 70, 6.5, COLORS.textDim);
+    text(ctx, rcd.protection, rcdCx + 12, rcd.y + 38, 6.5, COLORS.textDim);
   }
 
   if (rcd.children.length === 0) {
@@ -260,9 +260,10 @@ export function drawRcd(ctx: CanvasRenderingContext2D, rcd: SchematicNode, page:
 
   const mcbChildren = rcd.children.filter((ch) => ch.nodeType === "MCB");
 
+  const firstChild = rcd.children[0];
   const lastChild = rcd.children[rcd.children.length - 1];
-  const phaseBusX1 = rcdCx;
-  const phaseBusX2 = lastChild.x + MODULE_WIDTH / 2 + RCD_BUS_MARGIN;
+  const phaseBusX1 = Math.min(rcdCx, firstChild.x + MODULE_WIDTH / 2 - RCD_BUS_MARGIN);
+  const phaseBusX2 = Math.max(rcdCx, lastChild.x + MODULE_WIDTH / 2 + RCD_BUS_MARGIN);
   const groupBusYOffset = hasTopSwitch ? Y_GROUP_BUS_WITH_TOP : Y_GROUP_BUS;
   const phaseBusY = y(page, groupBusYOffset);
 

@@ -155,8 +155,8 @@
 }
 
 .circuit-edit-toggle input:checked + .circuit-edit-toggle-track {
-  background: var(--accent-primary, #3b82f6);
-  border-color: var(--accent-primary, #3b82f6);
+  background: var(--accent-primary, #1e3a5f);
+  border-color: var(--accent-primary, #1e3a5f);
 }
 
 .circuit-edit-toggle input:checked + .circuit-edit-toggle-track::after {
@@ -172,7 +172,7 @@
 .circuit-edit-checkbox.is-highlighted {
   border-color: var(--state-info-border);
   background: var(--state-info-soft);
-  box-shadow: 0 0 0 2px rgba(47, 128, 237, 0.14);
+  box-shadow: 0 0 0 2px rgba(30, 58, 95, 0.14);
 }
 
 .circuit-edit-footer {
@@ -399,7 +399,7 @@
 .svg-import-dialog__row.is-active {
   background: var(--state-info-soft);
   border-color: var(--state-info-border);
-  box-shadow: inset 0 0 0 1px rgba(47, 128, 237, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(30, 58, 95, 0.18);
 }
 
 .svg-import-dialog__row-preview {

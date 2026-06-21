@@ -61,7 +61,7 @@ export function useDinRailInteraction({
       },
     ) => {
       const template = getPaletteTemplate?.(options?.moduleRef ?? "");
-      const isTerminalBlock = template?.category === "Listwy do rozdzielnicy";
+      const isTerminalBlock = template?.category === "Listwy do rozdzielnicy" || template?.category === "GSU";
 
       if (isTerminalBlock) {
         return snapListwaPlacement({

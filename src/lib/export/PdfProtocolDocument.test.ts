@@ -202,7 +202,7 @@ describe("PdfProtocolDocument", () => {
       },
       symbols: [rcd, mcb],
       schematicImages: ["data:image/png;base64,iVBORw0KGgo="],
-      dinRailImages: ["data:image/png;base64,iVBORw0KGgo="],
+      dinRailImages: ["<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'><rect width='10' height='10'/></svg>"],
     });
 
     const text = collectTextContent(document).join("\n");
@@ -210,16 +210,20 @@ describe("PdfProtocolDocument", () => {
     expect(text).toContain("Dokumentacja Powykonawcza");
     expect(text).toContain("Oświadczenie Wykonawcy");
     expect(text).toContain("Pełna treść oświadczenia wykonawcy");
-    expect(text).toContain("LOGO");
+    // WHY: when no company logo is uploaded the logoBox is hidden entirely
+    // (instead of showing a "LOGO" placeholder) so the title page no longer
+    // carries a UI-style placeholder text into the final PDF.
+    expect(text).not.toContain("LOGO");
     expect(text).toContain("Tabela zbiorcza pomiarów");
     expect(text).toContain("RCD i uziemienie");
     expect(text).toContain("Schemat instalacji elektrycznej");
-    expect(text).toContain("Widok rozdzielnicy elektrycznej");
+    // WHY: "Widok rozdzielnicy elektrycznej" was a label box on the din-rail
+    // PDF page; it was removed to free vertical space on A4 portrait. The page
+    // itself is verified by checking imageSources instead of text.
     expect(text).toContain("Lista obwodów");
     expect(text).not.toContain("Opis obwodów");
     expect(text).toContain("Tabela zbiorcza");
     expect(text).toContain("RCD i uziemienie");
-    expect(text).toContain("WIDOK ELEWACJI ROZDZIELNICY");
   });
 
   it("renders an uploaded company logo on the title page instead of the logo placeholder", () => {
@@ -383,12 +387,14 @@ describe("PdfProtocolDocument", () => {
       previewOnly: "din-rail",
     });
 
-    const text = collectTextContent(document).join("\n");
+    // WHY: PdfDinRailSnapshotPage renders the rail image inline without a
+    // section-label header (the label was eating ~40pt of vertical space on
+    // A4 portrait). The page's only static identifier is the embedded rail
+    // image itself — the footer text is render-based and not visible to the
+    // test collector.
     const imageSources = collectImageSources(document);
-
-    expect(text).toContain("WIDOK ELEWACJI ROZDZIELNICY");
     expect(imageSources).toContain(dinRailImage);
-    expect(collectPageOrientations(document)).toEqual(["landscape"]);
+    expect(collectPageOrientations(document)).toEqual(["portrait"]);
   });
 
   it("chunks unified measurement rows and appends letter suffixes (A, B...) to the titles", () => {
@@ -485,5 +491,121 @@ describe("PdfProtocolDocument", () => {
     expect(text).not.toContain("Protokół Nr 01A");
     expect(text).toContain("Obwód testowy 0");
   });
+
+  it("reserves bottom padding on the schematic PDF page so the page footer does not overlap the embedded legend table", () => {
+    // WHY: the schematic PNG is rendered at full A4 landscape by
+    // renderSchematic, with the device-legend table sitting near the bottom of
+    // the sheet. The PDF page renders this PNG with width/height: 100% and
+    // objectFit: contain, then layers an absolute page footer
+    // (bottom: 10, "Strona X z Y • Dokument wygenerowany cyfrowo • ...")
+    // on top. If the Page style is padding: 0 the image fills the whole sheet
+    // and the footer overlaps the last row of the legend table — the bug the
+    // user reported in the PDF export of the "Schemat obwodów" tab. Pin the
+    // paddingBottom here so any future change that reverts it gets caught.
+
+    const document = PdfProtocolDocument({
+      metadata: createEmptyProjectMetadata(),
+      symbols: [],
+      schematicImages: [
+        "data:image/png;base64,SCHEMATIC_LEGEND_TEST",
+      ],
+      dinRailImages: [],
+    });
+
+    const pageFooters = collectSchematicPageBottomPadding(document);
+
+    expect(pageFooters.length).toBe(1);
+    for (const paddingBottom of pageFooters) {
+      expect(paddingBottom).toBeGreaterThan(0);
+    }
+  });
 });
+
+/**
+ * Walk the PDF document tree and return the resolved `paddingBottom` of every
+ * `<Page>` element that contains a `<Image src="data:image/png;...">` (the
+ * schematic snapshots). react-pdf accepts `style` as either an object or an
+ * array; we normalise both and read paddingBottom from any entry.
+ */
+function collectSchematicPageBottomPadding(node: unknown): number[] {
+  const paddingBottoms: number[] = [];
+  walk(node, (element) => {
+    if (element.type !== Page) {
+      return;
+    }
+    const style = normaliseStyle(element.props?.style);
+    const schematicImage = findDescendantImage(element.props?.children);
+    if (!schematicImage) {
+      return;
+    }
+    paddingBottoms.push(Number(style.paddingBottom ?? 0));
+  });
+  return paddingBottoms;
+}
+
+function walk(node: unknown, visit: (element: { type: unknown; props: Record<string, unknown> }) => void): void {
+  if (node === null || node === undefined || typeof node === "boolean" || typeof node === "string" || typeof node === "number") {
+    return;
+  }
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      walk(child, visit);
+    }
+    return;
+  }
+  if (typeof node === "object") {
+    const element = node as { type?: unknown; props?: { children?: unknown } };
+    if (typeof element.type === "function" || typeof element.type === "string") {
+      visit({ type: element.type, props: (element.props ?? {}) as Record<string, unknown> });
+    }
+    if (element.props?.children !== undefined) {
+      walk(element.props.children, visit);
+    }
+  }
+}
+
+function normaliseStyle(style: unknown): Record<string, unknown> {
+  if (!style) {
+    return {};
+  }
+  if (Array.isArray(style)) {
+    return style.reduce<Record<string, unknown>>((acc, entry) => {
+      if (entry && typeof entry === "object") {
+        Object.assign(acc, entry as Record<string, unknown>);
+      }
+      return acc;
+    }, {});
+  }
+  if (typeof style === "object") {
+    return style as Record<string, unknown>;
+  }
+  return {};
+}
+
+function findDescendantImage(node: unknown): unknown {
+  if (node === null || node === undefined || typeof node === "boolean" || typeof node === "string" || typeof node === "number") {
+    return null;
+  }
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const found = findDescendantImage(child);
+      if (found) {
+        return found;
+      }
+    }
+    return null;
+  }
+  if (typeof node === "object") {
+    const element = node as { type?: unknown; props?: { src?: unknown; children?: unknown } };
+    if (element.type === Image) {
+      return element;
+    }
+    if (element.props?.children !== undefined) {
+      return findDescendantImage(element.props.children);
+    }
+  }
+  return null;
+}
+
+import { Image, Page } from "@react-pdf/renderer";
 

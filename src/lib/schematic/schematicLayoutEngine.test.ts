@@ -683,8 +683,11 @@ describe("schematicLayoutEngine (Avalonia parity & stable sorting)", () => {
       x: 100,
     });
 
-    // Create 12 MCB symbols under this RCD group
-    const mcbs = Array.from({ length: 12 }, (_, i) =>
+    // Create 15 MCB symbols under this RCD group so the chunking logic is
+    // exercised. MAX_MODULES_PER_CARD is 12 (raised from 9 so the schematic
+    // accommodates the GSU/Główna Szyna Uziemiająca terminal), so 15 children
+    // force a split into one chunk of 12 + one continuation chunk of 3.
+    const mcbs = Array.from({ length: 15 }, (_, i) =>
       createDefaultSymbolItem({
         id: `mcb-${i + 1}`,
         type: "MCB 1P",
@@ -697,8 +700,7 @@ describe("schematicLayoutEngine (Avalonia parity & stable sorting)", () => {
 
     const result = buildSchematicLayout([rcd, ...mcbs]);
 
-    // Root nodes should have 2 chunks representing the RCD head (due to chunking into packages of at most 9)
-    // One chunk of size 9, one of size 3.
+    // Root nodes should have 2 chunks representing the RCD head (12 + 3).
     const rcdNodes = result.nodes.filter((node) => node.id === "rcd-large");
     expect(rcdNodes).toHaveLength(2);
 
@@ -706,18 +708,18 @@ describe("schematicLayoutEngine (Avalonia parity & stable sorting)", () => {
     const chunk2 = rcdNodes[1];
 
     expect(chunk1.nodeType).toBe("RCD");
-    expect(chunk1.children).toHaveLength(9);
+    expect(chunk1.children).toHaveLength(12);
     expect(chunk1.protection).not.toContain("(cd.)");
 
     expect(chunk2.nodeType).toBe("RCD");
     expect(chunk2.children).toHaveLength(3);
     expect(chunk2.protection).toContain("(cd.)");
 
-    // All 12 MCBs should be accounted for as children across the two RCD chunks
+    // All 15 MCBs should be accounted for as children across the two RCD chunks
     const allChildIds = [...chunk1.children.map(c => c.id), ...chunk2.children.map(c => c.id)];
-    expect(allChildIds).toHaveLength(12);
+    expect(allChildIds).toHaveLength(15);
     expect(allChildIds).toContain("mcb-1");
-    expect(allChildIds).toContain("mcb-12");
+    expect(allChildIds).toContain("mcb-15");
   });
 
   it("sets hasNeutralBar when an N terminal block is in the RCD group", () => {

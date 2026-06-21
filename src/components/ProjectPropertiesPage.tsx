@@ -118,6 +118,12 @@ export function ProjectPropertiesPage({
                   onChange={handleTextField("investor")}
                 />
                 <Field
+                  label="Adres inwestora (opcjonalnie)"
+                  placeholder="(jeśli inny niż adres obiektu)"
+                  value={metadata.investorAddress}
+                  onChange={handleTextField("investorAddress")}
+                />
+                <Field
                   label="Adres obiektu"
                   placeholder="ul. Budowlana 12"
                   value={metadata.address}
@@ -128,6 +134,30 @@ export function ProjectPropertiesPage({
                   placeholder="FHU Elektro Jan Kowalski"
                   value={metadata.contractor}
                   onChange={handleTextField("contractor")}
+                />
+                <Field
+                  label="NIP firmy wykonawcy"
+                  placeholder="1234567890"
+                  value={metadata.contractorNip}
+                  onChange={handleTextField("contractorNip")}
+                />
+                <Field
+                  label="REGON firmy wykonawcy"
+                  placeholder="012345678"
+                  value={metadata.contractorRegon}
+                  onChange={handleTextField("contractorRegon")}
+                />
+                <Field
+                  label="Telefon kontaktowy"
+                  placeholder="+48 600 100 200"
+                  value={metadata.contractorPhone}
+                  onChange={handleTextField("contractorPhone")}
+                />
+                <Field
+                  label="E-mail firmy"
+                  placeholder="biuro@firma.pl"
+                  value={metadata.contractorEmail}
+                  onChange={handleTextField("contractorEmail")}
                 />
               </div>
             </div>

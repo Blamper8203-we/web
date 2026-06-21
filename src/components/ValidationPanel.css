@@ -248,7 +248,7 @@
 .validation-locate-action:hover,
 .validation-locate-action:focus-visible {
   border-color: var(--accent-primary-hover);
-  background: rgba(47, 128, 237, 0.16);
+  background: rgba(30, 58, 95, 0.16);
   outline: none;
 }
 
@@ -363,6 +363,6 @@
 .validation-quick-action:hover,
 .validation-quick-action:focus-visible {
   border-color: var(--accent-primary-hover);
-  background: rgba(47, 128, 237, 0.16);
+  background: rgba(30, 58, 95, 0.16);
   outline: none;
 }

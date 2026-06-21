@@ -15,6 +15,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: safe center;
   padding: 16px;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   scrollbar-width: thin;
@@ -42,6 +43,11 @@
 .a4-page--landscape {
   width: 297mm;
   height: 210mm;
+}
+
+.a4-page--portrait {
+  width: 210mm;
+  height: 297mm;
 }
 
 .text-brand { color: var(--accent-primary); --mp-editable-color: var(--accent-primary); }
@@ -267,7 +273,7 @@ table thead th { background-color: rgba(249, 250, 251, 0.8); }
 }
 
 .mp-check-input {
-  accent-color: #0d79f2;
+  accent-color: #1e3a5f;
 }
 
 .mp-din-rail-preview-frame {
@@ -283,8 +289,20 @@ table thead th { background-color: rgba(249, 250, 251, 0.8); }
 .mp-din-rail-preview-image {
   display: block;
   max-width: 100%;
-  max-height: 124mm;
-  object-fit: contain;
+  max-height: 210mm; /* A4 portrait, leaves room for header + footer */
+  overflow: hidden;
+}
+
+/* WHY: the inner <svg> carries explicit width/height from the renderer, which
+ * can exceed its wrapper. Without this rule the SVG renders at intrinsic size and
+ * bleeds out of the preview frame. With width:100% + height:auto the SVG keeps
+ * its aspect ratio (via viewBox) while shrinking to fit the wrapper. */
+.mp-din-rail-preview-image svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  max-height: 210mm;
 }
 
 .mp-din-rail-preview-empty {
@@ -303,6 +321,51 @@ table thead th { background-color: rgba(249, 250, 251, 0.8); }
 }
 
 .mp-din-rail-preview-empty strong {
+  color: #334155;
+  font-size: 12px;
+}
+
+/* WHY: A4 landscape leaves 297×210mm = ~1.41:1 aspect. The schematic snapshot
+ * is rendered at A4_WIDTH_PX × A4_HEIGHT_PX (1122×794 px in schematicLayout.ts),
+ * which matches. We let the <img> keep its intrinsic ratio and clamp it to the
+ * frame so the badge/header/footer all stay visible. */
+.mp-schematic-preview-frame {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  padding: 4mm;
+  box-sizing: border-box;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.mp-schematic-preview-image {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.mp-schematic-preview-empty {
+  min-height: 100mm;
+  width: 100%;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  color: #64748b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  font-size: 11px;
+}
+
+.mp-schematic-preview-empty strong {
   color: #334155;
   font-size: 12px;
 }
@@ -400,6 +463,12 @@ label:hover .mp-delete-btn {
     padding: 6mm;
   }
 
+  .a4-page--portrait {
+    width: min(210mm, calc(100vw - 32px));
+    height: auto;
+    padding: 6mm;
+  }
+
   .mp-stage {
     padding: 12px 8px;
   }
@@ -413,6 +482,12 @@ label:hover .mp-delete-btn {
   }
 
   .a4-page--landscape {
+    width: calc(100vw - 16px);
+    height: auto;
+    padding: 4mm;
+  }
+
+  .a4-page--portrait {
     width: calc(100vw - 16px);
     height: auto;
     padding: 4mm;
@@ -435,6 +510,11 @@ label:hover .mp-delete-btn {
 
   .mp-din-rail-preview-empty {
     min-height: 80mm;
+  }
+
+  .mp-schematic-preview-frame {
+    min-height: 80mm;
+    padding: 2mm;
   }
 }
 

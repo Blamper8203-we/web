@@ -62,6 +62,22 @@ function pickProtocolHeading(selectedPreviewTab: PdfDocumentationPreviewTab) {
     };
   }
 
+  if (selectedPreviewTab === "din-rail-connections") {
+    return {
+      title: "Rozdzielnica połączenia",
+      description:
+        "Ta zakładka pokazuje widok rozdzielnicy razem z połączeniami — przewody i tulejki naniesione na podstawie aktualnego projektu.",
+    };
+  }
+
+  if (selectedPreviewTab === "schematic") {
+    return {
+      title: "Schemat obwodów",
+      description:
+        "Ta zakładka pokazuje schemat wygenerowany z dodanych obwodów. Schemat odświeża się po modyfikacjach parametrów modułów.",
+    };
+  }
+
   const protocolLabel = getProtocolLabel(selectedPreviewTab);
   return {
     title: `Nagłówek protokołu: ${protocolLabel}`,
@@ -203,10 +219,16 @@ export function PdfDocumentationPage() {
                       onChange={(value) => updateMetadata({ projectNumber: value })}
                     />
                     <Field
-                      label="Data"
+                      label="Data dokumentacji"
                       value={metadata.drawingDate ?? ""}
                       placeholder="2026-03-31"
                       onChange={(value) => updateMetadata({ drawingDate: value })}
+                    />
+                    <Field
+                      label="Data oświadczenia"
+                      value={metadata.statementDate ?? ""}
+                      placeholder="2026-03-31"
+                      onChange={(value) => updateMetadata({ statementDate: value })}
                     />
                   </div>
                 </div>
@@ -233,6 +255,12 @@ export function PdfDocumentationPage() {
                       value={metadata.investor ?? ""}
                       placeholder="Jan Kowalski"
                       onChange={(value) => updateMetadata({ investor: value })}
+                    />
+                    <Field
+                      label="Adres inwestora"
+                      value={metadata.investorAddress ?? ""}
+                      placeholder="(opcjonalnie, jeśli inny niż adres obiektu)"
+                      onChange={(value) => updateMetadata({ investorAddress: value })}
                     />
                   </div>
                 </div>
@@ -275,6 +303,41 @@ export function PdfDocumentationPage() {
                       value={metadata.titlePageSepValidUntil ?? ""}
                       placeholder="31.12.2026"
                       onChange={(value) => updateMetadata({ titlePageSepValidUntil: value })}
+                    />
+                  </div>
+                </div>
+              </article>
+
+              <article className="pd-card">
+                <div className="pd-card__body">
+                  <h3 className="pd-card-title">Dane identyfikacyjne firmy</h3>
+                  <p className="pd-help-text">
+                    Pola opcjonalne — wypełnij je, jeśli chcesz umieścić pełne dane firmy wykonawcy na stronie tytułowej PDF.
+                  </p>
+                  <div className="pd-stack">
+                    <Field
+                      label="NIP"
+                      value={metadata.contractorNip ?? ""}
+                      placeholder="1234567890"
+                      onChange={(value) => updateMetadata({ contractorNip: value })}
+                    />
+                    <Field
+                      label="REGON"
+                      value={metadata.contractorRegon ?? ""}
+                      placeholder="012345678"
+                      onChange={(value) => updateMetadata({ contractorRegon: value })}
+                    />
+                    <Field
+                      label="Telefon kontaktowy"
+                      value={metadata.contractorPhone ?? ""}
+                      placeholder="+48 600 100 200"
+                      onChange={(value) => updateMetadata({ contractorPhone: value })}
+                    />
+                    <Field
+                      label="E-mail"
+                      value={metadata.contractorEmail ?? ""}
+                      placeholder="biuro@firma.pl"
+                      onChange={(value) => updateMetadata({ contractorEmail: value })}
                     />
                   </div>
                 </div>
@@ -415,6 +478,31 @@ export function PdfDocumentationPage() {
                   </p>
                   <p className="pd-help-text">
                     Po dodaniu, usunięciu albo przesunięciu modułu podgląd odświeża się z tych samych danych, które trafiają do eksportu PDF.
+                  </p>
+                </div>
+              </article>
+            </div>
+          ) : selectedPreviewTab === "din-rail-connections" ? (
+            <div className="pd-editor-body">
+              <article className="pd-card">
+                <div className="pd-card__body">
+                  <h3 className="pd-card-title">Źródło widoku rozdzielnicy z połączeniami</h3>
+                  <p className="pd-help-text">
+                    Warstwa przewodów i tulejek nanoszona jest z aktualnych połączeń projektu. Podgląd odświeża się po każdej zmianie połączenia.
+                  </p>
+                  <p className="pd-help-text">
+                    Eksport PDF zawiera obie strony: czystą rozdzielnicę i rozdzielnicę z połączeniami.
+                  </p>
+                </div>
+              </article>
+            </div>
+          ) : selectedPreviewTab === "schematic" ? (
+            <div className="pd-editor-body">
+              <article className="pd-card">
+                <div className="pd-card__body">
+                  <h3 className="pd-card-title">Źródło schematu</h3>
+                  <p className="pd-help-text">
+                    Schemat jest generowany automatycznie na podstawie dodanych obwodów, faz i wartości zabezpieczeń.
                   </p>
                 </div>
               </article>

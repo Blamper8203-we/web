@@ -88,7 +88,7 @@ export const pdfStyles = StyleSheet.create({
   textGray800: { color: "#1F2937" },
   textGray900: { color: "#111827" },
   textGray950: { color: "#030712" },
-  textBrand: { color: "#0D79F2" },
+  textBrand: { color: "#1e3a5f" },
   textBlue400: { color: "#60A5FA" },
   textEmerald600: { color: "#059669" },
   textRed500: { color: "#EF4444" },
@@ -98,7 +98,7 @@ export const pdfStyles = StyleSheet.create({
   bgGray50: { backgroundColor: "#F9FAFB" },
   bgGray100: { backgroundColor: "#F3F4F6" },
   bgGray950: { backgroundColor: "#030712" },
-  bgBrand: { backgroundColor: "#0D79F2" },
+  bgBrand: { backgroundColor: "#1e3a5f" },
   bgBlue50: { backgroundColor: "#EFF6FF" },
   bgRed50: { backgroundColor: "#FEF2F2" },
   bgAmber50: { backgroundColor: "#FFFBEB" },
@@ -116,8 +116,8 @@ export const pdfStyles = StyleSheet.create({
   logoImage: { width: "100%", height: "100%", objectFit: "contain" },
   logoPlaceholderText: { color: "#9AA3B4", fontSize: 8, fontWeight: "bold" },
   
-  checkboxContainer: { width: 14, height: 14, borderRadius: 3, backgroundColor: "transparent", borderWidth: 1, borderColor: "#0D79F2", borderStyle: "solid", justifyContent: "center", alignItems: "center", marginRight: 8 },
-  checkboxChecked: { color: "#0D79F2", fontSize: 10, fontWeight: "bold" },
+  checkboxContainer: { width: 14, height: 14, borderRadius: 3, backgroundColor: "transparent", borderWidth: 1, borderColor: "#1e3a5f", borderStyle: "solid", justifyContent: "center", alignItems: "center", marginRight: 8 },
+  checkboxChecked: { color: "#1e3a5f", fontSize: 10, fontWeight: "bold" },
   
   tableCellHeader: {
     padding: 4,
@@ -150,6 +150,6 @@ export const pdfStyles = StyleSheet.create({
   validationGroup: { padding: 8, borderWidth: 1, borderColor: "#E5E7EB", borderStyle: "solid", borderRadius: 6, marginBottom: 8 },
   validationGroupError: { borderLeftWidth: 3, borderLeftColor: "#EF4444" },
   validationGroupWarning: { borderLeftWidth: 3, borderLeftColor: "#D97706" },
-  validationGroupInfo: { borderLeftWidth: 3, borderLeftColor: "#0D79F2" },
+  validationGroupInfo: { borderLeftWidth: 3, borderLeftColor: "#1e3a5f" },
   validationMessage: { paddingTop: 5, marginTop: 5, borderTopWidth: 1, borderTopColor: "#E5E7EB", borderTopStyle: "solid" },
 });

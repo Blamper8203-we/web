@@ -97,7 +97,7 @@
 .feedback-modal-field input:focus,
 .feedback-modal-field textarea:focus {
   outline: none;
-  border-color: var(--accent-primary, #0d79f2);
+  border-color: var(--accent-primary, #1e3a5f);
 }
 
 .feedback-modal-hint {
@@ -114,7 +114,7 @@
   border-radius: 8px;
   border: none;
   color: #fff;
-  background: var(--accent-primary, #0d79f2);
+  background: var(--accent-primary, #1e3a5f);
   font-weight: 600;
   font-size: 15px;
   cursor: pointer;

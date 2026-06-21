@@ -6,7 +6,7 @@ import type { SymbolItem } from "../../types/symbolItem";
 import type { ConnectionItem } from "../../types/connectionItem";
 import { buildCircuitRowsFromSymbols } from "../circuitRows";
 import { buildEditableMeasurementProtocols } from "../measurementProtocols";
-import { exportDinRailToDataURL } from "./dinRailSnapshotService";
+import { exportDinRailToDataURLWithOptions } from "./dinRailSnapshotService";
 import { PdfProtocolDocument } from "./PdfProtocolDocument";
 import { exportSchematicToDataURL } from "./schematicSnapshotService";
 
@@ -24,16 +24,23 @@ export async function exportToPdf(
     ),
   };
 
-  const [schematicImages, dinRailImages] = await Promise.all([
+  // A4 portrait page (595 × 842 pt). The rail content is wide (rail runs
+  // horizontally), so the renderer scales it to fit the page width. With the
+  // page chrome kept minimal (see PdfDinRailSnapshotPage), the available image
+  // area is ~535 × ~740 pt.
+
+  const [schematicImages, dinRailWithWiresSvg, dinRailWithoutWiresSvg] = await Promise.all([
     exportSchematicToDataURL(symbols, effectiveMetadata),
-    exportDinRailToDataURL(symbols, rail, connections),
+    exportDinRailToDataURLWithOptions(symbols, rail, { drawConnections: true, scale: 3 }, connections),
+    exportDinRailToDataURLWithOptions(symbols, rail, { drawConnections: false, scale: 3 }, connections),
   ]);
 
   const documentNode = createElement(PdfProtocolDocument, {
     metadata: effectiveMetadata,
     symbols,
     schematicImages,
-    dinRailImages,
+    dinRailImages: dinRailWithWiresSvg,
+    dinRailWithoutWiresImages: dinRailWithoutWiresSvg,
   }) as unknown as ReactElement<DocumentProps>;
   const blob = await pdf(documentNode).toBlob();
 

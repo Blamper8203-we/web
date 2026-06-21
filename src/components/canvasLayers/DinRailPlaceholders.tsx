@@ -27,7 +27,7 @@ export function DinRailPlaceholders({
   const isZoneOccupied = (zoneX: number, zoneY: number) => {
     return symbols.some((s) => {
       const pathLower = (s.visualPath || s.moduleRef || "").toLowerCase();
-      const pathMatches = pathLower.includes("listwy do rozdzielnicy") || pathLower.includes("listwy%20do%20rozdzielnicy") || pathLower.includes("gsu/gsu.svg");
+      const pathMatches = pathLower.includes("listwy do rozdzielnicy") || pathLower.includes("listwy%20do%20rozdzielnicy") || pathLower.includes("gsu/gsu");
       if (s.deviceKind !== "terminalBlock" || !pathMatches) return false;
       const sCenterX = s.x + s.width / 2;
       const sCenterY = s.y + s.height / 2;

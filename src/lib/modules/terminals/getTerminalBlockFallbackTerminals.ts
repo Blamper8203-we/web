@@ -49,13 +49,14 @@ export function getTerminalBlockFallbackTerminals(
       if (explicitPercentages && i < explicitPercentages.length) {
         yPos = height * explicitPercentages[i];
       }
-      hotspots.push({ name: `${i + 1}`, x: width / 2, y: yPos, type, isTop: i < pins / 2, direction: "auto-horizontal", exitOffset: 150, visualInset: 0 });
+      hotspots.push({ name: `${i + 1}`, x: width / 2, y: yPos, type, isTop: i < pins / 2, direction: "auto-horizontal", exitOffset: width / 2 + 20, visualInset: 0 });
     }
   } else if (normalizePathText(symbol.moduleRef || "").includes("gsu/gsu.svg")) {
-    // Szyna wyrównawcza GSU (6 zacisków)
-    const explicitPercentages = [58/600, 155/600, 251/600, 348/600, 445/600, 542/600];
-    for (let i = 0; i < 6; i++) {
-      hotspots.push({ name: `${i + 1}`, x: width * explicitPercentages[i], y: height / 2, type: "pe", isTop: false, direction: "auto-vertical", visualInset: 12 });
+    // Szyna wyrównawcza GSU (8 zacisków: 1 hex + 7 krzyżakowych, na środku szyny)
+    const explicitPercentages = [0.804, 0.709, 0.654, 0.599, 0.545, 0.490, 0.436, 0.381];
+    const names = ["Terminal 1", "1", "2", "3", "4", "5", "6", "7"];
+    for (let i = 0; i < 8; i++) {
+      hotspots.push({ name: names[i], x: width * explicitPercentages[i], y: height * 0.5, type: "pe", isTop: true, direction: "auto-vertical", visualInset: 0, radius: width * (31.3 / 1361) });
     }
   } else if (symbol.type === "Blok rozdzielczy" || normalizePathText(symbol.moduleRef || "").includes("blok rozdzielczy")) {
     // Blok rozdzielczy (np. 4x7 pin, 4x15 pin)

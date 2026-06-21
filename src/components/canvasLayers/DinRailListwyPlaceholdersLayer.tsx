@@ -77,7 +77,7 @@ export function DinRailListwyPlaceholdersLayer({
       // moduleRef includes the listwy category name. The full palette
       // lookup is intentionally avoided here to keep the viewport
       // pure (it has no access to palette templates).
-      if (!(s.moduleRef?.includes("Listwy do rozdzielnicy"))) return false;
+      if (!(s.moduleRef?.includes("Listwy do rozdzielnicy") || s.moduleRef?.includes("GSU/GSU"))) return false;
       const sCenterX = s.x + s.width / 2;
       const sCenterY = s.y + s.height / 2;
       const zoneCenterX = zoneX + rectWidth / 2;

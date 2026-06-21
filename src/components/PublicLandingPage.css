@@ -49,7 +49,7 @@
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--accent-primary, #0d79f2);
+  color: var(--accent-primary, #1e3a5f);
 }
 
 .landing__hero h1 {
@@ -88,19 +88,19 @@
   border-radius: 8px;
   border: 1px solid var(--state-info-border);
   color: #fff;
-  background: linear-gradient(135deg, var(--accent-primary-soft) 0%, rgba(47, 128, 237, 0.08) 100%);
+  background: linear-gradient(135deg, var(--accent-primary-soft) 0%, rgba(30, 58, 95, 0.08) 100%);
   text-decoration: none;
   font-weight: 600;
   font-size: 14px;
   letter-spacing: 0.01em;
-  box-shadow: 0 2px 12px rgba(47, 128, 237, 0.12);
+  box-shadow: 0 2px 12px rgba(30, 58, 95, 0.12);
   transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .landing__button:hover {
-  background: linear-gradient(135deg, rgba(47, 128, 237, 0.22) 0%, var(--accent-primary-soft) 100%);
+  background: linear-gradient(135deg, rgba(30, 58, 95, 0.22) 0%, var(--accent-primary-soft) 100%);
   border-color: var(--accent-primary);
-  box-shadow: 0 4px 20px rgba(47, 128, 237, 0.2);
+  box-shadow: 0 4px 20px rgba(30, 58, 95, 0.2);
   transform: translateY(-1px);
 }
 
@@ -142,22 +142,22 @@
   width: 240px;
   height: 240px;
   border-radius: 24px;
-  border: 1px solid rgba(47, 128, 237, 0.4);
+  border: 1px solid rgba(30, 58, 95, 0.4);
   color: #fff;
-  background: linear-gradient(135deg, rgba(47, 128, 237, 0.12) 0%, rgba(47, 128, 237, 0.02) 100%);
+  background: linear-gradient(135deg, rgba(30, 58, 95, 0.12) 0%, rgba(30, 58, 95, 0.02) 100%);
   text-decoration: none;
   font-weight: 700;
   font-size: 20px;
-  box-shadow: 0 8px 32px rgba(47, 128, 237, 0.1);
+  box-shadow: 0 8px 32px rgba(30, 58, 95, 0.1);
   transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   backdrop-filter: blur(8px);
 }
 
 .landing__button--huge:hover {
-  background: linear-gradient(135deg, rgba(47, 128, 237, 0.25) 0%, rgba(47, 128, 237, 0.08) 100%);
+  background: linear-gradient(135deg, rgba(30, 58, 95, 0.25) 0%, rgba(30, 58, 95, 0.08) 100%);
   border-color: var(--accent-primary);
-  box-shadow: 0 12px 40px rgba(47, 128, 237, 0.25);
+  box-shadow: 0 12px 40px rgba(30, 58, 95, 0.25);
   transform: translateY(-4px) scale(1.02);
 }
 
@@ -183,8 +183,8 @@
   margin-top: 24px;
   padding: 32px;
   border-radius: 16px;
-  background: rgba(47, 128, 237, 0.04);
-  border: 1px dashed rgba(47, 128, 237, 0.2);
+  background: rgba(30, 58, 95, 0.04);
+  border: 1px dashed rgba(30, 58, 95, 0.2);
   text-align: center;
   animation: landing-fade-in 600ms 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }

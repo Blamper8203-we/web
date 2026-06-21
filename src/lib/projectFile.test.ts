@@ -254,6 +254,14 @@ describe("projectFile round-trip (no data loss)", () => {
     expect(parsed.metadata!.projectNumber).toBe(data.metadata.projectNumber);
     expect(parsed.metadata!.investor).toBe(data.metadata.investor);
 
+    // New contractor identity fields round-trip empty values safely
+    expect(parsed.metadata!.contractorNip).toBe("");
+    expect(parsed.metadata!.contractorRegon).toBe("");
+    expect(parsed.metadata!.contractorPhone).toBe("");
+    expect(parsed.metadata!.contractorEmail).toBe("");
+    expect(parsed.metadata!.investorAddress).toBe("");
+    expect(parsed.metadata!.statementDate).toBe("");
+
     // Symbols
     expect(parsed.symbols).toHaveLength(3);
     expect(parsed.symbols.map((s) => s.id)).toEqual(["rcd-1", "mcb-1", "mcb-2"]);
@@ -277,6 +285,32 @@ describe("projectFile round-trip (no data loss)", () => {
     expect(parsed.rail!.isVisible).toBe(true);
     expect(parsed.rail!.rows).toBe(1);
     expect(parsed.rail!.modulesPerRow).toBe(24);
+  });
+
+  it("preserves contractor identity fields through save and load", () => {
+    // WHY: the title-page PDF now renders NIP, REGON, phone and email below
+    // the contractor name. If the project file drops these on save, the PDF
+    // would silently lose the contractor identity across reopen cycles.
+    const metadata = createEmptyProjectMetadata();
+    metadata.contractor = "FHU Elektro Jan Kowalski";
+    metadata.contractorNip = "1234567890";
+    metadata.contractorRegon = "012345678";
+    metadata.contractorPhone = "+48 600 100 200";
+    metadata.contractorEmail = "biuro@firma.pl";
+    metadata.investorAddress = "ul. Inwestorska 5, 00-001 Warszawa";
+    metadata.statementDate = "2026-06-15";
+
+    const serialized = serializeProjectFileContent(metadata, [], null, []);
+    const parsed = parseProjectFileContent(serialized, "/test/identity.dinboard");
+
+    expect(parsed.metadata).not.toBeNull();
+    expect(parsed.metadata!.contractor).toBe("FHU Elektro Jan Kowalski");
+    expect(parsed.metadata!.contractorNip).toBe("1234567890");
+    expect(parsed.metadata!.contractorRegon).toBe("012345678");
+    expect(parsed.metadata!.contractorPhone).toBe("+48 600 100 200");
+    expect(parsed.metadata!.contractorEmail).toBe("biuro@firma.pl");
+    expect(parsed.metadata!.investorAddress).toBe("ul. Inwestorska 5, 00-001 Warszawa");
+    expect(parsed.metadata!.statementDate).toBe("2026-06-15");
   });
 
   it("round-trip with invisible rail: rail is null after parse", () => {

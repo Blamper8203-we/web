@@ -32,7 +32,27 @@ export function useDinRailForegroundSvgs(symbols: SymbolItem[]) {
             if (!response.ok) continue;
             const text = await response.text();
 
-            if (text.includes('id="Oslona"') || text.includes('id="Osłona"')) {
+            if (symbol.moduleRef && symbol.moduleRef.toLowerCase().includes("gsu/gsu.svg")) {
+              // ── Base layer (under wires): show obudowa, hide listwa/terminals ──
+              const baseStyle = `<style>
+                #Listwa1, [id="Listwa1"], #Listwa, [id="Listwa"], #G1, [id="G1"], #G3, [id="G3"], #KLAMRA1, [id="KLAMRA1"], #KLAMRA2, [id="KLAMRA2"] { visibility: hidden; }
+              </style>`;
+              const modifiedBase = text.replace("</svg>", `${baseStyle}</svg>`);
+              const baseBlob = new Blob([modifiedBase], { type: "image/svg+xml" });
+              const baseUrl = URL.createObjectURL(baseBlob);
+              newBase[symbol.id] = baseUrl;
+              createdUrls.push(baseUrl);
+
+              // ── Foreground layer (over wires): hide obudowa, show listwa/terminals ──
+              const fgStyle = `<style>
+                #obudowa, [id="obudowa"] { display: none !important; }
+              </style>`;
+              const modifiedFg = text.replace("</svg>", `${fgStyle}</svg>`);
+              const fgBlob = new Blob([modifiedFg], { type: "image/svg+xml" });
+              const fgUrl = URL.createObjectURL(fgBlob);
+              newFg[symbol.id] = fgUrl;
+              createdUrls.push(fgUrl);
+            } else if (text.includes('id="Oslona"') || text.includes('id="Osłona"')) {
               // ── Base layer: always hide the Osłona group so bare terminals show ──
               const baseStyle = `<style>
                 #Osłona, [id="Osłona"], #Oslona, [id="Oslona"],
@@ -61,16 +81,17 @@ export function useDinRailForegroundSvgs(symbols: SymbolItem[]) {
               newFg[symbol.id] = fgUrl;
               createdUrls.push(fgUrl);
             }
-            // Sprawdzamy czy SVG ma element o id="niebieski1"
+            // Sprawdzamy czy SVG ma element o id="niebleski1" — to korpus listew N/PE.
+            // Ukrywamy korpus w FG, żeby przewody z tulejkami (które fizycznie są WEWNĄTRZ
+            // obudowy) były widoczne. NIE dotyczy bloku rozdzielczego 4x7 — tam
+            // `id="niebleski1"` nie istnieje, osłona ma `id="Osłona"` obsługiwane powyżej.
             else if (text.includes('id="niebieski1"')) {
-              // Ukrywamy tylko korpus (#niebieski1), zostawiajac mosiadz (#mosiadz).
-              // Dzieki temu nie psujemy elementow w <defs> jak gradienty.
               const styleBlock = `<style>
                 #niebieski1 { visibility: hidden; }
               </style>`;
-              
+
               const modifiedSvg = text.replace("</svg>", `${styleBlock}</svg>`);
-              
+
               const blob = new Blob([modifiedSvg], { type: "image/svg+xml" });
               const objectUrl = URL.createObjectURL(blob);
               newFg[symbol.id] = objectUrl;

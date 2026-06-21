@@ -50,13 +50,11 @@ export function PdfTitlePage({ metadata, displayDate }: PdfTitlePageProps) {
     <Page size="A4" style={styles.titlePage}>
       <View style={[styles.flexRow, styles.justifyBetween, styles.borderB2Dark, styles.pb3]}>
         <View style={[styles.flexRow, styles.itemsCenter]}>
-          <View style={[styles.logoBox, styles.mr3]}>
-            {metadata.titlePageCompanyLogoDataUrl ? (
+          {metadata.titlePageCompanyLogoDataUrl ? (
+            <View style={[styles.logoBox, styles.mr3]}>
               <Image src={metadata.titlePageCompanyLogoDataUrl} style={styles.logoImage} />
-            ) : (
-              <Text style={styles.logoPlaceholderText}>LOGO</Text>
-            )}
-          </View>
+            </View>
+          ) : null}
           <View>
             <Text style={[styles.textLg, styles.fontBold, styles.textGray900, styles.uppercase]}>Dokumentacja Powykonawcza</Text>
             <Text style={[styles.textXs, styles.textGray500, styles.mt1]}>ZGODNOŚĆ Z NORMĄ PN-HD 60364 (ARKUSZ 6)</Text>
@@ -67,13 +65,16 @@ export function PdfTitlePage({ metadata, displayDate }: PdfTitlePageProps) {
           <View style={[styles.bgBrand, styles.px2, styles.py1, styles.rounded, styles.mt1, { alignSelf: 'flex-end' }]}>
             <Text style={[styles.textBase, styles.fontBold, styles.textWhite]}>{resolvedProtocolNumber}</Text>
           </View>
-          <Text style={[styles.textXs, styles.textGray400, styles.mt2]}>Data: <Text style={[styles.fontMedium, styles.textGray700]}>{displayDate}</Text></Text>
+          <Text style={[styles.textXs, styles.textGray400, styles.mt2]}>Data dokumentacji: <Text style={[styles.fontMedium, styles.textGray700]}>{displayDate}</Text></Text>
+          {metadata.statementDate?.trim() && metadata.statementDate !== metadata.drawingDate ? (
+            <Text style={[styles.textXs, styles.textGray400, styles.mt1]}>Data oświadczenia: <Text style={[styles.fontMedium, styles.textGray700]}>{metadata.statementDate}</Text></Text>
+          ) : null}
         </View>
       </View>
 
       <View style={[styles.itemsCenter, { marginTop: 14, marginBottom: 14 }]}>
         <Text style={[styles.text2xl, styles.fontBlack, styles.textGray900, styles.uppercase]}>Oświadczenie Wykonawcy</Text>
-        <Text style={[styles.textSm, styles.textGray500, styles.italic, styles.mt1]}>instalacji elektrycznej wykonanej zgodnie z przepisami i normami</Text>
+        <Text style={[styles.textSm, styles.textGray700, styles.italic, styles.mt1]}>instalacji elektrycznej wykonanej zgodnie z przepisami i normami</Text>
       </View>
 
       <View style={[styles.bgGray50, styles.roundedXl, styles.border, styles.p3, styles.mb2]}>
@@ -87,10 +88,16 @@ export function PdfTitlePage({ metadata, displayDate }: PdfTitlePageProps) {
             <Text style={[styles.fontBold, styles.textGray700, styles.textSm, { width: 100 }]}>Adres:</Text>
             <Text style={[styles.fontSemiBold, styles.textGray900, styles.textSm, styles.flex1]}>{metadata.address || "................................................................"}</Text>
           </View>
-          <View style={[styles.flexRow]}>
+          <View style={[styles.flexRow, styles.mb1]}>
             <Text style={[styles.fontBold, styles.textGray700, styles.textSm, { width: 100 }]}>Inwestor:</Text>
             <Text style={[styles.fontSemiBold, styles.textGray900, styles.textSm, styles.flex1]}>{metadata.investor || "................................................................"}</Text>
           </View>
+          {metadata.investorAddress?.trim() ? (
+            <View style={[styles.flexRow]}>
+              <Text style={[styles.fontBold, styles.textGray700, styles.textSm, { width: 100 }]}>Adres inw.:</Text>
+              <Text style={[styles.fontSemiBold, styles.textGray900, styles.textSm, styles.flex1]}>{metadata.investorAddress}</Text>
+            </View>
+          ) : null}
         </View>
       </View>
 
@@ -143,6 +150,34 @@ export function PdfTitlePage({ metadata, displayDate }: PdfTitlePageProps) {
           <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb1]}>Wykonawca / Instalator</Text>
           <Text style={[styles.textSm, styles.fontBold, styles.textGray950, styles.mt2]}>{contractorName}</Text>
           <Text style={[styles.textXs, styles.textGray400, styles.mt1]}>Podmiot odpowiedzialny za montaż instalacji</Text>
+          {metadata.contractorNip?.trim() || metadata.contractorRegon?.trim() || metadata.contractorPhone?.trim() || metadata.contractorEmail?.trim() ? (
+            <View style={[styles.flexCol, { marginTop: 6, paddingTop: 6, borderTopWidth: 0.5, borderTopColor: "#E5E7EB", borderTopStyle: "solid" }]}>
+              {metadata.contractorNip?.trim() ? (
+                <View style={[styles.flexRow, styles.mb1]}>
+                  <Text style={[styles.fontSemiBold, styles.textGray700, styles.textXs, { width: 55 }]}>NIP:</Text>
+                  <Text style={[styles.fontBold, styles.textGray950, styles.textXs, styles.flex1]}>{metadata.contractorNip}</Text>
+                </View>
+              ) : null}
+              {metadata.contractorRegon?.trim() ? (
+                <View style={[styles.flexRow, styles.mb1]}>
+                  <Text style={[styles.fontSemiBold, styles.textGray700, styles.textXs, { width: 55 }]}>REGON:</Text>
+                  <Text style={[styles.fontBold, styles.textGray950, styles.textXs, styles.flex1]}>{metadata.contractorRegon}</Text>
+                </View>
+              ) : null}
+              {metadata.contractorPhone?.trim() ? (
+                <View style={[styles.flexRow, styles.mb1]}>
+                  <Text style={[styles.fontSemiBold, styles.textGray700, styles.textXs, { width: 55 }]}>Tel:</Text>
+                  <Text style={[styles.fontBold, styles.textGray950, styles.textXs, styles.flex1]}>{metadata.contractorPhone}</Text>
+                </View>
+              ) : null}
+              {metadata.contractorEmail?.trim() ? (
+                <View style={[styles.flexRow]}>
+                  <Text style={[styles.fontSemiBold, styles.textGray700, styles.textXs, { width: 55 }]}>E-mail:</Text>
+                  <Text style={[styles.fontBold, styles.textGray950, styles.textXs, styles.flex1]}>{metadata.contractorEmail}</Text>
+                </View>
+              ) : null}
+            </View>
+          ) : null}
         </View>
         <View style={[styles.border, styles.roundedXl, styles.p3, styles.grid2Col, styles.justifyCenter]}>
           <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb1]}>Uprawnienia SEP (Kwalifikacyjne)</Text>
@@ -163,7 +198,7 @@ export function PdfTitlePage({ metadata, displayDate }: PdfTitlePageProps) {
         </View>
       </View>
 
-      <View style={[styles.bgWhite, styles.border, { borderColor: "#0D79F2" }, styles.roundedXl, styles.p3, styles.mb3, styles.textCenter]}>
+      <View style={[styles.bgWhite, styles.border, { borderColor: "#1e3a5f" }, styles.roundedXl, styles.p3, styles.mb3, styles.textCenter]}>
         <Text style={[styles.textSm, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb2]}>Pełna treść oświadczenia wykonawcy</Text>
         <Text style={[styles.textSm, styles.fontNormal, styles.textGray800, { lineHeight: 1.5 }]}>
           Oświadczam, że instalacja elektryczna w wyżej wymienionym obiekcie została wykonana zgodnie z przepisami ustawy Prawo Budowlane, obowiązującymi normami technicznymi (w tym PN-HD 60364-6) oraz sztuką budowlaną. Przeprowadzone pomiary odbiorcze wykazały skuteczność zastosowanych środków ochrony przeciwporażeniowej.

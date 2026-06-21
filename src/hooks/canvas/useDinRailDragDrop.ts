@@ -50,7 +50,7 @@ export function useDinRailDragDrop({
     }
 
     if (!supportsDinRailPlacement(template)) {
-      if (template.category === "Listwy do rozdzielnicy") {
+      if (template.category === "Listwy do rozdzielnicy" || template.category === "GSU") {
         event.preventDefault();
         const world = screenToWorld(event.clientX, event.clientY);
         const size = getPaletteTemplateDimensions(template);

@@ -1,6 +1,6 @@
 import { devWarn } from "../runtimeDiagnostics";
 import type { DinRailCanvasRail } from "../../components/DinRailCanvasPixi";
-import { isAuxiliaryNonCircuitSymbol, type SymbolItem, MANUAL_REFERENCE_DESIGNATION_KEY } from "../../types/symbolItem";
+import { isAuxiliaryNonCircuitSymbol, type SymbolItem, MANUAL_REFERENCE_DESIGNATION_KEY, isDistributionBlockSymbol } from "../../types/symbolItem";
 import { buildSchematicLayout } from "../schematic/schematicLayoutEngine";
 import {
   DIN_RAIL_GROUP_BRACKET_BAR_HEIGHT,
@@ -10,12 +10,13 @@ import {
   buildDinRailGroupFrames,
   formatDinRailGroupLabel,
 } from "../dinRailSelection";
-import { loadPreparedSvgDataUri } from "../modules/svgAsset";
+import { loadPreparedSvgMarkup } from "../modules/svgAsset";
 import { getSymbolRatingText } from "../appHelpers";
-import type { ConnectionItem } from "../../types/connectionItem";
+import type { ConnectionItem, FerruleColor } from "../../types/connectionItem";
+import { computeGroupedWiredPaths } from "../connections/wirePathGenerator";
 import { getSymbolTerminals, findTerminalByName, resolveConnectionIsFromTop, resolveConnectionIsToTop } from "../modules/moduleTerminals";
 import { calculateWirePoints, type Point } from "../routing/wireRoutingEngine";
-import { getFerruleLength, WIRE_THICKNESS_MAP, WIRE_COLORS_MAP } from "../connections/connectionsLogic";
+import { getFerruleLength, WIRE_THICKNESS_MAP, WIRE_COLORS_MAP, FERRULE_COLORS_MAP, getAutoFerruleColor } from "../connections/connectionsLogic";
 
 
 
@@ -23,6 +24,7 @@ export interface DinRailSnapshotExportOptions {
   includeDesignations?: boolean;
   includeGroupFrames?: boolean;
   scale?: number;
+  drawConnections?: boolean;
 }
 
 function dataUrlToBlob(dataUrl: string): Blob {
@@ -151,7 +153,6 @@ function drawWireOnCanvas(
   radius: number,
   colorHex: string,
   thickness: number,
-  wireColor: string,
 ): void {
   const noDups = points.filter((pt, i, arr) => {
     if (i === 0) return true;
@@ -215,51 +216,80 @@ function drawWireOnCanvas(
   ctx.lineJoin = "round";
   ctx.stroke();
 
-  if (wireColor === "green-yellow") {
-    ctx.beginPath();
-    ctx.moveTo(cleanPoints[0].x, cleanPoints[0].y);
-    if (radius <= 0 || cleanPoints.length < 3) {
-      for (let i = 1; i < cleanPoints.length; i++) {
-        ctx.lineTo(cleanPoints[i].x, cleanPoints[i].y);
-      }
-    } else {
-      for (let i = 1; i < cleanPoints.length - 1; i++) {
-        const prev = cleanPoints[i - 1];
-        const curr = cleanPoints[i];
-        const next = cleanPoints[i + 1];
+  ctx.restore();
+}
 
-        const dPrev = Math.hypot(curr.x - prev.x, curr.y - prev.y);
-        const dNext = Math.hypot(next.x - curr.x, next.y - curr.y);
+function drawFerruleOnCanvas(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  direction: "top" | "bottom" | "left" | "right" | "auto-horizontal" | "auto-vertical",
+  color: FerruleColor,
+  wireCrossSection: number | undefined,
+  isDouble: boolean,
+  isShort: boolean,
+  isExtraLong: boolean,
+  isSquare: boolean,
+  customOffset: number | undefined,
+  customLength: number | undefined,
+): void {
+  if (!color || color === "none") return;
+  const actualColor = color === "auto" ? getAutoFerruleColor(wireCrossSection || 2.5) : color;
+  const ferruleColorData = FERRULE_COLORS_MAP[actualColor];
+  if (!ferruleColorData) return;
 
-        const maxRPrev = i === 1 ? dPrev : dPrev / 2;
-        const maxRNext = i === cleanPoints.length - 2 ? dNext : dNext / 2;
-        const maxR = Math.min(maxRPrev, maxRNext, radius);
+  const wireThickness = WIRE_THICKNESS_MAP[wireCrossSection || 2.5] || 40;
+  const thickness = isDouble ? (wireThickness * 2 + 4) : (wireThickness + 6);
+  const length = customLength !== undefined ? customLength : (isSquare ? thickness + 4 : isExtraLong ? 230 : isShort ? 80 : 150);
+  const offset = customOffset !== undefined ? customOffset : (isSquare ? 0 : 10);
 
-        if (maxR < 1) {
-          ctx.lineTo(curr.x, curr.y);
-          continue;
-        }
+  let rx, ry, width, height;
 
-        const uPrev = { x: (prev.x - curr.x) / dPrev, y: (prev.y - curr.y) / dPrev };
-        const uNext = { x: (next.x - curr.x) / dNext, y: (next.y - curr.y) / dNext };
-
-        const ptA = { x: curr.x + uPrev.x * maxR, y: curr.y + uPrev.y * maxR };
-        const ptB = { x: curr.x + uNext.x * maxR, y: curr.y + uNext.y * maxR };
-
-        ctx.lineTo(ptA.x, ptA.y);
-        ctx.quadraticCurveTo(curr.x, curr.y, ptB.x, ptB.y);
-      }
-      ctx.lineTo(cleanPoints[cleanPoints.length - 1].x, cleanPoints[cleanPoints.length - 1].y);
-    }
-
-    ctx.strokeStyle = "#FFD600";
-    ctx.lineWidth = thickness;
-    ctx.lineCap = "butt";
-    ctx.lineJoin = "round";
-    ctx.setLineDash([thickness * 1.2, thickness * 1.2]);
-    ctx.stroke();
+  if (direction === "top" || direction === "auto-vertical") {
+    width = thickness;
+    height = length;
+    rx = x - thickness / 2;
+    ry = y - length - offset;
+  } else if (direction === "bottom") {
+    width = thickness;
+    height = length;
+    rx = x - thickness / 2;
+    ry = y + offset;
+  } else if (direction === "left") {
+    width = length;
+    height = thickness;
+    rx = x - length - offset;
+    ry = y - thickness / 2;
+  } else if (direction === "right" || direction === "auto-horizontal") {
+    width = length;
+    height = thickness;
+    rx = x + offset;
+    ry = y - thickness / 2;
+  } else {
+    return;
   }
 
+  ctx.save();
+  ctx.fillStyle = ferruleColorData.dark;
+  ctx.beginPath();
+  ctx.roundRect(rx - 1, ry - 1, width + 2, height + 2, 2);
+  ctx.fill();
+
+  ctx.fillStyle = ferruleColorData.hex;
+  ctx.beginPath();
+  ctx.roundRect(rx, ry, width, height, 2);
+  ctx.fill();
+
+  const hx = direction === "left" || direction === "right" ? rx : rx + 2;
+  const hy = direction === "top" || direction === "bottom" ? ry : ry + 2;
+  const hw = direction === "left" || direction === "right" ? width : Math.max(1, width / 4);
+  const hh = direction === "top" || direction === "bottom" ? height : Math.max(1, height / 4);
+
+  ctx.fillStyle = ferruleColorData.highlight;
+  ctx.globalAlpha = 0.5;
+  ctx.beginPath();
+  ctx.roundRect(hx, hy, hw, hh, 1);
+  ctx.fill();
   ctx.restore();
 }
 
@@ -393,7 +423,13 @@ async function drawRailBackground(
   }
 }
 
-async function loadSymbolImages(snappedSymbols: SymbolItem[]): Promise<{ img: HTMLImageElement; symbol: SymbolItem }[]> {
+type LayeredSymbolImage = {
+  symbol: SymbolItem;
+  baseImg: HTMLImageElement;
+  fgImg: HTMLImageElement | null;
+};
+
+async function loadSymbolImages(snappedSymbols: SymbolItem[]): Promise<LayeredSymbolImage[]> {
   const drawPromises = snappedSymbols.map(async (symbol) => {
     if (!symbol.visualPath) return null;
 
@@ -403,26 +439,69 @@ async function loadSymbolImages(snappedSymbols: SymbolItem[]): Promise<{ img: HT
         ? { ...symbol.parameters, _DYNAMIC_RATING_: rating }
         : symbol.parameters;
         
-      const dataUri = await loadPreparedSvgDataUri(symbol.visualPath, parameters);
-      const img = await loadImage(dataUri);
-      return { img, symbol };
+      const rawMarkup = await loadPreparedSvgMarkup(symbol.visualPath, parameters);
+      
+      let baseMarkup = rawMarkup;
+      let fgMarkup: string | null = null;
+
+      if (symbol.deviceKind === "terminalBlock" || symbol.deviceKind === "other") {
+        if (symbol.moduleRef && symbol.moduleRef.toLowerCase().includes("gsu/gsu.svg")) {
+          // ── Base layer (under wires): show obudowa, hide listwa/terminals ──
+          const baseStyle = `<style>
+            #Listwa1, [id="Listwa1"], #Listwa, [id="Listwa"], #G1, [id="G1"], #G3, [id="G3"], #KLAMRA1, [id="KLAMRA1"], #KLAMRA2, [id="KLAMRA2"] { visibility: hidden; }
+          </style>`;
+          baseMarkup = rawMarkup.replace("</svg>", `${baseStyle}</svg>`);
+
+          // ── Foreground layer (over wires): hide obudowa, show listwa/terminals ──
+          const fgStyle = `<style>
+            #obudowa, [id="obudowa"] { display: none !important; }
+          </style>`;
+          fgMarkup = rawMarkup.replace("</svg>", `${fgStyle}</svg>`);
+        } else if (rawMarkup.includes('id="Oslona"') || rawMarkup.includes('id="Osłona"')) {
+          const baseStyle = `<style>
+            #Osłona, [id="Osłona"], #Oslona, [id="Oslona"],
+            #Grupa-N, [id="Grupa N"], #Grupa-L3, [id="Grupa L3"],
+            #Grupa-L2, [id="Grupa L2"], #Grupa-L1, [id="Grupa L1"] { visibility: hidden; }
+          </style>`;
+          baseMarkup = rawMarkup.replace("</svg>", `${baseStyle}</svg>`);
+
+          const isCoverHidden = symbol.parameters?.BLUE_COVER_VISIBILITY === "hidden" || symbol.parameters?.BLUE_COVER_VISIBILITY === "none";
+          const fgStyle = `<style>
+            #Background, #Tył-obudowy, #Tył\\ obudowy, [id="Tył-obudowy"], [id="Tył obudowy"] { visibility: hidden; }
+            ${isCoverHidden ? '#Osłona, [id="Osłona"], #Oslona, [id="Oslona"] { visibility: hidden; }' : ''}
+          </style>`;
+          fgMarkup = rawMarkup.replace("</svg>", `${fgStyle}</svg>`);
+        } else if (rawMarkup.includes('id="niebieski1"')) {
+          // WHY: listwy N/PE mają `id="niebieski1"` na CAŁYM niebieskim/zielonym korpusie.
+          // Fizycznie przewody z tulejkami są WEWNĄTRZ obudowy (pod korpusem), więc
+          // rysujemy listwę w dwóch warstwach:
+          //   - base (Layer 1): pełna listwa z korpusem — POD przewodami
+          //   - fg (Layer 5): ta sama lista z korpusem ukrytym (visibility: hidden) — NAD przewodami
+          // Efekt: korpus widoczny tam gdzie nie ma przewodów, a przewody widoczne
+          // "przez" korpus tam gdzie faktycznie są pod obudową. NIE dotyczy bloku
+          // rozdzielczego 4x7 (tam `id="niebieski1"` nie istnieje; osłona ma `id="Osłona"`).
+          const fgStyle = `<style>#niebieski1 { visibility: hidden; }</style>`;
+          fgMarkup = rawMarkup.replace("</svg>", `${fgStyle}</svg>`);
+        }
+      }
+
+      const baseDataUri = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(baseMarkup)}`;
+      const baseImg = await loadImage(baseDataUri);
+
+      let fgImg: HTMLImageElement | null = null;
+      if (fgMarkup) {
+        const fgDataUri = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(fgMarkup)}`;
+        fgImg = await loadImage(fgDataUri);
+      }
+
+      return { symbol, baseImg, fgImg };
     } catch (err) {
       devWarn(`Nie udało się załadować grafiki dla modułu ${symbol.id}:`, err);
       return null;
     }
   });
 
-  return (await Promise.all(drawPromises)).filter((item): item is { img: HTMLImageElement; symbol: SymbolItem } => Boolean(item));
-}
-
-function drawTerminalBlocksBackground(
-  ctx: CanvasRenderingContext2D,
-  loadedImages: { img: HTMLImageElement; symbol: SymbolItem }[]
-): void {
-  const bgImages = loadedImages.filter(li => li.symbol.deviceKind === "terminalBlock");
-  for (const { img, symbol } of bgImages) {
-    ctx.drawImage(img, symbol.x, symbol.y, symbol.width, symbol.height);
-  }
+  return (await Promise.all(drawPromises)).filter((item): item is NonNullable<typeof item> => Boolean(item));
 }
 
 function drawWiresConnections(
@@ -432,65 +511,103 @@ function drawWiresConnections(
 ): void {
   if (!connections || connections.length === 0) return;
 
-  for (const conn of connections) {
-    const fromSymbol = symbols.find((s) => s.id === conn.fromSymbolId);
-    const toSymbol = symbols.find((s) => s.id === conn.toSymbolId);
-    if (!fromSymbol || !toSymbol) continue;
+  const groupedWiredPaths = computeGroupedWiredPaths(symbols, connections);
 
-    const fromHS = findTerminalByName(getSymbolTerminals(fromSymbol), conn.fromTerminal, conn.isFromTop);
-    const toHS = findTerminalByName(getSymbolTerminals(toSymbol), conn.toTerminal, conn.isToTop);
-    if (!fromHS || !toHS) continue;
+  for (const w of groupedWiredPaths) {
+    if (!w || !w.pointsArr) continue;
 
-    const fromPt = { x: fromSymbol.x + fromHS.x, y: fromSymbol.y + fromHS.y };
-    const toPt = { x: toSymbol.x + toHS.x, y: toSymbol.y + toHS.y };
+    const wireThickness = WIRE_THICKNESS_MAP[w.connection.wireCrossSection] || 40;
+    const colors = WIRE_COLORS_MAP[w.connection.wireColor] || { hex: "#555", highlight: "#888", dark: "#1a1a1a" };
 
-    const hasFerrule = conn.ferruleColor && conn.ferruleColor !== "none";
-    const customRadius = conn.customRadius ?? 0;
+    const outlineColor = w.connection.wireColor === "black" ? "#888888" : colors.dark;
+      
+    // 1. Dark outline base (Outer Edge)
+    drawWireOnCanvas(ctx, w.pointsArr, w.connection.customRadius ?? 0, outlineColor, wireThickness + 1.8);
+    // 2. Main color (Midtone)
+    const mainColor = w.connection.wireColor === "green-yellow" ? "#2e7d32" : colors.hex;
+    drawWireOnCanvas(ctx, w.pointsArr, w.connection.customRadius ?? 0, mainColor, wireThickness);
     
-    const fromFerruleLen = getFerruleLength(fromSymbol.deviceKind, fromSymbol.moduleRef);
-    const toFerruleLen = getFerruleLength(toSymbol.deviceKind, toSymbol.moduleRef);
+    // 3. Yellow stripes overlay for PE
+    if (w.connection.wireColor === "green-yellow") {
+      drawWireOnCanvas(ctx, w.pointsArr, w.connection.customRadius ?? 0, "#FFD600", wireThickness * 0.45);
+    }
 
-    const fromExitOffsetVal = hasFerrule ? Math.max(fromHS.exitOffset ?? 40, fromFerruleLen) + customRadius : (fromHS.exitOffset ?? 40) + customRadius;
-    const toExitOffsetVal = hasFerrule ? Math.max(toHS.exitOffset ?? 40, toFerruleLen) + customRadius : (toHS.exitOffset ?? 40) + customRadius;
-
-    const routingOpts = {
-      isFromTop: resolveConnectionIsFromTop(fromSymbol, conn.isFromTop, fromHS),
-      isToTop: resolveConnectionIsToTop(toSymbol, conn.isToTop, toHS),
-      points: conn.points,
-      customOffset: conn.customOffset,
-      customOffsetX: conn.customOffsetX,
-      customOffsetY1: conn.customOffsetY1,
-      customOffsetY2: conn.customOffsetY2,
-      customRadius,
-      fromExitOffset: fromExitOffsetVal,
-      toExitOffset: toExitOffsetVal,
-    };
-
-    const pointsArr = calculateWirePoints(fromPt, toPt, routingOpts);
-    const wireThickness = WIRE_THICKNESS_MAP[conn.wireCrossSection] || 4.5;
-    const colors = WIRE_COLORS_MAP[conn.wireColor] || { hex: "#555", highlight: "#888", dark: "#1a1a1a" };
-
-    const outlineColor = conn.wireColor === "black" ? "#888888" : colors.dark;
-    drawWireOnCanvas(ctx, pointsArr, conn.customRadius ?? 0, outlineColor, wireThickness + 1.8, "");
-    drawWireOnCanvas(ctx, pointsArr, conn.customRadius ?? 0, colors.hex, wireThickness, conn.wireColor);
+    // 3.1. 3D Highlight (Cylindrical glossy sheen)
+    drawWireOnCanvas(ctx, w.pointsArr, w.connection.customRadius ?? 0, "rgba(255, 255, 255, 0.08)", Math.max(2, wireThickness * 0.35));
+    drawWireOnCanvas(ctx, w.pointsArr, w.connection.customRadius ?? 0, "rgba(255, 255, 255, 0.18)", Math.max(1, wireThickness * 0.1));
   }
 }
 
-function drawForegroundModules(
+function drawAllFerrules(
   ctx: CanvasRenderingContext2D,
-  loadedImages: { img: HTMLImageElement; symbol: SymbolItem }[]
+  symbols: SymbolItem[],
+  connections: ConnectionItem[] | undefined
 ): void {
-  const fgImages = loadedImages.filter(li => li.symbol.deviceKind !== "terminalBlock");
-  fgImages.sort((a, b) => {
-    if (Math.abs(a.symbol.y - b.symbol.y) > 5) {
-      return a.symbol.y - b.symbol.y;
-    }
-    return a.symbol.x - b.symbol.x;
+  if (!connections || connections.length === 0) return;
+
+  const groupedWiredPaths = computeGroupedWiredPaths(symbols, connections);
+
+  const ferruleCounts = new Map<string, number>();
+  groupedWiredPaths.forEach((w) => {
+    if (!w || !w.connection.ferruleColor || w.connection.ferruleColor === "none") return;
+    const fromKey = `${w.connection.fromSymbolId}:${w.connection.fromTerminal}:${w.fromHS.isTop ? 'T' : 'B'}:${w.actualFromDir}`;
+    const toKey = `${w.connection.toSymbolId}:${w.connection.toTerminal}:${w.toHS.isTop ? 'T' : 'B'}:${w.actualToDir}`;
+    ferruleCounts.set(fromKey, (ferruleCounts.get(fromKey) || 0) + 1);
+    ferruleCounts.set(toKey, (ferruleCounts.get(toKey) || 0) + 1);
   });
 
-  for (const { img, symbol } of fgImages) {
-    ctx.drawImage(img, symbol.x, symbol.y, symbol.width, symbol.height);
-  }
+  const renderedFerrules = new Set<string>();
+
+  groupedWiredPaths.forEach((w) => {
+    if (!w || !w.connection.ferruleColor || w.connection.ferruleColor === "none") return;
+
+    const fromKey = `${w.connection.fromSymbolId}:${w.connection.fromTerminal}:${w.fromHS.isTop ? 'T' : 'B'}:${w.actualFromDir}`;
+    const toKey = `${w.connection.toSymbolId}:${w.connection.toTerminal}:${w.toHS.isTop ? 'T' : 'B'}:${w.actualToDir}`;
+
+    if (!renderedFerrules.has(fromKey)) {
+      renderedFerrules.add(fromKey);
+      const fromIsDist = isDistributionBlockSymbol(w.fromSymbol);
+      const isSquare = w.fromDeviceKind === "phaseIndicator" || (w.fromModuleRef || "").toLowerCase().includes("zabezpieczajacy") || (w.fromModuleRef || "").toLowerCase().includes("zabezpieczenia");
+      const isShort = w.fromDeviceKind === "terminalBlock";
+      
+      drawFerruleOnCanvas(
+        ctx,
+        w.fromTerminalPt.x,
+        w.fromTerminalPt.y,
+        w.actualFromDir as any,
+        w.connection.ferruleColor,
+        w.connection.wireCrossSection,
+        (ferruleCounts.get(fromKey) || 0) >= 2,
+        isShort,
+        fromIsDist,
+        isSquare,
+        fromIsDist ? 10 : w.fromHS.visualInset,
+        fromIsDist ? 80 : undefined
+      );
+    }
+
+    if (!renderedFerrules.has(toKey)) {
+      renderedFerrules.add(toKey);
+      const toIsDist = isDistributionBlockSymbol(w.toSymbol);
+      const isSquare = w.toDeviceKind === "phaseIndicator" || (w.toModuleRef || "").toLowerCase().includes("zabezpieczajacy") || (w.toModuleRef || "").toLowerCase().includes("zabezpieczenia");
+      const isShort = w.toDeviceKind === "terminalBlock";
+      
+      drawFerruleOnCanvas(
+        ctx,
+        w.toTerminalPt.x,
+        w.toTerminalPt.y,
+        w.actualToDir as any,
+        w.connection.ferruleColor,
+        w.connection.wireCrossSection,
+        (ferruleCounts.get(toKey) || 0) >= 2,
+        isShort,
+        toIsDist,
+        isSquare,
+        toIsDist ? 10 : w.toHS.visualInset,
+        toIsDist ? 80 : undefined
+      );
+    }
+  });
 }
 
 function drawDesignationLabels(
@@ -592,9 +709,61 @@ async function renderDinRailSnapshotCanvas(
 
   const loadedImages = await loadSymbolImages(snappedSymbols);
 
-  drawTerminalBlocksBackground(ctx, loadedImages);
-  drawWiresConnections(ctx, symbols, connections);
-  drawForegroundModules(ctx, loadedImages);
+  // Layer 1: Base Symbols (drawn UNDER wires)
+  // Matching exactly DinRailConnectionsCanvas filter for Base Symbols
+  const baseSymbols = loadedImages.filter(li => 
+    isDistributionBlockSymbol(li.symbol) || 
+    li.symbol.deviceKind === "phaseIndicator" || 
+    !!li.fgImg || 
+    (li.symbol.moduleRef || "").toLowerCase().includes("zabezpieczajacy") || 
+    (li.symbol.moduleRef || "").toLowerCase().includes("zabezpieczenia")
+  );
+  
+  // Sort base symbols to avoid z-index glitching
+  baseSymbols.sort((a, b) => {
+    if (Math.abs(a.symbol.y - b.symbol.y) > 5) return a.symbol.y - b.symbol.y;
+    return a.symbol.x - b.symbol.x;
+  });
+
+  for (const { baseImg, symbol } of baseSymbols) {
+    ctx.drawImage(baseImg, symbol.x, symbol.y, symbol.width, symbol.height);
+  }
+  
+  // Layer 2: Connections (Wires)
+  if (options.drawConnections !== false) {
+    drawWiresConnections(ctx, symbols, connections);
+  }
+
+  // Layer 3: Ferrules (drawn OVER wires but UNDER normal/foreground symbols)
+  if (options.drawConnections !== false) {
+    drawAllFerrules(ctx, symbols, connections);
+  }
+
+  // Layer 4: Normal Symbols (drawn OVER wires)
+  const normalSymbols = loadedImages.filter(li => 
+    li.symbol.deviceKind !== "phaseIndicator" && 
+    !isDistributionBlockSymbol(li.symbol) && 
+    !li.fgImg && 
+    !(li.symbol.moduleRef || "").toLowerCase().includes("zabezpieczajacy") && 
+    !(li.symbol.moduleRef || "").toLowerCase().includes("zabezpieczenia")
+  );
+
+  normalSymbols.sort((a, b) => {
+    if (Math.abs(a.symbol.y - b.symbol.y) > 5) return a.symbol.y - b.symbol.y;
+    return a.symbol.x - b.symbol.x;
+  });
+
+  for (const { baseImg, symbol } of normalSymbols) {
+    ctx.drawImage(baseImg, symbol.x, symbol.y, symbol.width, symbol.height);
+  }
+
+  // Layer 5: Terminal Blocks Foreground (plastic covers + brass drawn OVER wires)
+  const fgSymbols = loadedImages.filter(li => li.fgImg !== null);
+  for (const { fgImg, symbol } of fgSymbols) {
+    if (fgImg) {
+      ctx.drawImage(fgImg, symbol.x, symbol.y, symbol.width, symbol.height);
+    }
+  }
 
   if (includeDesignations) {
     drawDesignationLabels(ctx, snappedSymbols, automaticDesignationBySymbolId);

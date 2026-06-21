@@ -4,7 +4,6 @@ import type { SymbolItem } from "../../types/symbolItem";
 import { buildCircuitListTableRows, buildCircuitRowsFromSymbols, type CircuitListTableRow } from "../circuitRows";
 import { formatDateForField } from "../projectMetadata";
 
-import { pdfStyles as styles } from "./pdfPages/pdfStyles";
 import { CIRCUIT_LIST_ROWS_PER_PAGE, UNIFIED_ROWS_PER_PAGE, buildPdfCircuitGroups } from "./pdfPages/pdfHelpers";
 import { chunkRows } from "../measurementProtocolHelpers";
 import { PdfTitlePage } from "./pdfPages/PdfTitlePage";
@@ -12,12 +11,15 @@ import { PdfProjectSummaryPage } from "./pdfPages/PdfProjectSummaryPage";
 import { PdfCircuitListPage } from "./pdfPages/PdfCircuitListPage";
 import { PdfUnifiedTablePage } from "./pdfPages/PdfUnifiedTablePage";
 import { PdfRcdTablePage } from "./pdfPages/PdfRcdTablePage";
+import { PdfDinRailSnapshotPage } from "./pdfPages/PdfDinRailSnapshotPage";
+import { pdfStyles } from "./pdfPages/pdfStyles";
 
 interface PdfProtocolDocumentProps {
   metadata: ProjectMetadata;
   symbols: SymbolItem[];
   schematicImages?: string[];
   dinRailImages?: string[];
+  dinRailWithoutWiresImages?: string[];
   previewOnly?: string;
 }
 
@@ -26,6 +28,7 @@ export function PdfProtocolDocument({
   symbols,
   schematicImages = [],
   dinRailImages = [],
+  dinRailWithoutWiresImages = [],
   previewOnly,
 }: PdfProtocolDocumentProps) {
   const groupedCircuits = buildPdfCircuitGroups(symbols);
@@ -92,31 +95,45 @@ export function PdfProtocolDocument({
 
           {(!previewOnly || previewOnly === "schematic") &&
             schematicImages.map((src, index) => (
-              <Page key={`schematic-${index}`} size="A4" orientation="landscape" style={{ padding: 0 }}>
-                <Image src={src} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+              // WHY: paddingBottom > 0 keeps the embedded schematic PNG (which
+              // already contains the device legend table near the bottom of the
+              // A4 sheet) from sitting under the page footer. The previous
+              // padding: 0 made the image fill the entire page and the absolute
+              // page footer (bottom: 10) overlapped the last row of the legend
+              // table. 25pt ≈ 8.8mm — enough to clear the footer band while
+              // still keeping the schematic visually full-bleed.
+              <Page
+                key={`schematic-${index}`}
+                size="A4"
+                orientation="landscape"
+                style={[pdfStyles.landscapePage, { paddingBottom: 25 }]}
+              >
+                <View style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
+                  <Image src={src} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                </View>
                 <View style={{ position: "absolute", bottom: 10, left: 0, right: 0, textAlign: "center" }} fixed>
                   <Text style={{ fontSize: 8, color: "#9ca3af", textTransform: "uppercase" }} render={({ pageNumber, totalPages }) => `Strona ${pageNumber} z ${totalPages} • Dokument wygenerowany cyfrowo • Zgodny z normą PN-HD 60364`} />
                 </View>
               </Page>
             ))}
 
-          {(!previewOnly || previewOnly === "din-rail") &&
-            dinRailImages.map((src, index) => (
-              <Page key={`din-rail-${index}`} size="A4" orientation="landscape" style={styles.landscapePage}>
-                <View style={[styles.bgGray100, styles.px3, styles.py2, styles.rounded, styles.border, styles.mb4]}>
-                  <Text style={[styles.textXs, styles.fontBold, styles.textGray800]}>WIDOK ELEWACJI ROZDZIELNICY</Text>
-                </View>
-                <View style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
-                  <Image src={src} style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
-                </View>
-                <View style={[styles.textCenter, styles.mt4]} fixed>
-                  <Text
-                    style={[styles.textXs, styles.textGray400, styles.uppercase]}
-                    render={({ pageNumber, totalPages }) => `Strona ${pageNumber} z ${totalPages} • Dokument wygenerowany cyfrowo • Zgodny z normą PN-HD 60364`}
-                  />
-                </View>
-              </Page>
-            ))}
+          {(!previewOnly || previewOnly === "din-rail" || previewOnly === "din-rail-connections") && (
+            <>
+              {dinRailWithoutWiresImages.map((svg, index) => (
+                <PdfDinRailSnapshotPage
+                  key={`din-rail-main-${index}`}
+                  imageDataUrl={svg}
+                />
+              ))}
+
+              {dinRailImages.map((svg, index) => (
+                <PdfDinRailSnapshotPage
+                  key={`din-rail-wires-${index}`}
+                  imageDataUrl={svg}
+                />
+              ))}
+            </>
+          )}
             
           </>
       )}

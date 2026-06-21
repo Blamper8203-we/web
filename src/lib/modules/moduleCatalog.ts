@@ -67,7 +67,6 @@ const MODULE_HEIGHT_MM_BY_REF: Record<string, number> = {
   "RCD/RCD 4P.svg": 83,
   "MCB/roz\u0142acznik nadpr\u0105dowy MCB 1P.svg": 83,
   "MCB/roz\u0142acznik nadpr\u0105dowy MCB 2P.svg": 83,
-  "MCB/roz\u0142acznik nadpr\u0105dowy MCB 3P.svg": 83,
   "Kontrolki faz/Kontrolki faz.svg": 83,
   "GSU/GSU.svg": 84,
   "Inne/GNIAZDO SZYNA DIN.svg": 85,
@@ -152,7 +151,7 @@ export function supportsDinRailPlacement(template: {
   deviceKind?: DeviceKind;
   moduleRef?: string;
 }): boolean {
-  if (template.category === "Listwy do rozdzielnicy") {
+  if (template.category === "Listwy do rozdzielnicy" || template.category === "GSU") {
     return false;
   }
   return true;

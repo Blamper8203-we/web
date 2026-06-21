@@ -112,7 +112,7 @@ export function usePaletteActions({
       const shouldLockReferenceDesignation =
         template.deviceKind === 'rcd' || template.deviceKind === 'fr';
       const moduleDimensions = getPaletteTemplateDimensions(template);
-      const isTerminalBlock = template.category === "Listwy do rozdzielnicy";
+      const isTerminalBlock = template.category === "Listwy do rozdzielnicy" || template.category === "GSU";
       const shouldPlaceOnDinRail =
         options?.snapToRail === true && (supportsDinRailPlacement(template) || isTerminalBlock);
 

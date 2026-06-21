@@ -1,0 +1,281 @@
+version: 1
+plan:
+  name: 'audyt kodu DINBoard: błędy i duplikaty'
+  max_concurrency: 5
+  max_consecutive_failures: 2
+  max_cycles: 6
+  auto_reject_retries: 1
+tasks:
+  - id: audit-electrical
+    title: 'audyt domeny elektrycznej (fazy, walidacja, RCD/MCB)'
+    role: verify-as-task
+    prompt: |
+      Jesteś electrical-expert dla projektu DINBoard Web. Wykonaj audyt (read-only, bez
+      modyfikacji plików) pod kątem BŁĘDÓW i DUPLIKATÓW w domenie elektrycznej.
+
+      Najpierw przeczytaj:
+      - F:\stare pliki\Nowy projekt\AGENTS.md (sekcje "Obszary wysokiego ryzyka" i "Logika elektryczna i domenowa")
+      - F:\stare pliki\Nowy projekt\.harness\docs\code-standards.md
+      - F:\stare pliki\Nowy projekt\.harness\docs\architecture-map.md
+
+      Zakres audytu (własność electrical-expert):
+      - src/lib/phaseDistribution/**
+      - src/lib/validation/**
+      - src/lib/circuitRows.ts
+      - src/lib/circuitEdit/**
+      - src/lib/projectMetadata.ts
+      - src/types/symbolItem.ts
+      - src/types/circuitRow.ts
+
+      Dla każdego znaleziska podaj:
+      1) Problem (co jest źle / niebezpieczne)
+      2) Przyczyna (konkretny fragment kodu, file:line)
+      3) Wpływ (co to znaczy dla realnej decyzji inżynierskiej — bilans faz, walidacja, dane do PDF/zestawień)
+      4) Severity: critical / high / medium / low
+      5) Sugerowana bezpieczna poprawka (nie implementuj)
+      6) Owner: kto powinien naprawić (developer / electrical-expert / inny)
+
+      Szukaj w szczególności:
+      - Cichej zmiany logiki bilansowania faz L1/L2/L3
+      - Błędów w sumowaniu obciążeń / prądów
+      - Błędnych progów walidacji lub niespójnej severity
+      - Złamanych relacji RCD -> MCB/RCBO (np. MCB przypisany do złego RCD, brak walidacji pokrycia)
+      - Duplikatów helperów liczących to samo (np. kilka implementacji sumPerPhase, validateCircuit, getAssignedRcd)
+      - Martwego kodu w tych ścieżkach
+      - Niespójnych typów (np. `phase: 'L1' | 'L2' | 'L3'` w jednym miejscu, a `phase: number` w innym)
+      - Testów, które pilnują niewłaściwej właściwości albo nie istnieją dla ryzykownej gałęzi
+
+      Narzędzia: Read, Grep, Glob. NIE edytuj plików. NIE uruchamiaj testów (to zrobi synteza).
+
+      Na końcu napisz raport do pliku:
+      F:\stare pliki\Nowy projekt\.harness\reports\audit-electrical.md
+
+      Format raportu: Markdown. Nagłówek "Audyt domeny elektrycznej", potem sekcje:
+      - "Błędy krytyczne" (jeśli są)
+      - "Błędy wysokiego ryzyka"
+      - "Błędy średniego ryzyka"
+      - "Błędy niskiego ryzyka"
+      - "Duplikaty i martwy kod"
+      - "Podsumowanie" (tabela: severity | count)
+
+      Każde znalezisko z file:line. Raport ma być gotowy do wklejenia w PR review.
+    assigned_to: general
+    timeout_ms: 1800000
+
+  - id: audit-canvas
+    title: 'audyt canvas, SVG, DIN rail, snap, selection'
+    role: verify-as-task
+    prompt: |
+      Jesteś canvas-expert dla DINBoard Web. Audyt read-only (bez modyfikacji) pod kątem
+      BŁĘDÓW i DUPLIKATÓW w warstwie canvas / SVG / interakcji.
+
+      Przeczytaj najpierw:
+      - F:\stare pliki\Nowy projekt\AGENTS.md
+      - F:\stare pliki\Nowy projekt\.harness\docs\code-standards.md
+
+      Zakres audytu:
+      - src/components/DinRailCanvasPixi.tsx
+      - src/lib/dinRailSelection.ts
+      - src/lib/dinRailSnap.ts
+      - src/lib/schematic/**
+      - src/lib/export/dinRailSnapshotService.ts
+      - src/lib/modules/importedModuleCatalog.ts
+      - src/lib/modules/svgAsset.ts
+      - src/lib/modules/svgNormalization.ts
+      - src/lib/modules/rasterPreview.ts
+      - src/components/SvgImportDialog.tsx
+      - src/components/ModuleAssetPreview.tsx
+      - public/assets/modules/**
+
+      Szukaj:
+      - Ciężkich obliczeń wykonywanych w renderze React lub na pointermove / wheel / drag
+      - Pointer event handling z wyciekami (np. listener dodany bez cleanup)
+      - Snappingu, który łamie edge case (moduł na granicy, pusta szyna, scale = 0)
+      - Zaznaczania grup — czy bounding box grupy to dane logiczne, czy liczone z rendererów (mieszanie geometrii logicznej i wizualnej)
+      - Drag-and-drop bez snap-back, brakującego drag image, brakującego ESC cancel
+      - Niespójności view vs eksport (snapshot ≠ canvas)
+      - Jakości SVG: degradacja oryginału, niepotrzebne fill/stroke, rasterPreview kosztem jakości
+      - Bezpieczeństwa dangerouslySetInnerHTML w ModuleAssetPreview / SvgImportDialog
+      - Walidacji importowanych SVG
+      - Duplikatów helperów (np. kilka snap-to-grid, kilka getBoundingBox, kilka parseAssetName)
+      - Martwego kodu w canvas/svg/schematic
+      - Niespójności między Pixi canvas a schematic canvas (różne współrzędne, różny zoom)
+
+      Dla każdego znaleziska: file:line, problem, wpływ (wydajność / jakość obrazu / UX), severity, sugerowana poprawka.
+
+      Raport:
+      F:\stare pliki\Nowy projekt\.harness\reports\audit-canvas.md
+      Format: jak w audit-electrical (sekcje severity, duplikaty, podsumowanie).
+    assigned_to: general
+    timeout_ms: 1800000
+
+  - id: audit-pdf
+    title: 'audyt eksportu PDF i protokołów pomiarowych'
+    role: verify-as-task
+    prompt: |
+      Jesteś pdf-expert dla DINBoard Web. Audyt read-only BŁĘDÓW i DUPLIKATÓW w warstwie
+      eksportu PDF i protokołów pomiarowych.
+
+      Przeczytaj najpierw:
+      - F:\stare pliki\Nowy projekt\AGENTS.md (sekcja "Eksport PDF i dokumentacja wynikowa")
+      - F:\stare pliki\Nowy projekt\.harness\docs\code-standards.md
+
+      Zakres:
+      - src/lib/export/**
+      - src/components/PdfDocumentationPage.tsx
+      - src/components/PdfPreviewWorkspace.tsx
+      - src/lib/measurementProtocols.ts
+      - Wszystko, co konsumuje wyniki domeny elektrycznej do raportu
+
+      Szukaj:
+      - Niespójności UI ↔ PDF (dane w panelu różnią się od tego, co trafia do PDF)
+      - Zmiany kolejności/kompletności sekcji dokumentacji
+      - Brakujących lub zduplikowanych protokołów pomiarowych
+      - Cichej zmiany danych wejściowych raportu (np. inny zestaw obwodów niż w UI)
+      - Duplikatów helperów (np. kilka buildHeader, formatDate, summarizePhase)
+      - Martwego kodu w src/lib/export
+      - Błędnego mapowania pól (literówki w kluczach obiektów)
+      - Brakujących fallbacków na puste projekty / projekty bez metadanych
+      - Niespójności formatowania liczb (moc w W vs kW, prąd w A z różną precyzją)
+      - Wydajności: generowanie PDF dla dużych projektów (100+ modułów)
+
+      Raport:
+      F:\stare pliki\Nowy projekt\.harness\reports\audit-pdf.md
+      Format: severity, file:line, problem, wpływ, fix.
+    assigned_to: general
+    timeout_ms: 1800000
+
+  - id: audit-project-io
+    title: 'audyt zapisu/odczytu projektu, undo/redo, migracji'
+    role: verify-as-task
+    prompt: |
+      Jesteś project-io-expert dla DINBoard Web. Audyt read-only BŁĘDÓW i DUPLIKATÓW
+      w warstwie zapisu/odczytu projektu, undo/redo, migracji i integracji Tauri.
+
+      Przeczytaj najpierw:
+      - F:\stare pliki\Nowy projekt\AGENTS.md (sekcja "Zapis, odczyt, migracje projektu")
+      - F:\stare pliki\Nowy projekt\.harness\docs\code-standards.md
+
+      Zakres:
+      - src/lib/projectFile.ts
+      - src/hooks/useProjectActions.ts
+      - src/hooks/useSymbolHistory.ts
+      - src-tauri/**
+
+      Szukaj:
+      - Cichej zmiany kontraktu pliku projektu (nowe pole wymagane bez migracji, brak wersji, usunięte pole)
+      - Brakującego round-trip (load -> save -> load daje inny wynik)
+      - Brakujących migracji dla starych wersji pliku
+      - Brakującego backward compatibility
+      - Psucia undo/redo (brak wpisu w historii dla kluczowej akcji, scalanie wpisów tam gdzie nie powinno, rozjazd stanu)
+      - Niespójnej semantyki pól modelu (np. position z różną interpretacją)
+      - Duplikatów helperów (kilka serialize/deserialize, kilka applyMigration, kilka useUndoState)
+      - Martwego kodu
+      - Niezabezpieczonych wywołań Tauri (invoke bez error handling, brak walidacji payload)
+      - Brakujących testów round-trip dla każdej wersji formatu
+
+      Raport:
+      F:\stare pliki\Nowy projekt\.harness\reports\audit-project-io.md
+      Format: severity, file:line, problem, wpływ, fix.
+    assigned_to: general
+    timeout_ms: 1800000
+
+  - id: audit-code-discipline
+    title: 'audyt ogólny: layer discipline, martwy kod, duplikaty helperów'
+    role: verify-as-task
+    prompt: |
+      Jesteś code-reviewer dla DINBoard Web. Audyt read-only BŁĘDÓW i DUPLIKATÓW
+      w skali całego projektu — poza domenami, które mają własne audyty (elektryczna,
+      canvas, PDF, project-io). Skup się na OGÓLNYCH problemach jakości kodu,
+      architektury warstwowej i duplikatów.
+
+      Przeczytaj najpierw:
+      - F:\stare pliki\Nowy projekt\AGENTS.md
+      - F:\stare pliki\Nowy projekt\.harness\docs\code-standards.md
+      - F:\stare pliki\Nowy projekt\.harness\docs\architecture-map.md
+
+      Zakres (cały src/** i src-tauri/** z wyłączeniem ścieżek objętych innymi audytami):
+      - Wszystko poza: src/lib/phaseDistribution/**, src/lib/validation/**,
+        src/lib/circuitRows.ts, src/lib/circuitEdit/**, src/lib/projectMetadata.ts,
+        src/components/DinRailCanvasPixi.tsx, src/lib/dinRailSelection.ts,
+        src/lib/dinRailSnap.ts, src/lib/schematic/**, src/lib/export/dinRailSnapshotService.ts,
+        src/lib/modules/**, src/components/SvgImportDialog.tsx,
+        src/components/ModuleAssetPreview.tsx, src/lib/export/**,
+        src/components/PdfDocumentationPage.tsx, src/components/PdfPreviewWorkspace.tsx,
+        src/lib/measurementProtocols.ts, src/lib/projectFile.ts,
+        src/hooks/useProjectActions.ts, src/hooks/useSymbolHistory.ts
+
+      Szukaj:
+      - Logiki domenowej w komponentach React (obliczenia, walidacja, transformacje w JSX/hooks)
+      - Logiki UI w lib/ (importy komponentów, użycie JSX w helperach domenowych)
+      - Niespójnych nazw / konwencji (np. snake_case vs camelCase, niespójne nazwy helperów robiących to samo)
+      - Duplikatów helperów w src/lib i src/components (np. formatPhaseLabel, parseSymbolId, debounce)
+      - Martwego kodu (eksporty bez importu, helpery bez wywołań)
+      - TODO / FIXME / XXX bez kontekstu
+      - Plików > 800 linii bez wyraźnego powodu
+      - Niespójnych error handling (jedni throw, drudzy console.error, trzeci zwracają null)
+      - Testów, które nie pilnują żadnej właściwości (smoke testy z jednym expect(true))
+      - Brakujących testów dla krytycznych helperów
+      - Niespójnych importów (relative vs alias, mieszane)
+      - Cyklicznych importów
+
+      Raport:
+      F:\stare pliki\Nowy projekt\.harness\reports\audit-code-discipline.md
+      Format: severity, file:line, problem, wpływ, fix.
+    assigned_to: general
+    timeout_ms: 1800000
+
+  - id: audit-synthesis
+    title: 'synteza audytu: jeden raport, ranking severity, plan fixów'
+    role: produce
+    prompt: |
+      Przeczytaj WSZYSTKIE raporty z poszczególnych audytów:
+      - F:\stare pliki\Nowy projekt\.harness\reports\audit-electrical.md
+      - F:\stare pliki\Nowy projekt\.harness\reports\audit-canvas.md
+      - F:\stare pliki\Nowy projekt\.harness\reports\audit-pdf.md
+      - F:\stare pliki\Nowy projekt\.harness\reports\audit-project-io.md
+      - F:\stare pliki\Nowy projekt\.harness\reports\audit-code-discipline.md
+
+      Twoje zadanie:
+      1) Zidentyfikuj DUPLIKATY MIĘDZY RAPORTAMI (ten sam problem opisany w dwóch audytach — wskaż raz, z referencjami).
+      2) Zbuduj JEDEN uszeregowany raport z wszystkimi znaleziskami posortowanymi po severity (critical -> high -> medium -> low).
+      3) Dla każdego krytycznego i high znaleziska wskaż: minimalny fix, który specjalista powinien wykonać, z oszacowaniem zakresu (1 plik / 2-3 pliki / subsystem).
+      4) Zaproponuj KOLEJNOŚĆ napraw (zależności między fixami — np. nie ruszaj domeny elektrycznej zanim nie ułożysz kontraktu typów).
+      5) Zaznacz, które fixy można zrobić w jednym PR, a które wymagają osobnych.
+      6) Wypisz "quick wins" (low severity, ale tanie w naprawie) — te zrobić od razu.
+
+      Wynik:
+      F:\stare pliki\Nowy projekt\.harness\reports\AUDIT_SYNTHESIS.md
+
+      Struktura:
+      - # Audyt kodu DINBoard Web — podsumowanie
+      - ## Statystyki (ile critical / high / medium / low, ile duplikatów helperów, ile martwego kodu)
+      - ## Top 10 do natychmiastowej naprawy (krytyczne + high)
+      - ## Plan napraw w kolejności (z zależnościami)
+      - ## Sugerowane PR-y (grupy zmian)
+      - ## Quick wins
+      - ## Ryzyka i ograniczenia audytu (co mogło zostać pominięte, czego audyt read-only nie wyłapie)
+
+      Nie implementuj żadnych poprawek. Tylko raport i plan.
+
+      Na końcu wypisz krótki STRAKTUROWANY komunikat (5 pól):
+      1) Problem (główna teza audytu)
+      2) Przyczyna (skąd problemy wynikają)
+      3) Bezpieczna poprawka (strategia)
+      4) Co zmieniono (opis tego raportu)
+      5) Co przetestowano (audyt read-only, bez uruchamiania testów)
+    assigned_to: general
+    depends_on: [audit-electrical, audit-canvas, audit-pdf, audit-project-io, audit-code-discipline]
+    verified_by: verifier
+    verify_prompt: |
+      Niezależnie zweryfikuj raport syntezy:
+      1) Otwórz F:\stare pliki\Nowy projekt\.harness\reports\AUDIT_SYNTHESIS.md i wszystkie 5 raportów źródłowych.
+      2) Sprawdź, czy synteza faktycznie agreguje raporty (nie pomija znalezisk severity high+).
+      3) Sprawdź, czy zduplikowane znaleziska są faktycznie zduplikowane (ten sam file:line / ten sam helper), a nie fałszywie zgrupowane.
+      4) Sprawdź, czy kolejność fixów ma sens (np. fix typów przed fixem logiki, która na tych typach polega).
+      5) Sprawdź, czy podział na PR-y nie miesza warstw (np. PR "fix canvas + fix PDF" to zły podział).
+      6) Sprawdź, czy statystyki się zgadzają (zlicz ręcznie critical/high/medium/low w raportach źródłowych i porównaj).
+      7) NIE akceptuj raportu, jeśli brakuje sekcji "Ograniczenia audytu".
+
+      Jeśli cokolwiek się nie zgadza, FAIL z konkretnym brakiem i nakazem poprawy.
+    timeout_ms: 1800000

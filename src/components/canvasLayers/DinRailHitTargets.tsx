@@ -26,7 +26,7 @@ export function DinRailHitTargets({
     <>
       {hotspotsData.map((d) => {
         return d.hotspots.map((hs) => {
-          const isListwa = d.moduleRef && d.moduleRef.toLowerCase().includes("listwy do rozdzielnicy");
+          const isListwa = d.moduleRef && (d.moduleRef.toLowerCase().includes("listwy do rozdzielnicy") || d.moduleRef.toLowerCase().includes("gsu/gsu"));
           const isZlaczka = !isListwa && (d.symbol.isTerminalBlock || (d.moduleRef && (d.moduleRef.toLowerCase().includes("złącz") || d.moduleRef.toLowerCase().replace(/ł/g, "l").normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("zlacz"))));
           const defaultHitRadius = isListwa ? 38 : isZlaczka ? 56 : 46;
           const hitRadius = hs.radius ? hs.radius + 10 : defaultHitRadius;

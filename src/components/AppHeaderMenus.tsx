@@ -60,7 +60,7 @@ export function AppHeaderViewMenu({
       </button>
       <button className="flyout-item" onClick={() => { onClose(); onChangeSheet("sheet4"); }}>
         <AppIcon className="flyout-icon" name="pdf" />
-        <span className="flyout-label">Podgląd PDF</span>
+        <span className="flyout-label">Dokumentacja PDF</span>
         {activeSheet === "sheet4" && <AppIcon className="flyout-check-icon" name="check" />}
       </button>
     </div>

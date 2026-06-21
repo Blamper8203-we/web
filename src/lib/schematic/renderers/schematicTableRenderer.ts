@@ -7,6 +7,7 @@ import {
   ROW_HEIGHT,
   TITLEBLOCK_VISUAL_WIDTH,
   Y_ROW_DESIGNATION,
+  Y_TABLE_END,
 } from "../schematicLayout";
 import { COLORS, strokeLine, text, y } from "./schematicRenderUtils";
 
@@ -32,7 +33,7 @@ export function drawCircuitTable(ctx: CanvasRenderingContext2D, page: PageInfo, 
 
   const tableLeft = DRAW_LEFT;
   const tableTop = y(page, Y_ROW_DESIGNATION);
-  const tableBottom = y(page, Y_ROW_DESIGNATION + 8 * ROW_HEIGHT);
+  const tableBottom = y(page, Y_TABLE_END);
   const leftX = Math.round(tableLeft);
   const rightX = Math.round(A4_WIDTH_PX - FRAME_MARGIN_RIGHT - TITLEBLOCK_VISUAL_WIDTH - 22);
   const topY = Math.round(tableTop);
@@ -48,12 +49,12 @@ export function drawCircuitTable(ctx: CanvasRenderingContext2D, page: PageInfo, 
   const rows: Array<[number, string]> = [
     [Y_ROW_DESIGNATION, "Oznaczenie"],
     [Y_ROW_CIRCUIT, "Obwód"],
-    [Y_ROW_DESIGNATION + ROW_HEIGHT * 2, "Lokalizacja"],
-    [Y_ROW_DESIGNATION + ROW_HEIGHT * 3, "Kabel"],
-    [Y_ROW_DESIGNATION + ROW_HEIGHT * 4, "Typ kabla"],
+    [Y_ROW_LOCATION, "Lokalizacja"],
+    [Y_ROW_CABLE, "Kabel"],
+    [Y_ROW_CABLE_TYPE, "Typ kabla"],
     [Y_ROW_CABLE_SPEC, "Przekrój"],
     [Y_ROW_CABLE_LENGTH, "Długość"],
-    [Y_ROW_DESIGNATION + ROW_HEIGHT * 7, "Moc"],
+    [Y_ROW_POWER, "Moc"],
   ];
 
   for (const [rowY, label] of rows) {
@@ -76,7 +77,7 @@ export function drawCircuitTable(ctx: CanvasRenderingContext2D, page: PageInfo, 
 
   for (const [rowY] of rows) {
     const lineY = Math.round(y(page, rowY) + ROW_HEIGHT);
-    if (lineY < bottomY) {
+    if (lineY <= bottomY) {
       strokeLine(ctx, leftX, lineY, rightX, lineY, COLORS.grid, 1);
     }
   }

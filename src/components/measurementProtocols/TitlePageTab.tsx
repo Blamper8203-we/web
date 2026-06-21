@@ -3,7 +3,6 @@ import type { ProjectMetadata } from "../../types/projectMetadata";
 import { DEFAULT_WORK_SCOPE_ITEMS, mergeDefaultAttachmentItems } from "../../lib/projectMetadata";
 import { TITLE_WORK_SCOPE_COLUMN_SIZE, TITLE_WORK_SCOPE_MAX_ITEMS } from "../../lib/export/pdfPages/pdfHelpers";
 import { chunkRows } from "../../lib/measurementProtocolHelpers";
-import { AppIcon } from "../AppIcon";
 import { PageFooter } from "./ProtocolShared";
 
 interface TitlePageTabProps {
@@ -66,7 +65,7 @@ export function TitlePageTab({
         <div className="flex justify-between items-start border-b-2 border-gray-800 pb-4">
           <div className="flex items-center gap-4">
             <div 
-              className="w-16 h-16 border border-brand rounded-xl flex items-center justify-center bg-white cursor-pointer hover:bg-gray-50 transition-colors overflow-hidden shrink-0 group relative shadow-sm"
+              className="w-10 h-10 border border-brand rounded-lg flex items-center justify-center bg-white cursor-pointer hover:bg-gray-50 transition-colors overflow-hidden shrink-0 group relative"
               onClick={() => logoInputRef.current?.click()}
             >
               <input
@@ -95,16 +94,19 @@ export function TitlePageTab({
           <div className="text-right">
             <div className="text-[9px] font-semibold text-gray-500 uppercase">Protokół nr</div>
             <div className="text-xs font-bold text-white bg-brand px-2.5 py-0.5 rounded mt-0.5 inline-block">{protocolNumber}</div>
-            <div className="text-[9px] text-gray-400 mt-1">Data: <span className="font-medium text-gray-700">{displayDate}</span></div>
+            <div className="text-[9px] text-gray-400 mt-2">Data dokumentacji: <span className="font-medium text-gray-700">{displayDate}</span></div>
+            {metadata.statementDate?.trim() && metadata.statementDate !== metadata.drawingDate && (
+              <div className="text-[9px] text-gray-400 mt-1">Data oświadczenia: <span className="font-medium text-gray-700">{metadata.statementDate}</span></div>
+            )}
           </div>
         </div>
 
         <div className="text-center my-6">
-          <h2 className="text-2xl font-black text-gray-900 tracking-tight uppercase">Oświadczenie Wykonawcy</h2>
-          <p className="text-xs text-gray-500 italic mt-0.5">instalacji elektrycznej wykonanej zgodnie z przepisami i normami</p>
+          <h2 className="text-2xl font-black text-brand tracking-tight uppercase">Oświadczenie Wykonawcy</h2>
+          <p className="text-[10px] text-gray-700 italic font-medium mt-0.5">instalacji elektrycznej wykonanej zgodnie z przepisami i normami</p>
         </div>
 
-        <div className="bg-gray-50 rounded-xl border border-gray-200/80 p-4 mb-4">
+        <div className="bg-gray-50 rounded-xl border border-gray-200/80 p-3 mb-3">
           <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-3 pb-2 border-b border-gray-100">Informacje o obiekcie</h3>
           <div className="flex flex-col gap-2 text-xs">
             <div className="flex items-baseline">
@@ -119,17 +121,28 @@ export function TitlePageTab({
               <span className="font-bold text-gray-700 w-24 shrink-0">Inwestor:</span>
               <input className="mp-editable flex-grow text-gray-900 font-semibold" value={metadata.investor || ""} placeholder="................................................................" onChange={(e) => onChange({ ...metadata, investor: e.target.value })} />
             </div>
+            <div className="flex items-baseline">
+              <span className="font-bold text-gray-700 w-24 shrink-0">Adres inw.:</span>
+              <input className="mp-editable flex-grow text-gray-900 font-semibold" value={metadata.investorAddress || ""} placeholder="(opcjonalnie, jeśli inny niż adres obiektu)" onChange={(e) => onChange({ ...metadata, investorAddress: e.target.value })} />
+            </div>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="border border-gray-200 rounded-xl flex flex-col justify-between overflow-hidden">
+          <div className="border border-gray-200 rounded-xl flex flex-col justify-between overflow-hidden relative">
+            <div className="absolute top-3 right-4 flex items-center gap-1.5 opacity-60 hover:opacity-100 transition-opacity z-10 bg-white pl-2">
+              <input
+                type="checkbox"
+                id="manual-checkbox-toggle"
+                className="w-3 h-3 cursor-pointer"
+                checked={metadata.titlePageUseManualWorkScopeCheckboxes || false}
+                onChange={(e) => onChange({ ...metadata, titlePageUseManualWorkScopeCheckboxes: e.target.checked })}
+              />
+              <label htmlFor="manual-checkbox-toggle" className="text-[8px] text-gray-600 uppercase cursor-pointer select-none">Puste do druku</label>
+            </div>
             <div className="flex flex-col h-full">
-              <div className="bg-brand text-white px-4 py-3 flex items-center gap-2 mb-4 shrink-0">
-                <div className="bg-white/20 p-1 rounded flex items-center justify-center">
-                  <AppIcon name="list" size={16} />
-                </div>
-                <h3 className="text-xs font-bold uppercase tracking-widest m-0">Zakres prac</h3>
+              <div className="px-4 pt-4 pb-2 mb-3 shrink-0">
+                <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest m-0">Zakres prac</h3>
               </div>
               <div className="px-4 pb-4 flex-grow flex flex-col">
                 <div className={titleWorkScopeColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-3" : "flex flex-col gap-3"}>
@@ -149,8 +162,8 @@ export function TitlePageTab({
                               onChange({ ...metadata, titlePageWorkScopeItems: nextItems });
                             }}
                           />
-                          <div className="w-4 h-4 rounded border border-brand flex items-center justify-center bg-transparent shrink-0 mt-0.5">
-                            {item.isChecked ? <span className="text-brand text-[10px] font-bold leading-none">✓</span> : null}
+                          <div className="w-[14px] h-[14px] rounded-[3px] border border-brand flex items-center justify-center bg-transparent shrink-0 mt-0.5">
+                            {!metadata.titlePageUseManualWorkScopeCheckboxes && item.isChecked ? <span className="text-brand text-[10px] font-bold leading-none">✓</span> : null}
                           </div>
                           <span
                             className="mp-editable text-[11px] font-medium text-gray-900 leading-tight flex-1 outline-none break-words min-h-[16px]"
@@ -199,11 +212,8 @@ export function TitlePageTab({
 
           <div className="border border-gray-200 rounded-xl flex flex-col justify-between overflow-hidden">
             <div className="flex flex-col h-full">
-              <div className="bg-brand text-white px-4 py-3 flex items-center gap-2 mb-4 shrink-0">
-                <div className="bg-white/20 p-1 rounded flex items-center justify-center">
-                  <AppIcon name="file" size={16} />
-                </div>
-                <h3 className="text-xs font-bold uppercase tracking-widest m-0">Załączniki do protokołu</h3>
+              <div className="px-4 pt-4 pb-2 mb-3 shrink-0">
+                <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest m-0">Załączniki do protokołu</h3>
               </div>
               <div className="px-4 pb-4 flex-grow flex flex-col">
                 <div className={titleAttachmentColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-3" : "flex flex-col gap-3"}>
@@ -211,8 +221,8 @@ export function TitlePageTab({
                   <div key={columnIndex} className="flex flex-col gap-3">
                     {columnItems.map((item, itemIndex) => (
                       <div key={`${columnIndex}-${itemIndex}`} className="flex items-start gap-2 border-b border-gray-100 pb-2.5">
-                        <div className="w-4 h-4 rounded border border-brand flex items-center justify-center bg-transparent shrink-0 mt-0.5">
-                          <span className="text-brand text-[10px] font-bold leading-none">✓</span>
+                        <div className="w-[14px] h-[14px] rounded-[3px] border border-brand flex items-center justify-center bg-transparent shrink-0 mt-0.5">
+                          {!metadata.titlePageUseManualWorkScopeCheckboxes ? <span className="text-brand text-[10px] font-bold leading-none">✓</span> : null}
                         </div>
                         <span className="text-[11px] font-medium text-gray-900 leading-tight flex-1 break-words">
                           {item}
@@ -233,6 +243,24 @@ export function TitlePageTab({
               <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-2 pb-2 border-b border-gray-100">Wykonawca / Instalator</h3>
               <input className="mp-editable text-xs font-bold text-gray-950 mt-2" value={metadata.contractor || ""} placeholder="................................" onChange={(e) => onChange({ ...metadata, contractor: e.target.value })} />
               <p className="text-[9px] text-gray-400 mt-1.5">Podmiot odpowiedzialny za montaż instalacji</p>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-2 mt-3 pt-3 border-t border-gray-100">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-[9px] font-bold text-gray-700 shrink-0">NIP:</span>
+                  <input className="mp-editable text-[10px] font-semibold text-gray-900 flex-1" value={metadata.contractorNip || ""} placeholder=".............." onChange={(e) => onChange({ ...metadata, contractorNip: e.target.value })} />
+                </div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-[9px] font-bold text-gray-700 shrink-0">REGON:</span>
+                  <input className="mp-editable text-[10px] font-semibold text-gray-900 flex-1" value={metadata.contractorRegon || ""} placeholder=".............." onChange={(e) => onChange({ ...metadata, contractorRegon: e.target.value })} />
+                </div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-[9px] font-bold text-gray-700 shrink-0">Tel:</span>
+                  <input className="mp-editable text-[10px] font-semibold text-gray-900 flex-1" value={metadata.contractorPhone || ""} placeholder="+48 600 ..." onChange={(e) => onChange({ ...metadata, contractorPhone: e.target.value })} />
+                </div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-[9px] font-bold text-gray-700 shrink-0">E-mail:</span>
+                  <input className="mp-editable text-[10px] font-semibold text-gray-900 flex-1" value={metadata.contractorEmail || ""} placeholder="biuro@firma.pl" onChange={(e) => onChange({ ...metadata, contractorEmail: e.target.value })} />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -248,13 +276,17 @@ export function TitlePageTab({
                   <span className="font-semibold text-gray-700 w-[110px]">Dozór (D):</span>
                   <input className="mp-editable text-gray-950 font-bold ml-1 flex-grow" value={metadata.authorLicense || ""} placeholder="................................" onChange={(e) => onChange({ ...metadata, authorLicense: e.target.value })} />
                 </div>
+                <div className="flex items-baseline mt-1">
+                  <span className="font-semibold text-gray-700 w-[110px]">Ważne do:</span>
+                  <input className="mp-editable text-gray-950 font-bold ml-1 flex-grow" value={metadata.titlePageSepValidUntil || ""} placeholder="........................" onChange={(e) => onChange({ ...metadata, titlePageSepValidUntil: e.target.value })} />
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         <div className="bg-white border border-brand text-gray-800 rounded-xl p-4 mb-6 text-center shadow-sm">
-          <p className="text-[10px] uppercase font-bold text-brand tracking-wider mb-2 pb-2 border-b border-gray-100">Pełna treść oświadczenia wykonawcy</p>
+          <p className="text-[10px] uppercase font-bold text-brand tracking-widest mb-2">Pełna treść oświadczenia wykonawcy</p>
           <p className="text-[10px] leading-relaxed font-normal text-gray-800">
             Oświadczam, że instalacja elektryczna w wyżej wymienionym obiekcie została wykonana zgodnie z przepisami ustawy Prawo Budowlane, obowiązującymi normami technicznymi (w tym <span className="font-bold text-gray-950">PN-HD 60364-6</span>) oraz sztuką budowlaną. Przeprowadzone pomiary odbiorcze wykazały skuteczność zastosowanych środków ochrony przeciwporażeniowej.
           </p>
@@ -263,18 +295,38 @@ export function TitlePageTab({
 
       <div className="mt-auto">
         <div className="flex justify-between items-end pt-4 border-t border-gray-100">
-          <div className="text-center w-64">
+          <div className="text-center w-48">
             <div className="h-20 border border-dashed border-gray-300 rounded-lg flex items-center justify-center p-2 mb-1 bg-gray-50/30 mx-auto w-full">
               <span className="text-[9px] text-gray-400 uppercase tracking-wider font-semibold">{stampText}</span>
             </div>
+            <p className="text-[10px] text-gray-500 mt-1">Pieczęć wykonawcy</p>
           </div>
-          <div className="text-center w-64">
-            <div className="h-16 flex items-center justify-center">
-              <span className="text-[10px] text-gray-300 italic">miejsce na podpis</span>
+          <div className="text-center w-48">
+            <div className="h-16 flex items-center justify-center mb-1">
+              <input
+                className="mp-editable text-center w-full text-[13px] font-semibold text-gray-700 placeholder:text-gray-300 placeholder:italic placeholder:font-normal bg-transparent"
+                value={metadata.designerSignature || ""}
+                placeholder="miejsce na podpis"
+                onChange={(e) => onChange({ ...metadata, designerSignature: e.target.value })}
+              />
             </div>
             <div className="border-t border-gray-300 pt-1.5">
               <p className="text-[10px] font-bold text-gray-700 uppercase">Podpis Elektryka</p>
               <p className="text-[8px] text-gray-400 mt-0.5">Osoba uprawniona (pomiarowiec)</p>
+            </div>
+          </div>
+          <div className="text-center w-48">
+            <div className="h-16 flex items-center justify-center mb-1">
+              <input
+                className="mp-editable text-center w-full text-[13px] font-semibold text-gray-700 placeholder:text-gray-300 placeholder:italic placeholder:font-normal bg-transparent"
+                value={metadata.investorSignature || ""}
+                placeholder="miejsce na podpis"
+                onChange={(e) => onChange({ ...metadata, investorSignature: e.target.value })}
+              />
+            </div>
+            <div className="border-t border-gray-300 pt-1.5">
+              <p className="text-[10px] font-bold text-gray-700 uppercase">Podpis Inwestora</p>
+              <p className="text-[8px] text-gray-400 mt-0.5">Właściciel / zarządca obiektu</p>
             </div>
           </div>
         </div>

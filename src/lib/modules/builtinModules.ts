@@ -393,13 +393,13 @@ export const currentModuleEntries: ModuleEntry[] = [
     code: "GSU 6-zaciskowa",
     label: "GSU (Główna Szyna Uziemiająca)",
     type: "Listwy",
-    category: "Listwy do rozdzielnicy",
+    category: "GSU",
     deviceKind: "terminalBlock",
     phase: "PE",
     modules: 1,
     moduleRef: "GSU/GSU.svg",
     customWidth: 1256,
-    customHeight: 166,
+    customHeight: 341,
   },
   {
     templateId: "listwa-n-12pin-svg",
@@ -583,8 +583,9 @@ export const groupOrder = [
   "Controls",
   "Inne",
   "Listwy zaciskowe",
-  "Z\u0142\u0105cza",
+  "Złącza",
   "Listwy do rozdzielnicy",
+  "GSU",
 ];
 
 export const groupDisplayNames: Record<string, string> = {

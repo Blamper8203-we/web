@@ -8,6 +8,8 @@ export type PdfDocumentationPreviewTab =
   | "title-page"
   | "circuit-list"
   | "din-rail"
+  | "din-rail-connections"
+  | "schematic"
   | "unified"
   | "rcd-ground";
 
@@ -20,6 +22,8 @@ export const pdfDocumentationTabs: Array<{
   { id: "rcd-ground", label: "RCD i uziemienie" },
   { id: "circuit-list", label: "Lista obwodów" },
   { id: "din-rail", label: "Rozdzielnica elektryczna" },
+  { id: "din-rail-connections", label: "Rozdzielnica połączenia" },
+  { id: "schematic", label: "Schemat obwodów" },
 ];
 
 export function getPdfDocumentationTabs(): Array<{
@@ -35,6 +39,10 @@ export function getProtocolLabel(tab: PdfDocumentationPreviewTab): string {
       return "Lista obwodów";
     case "din-rail":
       return "Rozdzielnica elektryczna";
+    case "din-rail-connections":
+      return "Rozdzielnica połączenia";
+    case "schematic":
+      return "Schemat obwodów";
     case "unified":
       return "Tabela zbiorcza";
     case "rcd-ground":

@@ -78,7 +78,7 @@
   color: var(--accent-primary-hover);
   border-color: var(--accent-primary);
   background: var(--accent-primary-soft);
-  box-shadow: 0 8px 18px rgba(47, 128, 237, 0.12);
+  box-shadow: 0 8px 18px rgba(30, 58, 95, 0.12);
 }
 
 .right-tab-btn svg {
@@ -210,7 +210,7 @@
   color: var(--text-main);
   border-color: var(--accent-primary);
   background: var(--accent-primary-soft);
-  box-shadow: 0 8px 18px rgba(47, 128, 237, 0.12);
+  box-shadow: 0 8px 18px rgba(30, 58, 95, 0.12);
 }
 
 .pdf-right-panel-tab__title {

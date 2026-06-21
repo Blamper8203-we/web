@@ -18,7 +18,7 @@ const SHEET_TABS: Array<{
   { sheet: "sheet1_connections", icon: "busbar", label: "Rozdzielnica połączenia" },
   { sheet: "sheet2", icon: "fileTree", label: "Schemat obwodów" },
   { sheet: "sheet3", icon: "list", label: "Lista obwodów" },
-  { sheet: "sheet4", icon: "pdf", label: "Podgląd PDF" },
+  { sheet: "sheet4", icon: "pdf", label: "Dokumentacja PDF" },
 ];
 
 export function AppSheetTabs({ activeSheet, onChangeSheet, showLeftPanel, onOpenLeftPanel }: AppSheetTabsProps) {
