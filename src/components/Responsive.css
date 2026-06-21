@@ -7,14 +7,6 @@
     --left-panel-width: 240px;
     --right-panel-width: 280px;
   }
-
-  .main-content.is-pdf-workspace {
-    grid-template-columns: 280px minmax(0, 1fr) var(--right-panel-width);
-  }
-
-  .main-content.is-pdf-workspace.is-right-panel-hidden {
-    grid-template-columns: 280px minmax(0, 1fr) 0;
-  }
 }
 
 /* ----------------------------------------------------------------
@@ -65,25 +57,8 @@
     grid-template-rows: auto 1fr 0;
   }
 
-  /* WHY: removed `.main-content { grid-template-columns: 1fr; ... }` from this
-     @media block. The base rule in MainContent.css already handles the
-     mobile grid layout via var(--left-panel-width: 100vw) on :root, and
-     keeping both rules here was triggering a Vite/Lightning CSS bundler
-     bug that wrapped the base rule inside this @media block (so the
-     desktop layout stopped applying). Tracked 2026-06-21. */
-
-  .main-content.is-right-panel-hidden {
-    grid-template-columns: 1fr;
-  }
-
-  .main-content.is-left-panel-hidden.is-right-panel-hidden:not(.is-pdf-workspace) {
-    grid-template-rows: auto minmax(0, 1fr) auto;
-  }
-
-  .main-content.is-pdf-workspace {
-      grid-template-columns: 1fr;
-      grid-template-rows: 44px minmax(0, 1fr) minmax(200px, 40vh);
-    }
+  /* NOTE: All `.main-content*` rules for this breakpoint live in
+     MainContent.css (consolidated to avoid Vite bundler bug). */
 
     .toolbar-shell {
     align-items: center;
@@ -151,46 +126,6 @@
     border-top: 1px solid var(--panel-border);
     display: flex;
   }
-
-  .main-content.is-pdf-workspace .left-panel {
-    border-top-color: var(--state-info-border);
-    box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.12);
-  }
-
-  .main-content.is-pdf-workspace .panel-content {
-    overflow: hidden;
-  }
-
-  .main-content:not(.is-right-panel-hidden) .left-panel {
-    display: none;
-  }
-
-  .main-content:not(.is-right-panel-hidden) .right-panel,
-  .main-content.is-circuit-editing .right-panel {
-    grid-column: 1;
-    grid-row: 3;
-    width: auto;
-    height: auto;
-    display: flex;
-    border-left: 0;
-    border-top: 1px solid var(--panel-border);
-  }
-
-  .main-content.is-right-panel-hidden .right-panel {
-    display: none;
-  }
-
-  .main-content.is-circuit-editing .right-panel-header,
-  .main-content.is-circuit-editing .inspector-summary,
-  .main-content.is-circuit-editing .right-tabs {
-    display: none;
-  }
-
-  .main-content.is-circuit-editing .right-panel-content {
-    padding: 8px;
-  }
-
-
 
   .pdf-workspace-tabs {
     padding: 8px;
@@ -516,22 +451,6 @@
     display: inline-flex !important;
   }
 
-    .main-content.is-left-panel-hidden .left-panel {
-    display: none !important;
-  }
-
-  /* Gdy lewy panel ma byc widoczny, dajemy wierszowi 3 auto wysokosc */
-        .main-content:not(.is-left-panel-hidden):not(.is-pdf-workspace) {
-    grid-template-rows: auto minmax(0, 1fr) auto;
-  }
-
-  /* PDF workspace: gdy panel lewy ukryty, canvas zajmuje cala wysokosc */
-  .main-content.is-pdf-workspace.is-left-panel-hidden {
-    grid-template-rows: 44px 1fr 0;
-  }
-
-  /* PDF workspace: gdy panel lewy widoczny */
-  .main-content.is-pdf-workspace:not(.is-left-panel-hidden) {
-    grid-template-rows: 44px minmax(0, 1fr) minmax(200px, 40vh);
-  }
+  /* NOTE: All `.main-content*` rules for this breakpoint live in
+     MainContent.css (consolidated to avoid Vite bundler bug). */
 

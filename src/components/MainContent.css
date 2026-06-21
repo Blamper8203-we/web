@@ -2,6 +2,12 @@
    MAIN CONTENT AREA
    ================================================================ */
 
+/* All `.main-content*` rules live in this file — desktop base + media
+   queries. Splitting them across multiple files (e.g. Responsive.css)
+   triggers a Vite/Lightning CSS bundler bug that wraps rules in
+   @media (max-width: 768px) regardless of source. Keep all
+   `.main-content*` selectors here. Tracked 2026-06-21. */
+
 .main-content {
   position: relative;
   display: grid;
@@ -22,6 +28,85 @@
 
 .main-content.is-pdf-workspace.is-right-panel-hidden {
   grid-template-columns: 280px minmax(0, 1fr) 0;
+}
+
+@media (max-width: 1024px) {
+  .main-content.is-pdf-workspace {
+    grid-template-columns: 280px minmax(0, 1fr) var(--right-panel-width);
+  }
+
+  .main-content.is-pdf-workspace.is-right-panel-hidden {
+    grid-template-columns: 280px minmax(0, 1fr) 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content.is-right-panel-hidden {
+    grid-template-columns: 1fr;
+  }
+
+  .main-content.is-left-panel-hidden.is-right-panel-hidden:not(.is-pdf-workspace) {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .main-content.is-pdf-workspace {
+    grid-template-columns: 1fr;
+    grid-template-rows: 44px minmax(0, 1fr) minmax(200px, 40vh);
+  }
+
+  .main-content.is-pdf-workspace .left-panel {
+    border-top-color: var(--state-info-border);
+    box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.12);
+  }
+
+  .main-content.is-pdf-workspace .panel-content {
+    overflow: hidden;
+  }
+
+  .main-content:not(.is-right-panel-hidden) .left-panel {
+    display: none;
+  }
+
+  .main-content:not(.is-right-panel-hidden) .right-panel,
+  .main-content.is-circuit-editing .right-panel {
+    grid-column: 1;
+    grid-row: 3;
+    width: auto;
+    height: auto;
+    display: flex;
+    border-left: 0;
+    border-top: 1px solid var(--panel-border);
+  }
+
+  .main-content.is-right-panel-hidden .right-panel {
+    display: none;
+  }
+
+  .main-content.is-circuit-editing .right-panel-header,
+  .main-content.is-circuit-editing .inspector-summary,
+  .main-content.is-circuit-editing .right-tabs {
+    display: none;
+  }
+
+  .main-content.is-circuit-editing .right-panel-content {
+    padding: 8px;
+  }
+
+  .main-content.is-left-panel-hidden .left-panel {
+    display: none !important;
+  }
+
+  .main-content:not(.is-left-panel-hidden):not(.is-pdf-workspace) {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .main-content.is-pdf-workspace.is-left-panel-hidden {
+    grid-template-rows: 44px 1fr 0;
+  }
+
+  .main-content.is-pdf-workspace:not(.is-left-panel-hidden) {
+    grid-template-rows: 44px minmax(0, 1fr) minmax(200px, 40vh);
+  }
 }
 
 /* Center canvas/workspace area */
