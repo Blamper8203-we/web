@@ -4,7 +4,11 @@
 
 .main-content {
   position: relative;
-  display: grid;
+  /* WHY: !important guards against a Vite CSS-bundling ordering bug where a
+     later `.main-content` rule from Responsive.css @media (max-width: 768px)
+     was being applied on desktop viewports, dropping display:grid and
+     collapsing the sidebar/canvas layout. Tracked 2026-06-21. */
+  display: grid !important;
   grid-template-columns: var(--left-panel-width) minmax(0, 1fr) var(--right-panel-width);
   grid-template-rows: var(--workspace-tabs-height) minmax(0, 1fr);
   min-height: 0;
