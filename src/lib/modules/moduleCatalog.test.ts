@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-// @ts-ignore
+// @ts-expect-error -- bundler resolution does not type bare 'fs' import
 import { existsSync } from "fs";
-// @ts-ignore
+// @ts-expect-error -- bundler resolution does not type bare 'path' import
 import { resolve } from "path";
 import { getModuleSnapAnchorRatioY, getPaletteTemplateDimensions, PALETTE_GROUPS, currentModuleEntries } from "./moduleCatalog";
 import { mergePaletteGroups, type ImportedModuleDefinition } from "./importedModuleCatalog";
@@ -84,7 +84,7 @@ describe("module catalog integrity", () => {
     // WHY: literówki w moduleRef (np. rozłacznik vs rozłącznik) powodują że moduły
     // są niewidoczne w palecie — 404 przy ładowaniu SVG. Ten test łapie takie błędy w CI.
     // Używamy PALETTE_GROUPS które są budowane z currentModuleEntries (nie z legacy moduleEntries).
-    // @ts-ignore
+    // @ts-expect-error -- __dirname not defined in test's ESM context
     const publicModulesDir = resolve(__dirname, "../../../public/assets/modules");
     const missing: string[] = [];
     for (const group of PALETTE_GROUPS) {
@@ -206,7 +206,7 @@ describe("parseSvgForTerminals with data URI", () => {
 
 describe("module catalog integrity", () => {
   it("every moduleRef points to an existing SVG file on disk", () => {
-    // @ts-ignore
+    // @ts-expect-error -- process.cwd() not typed in browser-mode test
     const publicAssetsDir = resolve(process.cwd(), "public/assets/modules");
     
     const missingFiles: string[] = [];

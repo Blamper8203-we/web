@@ -184,6 +184,16 @@ A late-stage label rewrite for terminal-block symbols that were created with the
 
 Path separators, BOM, CP936 vs UTF-8, and the Windows-only `mavis-trash` deletion all matter here. Never use `Get-Content | Set-Content` pipelines to edit files — use the Read/Write/Edit tools, which are UTF-8 safe. If you must pipe, pass `-Encoding UTF8` and remember PowerShell 5.1's `-Encoding UTF8` adds a BOM.
 
+### 8. Lockfile discipline: `.nvmrc` is the source of truth, lockfile regeneration is the last resort
+
+`.nvmrc` pins the Node version that CI uses. npm 10 (bundled with Node 22) and npm 11 (bundled with Node 24) generate **incompatible lockfiles** for the same `package.json` — different hoisting and peer-dep resolution. A lockfile made by npm 11 fails `npm ci` validation under npm 10, and vice versa. Local Node **must match `.nvmrc`**.
+
+- If `npm ci` fails on CI with hoisting / peer-dep errors, **check the Node version before regenerating the lockfile**. `EBADENGINE` warnings about `node<24` are the same root cause.
+- **Never** `rm package-lock.json && npm install` to "fix" a lockfile problem — you lose OS-to-OS binding consistency (Windows dev ≠ Linux CI) and create new drift. Use `nvm-windows` to switch Node, not the lockfile.
+- Regenerating the lockfile is a real change; it needs a real cause in the change history. "I deleted it to debug" is not a cause.
+
+Lesson from 2026-06-21: bumping `.nvmrc` from `22.12.0` to `24.12.0` resolved 3 separate "broken" lockfile states that all had the same root cause.
+
 ---
 
 ## Code style (the short version)
