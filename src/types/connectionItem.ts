@@ -43,3 +43,27 @@ export function createDefaultConnection(overrides?: Partial<ConnectionItem>): Co
     ...overrides,
   };
 }
+
+// WHY: Odczyt z localStorage / pliku to nieufne dane (mogą byc uszkodzone lub
+// pochodzic ze starszej wersji). Normalizator filtruje smieci i wypełnia pola
+// domyslne przez createDefaultConnection, analogicznie do normalizeSymbolItems
+// w symbolItem.ts. Element bez prawidłowego `id` jest odrzucany (połączenie bez
+// tożsamości jest bezużyteczne i mogłoby psuć historię undo/redo).
+export function normalizeConnectionItems(raw: unknown): ConnectionItem[] {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+
+  const result: ConnectionItem[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) {
+      continue;
+    }
+    const candidate = item as Partial<ConnectionItem>;
+    if (typeof candidate.id !== "string" || candidate.id.length === 0) {
+      continue;
+    }
+    result.push(createDefaultConnection(candidate));
+  }
+  return result;
+}
