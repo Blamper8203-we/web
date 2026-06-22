@@ -64,7 +64,7 @@ function pickProtocolHeading(selectedPreviewTab: PdfDocumentationPreviewTab) {
 
   if (selectedPreviewTab === "din-rail-connections") {
     return {
-      title: "Rozdzielnica połączenia",
+      title: "Połączenia",
       description:
         "Ta zakładka pokazuje widok rozdzielnicy razem z połączeniami — przewody i tulejki naniesione na podstawie aktualnego projektu.",
     };

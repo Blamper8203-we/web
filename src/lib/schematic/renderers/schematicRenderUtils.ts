@@ -297,7 +297,8 @@ export function phaseMarks(
   }
 }
 
-export function getRootNodes(nodes: { id: string, children: { id: string }[] }[]): any[] {
-  const childIds = new Set(nodes.flatMap((node) => node.children.map((child) => child.id)));
-  return nodes.filter((node) => !childIds.has(node.id));
+export function getRootNodes(nodes: any[]): any[] {
+  const childIds = new Set(nodes.flatMap((node) => node.children ? node.children.map((child: any) => child.id) : []));
+  const topDeviceIds = new Set(nodes.map(node => node.topDevice?.id).filter(Boolean));
+  return nodes.filter((node) => !childIds.has(node.id) && !topDeviceIds.has(node.id));
 }

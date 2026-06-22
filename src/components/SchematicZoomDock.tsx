@@ -15,7 +15,7 @@ export function SchematicZoomDock({
   onZoomFit,
 }: SchematicZoomDockProps) {
   return (
-    <div className="schematic-zoom-dock" aria-label="Sterowanie zoomem">
+    <div className="workspace-hud workspace-hud--top-right" aria-label="Sterowanie zoomem">
       <button
         type="button"
         className="workspace-tool-btn"

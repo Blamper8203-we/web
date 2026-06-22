@@ -34,7 +34,7 @@ return (
         <div className="flex justify-between items-start border-b-2 border-gray-800 pb-2 gap-4">
           <div className="flex items-center gap-3 flex-grow" style={{ minWidth: 0 }}>
             <div className="px-3 py-1 bg-brand text-white font-bold rounded text-xs uppercase tracking-wider">
-              {isConnections ? "Rozdzielnica połączenia" : "Rozdzielnica elektryczna"}
+              {isConnections ? "Połączenia" : "Rozdzielnica elektryczna"}
             </div>
           </div>
           <div className="text-right shrink-0">

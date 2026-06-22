@@ -16,6 +16,14 @@ export interface DinRailFerrulesGroupProps {
   hoveredHotspot: HoveredHotspot | null;
 }
 
+function isShortFerrule(symbol?: SymbolItem): boolean {
+  if (!symbol) return false;
+  if (symbol.deviceKind === "terminalBlock") return true;
+  const ref = (symbol.moduleRef || "").toLowerCase();
+  const type = (symbol.type || "").toLowerCase();
+  return type.includes("przełącznik sieci") || ref.includes("przelacznik sieci") || ref.includes("przelacznik siec");
+}
+
 export function DinRailFerrulesGroup({
   groupedWiredPaths,
   symbols,
@@ -60,10 +68,7 @@ export function DinRailFerrulesGroup({
               wireThickness={wireThickness}
               wireCrossSection={w.connection.wireCrossSection}
               isDouble={(ferruleCounts.get(fromKey) || 0) >= 2}
-              isShort={(() => {
-                const s = symbols.find(sym => sym.id === w.connection.fromSymbolId);
-                return s?.deviceKind === "terminalBlock";
-              })()}
+              isShort={isShortFerrule(fromSymbolForFerrule)}
               isExtraLong={fromIsDist}
               isSquare={(() => {
                 const s = symbols.find(sym => sym.id === w.connection.fromSymbolId);
@@ -89,10 +94,7 @@ export function DinRailFerrulesGroup({
               wireThickness={wireThickness}
               wireCrossSection={w.connection.wireCrossSection}
               isDouble={(ferruleCounts.get(toKey) || 0) >= 2}
-              isShort={(() => {
-                const s = symbols.find(sym => sym.id === w.connection.toSymbolId);
-                return s?.deviceKind === "terminalBlock";
-              })()}
+              isShort={isShortFerrule(toSymbolForFerrule)}
               isExtraLong={toIsDist}
               isSquare={(() => {
                 const s = symbols.find(sym => sym.id === w.connection.toSymbolId);
@@ -115,10 +117,7 @@ export function DinRailFerrulesGroup({
           color={defaultWireSettings.ferruleColor}
           wireThickness={WIRE_THICKNESS_MAP[defaultWireSettings.wireCrossSection] || 4}
           wireCrossSection={defaultWireSettings.wireCrossSection}
-          isShort={(() => {
-            const s = symbols.find(sym => sym.id === drawingState.startSymbolId);
-            return s?.deviceKind === "terminalBlock";
-          })()}
+          isShort={isShortFerrule(symbols.find(sym => sym.id === drawingState.startSymbolId))}
           isExtraLong={(() => {
             const s = symbols.find(sym => sym.id === drawingState.startSymbolId);
             return !!s && isDistributionBlockSymbol(s);
@@ -151,10 +150,7 @@ export function DinRailFerrulesGroup({
           color={defaultWireSettings.ferruleColor}
           wireThickness={WIRE_THICKNESS_MAP[defaultWireSettings.wireCrossSection] || 4}
           wireCrossSection={defaultWireSettings.wireCrossSection}
-          isShort={(() => {
-            const s = symbols.find(sym => sym.id === hoveredHotspot.symbolId);
-            return s?.deviceKind === "terminalBlock";
-          })()}
+          isShort={isShortFerrule(symbols.find(sym => sym.id === hoveredHotspot.symbolId))}
           isExtraLong={(() => {
             const s = symbols.find(sym => sym.id === hoveredHotspot.symbolId);
             return !!s && isDistributionBlockSymbol(s);

@@ -95,6 +95,9 @@ function drawPageVectors(
   drawTopBus(ctx, page, pageDevices);
 
   for (const device of pageDevices) {
+    if (device.topDevice) {
+      drawDevice(ctx, device.topDevice, page, hasTopSwitch);
+    }
     drawDevice(ctx, device, page, hasTopSwitch);
   }
 

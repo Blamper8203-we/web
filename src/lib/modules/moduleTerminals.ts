@@ -43,7 +43,7 @@ export function getSymbolTerminals(symbol: SymbolItem): TerminalHotspot[] {
     }
 
     for (const group of cachedGroups) {
-      const type = group.prefix === "PE" ? "pe" : group.prefix === "N" ? "neutral" : "phase";
+      const type = group.prefix === "PE" ? "pe" : (group.prefix === "N" || group.prefix === "NG") ? "neutral" : "phase";
       
       for (const t of group.terminals) {
         let xPos, yPos, radius;

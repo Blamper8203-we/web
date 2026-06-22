@@ -35,12 +35,14 @@ export function isNetworkSwitchNode(node: SchematicNode): boolean {
   const label = (node.label || "").toLowerCase();
   const protection = (node.protection || "").toLowerCase();
   
+  const isSwitchText = (text: string) => 
+    (text.includes("przelacznik") || text.includes("przełącznik")) && 
+    (text.includes("siec") || text.includes("sieć"));
+
   return (
     desig.startsWith("WS") ||
-    (label.includes("przelacznik") && label.includes("siec")) ||
-    (label.includes("przełącznik") && label.includes("sieć")) ||
-    (protection.includes("przelacznik") && protection.includes("siec")) ||
-    (protection.includes("przełącznik") && protection.includes("sieć"))
+    isSwitchText(label) ||
+    isSwitchText(protection)
   );
 }
 

@@ -287,6 +287,7 @@ export function buildNodes(symbols: SymbolItem[]): BuildResult {
       phaseCount: isThreePhaseHead ? 3 : detectPhaseText(assignedPhase),
       hasNeutralBar: groupHasNeutralBar || undefined,
       neutralBarLabel: groupNeutralBarLabel || undefined,
+      topBusConnected: !!groupTopSwitch,
       topDevice: groupTopSwitch ? createNode(groupTopSwitch, "MainBreaker", {
         designation: resolveDesignation(groupTopSwitch, `WS${ws++}`),
         protection: groupTopSwitch.label || "Przełącznik sieci",
@@ -320,6 +321,8 @@ export function buildNodes(symbols: SymbolItem[]): BuildResult {
         phaseCount: isRcdHead
           ? (isThreePhaseHead ? 3 : detectPhaseText(assignedPhase))
           : detectPhases(headDevice),
+        topBusConnected: index === 0 ? headNode.topBusConnected : undefined,
+        topDevice: index === 0 ? headNode.topDevice : undefined,
       });
       chunkNode.children = chunk;
 
@@ -360,7 +363,11 @@ export function flattenNodes(groups: SchematicNode[]): SchematicNode[] {
 }
 
 function flattenNode(node: SchematicNode): SchematicNode[] {
-  return [node, ...node.children.flatMap((child) => flattenNode(child))];
+  const result: SchematicNode[] = [node];
+  if (node.topDevice) {
+    result.push(node.topDevice);
+  }
+  return [...result, ...node.children.flatMap((child) => flattenNode(child))];
 }
 
 function groupSymbols(symbols: SymbolItem[], symbolIndices: Map<string, number>): Array<{ key: string; symbols: SymbolItem[] }> {

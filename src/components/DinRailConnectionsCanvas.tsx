@@ -60,6 +60,7 @@ import { DinRailHitTargets } from "./canvasLayers/DinRailHitTargets";
 import { DinRailConnectionWires } from "./canvasLayers/DinRailConnectionWires";
 import { DinRailFerrulesGroup } from "./canvasLayers/DinRailFerrulesGroup";
 import { DinRailDrawingPreview } from "./canvasLayers/DinRailDrawingPreview";
+import { SchematicZoomDock } from "./SchematicZoomDock";
 import {
   checkConnectionWarning,
   findConnectedComponent,
@@ -294,76 +295,12 @@ export function DinRailConnectionsCanvas({
       }}
     >
       {/* Zoom / Pan Toolbar Overlay */}
-      <div
-        style={{
-          position: "absolute",
-          top: "16px",
-          right: "16px",
-          display: "flex",
-          gap: "8px",
-          zIndex: 10,
-          background: "var(--bg-card)",
-          border: "1px solid var(--border-color)",
-          borderRadius: "8px",
-          padding: "4px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-        }}
-      >
-        <button
-          type="button"
-          onClick={zoomIn}
-          style={{
-            background: "transparent",
-            border: "none",
-            color: "var(--text-primary)",
-            padding: "6px",
-            borderRadius: "4px",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-          }}
-          title="Przybliż"
-        >
-          <AppIcon name="zoomIn" size={16} />
-        </button>
-        <span style={{ display: "flex", alignItems: "center", fontSize: "12px", color: "var(--text-primary)", minWidth: "42px", justifyContent: "center", fontWeight: 600 }}>
-          {Math.round(zoom * 100)}%
-        </span>
-        <button
-          type="button"
-          onClick={zoomOut}
-          style={{
-            background: "transparent",
-            border: "none",
-            color: "var(--text-primary)",
-            padding: "6px",
-            borderRadius: "4px",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-          }}
-          title="Oddal"
-        >
-          <AppIcon name="zoomOut" size={16} />
-        </button>
-        <button
-          type="button"
-          onClick={resetZoom}
-          style={{
-            background: "transparent",
-            border: "none",
-            color: "var(--text-primary)",
-            padding: "6px",
-            borderRadius: "4px",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-          }}
-          title="Dopasuj do okna"
-        >
-          <AppIcon name="zoomFit" size={16} />
-        </button>
-      </div>
+      <SchematicZoomDock
+        zoomPercent={Math.round(zoom * 100)}
+        onZoomIn={zoomIn}
+        onZoomOut={zoomOut}
+        onZoomFit={resetZoom}
+      />
 
       {/* Connection Safety Warning Alert */}
       {drawingWarning && (

@@ -38,7 +38,7 @@ export function createDefaultConnection(overrides?: Partial<ConnectionItem>): Co
     wireColor: "black",
     wireCrossSection: 2.5,
     wireType: "LgY",
-    ferruleColor: "none",
+    ferruleColor: "white",
     routingMode: "orthogonal",
     ...overrides,
   };

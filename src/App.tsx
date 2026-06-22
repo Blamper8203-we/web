@@ -127,7 +127,7 @@ function AppWorkspace({
       wireCrossSection: 2.5,
       wireType: "LgY",
       routingMode: "manhattan",
-      ferruleColor: "none",
+      ferruleColor: "white",
     };
   });
   const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);

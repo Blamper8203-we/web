@@ -20,7 +20,10 @@ export function useSvgTerminalsPreloader(symbols: SymbolItem[]) {
         const isTerminalBlock = sym.deviceKind === "terminalBlock" || 
                                 sym.type?.toLowerCase().includes("blok rozdzielczy") ||
                                 ref.toLowerCase().includes("blok rozdzielczy") ||
-                                visualPath.toLowerCase().includes("blok rozdzielczy");
+                                visualPath.toLowerCase().includes("blok rozdzielczy") ||
+                                sym.type?.toLowerCase().includes("przełącznik sieci") ||
+                                ref.toLowerCase().includes("przelacznik sieci") ||
+                                ref.toLowerCase().includes("przelacznik siec");
                                 
         if (isTerminalBlock) {
           if (!svgTerminalCache.get(ref) && !svgTerminalCache.isLoading(ref)) {
