@@ -1,0 +1,22 @@
+.about-dialog__version {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.about-dialog__name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.about-dialog__badge {
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #cfd3da;
+  background: #1f2126;
+  border: 1px solid #2b2e35;
+  border-radius: 999px;
+}
