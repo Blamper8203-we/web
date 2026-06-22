@@ -106,18 +106,6 @@ function AppWorkspace({
     routingMode: RoutingMode;
     ferruleColor?: FerruleColor;
   }>(() => loadInitialWireSettings(safeGetItemSync));
-    try {
-      const raw = safeGetItemSync("dinboard.default_wire_settings");
-      if (raw) return JSON.parse(raw);
-    } catch { /* ignore */ }
-    return {
-      wireColor: "black",
-      wireCrossSection: 2.5,
-      wireType: "LgY",
-      routingMode: "manhattan",
-      ferruleColor: "white",
-    };
-  });
   const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<string>("");
   const [selectedSymbolId, setSelectedSymbolId] = useState<string | null>(null);
