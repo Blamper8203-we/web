@@ -61,6 +61,8 @@ export default tseslint.config(
         // Świadome globalne typy środowiska DINBoard
         "import.meta": "readonly",
         __TAURI__: "readonly",
+        // Wstrzykiwane build-time przez define w vite.config.ts (wersja z package.json)
+        __APP_VERSION__: "readonly",
       },
     },
     rules: {
