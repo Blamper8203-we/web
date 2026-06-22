@@ -23,7 +23,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          # Zgodnie z .nvmrc i package.json engines.node — Node 22 LTS.
+          # Jedno źródło prawdy dla wersji Node: .nvmrc (obecnie 24.12.0),
+          # spójne z package.json engines.node (24.x). Nie hardkodować wersji tutaj.
           node-version-file: .nvmrc
           cache: npm
 
