@@ -23,7 +23,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          # Zgodnie z .nvmrc i package.json engines.node — Node 22 LTS.
+          # Jedno źródło prawdy dla wersji Node: .nvmrc (obecnie 24.12.0),
+          # spójne z package.json engines.node (24.x). Nie hardkodować wersji tutaj.
           node-version-file: .nvmrc
           cache: npm
 
@@ -35,6 +36,16 @@ jobs:
         # na istniejących 35 warningach). Gdy liczba spadnie, zmień na
         # `npm run lint -- --max-warnings 0` żeby failować na nowych.
         run: npm run lint
+
+      - name: Lint warning budget (nieblokujący)
+        # Krok diagnostyczny: raportuje liczbę warningów, ale NIE failuje builda.
+        # Cel: widoczność dryfu jakości w czasie. Gdy budżet osiągnie 0, usuń ten
+        # krok i dodaj `--max-warnings 0` do kroku "Lint" powyżej.
+        # BUDŻET (do obniżania, nigdy do podnoszenia): 35
+        continue-on-error: true
+        run: |
+          echo "Aktualny budżet ostrzeżeń: 35 (cel: 0)"
+          npm run lint -- --max-warnings 0 || echo "::warning::Lint przekracza docelowy budżet 0 ostrzeżeń. Obniżaj, nie podnoś."
 
       - name: Build
         run: npm run build
