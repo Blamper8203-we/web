@@ -60,6 +60,11 @@
   line-height: 1.55;
 }
 
+.app-error-boundary p.app-error-boundary__hint {
+  color: #9a9faa;
+  font-size: 13px;
+}
+
 .app-error-boundary__actions {
   display: flex;
   flex-wrap: wrap;

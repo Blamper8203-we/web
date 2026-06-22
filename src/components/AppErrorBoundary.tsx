@@ -1,5 +1,6 @@
 import React from "react";
 import { reportRuntimeError } from "../lib/runtimeDiagnostics";
+import { safeArchiveAndResetWorkingState } from "../lib/crashRecovery";
 import "./AppErrorBoundary.css";
 
 interface AppErrorBoundaryState {
@@ -35,6 +36,17 @@ export class AppErrorBoundary extends React.Component<
     window.location.reload();
   };
 
+  // WHY: gdy crash wynika z uszkodzonego stanu roboczego, sam reload wczyta ten sam
+  // wadliwy stan (pętla crashu). Ta akcja archiwizuje stan (bez kasowania danych) i
+  // czyści go, by aplikacja wystartowała od pustego, sprawnego projektu.
+  private handleResetWorkingState = () => {
+    try {
+      safeArchiveAndResetWorkingState(window.localStorage);
+    } finally {
+      window.location.reload();
+    }
+  };
+
   public render() {
     if (!this.state.error) {
       return this.props.children;
@@ -51,6 +63,11 @@ export class AppErrorBoundary extends React.Component<
               Dane robocze zapisane w tej przeglądarce powinny pozostać dostępne.
               Odśwież aplikację i sprawdź ostatni zapis zlecenia.
             </p>
+            <p className="app-error-boundary__hint">
+              Jeśli problem się powtarza po odświeżeniu, użyj „Wyczyść bieżący projekt”.
+              Bieżący stan zostanie zarchiwizowany (nie usunięty), a aplikacja uruchomi
+              się z pustym zleceniem.
+            </p>
           </div>
           <div className="app-error-boundary__actions">
             <button type="button" className="accent-btn" onClick={this.handleReload}>
@@ -58,6 +75,9 @@ export class AppErrorBoundary extends React.Component<
             </button>
             <button type="button" onClick={this.handleReturnToApp}>
               Wróć do aplikacji
+            </button>
+            <button type="button" onClick={this.handleResetWorkingState}>
+              Wyczyść bieżący projekt
             </button>
           </div>
         </section>
