@@ -24,9 +24,13 @@ export const projectMigrations: Record<number, MigrationFunction> = {
 // na docelowej (lub nowszej) wersji. Każdy krok ustawia schemaVersion, dzięki czemu
 // zapis po migracji ma poprawną wersję nawet jeśli dana migracja nie ruszyła treści.
 //
-// Generyk T zachowuje typ wołającego (np. RawProjectFileData w projectFile.ts),
-// dzięki czemu nie psujemy istniejącego przypisania `parsed = migrateProjectData(parsed, ...)`.
-export function migrateProjectData<T extends ProjectFileShape>(
+// WHY constraint `T extends object` (a nie `ProjectFileShape`): wołający w
+// projectFile.ts przekazuje `RawProjectFileData` — typ o nazwanych polach BEZ
+// indeksowej sygnatury, który NIE spełnia `extends Record<string, unknown>`.
+// `object` przyjmuje każdy typ obiektowy i zachowuje typ zwracany (T), więc
+// przypisanie `parsed = migrateProjectData(parsed, ...)` kompiluje się bez zmian.
+// Wewnątrz traktujemy dane jako ProjectFileShape (kontrolowane rzutowanie).
+export function migrateProjectData<T extends object>(
   data: T,
   currentVersion: number,
   targetVersion: number,
@@ -35,13 +39,13 @@ export function migrateProjectData<T extends ProjectFileShape>(
     return data;
   }
 
-  let migratedData: T = { ...data };
+  let migratedData = { ...data } as T & ProjectFileShape;
 
   // Krok przekształca z `fromVersion` na `fromVersion + 1`, aż osiągniemy cel.
   for (let fromVersion = currentVersion; fromVersion < targetVersion; fromVersion++) {
     const migration = projectMigrations[fromVersion];
     if (migration) {
-      migratedData = { ...migratedData, ...migration(migratedData) };
+      migratedData = { ...migratedData, ...migration(migratedData) } as T & ProjectFileShape;
     }
     migratedData.schemaVersion = fromVersion + 1;
   }
