@@ -16,12 +16,15 @@ import {
   normalizePaletteAssetDimensions,
   normalizeGroupConsistency,
   DEFAULT_DIN_RAIL_CONFIG,
-  SYMBOLS_STORAGE_KEY,
-  LEGACY_SYMBOLS_STORAGE_KEY,
   type SheetType,
   type RightTab,
 } from "./lib/appHelpers";
 import { normalizeSymbolItems } from "./types/symbolItem";
+import {
+  loadInitialSymbols,
+  loadInitialConnections,
+  loadInitialWireSettings,
+} from "./lib/loadInitialState";
 import { useSymbolHistory } from "./hooks/useSymbolHistory";
 import { useSymbolActions } from "./hooks/useSymbolActions";
 import { useProjectActions } from "./hooks/useProjectActions";
@@ -92,32 +95,17 @@ function AppWorkspace({
 }) {
   // ── Core state ───────────────────────────────────────────────────────────────
   const [metadata, setMetadata] = useState<ProjectMetadata>(() => loadProjectMetadata());
-  const [symbols, setSymbols] = useState<SymbolItem[]>(() => {
-    try {
-      const raw =
-        safeGetItemSync(SYMBOLS_STORAGE_KEY) ??
-        safeGetItemSync(LEGACY_SYMBOLS_STORAGE_KEY);
-      if (raw) {
-        const normalized = normalizeSymbolItems(JSON.parse(raw) as Partial<SymbolItem>[]);
-        if (normalized.length > 0) return normalized;
-      }
-    } catch { /* ignore */ }
-    return [];
-  });
-  const [connections, setConnections] = useState<ConnectionItem[]>(() => {
-    try {
-      const raw = safeGetItemSync("dinboard.connections");
-      if (raw) return JSON.parse(raw) as ConnectionItem[];
-    } catch { /* ignore */ }
-    return [];
-  });
+  const [symbols, setSymbols] = useState<SymbolItem[]>(() => loadInitialSymbols(safeGetItemSync));
+  const [connections, setConnections] = useState<ConnectionItem[]>(() =>
+    loadInitialConnections(safeGetItemSync),
+  );
   const [currentWireSettings, setCurrentWireSettings] = useState<{
     wireColor: WireColor;
     wireCrossSection: number;
     wireType: WireType;
     routingMode: RoutingMode;
     ferruleColor?: FerruleColor;
-  }>(() => {
+  }>(() => loadInitialWireSettings(safeGetItemSync));
     try {
       const raw = safeGetItemSync("dinboard.default_wire_settings");
       if (raw) return JSON.parse(raw);
