@@ -4,6 +4,13 @@ import { VitePWA } from "vite-plugin-pwa";
 import fs from "node:fs";
 import path from "node:path";
 
+// WHY: wersja apki jest źródłem prawdy w package.json. Wstrzykujemy ją w build-time
+// jako stałą __APP_VERSION__ (deklaracja typu w src/vite-env.d.ts), żeby UI (AboutDialog,
+// stopka landing) mógł ją pokazać bez duplikowania numeru w kodzie.
+const APP_VERSION = JSON.parse(
+  fs.readFileSync(path.resolve(process.cwd(), "package.json"), "utf-8"),
+).version as string;
+
 const MODULES_PUBLIC_DIR = path.resolve(process.cwd(), "public", "assets", "modules");
 const MODULES_MANIFEST_URL = "/assets/modules/module-manifest.json";
 
@@ -152,6 +159,8 @@ export default defineConfig({
   define: {
     // Polyfill for @react-pdf/renderer in browser environment
     global: 'globalThis',
+    // Wersja apki z package.json (patrz APP_VERSION wyżej)
+    __APP_VERSION__: JSON.stringify(APP_VERSION),
   },
   optimizeDeps: {
     include: ['@react-pdf/renderer'],

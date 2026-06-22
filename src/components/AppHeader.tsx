@@ -6,6 +6,7 @@ import type { AppUiTheme } from "../App";
 import { Capacitor } from "@capacitor/core";
 import { useToolbarMenuState } from "../hooks/useToolbarMenuState";
 import { AppHeaderFileMenu } from "./AppHeaderFileMenu";
+import { AboutDialog } from "./AboutDialog";
 import {
   AppHeaderViewMenu,
   AppHeaderToolsMenu,
@@ -102,6 +103,7 @@ export function AppHeader({
 }: AppHeaderProps) {
   const menu = useToolbarMenuState();
   const isNative = Capacitor.isNativePlatform();
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(
     () => window.innerWidth <= 768,
   );
@@ -249,6 +251,14 @@ export function AppHeader({
             <button
               type="button"
               className="toolbar-menu-btn"
+              onClick={() => setIsAboutOpen(true)}
+            >
+              O aplikacji
+            </button>
+
+            <button
+              type="button"
+              className="toolbar-menu-btn"
               style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#e8eaef" }}
               onClick={onOpenFeedback}
             >
@@ -339,6 +349,8 @@ export function AppHeader({
           onOpenFeedback={onOpenFeedback}
         />
       )}
+
+      {isAboutOpen && <AboutDialog onClose={() => setIsAboutOpen(false)} />}
     </header>
   );
 }
