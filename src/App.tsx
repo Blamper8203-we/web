@@ -19,7 +19,6 @@ import {
   type SheetType,
   type RightTab,
 } from "./lib/appHelpers";
-import { normalizeSymbolItems } from "./types/symbolItem";
 import {
   loadInitialSymbols,
   loadInitialConnections,
