@@ -23,16 +23,19 @@ export const projectMigrations: Record<number, MigrationFunction> = {
 // WHY: Łańcuch migracji od currentVersion do targetVersion. Idempotentny gdy już
 // na docelowej (lub nowszej) wersji. Każdy krok ustawia schemaVersion, dzięki czemu
 // zapis po migracji ma poprawną wersję nawet jeśli dana migracja nie ruszyła treści.
-export function migrateProjectData(
-  data: ProjectFileShape,
+//
+// Generyk T zachowuje typ wołającego (np. RawProjectFileData w projectFile.ts),
+// dzięki czemu nie psujemy istniejącego przypisania `parsed = migrateProjectData(parsed, ...)`.
+export function migrateProjectData<T extends ProjectFileShape>(
+  data: T,
   currentVersion: number,
   targetVersion: number,
-): ProjectFileShape {
+): T {
   if (currentVersion >= targetVersion) {
     return data;
   }
 
-  let migratedData: ProjectFileShape = { ...data };
+  let migratedData: T = { ...data };
 
   // Krok przekształca z `fromVersion` na `fromVersion + 1`, aż osiągniemy cel.
   for (let fromVersion = currentVersion; fromVersion < targetVersion; fromVersion++) {
