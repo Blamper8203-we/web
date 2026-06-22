@@ -10,6 +10,8 @@ export const DEFAULT_DIN_RAIL_CONFIG: DinRailConfig = { rows: 1, modulesPerRow: 
 export const HIDDEN_PALETTE_TEMPLATE_IDS_STORAGE_KEY = "dinboard.hiddenPaletteTemplateIds";
 export const SYMBOLS_STORAGE_KEY = "dinboard-web.symbols.v1";
 export const LEGACY_SYMBOLS_STORAGE_KEY = "dinboard-tauri.symbols.v1";
+export const CONNECTIONS_STORAGE_KEY = "dinboard.connections";
+export const DEFAULT_WIRE_SETTINGS_STORAGE_KEY = "dinboard.default_wire_settings";
 
 // --- RE-EXPORTS FROM DOMAIN ---
 
