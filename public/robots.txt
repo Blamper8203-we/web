@@ -1,0 +1,9 @@
+# robots.txt dla DINBoard
+# Blokujemy wewnętrzne ścieżki których Google nie powinien widzieć
+
+User-agent: *
+Allow: /
+Disallow: /assets/
+
+# Wskaż Google gdzie jest mapa strony
+Sitemap: https://dinboard.pl/sitemap.xml
