@@ -60,6 +60,18 @@ export function PublicLandingPage({
           box-sizing: border-box;
           font-family: 'Roboto', sans-serif !important;
         }
+        #landing-page-root a {
+          color: inherit;
+          text-decoration: inherit;
+        }
+        #landing-page-root button {
+          background-color: transparent;
+          background-image: none;
+          border: none;
+          padding: 0;
+          color: inherit;
+          cursor: pointer;
+        }
       `}</style>
 
       <LandingHeader />
