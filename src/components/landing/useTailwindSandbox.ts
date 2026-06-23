@@ -7,44 +7,11 @@ export function useTailwindSandbox() {
 
   useEffect(() => {
     if (!document.getElementById(TAILWIND_SCRIPT_ID)) {
-      const configScript = document.createElement("script");
-      configScript.innerHTML = `
-        window.tailwind = {
-          config: {
-            important: '#landing-page-root',
-            corePlugins: {
-              preflight: false,
-            },
-            theme: {
-              extend: {
-                fontFamily: {
-                  sans: ['Roboto', 'sans-serif'],
-                  mono: ['Fira Code', 'monospace'],
-                },
-                colors: {
-                  brand: {
-                    bg: '#090D16',
-                    card: '#111827',
-                    accent: '#F59E0B',
-                    blueNeon: '#3B82F6',
-                    success: '#10B981'
-                  }
-                }
-              }
-            }
-          }
-        };
-      `;
-      document.head.appendChild(configScript);
+      // Konfiguracja Tailwind przeniesiona do tailwind.config.js
+      // Tailwind generowany w buildzie (import "./landing-tailwind.css" w PublicLandingPage.tsx)
 
-      const script = document.createElement("script");
-      script.id = TAILWIND_SCRIPT_ID;
-      script.src = "https://cdn.tailwindcss.com";
-      script.onload = () => {
-        // Małe opóźnienie, aby dać Tailwindowi czas na przetworzenie klas
-        setTimeout(() => setIsReady(true), 150);
-      };
-      document.head.appendChild(script);
+      // Udajemy natychmiastową gotowość (nie czekamy na pobranie Tailwind CDN)
+      setTimeout(() => setIsReady(true), 50);
 
       // Ikony Lucide z CDN
       const lucideScript = document.createElement("script");

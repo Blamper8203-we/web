@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./PublicLandingPage.css";
+import "./landing/landing-tailwind.css";
 
 import { useTailwindSandbox } from "./landing/useTailwindSandbox";
 import { LandingHeader } from "./landing/LandingHeader";
