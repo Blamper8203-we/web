@@ -105,7 +105,7 @@ export function AppHeader({
   const isNative = Capacitor.isNativePlatform();
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(
-    () => window.innerWidth <= 768,
+    () => typeof window !== "undefined" ? window.innerWidth <= 768 : false,
   );
 
   // Wykrywanie mobile viewport przez media query (reszta UI używa tego hooka)

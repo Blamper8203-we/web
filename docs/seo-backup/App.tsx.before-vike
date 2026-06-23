@@ -56,12 +56,21 @@ import { useAppPersistence, type AppUiTheme, UI_THEME_STORAGE_KEY } from "./hook
 import { useAppEventBindings } from "./hooks/app/useAppEventBindings";
 import { useUnsavedChangesFlow } from "./hooks/app/useUnsavedChangesFlow";
 
+const APP_ROUTE_PATH = "/app";
 const EMPTY_VALIDATION_RESULT: ValidationResult = {
   isValid: true,
   errors: [],
   warnings: [],
   info: [],
 };
+
+function normalizeRoutePath(pathname: string): "/" | "/app" {
+  if (pathname === APP_ROUTE_PATH || pathname === `${APP_ROUTE_PATH}/`) {
+    return APP_ROUTE_PATH;
+  }
+
+  return "/";
+}
 
 export type { AppUiTheme } from "./hooks/app/useAppPersistence";
 
@@ -551,27 +560,32 @@ function AppWorkspace({
   );
 }
 
-import { Outlet, useNavigate, useOutletContext } from "react-router-dom";
-import { AppErrorBoundary } from "./components/AppErrorBoundary";
-
-type AppContextType = {
-  initialAction: "new" | "last" | "load_data" | null;
-  initialData: ProjectFileData | null;
-  handleOpenNewProject: () => void;
-  handleOpenProjectFile: () => Promise<void>;
-  openFeedback: () => void;
-};
-
-export function AppLayout() {
+export default function App() {
+  const [routePath, setRoutePath] = useState<"/" | "/app">(() => normalizeRoutePath(window.location.pathname));
   const [initialAction, setInitialAction] = useState<"new" | "last" | "load_data" | null>(null);
   const [initialData, setInitialData] = useState<ProjectFileData | null>(null);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
-  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setRoutePath(normalizeRoutePath(window.location.pathname));
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const navigateToApp = useCallback(() => {
+    if (routePath !== APP_ROUTE_PATH) {
+      window.history.pushState({}, "", APP_ROUTE_PATH);
+      setRoutePath(APP_ROUTE_PATH);
+    }
+  }, [routePath]);
 
   const handleOpenNewProject = useCallback(() => {
     setInitialAction("new");
-    navigate("/app");
-  }, [navigate]);
+    navigateToApp();
+  }, [navigateToApp]);
 
   const handleOpenProjectFile = useCallback(async () => {
     try {
@@ -579,66 +593,38 @@ export function AppLayout() {
       if (data) {
         setInitialData(data);
         setInitialAction("load_data");
-        navigate("/app");
+        navigateToApp();
       }
     } catch (e) {
       console.error(e);
     }
-  }, [navigate]);
+  }, [navigateToApp]);
 
   useEffect(() => {
     initStorageService();
   }, []);
 
-  const contextValue: AppContextType = {
-    initialAction,
-    initialData,
-    handleOpenNewProject,
-    handleOpenProjectFile,
-    openFeedback: () => setIsFeedbackModalOpen(true),
-  };
+  if (routePath !== APP_ROUTE_PATH) {
+    return (
+      <>
+        <PublicLandingPage
+          onOpenNewProject={handleOpenNewProject}
+          onOpenProjectFile={handleOpenProjectFile}
+          onOpenFeedback={() => setIsFeedbackModalOpen(true)}
+        />
+        {isFeedbackModalOpen && <FeedbackModal onClose={() => setIsFeedbackModalOpen(false)} />}
+      </>
+    );
+  }
 
   return (
-    <AppErrorBoundary>
-      <Outlet context={contextValue} />
+    <>
+      <AppWorkspace
+        initialAction={initialAction}
+        initialData={initialData}
+        onOpenFeedback={() => setIsFeedbackModalOpen(true)}
+      />
       {isFeedbackModalOpen && <FeedbackModal onClose={() => setIsFeedbackModalOpen(false)} />}
-    </AppErrorBoundary>
+    </>
   );
-}
-
-function LandingRoute() {
-  const { handleOpenNewProject, handleOpenProjectFile, openFeedback } = useOutletContext<AppContextType>();
-  return (
-    <PublicLandingPage
-      onOpenNewProject={handleOpenNewProject}
-      onOpenProjectFile={handleOpenProjectFile}
-      onOpenFeedback={openFeedback}
-    />
-  );
-}
-
-function AppRoute() {
-  const { initialAction, initialData, openFeedback } = useOutletContext<AppContextType>();
-  return (
-    <AppWorkspace
-      initialAction={initialAction}
-      initialData={initialData}
-      onOpenFeedback={openFeedback}
-    />
-  );
-}
-
-export const routes = [
-  {
-    path: "/",
-    element: <AppLayout />,
-    children: [
-      { index: true, element: <LandingRoute /> },
-      { path: "app", element: <AppRoute /> },
-    ],
-  },
-];
-
-export default function App() {
-  return null;
 }

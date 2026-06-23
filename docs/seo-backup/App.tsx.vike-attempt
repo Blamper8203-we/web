@@ -36,8 +36,11 @@ import { applyRcdManagerUpdates } from "./lib/circuitEdit/rcdManagerLogic";
 import type { ProjectMetadata } from "./types/projectMetadata";
 import type { SymbolItem } from "./types/symbolItem";
 import type { ConnectionItem, WireColor, WireType, RoutingMode, FerruleColor } from "./types/connectionItem";
-import { PublicLandingPage } from "./components/PublicLandingPage";
 import { FeedbackModal } from "./components/FeedbackModal";
+import {
+  readPendingInitialAction,
+  clearPendingInitialAction,
+} from "./Landing";
 import "./App.css";
 import "./components/AppLayout.css";
 import "./components/Responsive.css";
@@ -49,13 +52,16 @@ import "./components/UI/Buttons.css";
 import "./components/WorkspaceHUD.css";
 
 import type { ProjectFileData } from "./lib/projectFile";
-import { openProjectFile } from "./lib/projectFile";
 import { safeGetItemSync, initStorageService } from "./lib/storageService";
 
 import { useAppPersistence, type AppUiTheme, UI_THEME_STORAGE_KEY } from "./hooks/app/useAppPersistence";
 import { useAppEventBindings } from "./hooks/app/useAppEventBindings";
 import { useUnsavedChangesFlow } from "./hooks/app/useUnsavedChangesFlow";
 
+// WHY: stałe routingu i `normalizeRoutePath` usunięte - nawigację obsługuje
+// Vike (file-based routing w pages/). Landing page z handlerami przeniesiony
+// do src/Landing.tsx. "Initial action" przekazywany przez sessionStorage
+// (zob. Landing.tsx), czytany i czyszczony w useEffect poniżej.
 const EMPTY_VALIDATION_RESULT: ValidationResult = {
   isValid: true,
   errors: [],
@@ -551,94 +557,40 @@ function AppWorkspace({
   );
 }
 
-import { Outlet, useNavigate, useOutletContext } from "react-router-dom";
-import { AppErrorBoundary } from "./components/AppErrorBoundary";
-
-type AppContextType = {
-  initialAction: "new" | "last" | "load_data" | null;
-  initialData: ProjectFileData | null;
-  handleOpenNewProject: () => void;
-  handleOpenProjectFile: () => Promise<void>;
-  openFeedback: () => void;
-};
-
-export function AppLayout() {
+export default function App() {
   const [initialAction, setInitialAction] = useState<"new" | "last" | "load_data" | null>(null);
   const [initialData, setInitialData] = useState<ProjectFileData | null>(null);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
-  const navigate = useNavigate();
-
-  const handleOpenNewProject = useCallback(() => {
-    setInitialAction("new");
-    navigate("/app");
-  }, [navigate]);
-
-  const handleOpenProjectFile = useCallback(async () => {
-    try {
-      const data = await openProjectFile();
-      if (data) {
-        setInitialData(data);
-        setInitialAction("load_data");
-        navigate("/app");
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }, [navigate]);
 
   useEffect(() => {
     initStorageService();
   }, []);
 
-  const contextValue: AppContextType = {
-    initialAction,
-    initialData,
-    handleOpenNewProject,
-    handleOpenProjectFile,
-    openFeedback: () => setIsFeedbackModalOpen(true),
-  };
+  // WHY: Vike renderuje strony niezależnie - nie ma wspólnego state z landingiem.
+  // Landing zapisuje "pending initial action" w sessionStorage (zob. Landing.tsx),
+  // my go tu czytamy, ustawiamy stan, czyścimy żeby nie odpalić ponownie przy remount.
+  useEffect(() => {
+    const pending = readPendingInitialAction();
+    if (!pending) {
+      return;
+    }
+    clearPendingInitialAction();
+    if (pending.action.action === "load_data" && pending.data) {
+      setInitialData(pending.data as ProjectFileData);
+      setInitialAction("load_data");
+    } else if (pending.action.action === "new") {
+      setInitialAction("new");
+    }
+  }, []);
 
   return (
-    <AppErrorBoundary>
-      <Outlet context={contextValue} />
+    <>
+      <AppWorkspace
+        initialAction={initialAction}
+        initialData={initialData}
+        onOpenFeedback={() => setIsFeedbackModalOpen(true)}
+      />
       {isFeedbackModalOpen && <FeedbackModal onClose={() => setIsFeedbackModalOpen(false)} />}
-    </AppErrorBoundary>
+    </>
   );
-}
-
-function LandingRoute() {
-  const { handleOpenNewProject, handleOpenProjectFile, openFeedback } = useOutletContext<AppContextType>();
-  return (
-    <PublicLandingPage
-      onOpenNewProject={handleOpenNewProject}
-      onOpenProjectFile={handleOpenProjectFile}
-      onOpenFeedback={openFeedback}
-    />
-  );
-}
-
-function AppRoute() {
-  const { initialAction, initialData, openFeedback } = useOutletContext<AppContextType>();
-  return (
-    <AppWorkspace
-      initialAction={initialAction}
-      initialData={initialData}
-      onOpenFeedback={openFeedback}
-    />
-  );
-}
-
-export const routes = [
-  {
-    path: "/",
-    element: <AppLayout />,
-    children: [
-      { index: true, element: <LandingRoute /> },
-      { path: "app", element: <AppRoute /> },
-    ],
-  },
-];
-
-export default function App() {
-  return null;
 }

@@ -47,7 +47,7 @@ describe("migrateProjectData", () => {
     const migration = vi.fn((data: ProjectFileShape) => ({ ...data, added: true }));
     projectMigrations[1] = migration;
 
-    const result = migrateProjectData({ schemaVersion: 1 }, 1, 2);
+    const result = migrateProjectData({ schemaVersion: 1 }, 1, 2) as any;
 
     expect(migration).toHaveBeenCalledTimes(1);
     expect(result.added).toBe(true);
@@ -65,7 +65,7 @@ describe("migrateProjectData", () => {
       return { ...data, step2: true };
     };
 
-    const result = migrateProjectData({ schemaVersion: 1 }, 1, 3);
+    const result = migrateProjectData({ schemaVersion: 1 }, 1, 3) as any;
 
     expect(order).toEqual([1, 2]);
     expect(result.step1).toBe(true);
@@ -77,7 +77,7 @@ describe("migrateProjectData", () => {
     projectMigrations[2] = (data) => ({ ...data, onlyStep2: true });
     // brak migracji dla klucza 1
 
-    const result = migrateProjectData({ schemaVersion: 1 }, 1, 3);
+    const result = migrateProjectData({ schemaVersion: 1 }, 1, 3) as any;
 
     expect(result.onlyStep2).toBe(true);
     expect(result.schemaVersion).toBe(3);
