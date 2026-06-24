@@ -5,6 +5,12 @@ import { getSymbolDesignationLabel } from "../../lib/dinRailCanvas/geometry";
 import type { SymbolItem } from "../../types/symbolItem";
 import type { WorldPoint } from "../../lib/dinRailCanvas/types";
 
+// WHY: FPS < 30 na realnym telefonie (MUST #5 z distribution-roadmap.md)
+// oznacza że PIXI_LABEL_SYMBOL_LIMIT lub PIXI_MAX_RESOLUTION trzeba obniżyć.
+// Log tylko w DEV, żeby konsumenci nie widzieli ostrzeżeń w produkcji.
+const FPS_REPORT_INTERVAL_MS = 1000;
+const FPS_LOW_THRESHOLD = 30;
+
 export function useDinRailPixiApp({
   pixiHostRef,
   viewportSize,
@@ -28,6 +34,15 @@ export function useDinRailPixiApp({
 }) {
   const appRef = useRef<Application | null>(null);
   const pixiWorldRef = useRef<Container | null>(null);
+  const fpsRef = useRef(0);
+  const fpsTickerRef = useRef<(() => void) | null>(null);
+  // Aktualizowany synchronicznie w renderze, czytany w listenerze Pixi —
+  // dzięki temu listener nie musi łapać snappedSymbols z deps (co powodowałoby
+  // re-mount Pixi app przy każdej zmianie ilości symboli).
+  const symbolsCountRef = useRef(0);
+  const viewportSizeRef = useRef(viewportSize);
+  symbolsCountRef.current = snappedSymbols.length;
+  viewportSizeRef.current = viewportSize;
   const [isPixiReady, setIsPixiReady] = useState(false);
 
   useEffect(() => {
@@ -57,6 +72,31 @@ export function useDinRailPixiApp({
       host.appendChild(app.canvas);
       appRef.current = app;
       setIsPixiReady(true);
+
+      // FPS measurement — potrzebne dla MUST #5 (mobile perf z distribution-roadmap.md).
+      // Aktualizuje fpsRef co FPS_REPORT_INTERVAL_MS; ostrzega w dev gdy < 30.
+      let frameCount = 0;
+      let lastReportAt = performance.now();
+      const tickerListener = () => {
+        frameCount++;
+        const now = performance.now();
+        if (now - lastReportAt >= FPS_REPORT_INTERVAL_MS) {
+          const measuredFps = Math.round((frameCount * 1000) / (now - lastReportAt));
+          fpsRef.current = measuredFps;
+          frameCount = 0;
+          lastReportAt = now;
+          if (import.meta.env.DEV && measuredFps < FPS_LOW_THRESHOLD) {
+            const v = viewportSizeRef.current;
+            console.warn(
+              `[pixi] low FPS: ${measuredFps} (viewport ${v.width}x${v.height}, symbols ${symbolsCountRef.current})`,
+            );
+          }
+        }
+      };
+      app.ticker.add(tickerListener);
+      fpsTickerRef.current = () => {
+        app.ticker.remove(tickerListener);
+      };
     }
 
     void mountApp();
@@ -76,6 +116,8 @@ export function useDinRailPixiApp({
       return;
     }
 
+    fpsTickerRef.current?.();
+    fpsTickerRef.current = null;
     app.destroy(true, { children: true });
     appRef.current = null;
     pixiWorldRef.current = null;
@@ -152,6 +194,8 @@ export function useDinRailPixiApp({
 
   useEffect(() => {
     return () => {
+      fpsTickerRef.current?.();
+      fpsTickerRef.current = null;
       const app = appRef.current;
       if (app) {
         app.destroy(true, { children: true });
@@ -162,5 +206,5 @@ export function useDinRailPixiApp({
     };
   }, []);
 
-  return { isPixiReady };
+  return { isPixiReady, fpsRef };
 }
