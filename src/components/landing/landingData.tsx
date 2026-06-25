@@ -1,6 +1,6 @@
 
 export const SLIDER_IMAGES = [
-  "/assets/WKRÓTCE.png",
+  "/assets/Nowy.png",
   "/assets/desktop-app.png",
   "/assets/image2.png",
   "/assets/image3.png",
