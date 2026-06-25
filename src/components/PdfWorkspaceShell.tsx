@@ -119,10 +119,9 @@ export function PdfWorkspaceShell({
           inset: 0,
           display: "flex",
           flexDirection: "row",
-          background: "#0B0B0D",
           overflow: "hidden",
         }}>
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", background: "#2E3238" }}>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", background: "transparent" }}>
             <Suspense fallback={<div className="pdf-preview-workspace__empty"><strong>Ładowanie arkusza A4...</strong></div>}>
               <MeasurementProtocolsWorkspacePage />
             </Suspense>
