@@ -1,4 +1,5 @@
 import "./AppSheetTabs.css";
+import { Capacitor } from "@capacitor/core";
 import type { SheetType } from "../lib/appHelpers";
 import { AppIcon, type AppIconName } from "./AppIcon";
 
@@ -20,11 +21,18 @@ const SHEET_TABS: Array<{
   { sheet: "sheet3", icon: "list", label: "Lista obwodów" },
   { sheet: "sheet4", icon: "pdf", label: "Dokumentacja PDF" },
 ];
-
 export function AppSheetTabs({ activeSheet, onChangeSheet, showLeftPanel, onOpenLeftPanel }: AppSheetTabsProps) {
+  const visibleTabs = SHEET_TABS.filter((tab) => {
+    // Ukrywamy zakładkę "Połączenia", jeśli aplikacja jest odpalona natywnie (np. na Androidzie)
+    if (tab.sheet === "sheet1_connections" && Capacitor.isNativePlatform()) {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <div className="sheet-tabs-bar">
-      {SHEET_TABS.map((tab) => (
+      {visibleTabs.map((tab) => (
         <button
           className={`sheet-tab ${activeSheet === tab.sheet ? "active" : ""}`}
           key={tab.sheet}

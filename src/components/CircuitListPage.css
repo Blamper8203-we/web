@@ -356,7 +356,7 @@
   height: 100%;
   gap: 0;
   overflow: hidden;
-  background: var(--app-background);
+  background: #0b0d10;
 }
 
 .cl-hero {

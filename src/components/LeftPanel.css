@@ -12,11 +12,13 @@
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.015) 0%, transparent 120px),
     var(--panel-background);
-  border-right: 1px solid var(--panel-border);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
   z-index: 10;
-  box-shadow: 1px 0 8px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
 }
 
 .left-panel-header {

@@ -9,7 +9,7 @@
   height: 100%;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 72px),
-    var(--app-background);
+    #0b0d10;
 }
 
 .schematic-workspace.is-drop-target {

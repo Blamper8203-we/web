@@ -355,11 +355,20 @@ export function DinRailCanvas({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
-        onSurfacePointerDown={handleSurfacePointerDown}
+        onSurfacePointerDown={(event: React.PointerEvent<HTMLDivElement>) => {
+          if (window.innerWidth <= 768) return;
+          handleSurfacePointerDown(event);
+        }}
         onSurfaceDragOver={handleDragOver}
-        onSurfaceDrop={handleDrop}
+        onSurfaceDrop={(event: React.DragEvent<HTMLDivElement>) => {
+          if (window.innerWidth <= 768) return;
+          handleDrop(event);
+        }}
         onSurfaceDragLeave={handleDragLeave}
-        onBeginDragForSymbol={(symbolId) => (event) => beginDragForSymbol(event, symbolId)}
+        onBeginDragForSymbol={(symbolId) => (event: React.PointerEvent<HTMLElement>) => {
+          if (window.innerWidth <= 768) return;
+          beginDragForSymbol(event, symbolId);
+        }}
         onRequestLeftPanelTab={onRequestLeftPanelTab}
         bindMeasuredNode={bindMeasuredNode}
       />

@@ -4,6 +4,7 @@ import { AppWorkspaceCanvas, type AppWorkspaceCanvasProps } from "./AppWorkspace
 import { AppRightPanel, type AppRightPanelProps } from "./AppRightPanel";
 import { AppSheetTabs } from "./AppSheetTabs";
 import { PdfWorkspaceShell } from "./PdfWorkspaceShell";
+
 import type { SheetType } from "../lib/appHelpers";
 
 /**
