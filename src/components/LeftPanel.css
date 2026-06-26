@@ -12,7 +12,6 @@
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.015) 0%, transparent 120px),
     var(--panel-background);
-  border: 1px solid var(--panel-border);
   border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
