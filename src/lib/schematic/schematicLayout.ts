@@ -22,16 +22,10 @@ export const COLUMN_MARGIN_LEFT = 150;
 export const COLUMN_MARGIN_RIGHT = 24;
 export const COLUMN_WIDTH = 142;
 export const COLUMN_GAP = 12;
-export const COLUMN_STEP = COLUMN_WIDTH + COLUMN_GAP;
-export const MAX_COLUMNS_PER_PAGE = 5;
 export const MAX_MODULES_PER_CARD = 10;
-export const MAX_MODULES_PER_ROW = MAX_MODULES_PER_CARD;
 
-export const Y_PATH_NUMBERS = 10;
-export const Y_SUPPLY = 10;
 export const Y_FR = 25;
 export const Y_TOP_SWITCH = 45;
-export const Y_TOP_BUS = 95;
 export const Y_MAIN_BUS = 145;
 export const Y_MAIN_DEVICE = 160;
 export const Y_GROUP_BUS = 285;
@@ -67,22 +61,12 @@ export const Y_ROW_POWER = 685;
 export const Y_TABLE_END = 710;
 
 export const CELL_FONT_SIZE = 10.5;
-export const HEADER_FONT_SIZE = 8.5;
 
 export const MODULE_WIDTH = 82;
 export const MODULE_HEIGHT = 90;
 export const MODULE_GAP = 4;
-export const DIN_RAIL_HEIGHT = 36;
-export const DIN_RAIL_AXIS_Y = 18;
 
 export const PAGE_GAP = 40;
-
-export const getContentArea = () => ({
-  x: DRAW_LEFT,
-  y: DRAW_TOP,
-  width: DRAW_WIDTH,
-  height: DRAW_HEIGHT,
-});
 
 export interface PageInfo {
   pageIndex: number;
@@ -152,14 +136,4 @@ export interface SchematicLayout {
   totalWidth: number;
   totalHeight: number;
   frReference: string;
-}
-
-export function createEmptyLayout(): SchematicLayout {
-  return {
-    pages: [],
-    nodes: [],
-    totalWidth: 0,
-    totalHeight: 0,
-    frReference: "",
-  };
 }

@@ -37,14 +37,6 @@ export function zoomOut(viewport: ViewportState, centerX: number, centerY: numbe
   return zoomAtPoint(viewport, centerX, centerY, 1 / ZOOM_FACTOR);
 }
 
-export function panBy(viewport: ViewportState, dx: number, dy: number): ViewportState {
-  return {
-    ...viewport,
-    panX: viewport.panX + dx,
-    panY: viewport.panY + dy,
-  };
-}
-
 export function resetViewport(canvasWidth: number, canvasHeight: number, contentWidth: number, contentHeight: number): ViewportState {
   const scaleX = canvasWidth / contentWidth;
   const scaleY = canvasHeight / contentHeight;

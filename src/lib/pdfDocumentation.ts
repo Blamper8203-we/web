@@ -52,16 +52,6 @@ export function getProtocolLabel(tab: PdfDocumentationPreviewTab): string {
   }
 }
 
-export function buildWorkScopeText(items: TitlePageChecklistItem[]): string {
-  return items
-    .map((item) => (item.isChecked ? item.text : `[ ] ${item.text}`))
-    .join("\n");
-}
-
-export function buildAttachmentText(items: string[]): string {
-  return items.join("\n");
-}
-
 export function parseChecklistItems(text: string): TitlePageChecklistItem[] {
   if (!text.trim()) {
     return [];
@@ -88,18 +78,6 @@ export function parseChecklistItems(text: string): TitlePageChecklistItem[] {
       };
     })
     .filter((item) => item.text.length > 0);
-}
-
-export function parseLineList(text: string): string[] {
-  return text
-    .replace(/\r/g, "")
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .filter((item, index, array) => {
-      const lower = item.toLocaleLowerCase("pl-PL");
-      return array.findIndex((candidate) => candidate.toLocaleLowerCase("pl-PL") === lower) === index;
-    });
 }
 
 export function getSelectedProtocolHeader(

@@ -192,37 +192,3 @@ function snapToSlot(
     slotIndex,
   };
 }
-
-export function snapToNearestRail(
-  _worldX: number,
-  worldY: number,
-  layout: SchematicLayout,
-): { railY: number; railIndex: number; pageIndex: number } | null {
-  let closest: { railY: number; railIndex: number; pageIndex: number; dist: number } | null = null;
-
-  for (const page of layout.pages) {
-    for (const rail of page.dinRails) {
-      const railY = rail.y + page.offsetY;
-      const dist = Math.abs(worldY - railY);
-
-      if (!closest || dist < closest.dist) {
-        closest = {
-          railY,
-          railIndex: rail.railIndex,
-          pageIndex: page.pageIndex,
-          dist,
-        };
-      }
-    }
-  }
-
-  if (closest && closest.dist < VERTICAL_SNAP_THRESHOLD * 3) {
-    return {
-      railY: closest.railY,
-      railIndex: closest.railIndex,
-      pageIndex: closest.pageIndex,
-    };
-  }
-
-  return null;
-}
