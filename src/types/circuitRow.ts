@@ -1,11 +1,9 @@
 import { type DeviceKind } from "./symbolItem";
 
-export type CircuitDeviceKind = DeviceKind;
-
 export interface CircuitRow {
   id: string;
   type: string;
-  deviceKind: CircuitDeviceKind;
+  deviceKind: DeviceKind;
   x: number;
   y: number;
   label: string;
