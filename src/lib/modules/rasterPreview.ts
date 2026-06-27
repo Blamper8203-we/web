@@ -34,24 +34,6 @@ export function serializeParameters(parameters: Record<string, string>): string 
     .join("&");
 }
 
-export function quantizeRasterDimension(
-  value: number,
-  step = DEFAULT_RASTER_CACHE_STEP,
-): number {
-  if (!Number.isFinite(value) || value <= 0) {
-    return 1;
-  }
-
-  if (value <= step) {
-    return Math.max(1, Math.round(value));
-  }
-
-  return Math.max(
-    step,
-    Math.round(value / step) * step,
-  );
-}
-
 export function drawContainedImage(
   context: CanvasRenderingContext2D,
   image: CanvasImageSource,

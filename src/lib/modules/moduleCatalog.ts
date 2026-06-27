@@ -108,14 +108,6 @@ export const PALETTE_GROUPS: PaletteGroup[] = groupOrder
     };
   });
 
-export const PALETTE_TEMPLATE_MAP = new Map(
-  PALETTE_GROUPS.flatMap((group) => group.items.map((item) => [item.templateId, item] as const)),
-);
-
-export function getPaletteTemplateById(templateId: string): PaletteTemplate | undefined {
-  return PALETTE_TEMPLATE_MAP.get(templateId);
-}
-
 export function getModuleSnapAnchorRatioY(moduleRef?: string): number {
   if (!moduleRef) {
     return 0.5;

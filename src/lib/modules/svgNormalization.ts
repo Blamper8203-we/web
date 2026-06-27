@@ -390,20 +390,6 @@ export function serialisePinPositions(positions: DetectedScrewPosition[]): strin
   return positions.map((p) => p.position.toFixed(6)).join(",");
 }
 
-/**
- * Parses a pin position string back into an array of normalised positions.
- */
-export function deserialisePinPositions(serialised: string): number[] {
-  if (!serialised || !serialised.trim()) {
-    return [];
-  }
-
-  return serialised
-    .split(",")
-    .map((s) => Number.parseFloat(s.trim()))
-    .filter((v) => Number.isFinite(v) && v >= 0 && v <= 1);
-}
-
 export function normalizeSvgMarkup(
   svgMarkup: string,
   options: SvgNormalizationOptions = {},
