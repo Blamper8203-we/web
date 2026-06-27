@@ -551,6 +551,7 @@ function AppWorkspace({
 
 import { Outlet, useNavigate, useOutletContext } from "react-router-dom";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
+import { Analytics } from "@vercel/analytics/react";
 
 type AppContextType = {
   initialAction: "new" | "last" | "load_data" | null;
@@ -600,6 +601,12 @@ export function AppLayout() {
     <AppErrorBoundary>
       <Outlet context={contextValue} />
       {isFeedbackModalOpen && <FeedbackModal onClose={() => setIsFeedbackModalOpen(false)} />}
+      {/* WHY: mount Analytics at the router root so it tracks every page view
+          (landing + workspace) without per-route wiring. Sits inside
+          AppErrorBoundary so a render-time crash in the tracked tree still
+          gets reported via Vercel (the script is in <head>, not under the
+          boundary, so it survives render-tree failures). */}
+      <Analytics />
     </AppErrorBoundary>
   );
 }
