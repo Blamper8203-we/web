@@ -149,8 +149,9 @@ export function migrateProjectData<T extends object>(
 // skanuje istniejące symbole i oznacza te, których designation nie zgadza się
 // z automatyczną — żeby nie były nadpisywane.
 //
-// Oznaczona jako `universal: true` bo dotyczy też plików Avalonia (schemaVersion
-// 1 ale z innym kształtem), które nie przechodzą przez `migrateProjectData`.
+// `universal: true` zapewnia, że pliki v2 zapisane PRZED dodaniem markera
+// `appliedMigrations` też przejdą tę migrację raz. Po zapisie z markerem
+// kolejne otwarcia ją pomijają.
 // ----------------------------------------------------------------------------
 import type { SymbolItem } from "../types/symbolItem";
 import { MANUAL_REFERENCE_DESIGNATION_KEY } from "../types/symbolItem";

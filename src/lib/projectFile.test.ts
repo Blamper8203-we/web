@@ -71,57 +71,6 @@ describe("projectFile serialization/parsing with connections", () => {
     expect(parsed.connections).toEqual([]);
   });
 
-  it("parses legacy Avalonia files correctly", () => {
-    const avaloniaProject = {
-      schemaVersion: 1,
-      name: "Firma Testowa",
-      description: "Opis projektu",
-      powerConfig: {
-        voltage: 400,
-        mainProtection: 32,
-        powerKw: 15,
-        phases: 3,
-      },
-      circuitRows: [
-        {
-          id: "sym-1",
-          type: "MCB 1P",
-          label: "MCB 1P",
-          phase: "L1",
-          x: 0,
-          y: 0,
-          parameters: {},
-        },
-      ],
-      dinRailWidth: 1000,
-      dinRailHeight: 500,
-      dinRailAxes: [250],
-      isDinRailVisible: true,
-      dinRailSvgContent: "<svg></svg>",
-    };
-
-    const json = JSON.stringify(avaloniaProject);
-    const parsed = parseProjectFileContent(json);
-
-    expect(parsed.metadata).toBeDefined();
-    expect(parsed.metadata?.company).toBe("Firma Testowa");
-    expect(parsed.metadata?.notes).toBe("Opis projektu");
-    expect(parsed.metadata?.supplyVoltageV).toBe(400);
-    expect(parsed.metadata?.supplyPhases).toBe(3);
-    expect(parsed.metadata?.mainBreakerA).toBe(32);
-    expect(parsed.metadata?.contractedPowerKw).toBe(15);
-
-    expect(parsed.symbols).toHaveLength(1);
-    // X, Y coordinates should be offset by half of the width/height
-    expect(parsed.symbols[0].x).toBe(500); // 0 + 500
-    expect(parsed.symbols[0].y).toBe(250); // 0 + 250
-
-    expect(parsed.rail).toBeDefined();
-    expect(parsed.rail?.width).toBe(1000);
-    expect(parsed.rail?.height).toBe(500);
-    expect(parsed.rail?.rows).toBe(1);
-  });
-
   it("throws validation errors for invalid project files", () => {
     const invalidFormat = {
       version: "2.0",
@@ -144,6 +93,22 @@ describe("projectFile serialization/parsing with connections", () => {
       symbols: [],
     };
     expect(() => parseProjectFileContent(JSON.stringify(futureSchema))).toThrow();
+  });
+
+  it("Avalonia-shape file (no `version` field) → throws (Avalonia support dropped)", () => {
+    // Po PR-1.2 Avalonia support usunięty. Plik w starym formacie Avalonia
+    // (z schemaVersion: 1 ale bez `version`) traktowany jako uszkodzony web v2
+    // → throw zamiast cichego użycia Avalonia-konwertera.
+    const avaloniaShape = {
+      schemaVersion: 1,
+      name: "Firma Testowa",
+      powerConfig: { voltage: 400, mainProtection: 32, powerKw: 15, phases: 3 },
+      circuitRows: [{ id: "sym-1", type: "MCB 1P" }],
+      dinRailWidth: 1000,
+      dinRailHeight: 500,
+      dinRailSvgContent: "<svg></svg>",
+    };
+    expect(() => parseProjectFileContent(JSON.stringify(avaloniaShape))).toThrow();
   });
 
   it("migrates from older web schema versions", () => {

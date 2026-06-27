@@ -2,7 +2,6 @@ import { invoke, isTauri } from "@tauri-apps/api/core";
 import type { ProjectMetadata } from "../types/projectMetadata";
 import { normalizeSymbolItems, type SymbolItem } from "../types/symbolItem";
 import { createDefaultConnection, type ConnectionItem } from "../types/connectionItem";
-import { createEmptyProjectMetadata } from "./projectMetadata";
 import { getModuleAssetUrl } from "./modules/moduleCatalog";
 import { migrateProjectData, runMigrations } from "./projectMigrations";
 
@@ -37,23 +36,9 @@ type RawProjectFileData = {
   metadata?: ProjectMetadata | null;
   symbols?: Partial<SymbolItem>[];
   connections?: Partial<ConnectionItem>[];
-  circuitRows?: Partial<SymbolItem>[];
   version?: string;
   schemaVersion?: number;
   appliedMigrations?: string[];
-  name?: string | null;
-  description?: string | null;
-  powerConfig?: {
-    voltage?: number | null;
-    mainProtection?: number | null;
-    powerKw?: number | null;
-    phases?: number | null;
-  } | null;
-  dinRailSvgContent?: string;
-  dinRailWidth?: number;
-  dinRailHeight?: number;
-  dinRailAxes?: number[];
-  isDinRailVisible?: boolean;
   rail?: {
     svg?: string;
     width?: number;
@@ -126,23 +111,6 @@ function validateWebProjectShape(raw: RawProjectFileData): void {
   }
 }
 
-const MODULE_REF_ALIASES: Record<string, string> = {
-  "Złącza/ZŁĄCZE 3XPEN.svg": "zlacza/zlacze-3xpen.svg",
-  "Złącza/Listwa zaciskowa 5pin (3P+N+PE).svg": "zlacza/listwa-zaciskowa-5pin-3p-n-pe.svg",
-};
-
-function normalizeModuleRefForWeb(moduleRef: string): string {
-  const cleaned = moduleRef
-    .trim()
-    .replace(/\\/g, "/")
-    .replace(/^\/+/, "")
-    .replace(/^Avalonia\/Assets\/Modules\//i, "")
-    .replace(/^Assets\/Modules\//i, "")
-    .replace(/^assets\/modules\//i, "");
-
-  return MODULE_REF_ALIASES[cleaned] ?? cleaned;
-}
-
 function resolveVisualPath(rawVisualPath: unknown, rawModuleRef: unknown): string {
   if (typeof rawVisualPath === "string" && rawVisualPath.trim().length > 0) {
     let path = rawVisualPath;
@@ -161,7 +129,7 @@ function resolveVisualPath(rawVisualPath: unknown, rawModuleRef: unknown): strin
     return "";
   }
 
-  return getModuleAssetUrl(normalizeModuleRefForWeb(rawModuleRef));
+  return getModuleAssetUrl(rawModuleRef);
 }
 
 function resolveModuleSourceType(rawModuleSourceType: unknown, normalizedModuleRef: string): string {
@@ -193,116 +161,26 @@ function normalizeNullableObject<T>(value: T): T {
   return value;
 }
 
-function toProjectMetadataFromAvalonia(raw: RawProjectFileData): ProjectMetadata {
-  const defaults = createEmptyProjectMetadata();
-  const allowedMainBreakers = [25, 32, 40, 63, 80, 100, 125] as const;
-  const voltage = raw.powerConfig?.voltage === 400 ? 400 : 230;
-  const phases = raw.powerConfig?.phases === 1 ? 1 : 3;
-  const mainProtection = Number(raw.powerConfig?.mainProtection);
-  const powerKw = Number(raw.powerConfig?.powerKw);
-  const normalizedName = raw.name?.trim() || "";
-  const resolvedMainBreaker =
-    Number.isFinite(mainProtection) && mainProtection > 0
-      ? allowedMainBreakers.reduce((nearest, candidate) =>
-          Math.abs(candidate - mainProtection) < Math.abs(nearest - mainProtection)
-            ? candidate
-            : nearest,
-        allowedMainBreakers[0])
-      : defaults.mainBreakerA;
-
-  return {
-    ...defaults,
-    company: normalizedName,
-    notes: raw.description?.trim() || defaults.notes,
-    supplyVoltageV: voltage,
-    supplyPhases: phases,
-    mainBreakerA: resolvedMainBreaker,
-    contractedPowerKw: Number.isFinite(powerKw) && powerKw > 0 ? powerKw : defaults.contractedPowerKw,
-  };
-}
-
 function extractProjectSymbols(raw: RawProjectFileData): SymbolItem[] | null {
   if (Array.isArray(raw.symbols)) {
     return normalizeSymbolItems(
       normalizeNullableObject(raw.symbols).map((item) => {
         const rawModuleRef = typeof item?.moduleRef === "string" ? item.moduleRef : "";
-        const normalizedModuleRef = normalizeModuleRefForWeb(rawModuleRef);
 
         return {
           ...item,
           type: typeof item?.type === "string" ? item.type : "",
           label: typeof item?.label === "string" ? item.label : "",
           visualPath: resolveVisualPath(item?.visualPath, rawModuleRef),
-          moduleRef: normalizedModuleRef,
-          moduleSourceType: resolveModuleSourceType(item?.moduleSourceType, normalizedModuleRef),
-          phase: typeof item?.phase === "string" ? item.phase : "L1",
-        };
-      }),
-    );
-  }
-
-  if (Array.isArray(raw.circuitRows)) {
-    return normalizeSymbolItems(
-      normalizeNullableObject(raw.circuitRows).map((item) => {
-        const rawModuleRef = typeof item?.moduleRef === "string" ? item.moduleRef : "";
-        const normalizedModuleRef = normalizeModuleRefForWeb(rawModuleRef);
-
-        return {
-          ...item,
-          type: typeof item?.type === "string" ? item.type : "",
-          label: typeof item?.label === "string" ? item.label : "",
-          visualPath: resolveVisualPath(item?.visualPath, rawModuleRef),
-          moduleRef: normalizedModuleRef,
-          moduleSourceType: resolveModuleSourceType(item?.moduleSourceType, normalizedModuleRef),
-          phase: typeof item?.phase === "string" ? item.phase : "L1",
+          moduleRef: rawModuleRef,
+          moduleSourceType: resolveModuleSourceType(item?.moduleSourceType, rawModuleRef),
+          phase: typeof item?.phase === "string" ? item?.phase : "L1",
         };
       }),
     );
   }
 
   return null;
-}
-
-function normalizeAvaloniaCoordinates(
-  symbols: SymbolItem[],
-  raw: RawProjectFileData,
-): SymbolItem[] {
-  const railWidth = Number(raw.dinRailWidth);
-  const railHeight = Number(raw.dinRailHeight);
-
-  if (!Number.isFinite(railWidth) || !Number.isFinite(railHeight) || railWidth <= 0 || railHeight <= 0) {
-    return symbols;
-  }
-
-  const offsetX = railWidth / 2;
-  const offsetY = railHeight / 2;
-
-  return symbols.map((symbol) => ({
-    ...symbol,
-    x: symbol.x + offsetX,
-    y: symbol.y + offsetY,
-  }));
-}
-
-function toRailFromAvalonia(raw: RawProjectFileData) {
-  const svg = typeof raw.dinRailSvgContent === "string" ? raw.dinRailSvgContent : "";
-  const width = Number(raw.dinRailWidth);
-  const height = Number(raw.dinRailHeight);
-  const rows = Array.isArray(raw.dinRailAxes) && raw.dinRailAxes.length > 0 ? raw.dinRailAxes.length : 1;
-  const modulesPerRow = Number.isFinite(width) && width > 0 ? Math.max(6, Math.min(48, Math.round((width - 120) / 17.5))) : 24;
-
-  if (!svg || !Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
-    return null;
-  }
-
-  return {
-    svg,
-    width,
-    height,
-    rows: Math.max(1, Math.min(10, rows)),
-    modulesPerRow,
-    isVisible: raw.isDinRailVisible !== false,
-  };
 }
 
 function toRailFromWeb(raw: RawProjectFileData): ProjectFileData["rail"] {
@@ -334,42 +212,34 @@ function toRailFromWeb(raw: RawProjectFileData): ProjectFileData["rail"] {
 
 export function parseProjectFileContent(content: string, fileName?: string): ProjectFileData {
   let parsed = normalizeNullableObject(JSON.parse(content) as RawProjectFileData);
-  const hasWebShape = "metadata" in parsed && "symbols" in parsed && "version" in parsed;
-  const hasAvaloniaSchema = typeof parsed.schemaVersion === "number" && parsed.schemaVersion > 0 && !hasWebShape;
 
-  if (hasWebShape && parsed.schemaVersion !== undefined && parsed.schemaVersion < WEB_PROJECT_SCHEMA_VERSION) {
+  // Schema-version migration chain (no-op when registry is empty for this version).
+  if (parsed.schemaVersion !== undefined && parsed.schemaVersion < WEB_PROJECT_SCHEMA_VERSION) {
     parsed = migrateProjectData(parsed, parsed.schemaVersion, WEB_PROJECT_SCHEMA_VERSION);
   }
 
+  validateWebProjectShape(parsed);
+
   const symbols = extractProjectSymbols(parsed);
 
-  if (symbols === null || (!hasWebShape && !hasAvaloniaSchema)) {
+  if (symbols === null) {
     throw new Error("Nieprawidlowy format pliku zlecenia");
   }
 
-  if (hasWebShape) {
-    validateWebProjectShape(parsed);
-  }
-
-  const normalizedSymbols = hasAvaloniaSchema
-    ? normalizeAvaloniaCoordinates(symbols, parsed)
-    : symbols;
-
-  // Run registry-based migrations (universal + versioned). The legacy reference
-  // designation migration operates on `data.symbols`; we run it against a wrapper
-  // shape so the registry sees a uniform Record<string, unknown> interface, then
-  // pick the migrated symbols back out.
+  // Run registry-based migrations against the symbols. Legacy reference designation
+  // migration operates on `data.symbols`; we run it via a wrapper shape so the registry
+  // sees a uniform Record<string, unknown> interface, then pick the migrated symbols back.
   const inputAppliedMigrations = Array.isArray(parsed.appliedMigrations)
     ? parsed.appliedMigrations.filter((entry): entry is string => typeof entry === "string")
     : [];
   const migrationResult = runMigrations(
-    { symbols: normalizedSymbols } as unknown as Record<string, unknown>,
+    { symbols } as unknown as Record<string, unknown>,
     inputAppliedMigrations,
   );
-  const migratedSymbols = (migrationResult.data.symbols as SymbolItem[] | undefined) ?? normalizedSymbols;
+  const migratedSymbols = (migrationResult.data.symbols as SymbolItem[] | undefined) ?? symbols;
 
   let connections: ConnectionItem[] = [];
-  if (hasWebShape && Array.isArray(parsed.connections)) {
+  if (Array.isArray(parsed.connections)) {
     connections = parsed.connections.map((conn: any) => {
       const overrides: Partial<ConnectionItem> = {};
       if (typeof conn.id === "string" && conn.id.trim().length > 0) overrides.id = conn.id;
@@ -422,12 +292,12 @@ export function parseProjectFileContent(content: string, fileName?: string): Pro
   }
 
   return {
-    metadata: hasWebShape ? parsed.metadata ?? null : toProjectMetadataFromAvalonia(parsed),
+    metadata: parsed.metadata ?? null,
     symbols: migratedSymbols,
     connections: validConnections,
     version: parsed.version ?? String(parsed.schemaVersion ?? "1.0"),
     path: fileName,
-    rail: hasAvaloniaSchema ? toRailFromAvalonia(parsed) : toRailFromWeb(parsed),
+    rail: toRailFromWeb(parsed),
     appliedMigrations: migrationResult.appliedMigrations,
   };
 }
