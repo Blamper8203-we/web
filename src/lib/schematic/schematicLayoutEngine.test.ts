@@ -699,7 +699,7 @@ describe("schematicLayoutEngine (Avalonia parity & stable sorting)", () => {
 
     const result = buildSchematicLayout([rcd, ...mcbs]);
 
-    // Root nodes should have 2 chunks representing the RCD head (12 + 3).
+    // Root nodes should have 2 chunks representing the RCD head (10 + 5).
     const rcdNodes = result.nodes.filter((node) => node.id === "rcd-large");
     expect(rcdNodes).toHaveLength(2);
 
