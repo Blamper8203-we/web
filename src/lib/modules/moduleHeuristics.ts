@@ -7,6 +7,7 @@ export const CATEGORY_DEFAULT_HEIGHT_MM: Record<string, number> = {
   RCD: 83,
   MCB: 83,
   "Kontrolki faz": 83,
+  "Blok rozdzielczy": 88,
   Inne: 85,
 };
 

@@ -16,6 +16,7 @@ import {
   normalizePaletteAssetDimensions,
   normalizeGroupConsistency,
   DEFAULT_DIN_RAIL_CONFIG,
+  getProjectFileName,
   type SheetType,
   type RightTab,
 } from "./lib/appHelpers";
@@ -51,6 +52,7 @@ import "./components/WorkspaceHUD.css";
 import type { ProjectFileData } from "./lib/projectFile";
 import { openProjectFile } from "./lib/projectFile";
 import { safeGetItemSync, initStorageService } from "./lib/storageService";
+import { reportRuntimeError } from "./lib/runtimeDiagnostics";
 
 import { useAppPersistence, type AppUiTheme, UI_THEME_STORAGE_KEY } from "./hooks/app/useAppPersistence";
 import { useAppEventBindings } from "./hooks/app/useAppEventBindings";
@@ -285,7 +287,7 @@ function AppWorkspace({
   );
   const errorCount = validationResult.errors.length;
   const warningCount = validationResult.warnings.length;
-  const projectFileName = (currentFilePath ? currentFilePath.split(/[\\/]/).pop() : "Nowe zlecenie") ?? "Nowe zlecenie";
+  const projectFileName = getProjectFileName(currentFilePath);
   const rcdManagerEntries = useMemo<RcdManagerEntry[]>(
     () =>
       symbols
@@ -578,7 +580,7 @@ export function AppLayout() {
         navigate("/app");
       }
     } catch (e) {
-      console.error(e);
+      reportRuntimeError(e, { source: "unhandled-error" });
     }
   }, [navigate]);
 

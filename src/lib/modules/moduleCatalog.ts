@@ -3,7 +3,6 @@ import {
   currentModuleEntries,
   groupOrder,
   groupDisplayNames,
-  moduleEntries,
   DIN_RAIL_UNIT_PER_MODULE,
   DIN_RAIL_PADDING_X,
   MODULE_UNIT_WIDTH,
@@ -55,9 +54,6 @@ export interface PaletteGroup {
   items: PaletteTemplate[];
 }
 
-const INCLUDE_LEGACY_BUILT_IN_MODULES = false;
-
-
 const MODULE_HEIGHT_MM_BY_REF: Record<string, number> = {
   "FR/fr 1P.svg": 80,
   "FR/FR.svg": 80,
@@ -98,18 +94,12 @@ function getPaletteEntryAssetPath(item: ModuleEntry): string {
 
 export const PALETTE_GROUPS: PaletteGroup[] = groupOrder
   .map((category) => {
-    const sourceItems = [
-      ...currentModuleEntries.filter((item) => item.category === category),
-      ...(
-        INCLUDE_LEGACY_BUILT_IN_MODULES
-          ? moduleEntries.filter((item) => item.category === category)
-          : []
-      ),
-    ];
-    const items = sourceItems.map((item) => ({
-      ...item,
-      assetPath: getPaletteEntryAssetPath(item),
-    }));
+    const items = currentModuleEntries
+      .filter((item) => item.category === category)
+      .map((item) => ({
+        ...item,
+        assetPath: getPaletteEntryAssetPath(item),
+      }));
 
     return {
       title: groupDisplayNames[category] ?? category,

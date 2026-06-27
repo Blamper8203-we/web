@@ -40,8 +40,6 @@ export interface DefaultWireSettings {
   ferruleColor?: FerruleColor;
 }
 
-export const DEFAULT_WIRE_SETTINGS_STORAGE_KEY = "dinboard.default_wire_settings";
-
 export function getAutoFerruleColor(crossSection: number): FerruleColor {
   if (crossSection <= 1.5) return "black";
   if (crossSection === 2.5) return "blue";
