@@ -1,7 +1,7 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import type { ProjectMetadata } from "../types/projectMetadata";
 import { normalizeSymbolItems, type SymbolItem } from "../types/symbolItem";
-import { createDefaultConnection, type ConnectionItem } from "../types/connectionItem";
+import { createDefaultConnection, filterConnectionOverrides, type ConnectionItem } from "../types/connectionItem";
 import { getModuleAssetUrl } from "./modules/moduleCatalog";
 import { migrateProjectData, runMigrations } from "./projectMigrations";
 
@@ -240,29 +240,11 @@ export function parseProjectFileContent(content: string, fileName?: string): Pro
 
   let connections: ConnectionItem[] = [];
   if (Array.isArray(parsed.connections)) {
-    connections = parsed.connections.map((conn: any) => {
-      const overrides: Partial<ConnectionItem> = {};
-      if (typeof conn.id === "string" && conn.id.trim().length > 0) overrides.id = conn.id;
-      if (typeof conn.fromSymbolId === "string") overrides.fromSymbolId = conn.fromSymbolId;
-      if (typeof conn.fromTerminal === "string") overrides.fromTerminal = conn.fromTerminal;
-      if (typeof conn.toSymbolId === "string") overrides.toSymbolId = conn.toSymbolId;
-      if (typeof conn.toTerminal === "string") overrides.toTerminal = conn.toTerminal;
-      if (typeof conn.wireColor === "string") overrides.wireColor = conn.wireColor;
-      if (typeof conn.wireCrossSection === "number") overrides.wireCrossSection = conn.wireCrossSection;
-      if (typeof conn.wireType === "string") overrides.wireType = conn.wireType;
-      if (typeof conn.ferruleColor === "string") overrides.ferruleColor = conn.ferruleColor;
-      if (typeof conn.routingMode === "string") overrides.routingMode = conn.routingMode;
-      if (typeof conn.customOffset === "number") overrides.customOffset = conn.customOffset;
-      if (typeof conn.customOffsetX === "number") overrides.customOffsetX = conn.customOffsetX;
-      if (typeof conn.customOffsetY1 === "number") overrides.customOffsetY1 = conn.customOffsetY1;
-      if (typeof conn.customOffsetY2 === "number") overrides.customOffsetY2 = conn.customOffsetY2;
-      if (typeof conn.isFromTop === "boolean") overrides.isFromTop = conn.isFromTop;
-      if (typeof conn.isToTop === "boolean") overrides.isToTop = conn.isToTop;
-      if (Array.isArray(conn.points)) {
-        overrides.points = conn.points.filter((p: any) => typeof p.x === "number" && typeof p.y === "number");
-      }
-      return createDefaultConnection(overrides);
-    });
+    connections = parsed.connections
+      .filter((conn): conn is Record<string, unknown> =>
+        conn !== null && typeof conn === "object" && !Array.isArray(conn),
+      )
+      .map((conn) => createDefaultConnection(filterConnectionOverrides(conn)));
   }
 
   // Drop connections referencing symbols that don't exist (data integrity).
