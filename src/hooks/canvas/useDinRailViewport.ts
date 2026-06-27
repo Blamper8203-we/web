@@ -135,7 +135,13 @@ export function useDinRailViewport({
       return;
     }
 
+    // WHY: preventDefault stops the browser's native page scroll on wheel.
+    // stopPropagation prevents the event from bubbling to higher-level wheel
+    // handlers in App.tsx / global keyboard panels — without it, a single
+    // wheel gesture on the canvas can both zoom the rail AND trigger a
+    // tab-switch or panel-open, depending on listener order in the DOM tree.
     event.preventDefault();
+    event.stopPropagation();
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) {
       return;
