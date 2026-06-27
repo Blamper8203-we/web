@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { type SymbolItem } from "../types/symbolItem";
 import { getSymbolAssetUrl } from "../lib/connections/canvasHelpers";
+import { reportRuntimeError } from "../lib/runtimeDiagnostics";
 
 /** WHY: DinRailRenderedSymbols renders raw SVG via <image href>. For blok rozdzielczy the SVG
  *  contains an <g id="Osłona"> cover group on top of the terminals.
@@ -98,7 +99,7 @@ export function useDinRailForegroundSvgs(symbols: SymbolItem[]) {
               createdUrls.push(objectUrl);
             }
           } catch (e) {
-            console.error("Error fetching foreground SVG for", symbol.id, e);
+            reportRuntimeError(e, { source: "unhandled-error" });
           }
         }
       }

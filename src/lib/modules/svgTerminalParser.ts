@@ -1,5 +1,6 @@
 import { svgTerminalCache, type CachedTerminalGroup } from "./svgTerminalCache";
 import { loadRawSvg } from "./svgAsset";
+import { reportRuntimeError } from "../runtimeDiagnostics";
 
 /**
  * Parsuje kod SVG lub pobiera go z URLa i wyciąga współrzędne grup terminali.
@@ -26,7 +27,7 @@ export async function parseSvgForTerminals(urlOrRawSvg: string, moduleRef: strin
             svgText = decodeURIComponent(payload);
           }
         } catch (e) {
-          console.error("Failed to decode SVG data URI:", e);
+          reportRuntimeError(e, { source: "unhandled-error" });
         }
       }
     } else if (urlOrRawSvg.startsWith("/") || (urlOrRawSvg.includes(".svg") && !urlOrRawSvg.includes("image/svg+xml"))) {
@@ -130,6 +131,6 @@ export async function parseSvgForTerminals(urlOrRawSvg: string, moduleRef: strin
     }
 
   } catch (err) {
-    console.error("Failed to parse SVG for terminals:", err);
+    reportRuntimeError(err, { source: "unhandled-error" });
   }
 }
