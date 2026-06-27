@@ -7,7 +7,7 @@ import {
 } from "../schematicLayout";
 
 export const COLORS = {
-  page: "#ffffff",
+  page: "#FAF9F6",
   frame: "#6c727c",
   grid: "#d2d7df",
   gridText: "#90959f",

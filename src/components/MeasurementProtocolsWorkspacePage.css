@@ -29,7 +29,7 @@
 .a4-page {
   width: 210mm;
   height: 297mm;
-  background-color: #ffffff;
+  background-color: #FAF9F6;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
   padding: 15mm 15mm 15mm 15mm;
   box-sizing: border-box;
@@ -245,6 +245,7 @@
 .overflow-x-auto { overflow-x: auto; }
 .overflow-hidden { overflow: hidden; }
 .hover\:bg-gray-100:hover { background-color: #f3f4f6; }
+table { background-color: #ffffff; }
 table th, table td { padding: 4px 8px; }
 table thead th { background-color: rgba(249, 250, 251, 0.8); }
 
@@ -280,6 +281,8 @@ table thead th { background-color: rgba(249, 250, 251, 0.8); }
   min-height: 140mm;
   padding: 10mm;
   background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -335,6 +338,8 @@ table thead th { background-color: rgba(249, 250, 251, 0.8); }
   align-items: center;
   justify-content: center;
   background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
   padding: 4mm;
   box-sizing: border-box;
   overflow: hidden;

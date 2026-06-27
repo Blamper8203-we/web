@@ -17,10 +17,10 @@ Font.register({
 });
 
 export const pdfStyles = StyleSheet.create({
-  page: { padding: 30, fontFamily: "Arial", color: "#111827", backgroundColor: "#FFFFFF" },
-  landscapePage: { padding: 30, fontFamily: "Arial", color: "#111827", backgroundColor: "#FFFFFF" },
+  page: { padding: 30, fontFamily: "Arial", color: "#111827", backgroundColor: "#FAF9F6" },
+  landscapePage: { padding: 30, fontFamily: "Arial", color: "#111827", backgroundColor: "#FAF9F6" },
   previewA4Page: { padding: A4_PREVIEW_PADDING },
-  titlePage: { paddingHorizontal: 30, paddingVertical: 20, fontFamily: "Arial", color: "#111827", backgroundColor: "#FFFFFF" },
+  titlePage: { paddingHorizontal: 30, paddingVertical: 20, fontFamily: "Arial", color: "#111827", backgroundColor: "#FAF9F6" },
   
   // Layout basics
   flex: { display: "flex" },
@@ -112,11 +112,11 @@ export const pdfStyles = StyleSheet.create({
   pt4: { paddingTop: 16 },
   ml2: { marginLeft: 8 },
   
-  logoBox: { width: 40, height: 40, borderRadius: 8, overflow: "hidden", justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "#CBD5E1", borderStyle: "solid", padding: 3 },
+  logoBox: { width: 40, height: 40, borderRadius: 8, overflow: "hidden", justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "#CBD5E1", borderStyle: "solid", padding: 3, backgroundColor: "#FFFFFF" },
   logoImage: { width: "100%", height: "100%", objectFit: "contain" },
   logoPlaceholderText: { color: "#9AA3B4", fontSize: 8, fontWeight: "bold" },
   
-  checkboxContainer: { width: 14, height: 14, borderRadius: 3, backgroundColor: "transparent", borderWidth: 1, borderColor: "#1e3a5f", borderStyle: "solid", justifyContent: "center", alignItems: "center", marginRight: 8 },
+  checkboxContainer: { width: 14, height: 14, borderRadius: 3, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#1e3a5f", borderStyle: "solid", justifyContent: "center", alignItems: "center", marginRight: 8 },
   checkboxChecked: { color: "#1e3a5f", fontSize: 10, fontWeight: "bold" },
   
   tableCellHeader: {

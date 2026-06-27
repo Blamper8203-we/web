@@ -684,9 +684,8 @@ describe("schematicLayoutEngine (Avalonia parity & stable sorting)", () => {
     });
 
     // Create 15 MCB symbols under this RCD group so the chunking logic is
-    // exercised. MAX_MODULES_PER_CARD is 12 (raised from 9 so the schematic
-    // accommodates the GSU/Główna Szyna Uziemiająca terminal), so 15 children
-    // force a split into one chunk of 12 + one continuation chunk of 3.
+    // exercised. MAX_MODULES_PER_CARD is 10, so 15 children force a split
+    // into one chunk of 10 + one continuation chunk of 5.
     const mcbs = Array.from({ length: 15 }, (_, i) =>
       createDefaultSymbolItem({
         id: `mcb-${i + 1}`,
@@ -708,11 +707,11 @@ describe("schematicLayoutEngine (Avalonia parity & stable sorting)", () => {
     const chunk2 = rcdNodes[1];
 
     expect(chunk1.nodeType).toBe("RCD");
-    expect(chunk1.children).toHaveLength(12);
+    expect(chunk1.children).toHaveLength(10);
     expect(chunk1.protection).not.toContain("(cd.)");
 
     expect(chunk2.nodeType).toBe("RCD");
-    expect(chunk2.children).toHaveLength(3);
+    expect(chunk2.children).toHaveLength(5);
     expect(chunk2.protection).toContain("(cd.)");
 
     // All 15 MCBs should be accounted for as children across the two RCD chunks
