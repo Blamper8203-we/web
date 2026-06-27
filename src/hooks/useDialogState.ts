@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { App as CapApp } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
 
@@ -67,16 +67,8 @@ export function useDialogState() {
     });
 
     return () => {
-      backListener.then((l) => l.remove());
+      backListener.then((l) => l.remove()).catch(() => {});
     };
-  }, []);
-
-  const closeAllDialogs = useCallback(() => {
-    setIsRcdManagerOpen(false);
-    setIsHelpOpen(false);
-    setSvgImportDialogOpen(false);
-    setImportedModulesManagerOpen(false);
-    setUnsavedChangesActionType(null);
   }, []);
 
   return useMemo(
@@ -94,9 +86,6 @@ export function useDialogState() {
       setSvgImportDialogOpen,
       setImportedModulesManagerOpen,
       setUnsavedChangesActionType,
-
-      // Handlers
-      closeAllDialogs,
     }),
     [
       isRcdManagerOpen,
@@ -104,7 +93,6 @@ export function useDialogState() {
       svgImportDialogOpen,
       importedModulesManagerOpen,
       unsavedChangesActionType,
-      closeAllDialogs,
     ],
   );
 }
