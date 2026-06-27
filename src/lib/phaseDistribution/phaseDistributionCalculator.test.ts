@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { applyBalancePlan, autoBalancePhases, calculateTotalDistribution } from './phaseDistributionCalculator';
+import { applyBalancePlan, autoBalancePhases, calculateTotalDistribution, distributePower } from './phaseDistributionCalculator';
 import { createDefaultSymbolItem, type SymbolItem } from '../../types/symbolItem';
 
 describe('phaseDistributionCalculator', () => {
@@ -188,5 +188,32 @@ describe('phaseDistributionCalculator', () => {
     expect(result.l1PowerW).toBe(1000);
     expect(result.l2PowerW).toBe(0);
     expect(result.l3PowerW).toBe(0);
+  });
+});
+
+describe('distributePower - edge cases', () => {
+  // WHY: distributePower(powerW, phase) returns [L1, L2, L3]. The contract
+  // is "no power in, no power out" — negative or zero power must short-circuit
+  // to [0, 0, 0] regardless of phase, otherwise a stale data row would silently
+  // subtract power from a phase and break the imbalance calculation downstream.
+
+  it('returns zeros for negative power regardless of phase', () => {
+    expect(distributePower(-100, 'L1')).toEqual([0, 0, 0]);
+    expect(distributePower(-100, 'L2')).toEqual([0, 0, 0]);
+    expect(distributePower(-100, 'L3')).toEqual([0, 0, 0]);
+    expect(distributePower(-100, 'L1+L2+L3')).toEqual([0, 0, 0]);
+  });
+
+  it('returns zeros for zero power regardless of phase', () => {
+    expect(distributePower(0, 'L1')).toEqual([0, 0, 0]);
+    expect(distributePower(0, 'L2+L3')).toEqual([0, 0, 0]);
+  });
+
+  it('distributes positive power across phases symmetrically for L1+L2+L3', () => {
+    // 900W / 3 = 300W per phase — verify the symmetric 3-phase split.
+    const [l1, l2, l3] = distributePower(900, 'L1+L2+L3');
+    expect(l1).toBe(300);
+    expect(l2).toBe(300);
+    expect(l3).toBe(300);
   });
 });
