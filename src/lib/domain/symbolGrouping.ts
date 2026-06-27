@@ -94,6 +94,12 @@ export function applyInheritedRcdInfo(symbols: SymbolItem[], symbol: SymbolItem,
 
   const rcdSource = resolveRcdSource(symbols, snapTarget);
   if (!rcdSource || rcdSource.id === symbol.id) {
+    // WHY: zero out ALL four RCD fields together, not just rcdSymbolId.
+    // If we cleared rcdSymbolId but left rcdRatedCurrent/residualCurrent/type
+    // stale, the symbol would silently report inherited values for an RCD
+    // it is no longer attached to. The PDF (PdfRcdTablePage) renders all four
+    // fields directly from the symbol — any stale value becomes a
+    // misattributed RCD in the protocol.
     symbol.rcdSymbolId = "";
     symbol.rcdRatedCurrent = 0;
     symbol.rcdResidualCurrent = 0;

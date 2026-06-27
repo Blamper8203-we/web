@@ -34,6 +34,12 @@ export function distributePower(powerW: number, phase: PhaseAssignment | string 
     case "L1+L2": return [powerW / 2, powerW / 2, 0];
     case "L1+L3": return [powerW / 2, 0, powerW / 2];
     case "L2+L3": return [0, powerW / 2, powerW / 2];
+    // WHY: order matters in the switch labels above — "L1+L3" splits equally
+    // across L1 and L3, but "L3+L1" (reversed) does NOT match any case and
+    // falls through to the L1-only default branch, returning [powerW, 0, 0].
+    // Callers must normalize the phase string before calling. PhaseAssignment
+    // type guarantees a canonical order (L1<L2<L3), so user-supplied strings
+    // from the schema are safe — but ad-hoc strings elsewhere are not.
     // "L1" and default
     default: return [powerW, 0, 0];
   }
@@ -195,6 +201,13 @@ export function autoBalancePhases(
     };
 
     const powerWeight = mcbs.reduce((sum, m) => sum + getSymbolWeight(m, mode, voltage), 0);
+    // WHY: ZERO_POWER_UNIT_WEIGHT is a tiny non-zero fallback (0.001) instead
+    // of 0 — if all MCBs in a group report zero power, the balancing algo
+    // would otherwise treat the group as infinitely divisible (divide by
+    // weight = 0). Using a tiny weight still lets the algo pick a phase for
+    // the group, while keeping zero-power groups a vanishingly small slice
+    // of the overall balance — so they don't visibly skew the result, but
+    // they DO get assigned to some phase.
     unit.totalWeight = powerWeight > 0 ? powerWeight : ZERO_POWER_UNIT_WEIGHT * Math.max(mcbs.length, 1);
     plan.units.push(unit);
 

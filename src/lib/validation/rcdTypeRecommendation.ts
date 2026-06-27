@@ -44,6 +44,12 @@ export function getRcdTypeRecommendation(
   );
 
   if (
+    // WHY: hasAnyToken does case-insensitive Polish-aware substring matching
+    // against a normalized text (lowercased + diacritics stripped). It
+    // returns true if ANY token matches — this is an OR, not AND. The first
+    // match wins, so token lists must be ordered most-specific → least-
+    // specific. Adding "PV" anywhere outside the B block would steal matches
+    // from a hypothetical PV inverter circuit (which should get B).
     hasAnyToken(text, [
       "FALOWNIK",
       "INWERTER",
