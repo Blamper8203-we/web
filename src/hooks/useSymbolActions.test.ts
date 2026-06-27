@@ -186,40 +186,42 @@ describe("useSymbolActions hook", () => {
       expect(commands).toHaveLength(0);
     });
 
-    it("prevents double-execution when called twice with stale closure (race condition guard)", () => {
-      // Uses isDeletingRef synchronously to prevent re-entry
+    it("executes delete on each sequential call (lock prevents re-entry only within the synchronous call frame)", () => {
+      // WHY: useSymbolClipboard.handleDeleteSelected has `isDeletingRef` to
+      // block re-entry while inside the synchronous call frame. In the mocked
+      // test environment, executeSymbolsCommand is synchronous, so the lock is
+      // released in the `finally` block BEFORE the second call begins — meaning
+      // the second call always succeeds. The lock matters in production code
+      // paths where the first call schedules work that re-enters
+      // handleDeleteSelected before the `finally` runs (e.g. a state update
+      // flushing synchronously into a keydown handler); that scenario cannot
+      // be reproduced here without re-binding executeSymbolsCommand to a
+      // re-entrant mock.
+      //
+      // This test pins the contract that sequential calls are independent:
+      // each call produces exactly one command, regardless of how many times
+      // the user "presses Delete" between renders.
 
       const s1 = createDefaultSymbolItem({ id: "s1" });
       const s2 = createDefaultSymbolItem({ id: "s2" });
 
-      // Simulate double Delete press: call handleDeleteSelected twice
-      // The second call should be blocked by the synchronous lock.
-      // Since both calls happen in the same microtask, executeSymbolsCommand
-      // hasn't finished yet, so the lock prevents re-entry.
       const { result, commands } = setup({
         symbols: [s1, s2],
         selectedSymbolIds: ["s1"],
       });
 
-      // Make executeSymbolsCommand synchronous (mock doesn't await anything)
       act(() => {
         result.current.handleDeleteSelected();
       });
 
       expect(commands).toHaveLength(1);
 
-      // Second call - lock was released after first call completed
-      // Now selectedSymbolIdsRef should still be ["s1"] (useEffect hasn't run),
-      // but symbolsRef still has both symbols.
-      // The lock is released, so this would execute again...
-      // UNLESS we also check the refs.
-      // Actually the lock just prevents concurrent execution, not sequential.
-      // Let's test the concurrent case instead.
+      // Second call after the first finished — lock is released, so this
+      // produces another command (not blocked by the sequential-after pattern).
       act(() => {
         result.current.handleDeleteSelected();
       });
 
-      // Second call succeeds normally because lock is released
       expect(commands).toHaveLength(2);
     });
 

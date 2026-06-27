@@ -95,10 +95,25 @@ function loadFixture(): DinboardProject {
 describe("ferrule + wire consistency — testProject.dinboard", () => {
   const project = loadFixture();
 
-  it("fixture loads with expected shape (schemaVersion 2, 7 symbols, 20 connections)", () => {
-    expect(project.schemaVersion).toBe(2);
-    expect(project.symbols).toHaveLength(7);
-    expect(project.connections).toHaveLength(20);
+  it("fixture loads and contains the modules referenced by other tests in this file", () => {
+    // WHY: this used to pin counts (7 symbols, 20 connections) — that was a
+    // history guard. Adding a new module to testProject.dinboard would break
+    // this test for no behavioral reason. The actual contract is: every
+    // fixture symbol referenced by the tests below must exist, and the file
+    // must parse. Counts are NOT pinned — they are free to grow when new
+    // edge-case scenarios are added to the fixture.
+
+    expect(project.schemaVersion).toBeGreaterThanOrEqual(2);
+    expect(project.symbols.length).toBeGreaterThan(0);
+    expect(project.connections.length).toBeGreaterThan(0);
+
+    // Pin the existence of specific modules the downstream tests depend on.
+    // If you rename a symbol here, you must update the matching find() in
+    // the test below.
+    expect(project.symbols.find((s) => s.type === "Blok rozdzielczy")).toBeDefined();
+    expect(project.symbols.find((s) => s.label === "Listwa 15 pin N")).toBeDefined();
+    expect(project.symbols.find((s) => s.label === "Złączka N 2-zaciskowa")).toBeDefined();
+    expect(project.symbols.find((s) => s.type === "RCD")).toBeDefined();
   });
 
   describe("ferrule color consistency", () => {
