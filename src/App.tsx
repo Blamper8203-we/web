@@ -552,6 +552,7 @@ function AppWorkspace({
 import { Outlet, useNavigate, useOutletContext } from "react-router-dom";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { Analytics } from "@vercel/analytics/react";
+import { Helmet } from "react-helmet-async";
 
 type AppContextType = {
   initialAction: "new" | "last" | "load_data" | null;
@@ -614,22 +615,56 @@ export function AppLayout() {
 function LandingRoute() {
   const { handleOpenNewProject, handleOpenProjectFile, openFeedback } = useOutletContext<AppContextType>();
   return (
-    <PublicLandingPage
-      onOpenNewProject={handleOpenNewProject}
-      onOpenProjectFile={handleOpenProjectFile}
-      onOpenFeedback={openFeedback}
-    />
+    <>
+      {/* WHY: per-route head meta. vite-react-ssg renders this template into
+          both dist/index.html and dist/app.html, so without Helmet both URLs
+          would have identical canonical/og:url pointing to / — Google would
+          then consolidate /app into / as a duplicate. Helmet adds the
+          page-specific tags at SSG render time so each route owns its own
+          canonical URL and social-share preview. */}
+      <Helmet>
+        <title>DINBoard Web – Projektowanie schematu instalacji elektrycznej</title>
+        <meta name="description" content="DINBoard to profesjonalna aplikacja dla elektryków umożliwiająca projektowanie rozdzielnic, tworzenie obwodów, obliczanie bilansu mocy oraz generowanie dokumentacji zgodnej z polskimi standardami." />
+        <link rel="canonical" href="https://dinboard.pl/" />
+        <meta property="og:title" content="DINBoard Web – Projektowanie Rozdzielnic Elektrycznych" />
+        <meta property="og:description" content="Aplikacja dla elektryków umożliwiająca projektowanie rozdzielnic, tworzenie obwodów, obliczanie bilansu mocy oraz generowanie dokumentacji instalacji elektrycznych." />
+        <meta property="og:url" content="https://dinboard.pl/" />
+        <meta name="twitter:title" content="DINBoard Web – Projektowanie Rozdzielnic Elektrycznych" />
+        <meta name="twitter:description" content="Aplikacja dla elektryków do projektowania rozdzielnic, obliczania bilansu mocy i generowania dokumentacji." />
+      </Helmet>
+      <PublicLandingPage
+        onOpenNewProject={handleOpenNewProject}
+        onOpenProjectFile={handleOpenProjectFile}
+        onOpenFeedback={openFeedback}
+      />
+    </>
   );
 }
 
 function AppRoute() {
   const { initialAction, initialData, openFeedback } = useOutletContext<AppContextType>();
   return (
-    <AppWorkspace
-      initialAction={initialAction}
-      initialData={initialData}
-      onOpenFeedback={openFeedback}
-    />
+    <>
+      {/* WHY: /app is the actual work surface (workspace editor). Without a
+          page-specific canonical and og:url, /app is treated as a duplicate
+          of / (Google indexes the canonical URL). See LandingRoute comment
+          for full context. */}
+      <Helmet>
+        <title>DINBoard – Otwórz lub utwórz projekt rozdzielnicy</title>
+        <meta name="description" content="Otwórz istniejący projekt rozdzielnicy elektrycznej lub utwórz nowy. Edytor DIN rail, schemat obwodów, bilans mocy, dokumentacja PDF." />
+        <link rel="canonical" href="https://dinboard.pl/app" />
+        <meta property="og:title" content="DINBoard – Otwórz lub utwórz projekt rozdzielnicy" />
+        <meta property="og:description" content="Otwórz istniejący projekt lub utwórz nowy. Edytor rozdzielnicy, schemat obwodów, bilans mocy, dokumentacja PDF zgodna z PN-HD 60364." />
+        <meta property="og:url" content="https://dinboard.pl/app" />
+        <meta name="twitter:title" content="DINBoard – Otwórz lub utwórz projekt rozdzielnicy" />
+        <meta name="twitter:description" content="Otwórz istniejący projekt lub utwórz nowy. Edytor rozdzielnicy, schemat obwodów, bilans mocy, dokumentacja PDF." />
+      </Helmet>
+      <AppWorkspace
+        initialAction={initialAction}
+        initialData={initialData}
+        onOpenFeedback={openFeedback}
+      />
+    </>
   );
 }
 
