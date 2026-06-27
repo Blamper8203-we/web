@@ -73,12 +73,24 @@ export function UnifiedProtocolsTab({
                       <input className="mp-editable text-gray-900 font-medium flex-grow" value={protocols.insulationMeterName || ""} placeholder="..." onChange={(e) => updateProtocols({ insulationMeterName: e.target.value })} />
                     </div>
                     <div className="flex items-center">
+                      <span className="font-bold text-gray-600 mr-2 shrink-0">Nr ser. (Pętla):</span>
+                      <input className="mp-editable text-gray-900 font-medium flex-grow" value={protocols.loopMeterSerialNumber || ""} placeholder="..." onChange={(e) => updateProtocols({ loopMeterSerialNumber: e.target.value })} />
+                    </div>
+                    <div className="flex items-center">
+                      <span className="font-bold text-gray-600 mr-2 shrink-0">Nr ser. (Izolacja):</span>
+                      <input className="mp-editable text-gray-900 font-medium flex-grow" value={protocols.insulationMeterSerialNumber || ""} placeholder="..." onChange={(e) => updateProtocols({ insulationMeterSerialNumber: e.target.value })} />
+                    </div>
+                    <div className="flex items-center">
+                      <span className="font-bold text-gray-600 mr-2 shrink-0">Napięcie sieci:</span>
+                      <input className="mp-editable text-gray-900 font-semibold bg-gray-100 px-1.5 py-0.5 rounded w-24" value={protocols.loopNetworkVoltage || ""} placeholder="np. 230/400V" onChange={(e) => updateProtocols({ loopNetworkVoltage: e.target.value })} />
+                    </div>
+                    <div className="flex items-center">
+                      <span className="font-bold text-gray-600 mr-2 shrink-0">Układ sieci:</span>
+                      <input className="mp-editable text-gray-900 font-semibold bg-gray-100 px-1.5 py-0.5 rounded flex-grow" value={protocols.loopNetworkSystem || ""} placeholder="np. TN-S / TN-C-S" onChange={(e) => updateProtocols({ loopNetworkSystem: e.target.value })} />
+                    </div>
+                    <div className="flex items-center">
                       <span className="font-bold text-gray-600 mr-2 shrink-0">Napięcie próby:</span>
                       <input className="mp-editable text-gray-900 font-semibold bg-gray-100 px-1.5 py-0.5 rounded w-16" value={protocols.insulationTestVoltage || "500V"} onChange={(e) => updateProtocols({ insulationTestVoltage: e.target.value })} />
-                    </div>
-                    <div className="flex items-center justify-end">
-                      <span className="font-bold text-gray-600 mr-2">Układ sieci:</span>
-                      <span className="text-brand font-bold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">TN-S / TN-C-S</span>
                     </div>
                   </div>
                 </div>
@@ -137,6 +149,22 @@ export function UnifiedProtocolsTab({
                 <div className="mt-4 text-[9px] text-gray-500 leading-relaxed space-y-1">
                   <p><span className="font-bold">Uwaga:</span> Wszystkie odbiorniki elektryczne na czas pomiaru rezystancji izolacji zostały odłączone. Pomiary przeprowadzono przy napięciu probierczym stałym {protocols.insulationTestVoltage || "500V"}.</p>
                   <p><span className="font-bold">Legenda:</span> <span className="font-semibold text-gray-700">In</span> - prąd znamionowy zabezpieczenia, <span className="font-semibold text-gray-700">Zs</span> - zmierzona impedancja pętli zwarcia, <span className="font-semibold text-gray-700">Zadm</span> - maksymalna dopuszczalna impedancja pętli zwarcia warunkująca szybkie wyłączenie.</p>
+                </div>
+              )}
+
+              {isLastPage && (
+                <div className="mt-4">
+                  <div className="bg-gray-100 text-gray-800 text-[10px] font-bold px-3 py-1.5 rounded-t-lg border border-gray-200">
+                    3. Zalecenia
+                  </div>
+                  <div className="border-x border-b border-gray-200 rounded-b-lg p-3 bg-white">
+                    <textarea
+                      className="mp-editable text-gray-900 w-full text-xs leading-relaxed min-h-[80px] resize-y"
+                      value={protocols.recommendationsText || ""}
+                      placeholder="np. Wymienić zabezpieczenie nadprądowe F3 w obwodzie oświetlenia..."
+                      onChange={(e) => updateProtocols({ recommendationsText: e.target.value })}
+                    />
+                  </div>
                 </div>
               )}
             </div>

@@ -62,13 +62,25 @@ export function PdfUnifiedTablePage({
               <Text style={[styles.textXs, styles.fontBold, styles.textGray600, styles.mr2]}>Miernik (Izolacja):</Text>
               <Text style={[styles.textXs, styles.fontMedium, styles.textGray900]}>{protocolValue(metadata.measurementProtocols?.insulationMeterName, "....................")}</Text>
             </View>
+            <View style={[styles.flexRow, styles.itemsCenter, { width: "50%", marginBottom: 8 }]}>
+              <Text style={[styles.textXs, styles.fontBold, styles.textGray600, styles.mr2]}>Nr ser. (Pętla):</Text>
+              <Text style={[styles.textXs, styles.fontMedium, styles.textGray900]}>{protocolValue(metadata.measurementProtocols?.loopMeterSerialNumber, "....................")}</Text>
+            </View>
+            <View style={[styles.flexRow, styles.itemsCenter, { width: "50%", marginBottom: 8 }]}>
+              <Text style={[styles.textXs, styles.fontBold, styles.textGray600, styles.mr2]}>Nr ser. (Izolacja):</Text>
+              <Text style={[styles.textXs, styles.fontMedium, styles.textGray900]}>{protocolValue(metadata.measurementProtocols?.insulationMeterSerialNumber, "....................")}</Text>
+            </View>
+            <View style={[styles.flexRow, styles.itemsCenter, { width: "50%", marginBottom: 8 }]}>
+              <Text style={[styles.textXs, styles.fontBold, styles.textGray600, styles.mr2]}>Napięcie sieci:</Text>
+              <Text style={[styles.textXs, styles.fontSemiBold, styles.textGray900, styles.bgGray100, styles.px1, styles.rounded]}>{protocolValue(metadata.measurementProtocols?.loopNetworkVoltage, "230/400V")}</Text>
+            </View>
+            <View style={[styles.flexRow, styles.itemsCenter, { width: "50%", marginBottom: 8 }]}>
+              <Text style={[styles.textXs, styles.fontBold, styles.textGray600, styles.mr2]}>Układ sieci:</Text>
+              <Text style={[styles.textXs, styles.fontSemiBold, styles.textGray900, styles.bgGray100, styles.px1, styles.rounded]}>{protocolValue(metadata.measurementProtocols?.loopNetworkSystem, "TN-S / TN-C-S")}</Text>
+            </View>
             <View style={[styles.flexRow, styles.itemsCenter, { width: "50%" }]}>
               <Text style={[styles.textXs, styles.fontBold, styles.textGray600, styles.mr2]}>Napięcie próby:</Text>
               <Text style={[styles.textXs, styles.fontSemiBold, styles.textGray900, styles.bgGray100, styles.px1, styles.rounded]}>{protocolValue(metadata.measurementProtocols?.insulationTestVoltage, "500V")}</Text>
-            </View>
-            <View style={[styles.flexRow, styles.itemsCenter, styles.justifyEnd, { width: "50%" }]}>
-              <Text style={[styles.textXs, styles.fontBold, styles.textGray600, styles.mr2]}>Układ sieci:</Text>
-              <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.bgBlue50, styles.px1, styles.rounded, styles.borderBlue100]}>TN-S / TN-C-S</Text>
             </View>
           </View>
         </View>
@@ -138,6 +150,17 @@ export function PdfUnifiedTablePage({
         <View style={[styles.mt4]}>
           <Text style={[styles.textXs, styles.textGray500, styles.mb1]}><Text style={styles.fontBold}>Uwaga:</Text> Wszystkie odbiorniki elektryczne na czas pomiaru rezystancji izolacji zostały odłączone. Pomiary przeprowadzono przy napięciu probierczym stałym {protocolValue(metadata.measurementProtocols?.insulationTestVoltage, "500V")}.</Text>
           <Text style={[styles.textXs, styles.textGray500]}><Text style={styles.fontBold}>Legenda:</Text> In - prąd znamionowy zabezpieczenia, Zs - zmierzona impedancja pętli zwarcia, Zadm - maksymalna dopuszczalna impedancja pętli zwarcia warunkująca szybkie wyłączenie.</Text>
+        </View>
+      )}
+
+      {isLastPage && metadata.measurementProtocols?.recommendationsText && (
+        <View style={styles.mt4}>
+          <View style={[styles.bgGray100, styles.px3, styles.py2, styles.rounded, styles.border, { borderBottomWidth: 0, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }]}>
+            <Text style={[styles.textXs, styles.fontBold, styles.textGray800]}>3. Zalecenia</Text>
+          </View>
+          <View style={[styles.bgWhite, styles.p3, styles.border, styles.rounded, { borderTopLeftRadius: 0, borderTopRightRadius: 0 }]}>
+            <Text style={[styles.textXs, styles.textGray900, styles.fontMedium, { lineHeight: 1.5 }]}>{metadata.measurementProtocols.recommendationsText}</Text>
+          </View>
         </View>
       )}
 
