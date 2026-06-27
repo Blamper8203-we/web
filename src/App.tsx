@@ -492,10 +492,6 @@ function AppWorkspace({
           handleMetadataChange: handleMetadataChange,
           handleOpenRcdManager: handleOpenRcdManager,
           onScrollToSchematicPage: schematic.handleScrollToSchematicPage,
-          connections,
-          selectedConnectionId,
-          onConnectionSelect: setSelectedConnectionId,
-          onConnectionsChange: handleConnectionsChange,
         }}
         pdfProps={{
           metadata,
