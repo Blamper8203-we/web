@@ -343,3 +343,67 @@ describe("projectFile round-trip (no data loss)", () => {
   });
 });
 
+describe("projectFile appliedMigrations marker", () => {
+  it("parse dodaje appliedMigrations z zarejestrowanymi migracjami", () => {
+    const json = serializeProjectFileContent(
+      createEmptyProjectMetadata(),
+      [],
+      null,
+      [],
+    );
+    const parsed = parseProjectFileContent(json);
+
+    expect(parsed.appliedMigrations).toBeDefined();
+    expect(parsed.appliedMigrations).toContain("v1-to-v2:legacyReferenceDesignations");
+  });
+
+  it("serialize + parse round-trip zachowuje appliedMigrations", () => {
+    const metadata = createEmptyProjectMetadata();
+    const serialized = serializeProjectFileContent(metadata, [], null, []);
+    const parsed = parseProjectFileContent(serialized);
+
+    const serializedAgain = serializeProjectFileContent(
+      parsed.metadata!,
+      parsed.symbols,
+      parsed.rail,
+      parsed.connections,
+      parsed.appliedMigrations,
+    );
+
+    const parsedAgain = JSON.parse(serializedAgain) as { appliedMigrations?: string[] };
+    expect(parsedAgain.appliedMigrations).toContain("v1-to-v2:legacyReferenceDesignations");
+  });
+
+  it("plik bez appliedMigrations (stary format) → uruchamia migracje i ustawia marker", () => {
+    const oldFileJson = JSON.stringify({
+      schemaVersion: 2,
+      version: "2.0",
+      metadata: createEmptyProjectMetadata(),
+      symbols: [],
+      rail: null,
+    });
+
+    const parsed = parseProjectFileContent(oldFileJson);
+
+    expect(parsed.appliedMigrations).toBeDefined();
+    expect(parsed.appliedMigrations!.length).toBeGreaterThan(0);
+    expect(parsed.appliedMigrations).toContain("v1-to-v2:legacyReferenceDesignations");
+  });
+
+  it("serialize bez appliedMigrations pomija pole w pliku (nie zapisuje pustej tablicy)", () => {
+    const metadata = createEmptyProjectMetadata();
+    const serialized = serializeProjectFileContent(metadata, [], null, []);
+
+    const asObject = JSON.parse(serialized) as { appliedMigrations?: unknown };
+    expect(asObject.appliedMigrations).toBeUndefined();
+  });
+
+  it("serialize z pustą tablicą appliedMigrations pomija pole (leniwe zapis)", () => {
+    const metadata = createEmptyProjectMetadata();
+    const serialized = serializeProjectFileContent(metadata, [], null, [], []);
+
+    const asObject = JSON.parse(serialized) as { appliedMigrations?: unknown };
+    expect(asObject.appliedMigrations).toBeUndefined();
+  });
+});
+

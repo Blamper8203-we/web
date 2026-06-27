@@ -1,11 +1,10 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import type { ProjectMetadata } from "../types/projectMetadata";
-import { normalizeSymbolItems, type SymbolItem, MANUAL_REFERENCE_DESIGNATION_KEY } from "../types/symbolItem";
+import { normalizeSymbolItems, type SymbolItem } from "../types/symbolItem";
 import { createDefaultConnection, type ConnectionItem } from "../types/connectionItem";
 import { createEmptyProjectMetadata } from "./projectMetadata";
 import { getModuleAssetUrl } from "./modules/moduleCatalog";
-import { buildSchematicLayout } from "./schematic/schematicLayoutEngine";
-import { migrateProjectData } from "./projectMigrations";
+import { migrateProjectData, runMigrations } from "./projectMigrations";
 
 const DEFAULT_PROJECT_FILE_NAME = "zlecenie.dinboard";
 const PROJECT_FILE_ACCEPT = ".dinboard,.json,application/json";
@@ -26,6 +25,12 @@ export type ProjectFileData = {
     modulesPerRow: number;
     isVisible: boolean;
   } | null;
+  /**
+   * Migracje z rejestru, które zostały zastosowane przy ostatnim otwarciu.
+   * Używane do pominięcia idempotentnych/kosztownych migracji przy kolejnych
+   * otwarciach. Zapisywane z powrotem do pliku przy `serializeProjectFileContent`.
+   */
+  appliedMigrations?: string[];
 };
 
 type RawProjectFileData = {
@@ -35,6 +40,7 @@ type RawProjectFileData = {
   circuitRows?: Partial<SymbolItem>[];
   version?: string;
   schemaVersion?: number;
+  appliedMigrations?: string[];
   name?: string | null;
   description?: string | null;
   powerConfig?: {
@@ -326,73 +332,6 @@ function toRailFromWeb(raw: RawProjectFileData): ProjectFileData["rail"] {
   };
 }
 
-function cloneForAutomaticDesignationAnalysis(symbol: SymbolItem): SymbolItem {
-  const parameters = { ...symbol.parameters };
-  delete parameters[MANUAL_REFERENCE_DESIGNATION_KEY];
-
-  return {
-    ...symbol,
-    referenceDesignation: "",
-    parameters,
-  };
-}
-
-function buildAutomaticDesignationMap(symbols: SymbolItem[]): Map<string, string> {
-  const layout = buildSchematicLayout(symbols);
-  const automaticDesignations = new Map<string, string>();
-
-  for (const node of layout.nodes) {
-    const designation = node.designation.trim();
-    if (designation.length > 0) {
-      automaticDesignations.set(node.id, designation);
-    }
-  }
-
-  return automaticDesignations;
-}
-
-function migrateLegacyManualReferenceDesignations(symbols: SymbolItem[]): SymbolItem[] {
-  if (symbols.length === 0) {
-    return symbols;
-  }
-
-  const automaticDesignations = buildAutomaticDesignationMap(
-    symbols.map(cloneForAutomaticDesignationAnalysis),
-  );
-  let changed = false;
-
-  const migratedSymbols = symbols.map((symbol) => {
-    const currentDesignation = symbol.referenceDesignation.trim();
-    const isManualDesignation =
-      symbol.parameters[MANUAL_REFERENCE_DESIGNATION_KEY]?.toLocaleLowerCase("pl-PL") === "true";
-
-    if (currentDesignation.length === 0 || isManualDesignation) {
-      return symbol;
-    }
-
-    const automaticDesignation = automaticDesignations.get(symbol.id);
-    if (!automaticDesignation) {
-      return symbol;
-    }
-
-    if (currentDesignation !== automaticDesignation) {
-      changed = true;
-      return {
-        ...symbol,
-        referenceDesignation: currentDesignation,
-        parameters: {
-          ...symbol.parameters,
-          [MANUAL_REFERENCE_DESIGNATION_KEY]: "true",
-        },
-      };
-    }
-
-    return symbol;
-  });
-
-  return changed ? migratedSymbols : symbols;
-}
-
 export function parseProjectFileContent(content: string, fileName?: string): ProjectFileData {
   let parsed = normalizeNullableObject(JSON.parse(content) as RawProjectFileData);
   const hasWebShape = "metadata" in parsed && "symbols" in parsed && "version" in parsed;
@@ -415,7 +354,19 @@ export function parseProjectFileContent(content: string, fileName?: string): Pro
   const normalizedSymbols = hasAvaloniaSchema
     ? normalizeAvaloniaCoordinates(symbols, parsed)
     : symbols;
-  const migratedSymbols = migrateLegacyManualReferenceDesignations(normalizedSymbols);
+
+  // Run registry-based migrations (universal + versioned). The legacy reference
+  // designation migration operates on `data.symbols`; we run it against a wrapper
+  // shape so the registry sees a uniform Record<string, unknown> interface, then
+  // pick the migrated symbols back out.
+  const inputAppliedMigrations = Array.isArray(parsed.appliedMigrations)
+    ? parsed.appliedMigrations.filter((entry): entry is string => typeof entry === "string")
+    : [];
+  const migrationResult = runMigrations(
+    { symbols: normalizedSymbols } as unknown as Record<string, unknown>,
+    inputAppliedMigrations,
+  );
+  const migratedSymbols = (migrationResult.data.symbols as SymbolItem[] | undefined) ?? normalizedSymbols;
 
   let connections: ConnectionItem[] = [];
   if (hasWebShape && Array.isArray(parsed.connections)) {
@@ -477,6 +428,7 @@ export function parseProjectFileContent(content: string, fileName?: string): Pro
     version: parsed.version ?? String(parsed.schemaVersion ?? "1.0"),
     path: fileName,
     rail: hasAvaloniaSchema ? toRailFromAvalonia(parsed) : toRailFromWeb(parsed),
+    appliedMigrations: migrationResult.appliedMigrations,
   };
 }
 
@@ -485,6 +437,7 @@ export function serializeProjectFileContent(
   symbols: SymbolItem[],
   rail: ProjectFileData["rail"],
   connections?: ConnectionItem[],
+  appliedMigrations?: string[],
 ): string {
   const data: ProjectFileData = {
     metadata,
@@ -492,6 +445,7 @@ export function serializeProjectFileContent(
     connections: connections ?? [],
     version: "2.0",
     rail: rail?.isVisible ? rail : null,
+    appliedMigrations: appliedMigrations && appliedMigrations.length > 0 ? appliedMigrations : undefined,
   };
 
   return JSON.stringify(
