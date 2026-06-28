@@ -20,15 +20,17 @@ import { DinRailSelectionOverlay } from "./canvasLayers/DinRailSelectionOverlay"
 type DesignationMap = Map<string, string>;
 type DinRailPreparedAsset = PreparedSymbolAsset;
 
+// WHY: pixiHostRef + shouldRenderPixiLabels props were removed 2026-06-28.
+// The Pixi.js mounting path was permanently disabled and the deps are gone;
+// see hooks/canvas/useDinRailPixiApp.ts for the full removal rationale.
+
 export interface DinRailCanvasViewportProps {
   viewportRef: RefObject<HTMLDivElement | null>;
   surfaceRef: RefObject<HTMLDivElement | null>;
-  pixiHostRef: RefObject<HTMLDivElement | null>;
   rail: DinRailCanvasRail;
   pan: WorldPoint;
   scale: number;
   isDropTarget: boolean;
-  shouldRenderPixiLabels: boolean;
   showGroups: boolean;
   snappedSymbols: SymbolItem[];
   assetMap: Map<string, DinRailPreparedAsset>;
@@ -63,12 +65,10 @@ export interface DinRailCanvasViewportProps {
 export function DinRailCanvasViewport({
   viewportRef,
   surfaceRef,
-  pixiHostRef,
   rail,
   pan,
   scale,
   isDropTarget,
-  shouldRenderPixiLabels,
   showGroups,
   snappedSymbols,
   assetMap,
@@ -170,16 +170,10 @@ export function DinRailCanvasViewport({
         />
       )}
 
-      <div
-        ref={pixiHostRef}
-        style={{
-          position: "absolute",
-          inset: 0,
-          zIndex: 30,
-          pointerEvents: "none",
-          display: shouldRenderPixiLabels ? "block" : "none",
-        }}
-      />
+      {/* WHY: Pixi host div removed 2026-06-28 — the Pixi.js mount path was
+          permanently disabled via shouldRenderPixiLabels = false and the
+          pixi.js / @pixi/react dependencies are gone. Labels render via
+          DinRailDesignationLabelsOverlay directly on top of the world layer. */}
 
       <DinRailDesignationLabelsOverlay
         rail={rail}

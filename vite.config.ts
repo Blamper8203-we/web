@@ -198,9 +198,10 @@ export default defineConfig({
             return "react-core";
           }
 
-          if (packageName === "pixi.js" || packageName.startsWith("@pixi/")) {
-            return toChunkName("pixi", packageName);
-          }
+          // WHY: pixi.js / @pixi/* manual chunk was removed 2026-06-28 along
+          // with the Pixi.js label renderer (see hooks/canvas/useDinRailPixiApp.ts).
+          // The renderer was permanently disabled (shouldRenderPixiLabels = false),
+          // so the chunk is dead weight in every web build.
 
           const pdfEnginePackages = [
             "@react-pdf/pdfkit",

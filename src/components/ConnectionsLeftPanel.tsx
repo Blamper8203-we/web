@@ -1,4 +1,5 @@
 import type { WireColor, WireType, RoutingMode, FerruleColor } from "../types/connectionItem";
+import { DEFAULT_CUSTOM_RADIUS } from "../lib/connections/connectionsLogic";
 
 interface ConnectionsLeftPanelProps {
   defaultWireSettings: {
@@ -120,12 +121,12 @@ export function ConnectionsLeftPanel({
                 min="0"
                 max="200"
                 step="4"
-                value={selectedConnection.customRadius ?? 52}
+                value={selectedConnection.customRadius ?? DEFAULT_CUSTOM_RADIUS}
                 onChange={(e) => handleUpdateSelected("customRadius", parseInt(e.target.value, 10))}
                 style={{ flex: 1 }}
               />
               <span style={{ fontSize: "11px", color: "var(--text-secondary)", width: "30px", textAlign: "right" }}>
-                {selectedConnection.customRadius ?? 52}
+                {selectedConnection.customRadius ?? DEFAULT_CUSTOM_RADIUS}
               </span>
             </div>
           </div>

@@ -31,7 +31,10 @@ import "./DinRailCanvas.css";
 import type { NormalizedRect, WorldRect } from "../lib/dinRailCanvas/types";
 
 import { useDinRailViewport } from "../hooks/canvas/useDinRailViewport";
-import { useDinRailPixiApp } from "../hooks/canvas/useDinRailPixiApp";
+// WHY: useDinRailPixiApp was removed 2026-06-28 — see hooks/canvas/useDinRailPixiApp.ts.
+// The mounting flag shouldRenderPixiLabels has been `false` since creation,
+// so the Pixi path was permanently dead. Designation labels are now
+// rendered via the DOM-based DinRailDesignationLabelsOverlay.
 import { useDinRailInteraction } from "../hooks/canvas/useDinRailInteraction";
 import { useDinRailDragDrop } from "../hooks/canvas/useDinRailDragDrop";
 
@@ -109,7 +112,6 @@ export function DinRailCanvas({
   const containerRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
-  const pixiHostRef = useRef<HTMLDivElement>(null);
   const measuredNodesRef = useRef(new Map<string, HTMLDivElement>());
 
   const viewportSize = useElementSize(containerRef);
@@ -176,7 +178,12 @@ export function DinRailCanvas({
     [selectedSnappedSymbols],
   );
 
-  const shouldRenderPixiLabels = false;
+  // WHY: shouldRenderPixiLabels used to gate the Pixi.js label renderer.
+  // Removed 2026-06-28 — the flag has been hard-wired to `false` since
+  // creation (git history confirms it was never `true`). The Pixi hook
+  // and the `pixi.js` / `@pixi/react` dependencies are gone; labels are
+  // rendered via DinRailDesignationLabelsOverlay (DOM, GPU-friendly).
+  // If Pixi ever returns, restore the flag and the hook from git history.
 
   const railGenerator = useDinRailRailGenerator({
     railConfig: rail.config,
@@ -192,7 +199,6 @@ export function DinRailCanvas({
     scale,
     pan,
     panRef,
-    scaleRef,
     setPanSafe,
     flushViewportState,
     fitToViewport,
@@ -207,18 +213,9 @@ export function DinRailCanvas({
     onZoomChange,
   });
 
-  // 2. Hook obsługujący renderowanie w PixiJS
-  useDinRailPixiApp({
-    pixiHostRef,
-    viewportSize,
-    shouldRenderPixiLabels,
-    pan,
-    scale,
-    panRef,
-    scaleRef,
-    snappedSymbols,
-    automaticDesignationBySymbolId,
-  });
+  // 2. Hook obsługujący renderowanie w PixiJS — usunięty 2026-06-28
+  // (shouldRenderPixiLabels permanentnie false, hook nie był nigdy wywoływany).
+  // Etykiety oznaczeń renderowane są przez DinRailDesignationLabelsOverlay.
 
   // 3. Hook obsługujący interakcje (kliknięcia, przeciąganie, zaznaczanie)
   const {
@@ -344,12 +341,10 @@ export function DinRailCanvas({
       <DinRailCanvasViewport
         viewportRef={viewportRef}
         surfaceRef={surfaceRef}
-        pixiHostRef={pixiHostRef}
         rail={rail}
         pan={pan}
         scale={scale}
         isDropTarget={isDropTarget}
-        shouldRenderPixiLabels={shouldRenderPixiLabels}
         showGroups={showGroups}
         snappedSymbols={snappedSymbols}
         assetMap={assetMap}
