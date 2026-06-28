@@ -175,6 +175,9 @@ describe("normalizeConnectionItems", () => {
         routingMode: "manhattan",
         isFromTop: true,
         points: [{ x: 10, y: 20 }],
+        customRadius: 73,
+        fromDirection: "left",
+        toDirection: "right",
       },
     ]);
 
@@ -188,7 +191,83 @@ describe("normalizeConnectionItems", () => {
       ferruleColor: "red",
       routingMode: "manhattan",
       isFromTop: true,
+      customRadius: 73,
+      fromDirection: "left",
+      toDirection: "right",
     });
     expect(items[0].points).toEqual([{ x: 10, y: 20 }]);
+  });
+
+  it("zachowuje customRadius, fromDirection i toDirection (regresja: filter nie gubi pol round-trip)", () => {
+    // WHY: te trzy pola były historycznie pominięte w filterConnectionOverrides,
+    // co powodowało cichą utratę danych przy zapisie/odczycie pliku .dinboard.
+    // Test seeduje WSZYSTKIE trzy pola i weryfikuje, że przeżywają round-trip
+    // (normalizeConnectionItems → createDefaultConnection). Jeśli ktoś doda nowe
+    // pole do ConnectionItem ale zapomni zaktualizować filtr, ten test powinien
+    // być rozszerzony o to pole.
+    const raw = {
+      id: "conn-rt",
+      fromSymbolId: "sym-a",
+      toSymbolId: "sym-b",
+      customRadius: 87,
+      fromDirection: "left" as const,
+      toDirection: "auto-vertical" as const,
+    };
+
+    const overrides = filterConnectionOverrides(raw);
+    expect(overrides.customRadius).toBe(87);
+    expect(overrides.fromDirection).toBe("left");
+    expect(overrides.toDirection).toBe("auto-vertical");
+
+    const conn = createDefaultConnection(overrides);
+    expect(conn.customRadius).toBe(87);
+    expect(conn.fromDirection).toBe("left");
+    expect(conn.toDirection).toBe("auto-vertical");
+  });
+
+  it("customRadius: akceptuje number, odrzuca nie-liczby", () => {
+    expect(filterConnectionOverrides({ customRadius: 12.5 }).customRadius).toBe(12.5);
+    expect(filterConnectionOverrides({ customRadius: 0 }).customRadius).toBe(0);
+    expect(filterConnectionOverrides({ customRadius: "40" }).customRadius).toBeUndefined();
+    expect(filterConnectionOverrides({ customRadius: null }).customRadius).toBeUndefined();
+    expect(filterConnectionOverrides({ customRadius: undefined }).customRadius).toBeUndefined();
+  });
+
+  it("fromDirection / toDirection: akceptuje wszystkie literalne wartosci unii, odrzuca nie-stringi", () => {
+    const valid: Array<"top" | "bottom" | "left" | "right" | "auto-horizontal" | "auto-vertical"> = [
+      "top",
+      "bottom",
+      "left",
+      "right",
+      "auto-horizontal",
+      "auto-vertical",
+    ];
+    for (const d of valid) {
+      expect(filterConnectionOverrides({ fromDirection: d }).fromDirection).toBe(d);
+      expect(filterConnectionOverrides({ toDirection: d }).toDirection).toBe(d);
+    }
+    expect(filterConnectionOverrides({ fromDirection: 42 }).fromDirection).toBeUndefined();
+    expect(filterConnectionOverrides({ fromDirection: null }).fromDirection).toBeUndefined();
+    expect(filterConnectionOverrides({ toDirection: true }).toDirection).toBeUndefined();
+  });
+
+  it("normalizeConnectionItems: round-trip przez filter+createDefault zachowuje wszystkie trzy pola", () => {
+    // Pełny round-trip z prawdziwymi wartościami niestandardowymi —
+    // symuluje zapis i odczyt pliku .dinboard.
+    const items = normalizeConnectionItems([
+      {
+        id: "conn-rt-full",
+        fromSymbolId: "sym-1",
+        toSymbolId: "sym-2",
+        customRadius: 64,
+        fromDirection: "right",
+        toDirection: "top",
+      },
+    ]);
+
+    expect(items).toHaveLength(1);
+    expect(items[0].customRadius).toBe(64);
+    expect(items[0].fromDirection).toBe("right");
+    expect(items[0].toDirection).toBe("top");
   });
 });

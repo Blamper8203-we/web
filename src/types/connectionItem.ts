@@ -5,6 +5,14 @@ export type WireType = "DY" | "LgY" | "szyna";
 
 export type RoutingMode = "manhattan" | "orthogonal" | "direct" | "smart";
 
+export type ConnectionDirection =
+  | "top"
+  | "bottom"
+  | "left"
+  | "right"
+  | "auto-horizontal"
+  | "auto-vertical";
+
 export interface ConnectionItem {
   id: string;
   fromSymbolId: string;
@@ -23,8 +31,8 @@ export interface ConnectionItem {
   customRadius?: number;
   isFromTop?: boolean;
   isToTop?: boolean;
-  fromDirection?: "top" | "bottom" | "left" | "right" | "auto-horizontal" | "auto-vertical";
-  toDirection?: "top" | "bottom" | "left" | "right" | "auto-horizontal" | "auto-vertical";
+  fromDirection?: ConnectionDirection;
+  toDirection?: ConnectionDirection;
   points?: Array<{ x: number; y: number }>;
 }
 
@@ -49,8 +57,19 @@ export function createDefaultConnection(overrides?: Partial<ConnectionItem>): Co
 // filtr (każdy punkt musi mieć x/y jako number). Brakujące/nieprawidłowe pola
 // są pomijane — createDefaultConnection dostarcza domyślne wartości.
 //
-// UWAGA dla maintainera: przy dodawaniu nowego pola do ConnectionItem trzeba
-// też dodać sprawdzenie typu tutaj, inaczej z pliku nie załaduje się wartość.
+// KRYTYCZNE — invariant utrzymywany przez ten filtr: każde pole zadeklarowane
+// w interfejsie ConnectionItem (powyżej) musi mieć tu odpowiadający strażnik
+// typu. W przeciwnym razie pole jest po cichu gubione przy wczytywaniu pliku
+// projektu (.dinboard) — overwrite'owane przez domyślne z createDefaultConnection.
+// Skutek: użytkownik zapisuje niestandardowy customRadius lub fromDirection/
+// toDirection, po przeładowaniu wartości znikają bez ostrzeżenia i PDF renderuje
+// się z domyślnymi. To jest naruszenie "Never drop data without a migration"
+// z AGENTS.md (high-risk project I/O).
+//
+// Przy dodawaniu nowego pola do ConnectionItem:
+//   1. Dodaj sprawdzenie typu poniżej (ten sam wzorzec typeof/typeof-as).
+//   2. Dodaj test w connectionItem.test.ts, który seeduje pole i sprawdza
+//      round-trip (filterConnectionOverrides → createDefaultConnection).
 export function filterConnectionOverrides(raw: unknown): Partial<ConnectionItem> {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
     return {};
@@ -75,8 +94,15 @@ export function filterConnectionOverrides(raw: unknown): Partial<ConnectionItem>
   if (typeof conn.customOffsetX === "number") overrides.customOffsetX = conn.customOffsetX;
   if (typeof conn.customOffsetY1 === "number") overrides.customOffsetY1 = conn.customOffsetY1;
   if (typeof conn.customOffsetY2 === "number") overrides.customOffsetY2 = conn.customOffsetY2;
+  if (typeof conn.customRadius === "number") overrides.customRadius = conn.customRadius;
   if (typeof conn.isFromTop === "boolean") overrides.isFromTop = conn.isFromTop;
   if (typeof conn.isToTop === "boolean") overrides.isToTop = conn.isToTop;
+  if (typeof conn.fromDirection === "string") {
+    overrides.fromDirection = conn.fromDirection as ConnectionDirection;
+  }
+  if (typeof conn.toDirection === "string") {
+    overrides.toDirection = conn.toDirection as ConnectionDirection;
+  }
   if (Array.isArray(conn.points)) {
     const points = conn.points
       .filter((p): p is { x: number; y: number } =>
