@@ -281,6 +281,7 @@ describe("useProjectActions", () => {
       statusMessages.push(statusMessage);
       return true;
     });
+    const markClean = vi.fn();
     const showTemporaryStatus = vi.fn((msg: string) => {
       statusMessages.push(msg);
     });
@@ -309,6 +310,7 @@ describe("useProjectActions", () => {
         dragHistorySnapshotRef,
         refreshHistoryState,
         executeSymbolsCommand,
+        markClean,
         showTemporaryStatus,
       }),
     );

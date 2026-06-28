@@ -198,6 +198,7 @@ function AppWorkspace({
     dragHistorySnapshotRef: history.dragHistorySnapshotRef,
     refreshHistoryState: history.refreshHistoryState,
     executeSymbolsCommand: history.executeSymbolsCommand,
+    markClean: history.markClean,
     showTemporaryStatus,
   });
 

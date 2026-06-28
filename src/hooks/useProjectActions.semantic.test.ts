@@ -103,6 +103,7 @@ function setup() {
     statusMessages.push(msg);
     return true;
   });
+  const markClean = vi.fn();
   const showTemporaryStatus = vi.fn((msg: string) => {
     statusMessages.push(msg);
   });
@@ -132,6 +133,7 @@ function setup() {
       dragHistorySnapshotRef,
       refreshHistoryState,
       executeSymbolsCommand,
+      markClean,
       showTemporaryStatus,
     }),
   );

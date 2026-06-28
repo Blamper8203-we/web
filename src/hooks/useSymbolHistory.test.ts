@@ -284,4 +284,130 @@ describe("useSymbolHistory", () => {
     expect(result.current.canRedo).toBe(true);
     expect(result.current.redoLabel).toBe("Zmiana na 1500W");
   });
+
+  // ===== hasUnsavedChanges ↔ cleanSnapshot integration (P1-8) =====
+  // Pin the dirty-flag lifecycle relative to the clean snapshot baseline.
+  // Before this fix, every undo unconditionally asserted hasUnsavedChanges=true
+  // (see useSymbolHistory.ts:103), producing a data-loss illusion: save →
+  // undo → app claims unsaved changes even though on-disk == current state.
+  describe("hasUnsavedChanges vs cleanSnapshot (P1-8)", () => {
+    it("edit → save → undo → hasUnsavedChanges becomes false (restored to clean state)", () => {
+      const sym1 = createDefaultSymbolItem({ id: "s1", label: "MCB", powerW: 1000 });
+
+      const ctx = setup([sym1]);
+      const cleanSnapshot = {
+        symbols: [sym1],
+        selectedSymbolId: null as string | null,
+        selectedSymbolIds: [] as string[],
+      };
+
+      // 1) edit (dirty)
+      act(() => {
+        ctx.result.current.executeSymbolsCommand(
+          "Zmiana mocy",
+          cleanSnapshot,
+          { symbols: [createDefaultSymbolItem({ ...sym1, powerW: 1500 })], selectedSymbolId: null, selectedSymbolIds: [] },
+          "Zmieniono",
+        );
+      });
+      expect(ctx.hasUnsavedChanges).toBe(true);
+
+      // 2) save — caller (useProjectActions.handleSaveProject) pins clean snapshot
+      act(() => { ctx.result.current.markClean(cleanSnapshot); });
+      expect(ctx.hasUnsavedChanges).toBe(false);
+
+      // 3) undo — restores the saved snapshot; must clear the dirty flag
+      act(() => { ctx.result.current.handleUndo(); });
+      expect(ctx.hasUnsavedChanges).toBe(false);
+    });
+
+    it("edit → undo without saving → hasUnsavedChanges clears (state matches the clean baseline again)", () => {
+      const sym1 = createDefaultSymbolItem({ id: "s1", label: "MCB", powerW: 1000 });
+
+      const ctx = setup([sym1]);
+      const cleanSnapshot = {
+        symbols: [sym1],
+        selectedSymbolId: null as string | null,
+        selectedSymbolIds: [] as string[],
+      };
+
+      // mark the initial state as clean (e.g. right after load)
+      act(() => { ctx.result.current.markClean(cleanSnapshot); });
+      expect(ctx.hasUnsavedChanges).toBe(false);
+
+      // edit (dirty)
+      act(() => {
+        ctx.result.current.executeSymbolsCommand(
+          "Zmiana mocy",
+          cleanSnapshot,
+          { symbols: [createDefaultSymbolItem({ ...sym1, powerW: 1500 })], selectedSymbolId: null, selectedSymbolIds: [] },
+          "Zmieniono",
+        );
+      });
+      expect(ctx.hasUnsavedChanges).toBe(true);
+
+      // undo restores the clean baseline; the dirty flag must clear because
+      // dirty tracks (current state == clean state), not session edit history.
+      act(() => { ctx.result.current.handleUndo(); });
+      expect(ctx.hasUnsavedChanges).toBe(false);
+    });
+
+    it("edit → save → undo → redo → hasUnsavedChanges becomes true again (now differs from clean state)", () => {
+      const sym1 = createDefaultSymbolItem({ id: "s1", label: "MCB", powerW: 1000 });
+
+      const ctx = setup([sym1]);
+      const cleanSnapshot = {
+        symbols: [sym1],
+        selectedSymbolId: null as string | null,
+        selectedSymbolIds: [] as string[],
+      };
+      const changedSym = createDefaultSymbolItem({ ...sym1, powerW: 1500 });
+      const afterSnapshot = {
+        symbols: [changedSym],
+        selectedSymbolId: null as string | null,
+        selectedSymbolIds: [] as string[],
+      };
+
+      act(() => {
+        ctx.result.current.executeSymbolsCommand("Zmiana mocy", cleanSnapshot, afterSnapshot, "Zmieniono");
+      });
+      act(() => { ctx.result.current.markClean(cleanSnapshot); });
+      expect(ctx.hasUnsavedChanges).toBe(false);
+
+      act(() => { ctx.result.current.handleUndo(); });
+      expect(ctx.hasUnsavedChanges).toBe(false);
+
+      act(() => { ctx.result.current.handleRedo(); });
+      expect(ctx.hasUnsavedChanges).toBe(true);
+    });
+
+    it("new project → markClean(empty) → edit → markClean(empty) → hasUnsavedChanges stays false after a second clean marker", () => {
+      const ctx = setup();
+      const emptySnapshot = {
+        symbols: [] as SymbolItem[],
+        selectedSymbolId: null as string | null,
+        selectedSymbolIds: [] as string[],
+      };
+
+      // new project baseline
+      act(() => { ctx.result.current.markClean(emptySnapshot); });
+      expect(ctx.hasUnsavedChanges).toBe(false);
+
+      // edit (dirty)
+      const sym1 = createDefaultSymbolItem({ id: "s1", label: "MCB" });
+      act(() => {
+        ctx.result.current.executeSymbolsCommand(
+          "Dodanie MCB",
+          emptySnapshot,
+          { symbols: [sym1], selectedSymbolId: null, selectedSymbolIds: [] },
+          "Dodano",
+        );
+      });
+      expect(ctx.hasUnsavedChanges).toBe(true);
+
+      // "New project" — reset baseline back to empty
+      act(() => { ctx.result.current.markClean(emptySnapshot); });
+      expect(ctx.hasUnsavedChanges).toBe(false);
+    });
+  });
 });

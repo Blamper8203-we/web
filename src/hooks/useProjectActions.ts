@@ -82,6 +82,7 @@ interface UseProjectActionsParams {
     after: SymbolHistorySnapshot,
     statusMessage: string,
   ) => boolean;
+  markClean: (snapshot: SymbolHistorySnapshot) => void;
   showTemporaryStatus: (message: string, timeoutMs?: number) => void;
 }
 
@@ -108,6 +109,7 @@ export function useProjectActions({
   dragHistorySnapshotRef,
   refreshHistoryState,
   executeSymbolsCommand,
+  markClean,
   showTemporaryStatus,
 }: UseProjectActionsParams) {
   const applyRailFromSymbols = useCallback((nextSymbols: SymbolItem[]) => {
@@ -135,11 +137,21 @@ export function useProjectActions({
     setSelectedSymbolIds([]);
     setDinRail({ config: DEFAULT_DIN_RAIL_CONFIG, svg: '', width: 0, height: 0, isVisible: false });
     setHasUnsavedChanges(false);
+    // WHY: pin the empty snapshot as the new clean baseline so a subsequent
+    // edit → undo → redo cycle correctly returns to a clean state, and so
+    // useSymbolHistory's equality check has a reference point on first load.
+    markClean({
+      symbols: [],
+      connections: [],
+      selectedSymbolId: null,
+      selectedSymbolIds: [],
+    });
     dragHistorySnapshotRef.current = null;
     undoRedoServiceRef.current.clear();
     refreshHistoryState();
   }, [
     dragHistorySnapshotRef,
+    markClean,
     refreshHistoryState,
     setDinRail,
     setHasUnsavedChanges,
@@ -168,6 +180,16 @@ export function useProjectActions({
         if (path) {
           setCurrentFilePath(path);
           setHasUnsavedChanges(false);
+          // WHY: capture the just-written state as the new clean reference.
+          // Without this, undoing the very last edit would leave the project
+          // reported as dirty even though the file on disk matches the
+          // current state (P1-8 data-loss illusion).
+          markClean({
+            symbols,
+            connections,
+            selectedSymbolId,
+            selectedSymbolIds,
+          });
           showTemporaryStatus('Zapisano plik zlecenia', 3000);
           return true;
         }
@@ -177,7 +199,19 @@ export function useProjectActions({
         return false;
       }
     },
-    [currentFilePath, dinRail, metadata, setCurrentFilePath, setHasUnsavedChanges, showTemporaryStatus, symbols, connections],
+    [
+      connections,
+      currentFilePath,
+      dinRail,
+      markClean,
+      metadata,
+      selectedSymbolId,
+      selectedSymbolIds,
+      setCurrentFilePath,
+      setHasUnsavedChanges,
+      showTemporaryStatus,
+      symbols,
+    ],
   );
 
   const handleNewProject = useCallback(() => {
@@ -221,6 +255,16 @@ export function useProjectActions({
       applyRailFromSymbols(normalizedSymbols);
     }
 
+    // WHY: capture the freshly-loaded state as the new clean baseline so
+    // undoing back to it clears the dirty flag (P1-8). Selection is reset
+    // to null by resetProjectState, so the clean snapshot mirrors that.
+    markClean({
+      symbols: normalizedSymbols,
+      connections: data.connections ?? [],
+      selectedSymbolId: null,
+      selectedSymbolIds: [],
+    });
+
     // Semantic validation runs after the project loads so the user can still
     // open and repair a malformed file. Errors do not block loading.
     const semanticMessages = validateProjectSemantics(data);
@@ -245,6 +289,7 @@ export function useProjectActions({
     }
   }, [
     applyRailFromSymbols,
+    markClean,
     paletteTemplateMap,
     resetProjectState,
     setCurrentFilePath,

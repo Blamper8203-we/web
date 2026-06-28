@@ -83,11 +83,47 @@ export function useSymbolHistory({
   const undoRedoServiceRef = useRef(new UndoRedoService());
   const dragHistorySnapshotRef = useRef<SymbolHistorySnapshot | null>(null);
   const draggedSymbolIdsRef = useRef<string[] | null>(null);
+  // WHY: holds the snapshot that corresponds to the on-disk saved state
+  // (or, for new/loaded projects, the freshly-opened state). After any
+  // forward/backward snapshot apply (edit, undo, redo) we compare the
+  // resulting state against this ref to decide whether the project has
+  // unsaved changes. Without this, undoing an edit always re-asserted
+  // `hasUnsavedChanges=true`, even when the restored state equalled the
+  // last saved state — the data-loss illusion (P1-8).
+  const cleanSnapshotRef = useRef<SymbolHistorySnapshot | null>(null);
   const [, setHistoryVersion] = useState(0);
 
   const refreshHistoryState = useCallback(() => {
     setHistoryVersion((v) => v + 1);
   }, []);
+
+  // WHY: snapshots compared here are intended to mirror the on-disk contract
+  // (`symbols` + `connections`). Selection is in the snapshot for symmetry
+  // with execute/undo but is not persisted to the file; comparing it too
+  // does not cause false-dirty because the clean snapshot is captured with
+  // the same selection the file produced at load time.
+  const isCleanSnapshot = useCallback(
+    (snapshot: SymbolHistorySnapshot): boolean => {
+      const clean = cleanSnapshotRef.current;
+      if (!clean) return false;
+      if (
+        !areSymbolSnapshotsEqual(snapshot.symbols, clean.symbols) ||
+        !areConnectionsEqual(snapshot.connections, clean.connections)
+      ) {
+        return false;
+      }
+      const snapshotSelection = snapshot.selectedSymbolIds ??
+        (snapshot.selectedSymbolId ? [snapshot.selectedSymbolId] : []);
+      const cleanSelection = clean.selectedSymbolIds ??
+        (clean.selectedSymbolId ? [clean.selectedSymbolId] : []);
+      if (snapshotSelection.length !== cleanSelection.length) return false;
+      for (let i = 0; i < snapshotSelection.length; i++) {
+        if (snapshotSelection[i] !== cleanSelection[i]) return false;
+      }
+      return true;
+    },
+    [],
+  );
 
   const applySymbolsSnapshot = useCallback(
     (snapshot: SymbolHistorySnapshot) => {
@@ -100,9 +136,35 @@ export function useSymbolHistory({
         snapshot.selectedSymbolIds ??
           (snapshot.selectedSymbolId ? [snapshot.selectedSymbolId] : []),
       );
-      setHasUnsavedChanges(true);
+      // WHY: dirty flag is derived from equality with the clean snapshot, not
+      // asserted unconditionally. Forward execution naturally produces a
+      // non-equal snapshot (the caller already verified before ≠ after).
+      // Undo/redo may restore exactly the clean state — in that case the
+      // flag must clear so closing the tab doesn't prompt for unsaved work.
+      setHasUnsavedChanges(!isCleanSnapshot(snapshot));
     },
-    [setHasUnsavedChanges, setSelectedSymbolId, setSelectedSymbolIds, setSymbols, setConnections],
+    [isCleanSnapshot, setHasUnsavedChanges, setSelectedSymbolId, setSelectedSymbolIds, setSymbols, setConnections],
+  );
+
+  // Called by `useProjectActions` at save/load/new boundaries to pin the
+  // snapshot that represents "no unsaved changes". The caller passes the
+  // live state (or, for new projects, an empty snapshot) right after
+  // setting `setHasUnsavedChanges(false)`.
+  const markClean = useCallback(
+    (snapshot: SymbolHistorySnapshot) => {
+      cleanSnapshotRef.current = {
+        symbols: cloneSymbolsSnapshot(snapshot.symbols),
+        connections: snapshot.connections
+          ? snapshot.connections.map((c) => ({ ...c }))
+          : [],
+        selectedSymbolId: snapshot.selectedSymbolId,
+        selectedSymbolIds:
+          snapshot.selectedSymbolIds ??
+          (snapshot.selectedSymbolId ? [snapshot.selectedSymbolId] : []),
+      };
+      setHasUnsavedChanges(false);
+    },
+    [setHasUnsavedChanges],
   );
 
   const executeSymbolsCommand = useCallback(
@@ -197,7 +259,8 @@ export function useSymbolHistory({
       executeSymbolsCommand,
       handleUndo,
       handleRedo,
+      markClean,
     }),
-    [refreshHistoryState, executeSymbolsCommand, handleUndo, handleRedo],
+    [refreshHistoryState, executeSymbolsCommand, handleUndo, handleRedo, markClean],
   );
 }
