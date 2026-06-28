@@ -1,5 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { createDefaultSymbolItem } from "../../../types/symbolItem";
+import { createEmptyProjectMetadata } from "../../projectMetadata";
 import {
+  countPdfPages,
+  formatDisplayDate,
   formatProtocolNumberLabel,
   formatProtocolTitle,
   getSuffix,
@@ -84,5 +88,193 @@ describe("formatProtocolTitle", () => {
 
   it("appends suffix at end when no number found", () => {
     expect(formatProtocolTitle("Title Without Number", "A")).toBe("Title Without Number A");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// UI ↔ PDF consistency regressions (Bug A + Bug B).
+//
+// These pin the contract that `formatDisplayDate` and `countPdfPages` exist
+// for: both the workspace preview and the PDF renderer must call them, and
+// they must agree on what gets rendered. The historical bug was that the
+// preview and PDF computed the date and page count independently, and the
+// two implementations drifted apart.
+// ---------------------------------------------------------------------------
+
+describe("formatDisplayDate", () => {
+  it("renders the empty-drawingDate fallback in DD.MM.YYYY (Polish pl-PL)", () => {
+    // WHY: pin the regression — empty drawingDate must look the same in the
+    // preview header and the PDF header. The previous bug had the preview
+    // fall back to `toLocaleDateString("pl-PL")` and the PDF fall back to
+    // `formatDateForField(...)` (ISO), producing different strings.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-21T12:00:00Z"));
+    try {
+      const result = formatDisplayDate(createEmptyProjectMetadata());
+      expect(result).toMatch(/^\d{2}\.\d{2}\.\d{4}$/);
+      // 21.06.2026 is the Polish-locale rendering of 2026-06-21 in the
+      // Europe/Warsaw timezone (UTC+2 in June). Both the test's fake clock
+      // and a real electrician's wall clock land on the same date — that's
+      // the contract.
+      expect(result).toBe("21.06.2026");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("accepts an explicit ISO drawingDate and reformats it to DD.MM.YYYY", () => {
+    // WHY: even when the user typed an ISO date into the metadata form, the
+    // PDF/preview header must show DD.MM.YYYY — the canonical display format
+    // for Polish engineering deliverables.
+    const result = formatDisplayDate({
+      ...createEmptyProjectMetadata(),
+      drawingDate: "2026-05-23",
+    });
+    expect(result).toBe("23.05.2026");
+  });
+
+  it("falls back to today's date for an unparseable drawingDate (never returns empty)", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-03-08T10:00:00Z"));
+    try {
+      const result = formatDisplayDate({
+        ...createEmptyProjectMetadata(),
+        drawingDate: "not-a-date",
+      });
+      expect(result).toMatch(/^\d{2}\.\d{2}\.\d{4}$/);
+      expect(result.length).toBe(10);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe("countPdfPages", () => {
+  // WHY: `createEmptyProjectMetadata()` seeds `measurementProtocols.unifiedRows`
+  // with 15 placeholder rows (LOOP_ROW_COUNT) and `rcdRows` with 6 — the PDF
+  // renders both sections even for an "empty" project. Pin the baseline:
+  //   1 (title) + 1 (summary) + 0 (no symbols → no circuit list)
+  //   + 3 (15 unified rows / UNIFIED_ROWS_PER_PAGE=7) + 1 (RCD, single page)
+  //   + 0 (no schematic, no DIN rail in this call) = 6
+  it("returns 6 for an empty project (title + summary + 3 unified + 1 RCD)", () => {
+    const total = countPdfPages(createEmptyProjectMetadata(), []);
+    expect(total).toBe(6);
+  });
+
+  it("counts both DIN rail pages (wires-off + wires-on) — Bug B regression", () => {
+    // WHY: pdfExportService always renders BOTH the wires-off and wires-on
+    // DIN rail snapshots as separate A4 pages. The UI footer must match.
+    // 6 (empty project baseline) + 2 DIN rail pages = 8.
+    const total = countPdfPages(createEmptyProjectMetadata(), [], {
+      dinRailImages: ["<svg wires-on/>"],
+      dinRailWithoutWiresImages: ["<svg wires-off/>"],
+    });
+    expect(total).toBe(8);
+  });
+
+  it("excludes empty circuit-list and unified sections from the total", () => {
+    // Empty sections (no rows) do not render at all — `&& rows.length > 0`
+    // guards in PdfProtocolDocument skip them. We construct a metadata object
+    // with explicit empty unified + rcd rows to verify the skip behaviour.
+    const metadata = {
+      ...createEmptyProjectMetadata(),
+      measurementProtocols: {
+        ...createEmptyProjectMetadata().measurementProtocols,
+        unifiedRows: [],
+        rcdRows: [],
+      },
+    };
+    const total = countPdfPages(metadata, []);
+    // title + summary only = 2 (no DIN rail, no schematic, no protocol rows).
+    expect(total).toBe(2);
+  });
+
+  it("chunks circuit-list rows by CIRCUIT_LIST_ROWS_PER_PAGE (10)", () => {
+    // 25 MCB symbols → buildCircuitListTableRows produces >= 25 rows
+    // → at least 3 chunks of pages. We assert the relationship grows with
+    // symbol count rather than an exact total — `buildCircuitListTableRows`
+    // may add header / summary rows that shift the count slightly.
+    const symbols = Array.from({ length: 25 }, (_, i) =>
+      createDefaultSymbolItem({
+        id: `mcb-${i}`,
+        type: "MCB 1P",
+        deviceKind: "mcb",
+        referenceDesignation: `F${i + 1}`,
+        circuitName: `Obwód ${i + 1}`,
+        phase: "L1",
+      }),
+    );
+    const withoutSymbols = countPdfPages(createEmptyProjectMetadata(), []);
+    const withSymbols = countPdfPages(createEmptyProjectMetadata(), symbols);
+    // With 25 symbols we must produce at least 3 chunks of 10 rows each,
+    // so adding symbols grows the total by >= 3.
+    expect(withSymbols - withoutSymbols).toBeGreaterThanOrEqual(3);
+  });
+
+  it("counts RCD table page only when rcdRows are non-empty", () => {
+    const baseMetadata = {
+      ...createEmptyProjectMetadata(),
+      measurementProtocols: {
+        ...createEmptyProjectMetadata().measurementProtocols,
+        rcdRows: [],
+        unifiedRows: [],
+      },
+    };
+    // 1 (title) + 1 (summary) + 0 (no RCD) = 2
+    const withoutRcd = countPdfPages(baseMetadata, []);
+    expect(withoutRcd).toBe(2);
+
+    const withRcd = countPdfPages(
+      {
+        ...baseMetadata,
+        measurementProtocols: {
+          ...baseMetadata.measurementProtocols,
+          rcdRows: [
+            {
+              index: 1,
+              sourceCircuitId: "rcd-1",
+              referenceDesignation: "Q1",
+              deviceType: "RCD 40A 4P",
+              residualCurrent: "30",
+              tripCurrent: "18",
+              tripTimeMs: "22",
+              testButtonResult: "Pozytywny",
+              assessment: "Pozytywna",
+            },
+          ],
+        },
+      },
+      [],
+    );
+    // + 1 RCD page = 3
+    expect(withRcd).toBe(3);
+  });
+
+  it("counts one schematic page per image in the array", () => {
+    // 2 (title + summary) + 3 schematic + 0 unified/rcd when explicitly cleared = 5
+    const metadata = {
+      ...createEmptyProjectMetadata(),
+      measurementProtocols: {
+        ...createEmptyProjectMetadata().measurementProtocols,
+        unifiedRows: [],
+        rcdRows: [],
+      },
+    };
+    const total = countPdfPages(metadata, [], {
+      schematicImages: ["a", "b", "c"],
+    });
+    expect(total).toBe(5);
+  });
+
+  it("respects previewOnly: din-rail (single-section rendering)", () => {
+    // WHY: the workspace may render an isolated DIN rail preview. The total
+    // for that branch must equal the number of DIN rail pages only — no
+    // title, no summary, no other sections.
+    const total = countPdfPages(createEmptyProjectMetadata(), [], {
+      previewOnly: "din-rail",
+      dinRailImages: ["x"],
+      dinRailWithoutWiresImages: ["x"],
+    });
+    expect(total).toBe(2);
   });
 });

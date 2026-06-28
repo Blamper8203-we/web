@@ -9,6 +9,8 @@ import { chunkRows } from "../lib/measurementProtocolHelpers";
 import {
   CIRCUIT_LIST_ROWS_PER_PAGE,
   UNIFIED_ROWS_PER_PAGE,
+  countPdfPages,
+  formatDisplayDate,
 } from "../lib/export/pdfPages/pdfHelpers";
 import { usePdfWorkspace } from "./PdfWorkspaceShell";
 import "./MeasurementProtocolsWorkspacePage.css";
@@ -176,7 +178,7 @@ export function MeasurementProtocolsWorkspacePage() {
     updateTableRows(key, nextRows);
   };
 
-  const displayDate = metadata.drawingDate || new Date().toLocaleDateString("pl-PL");
+  const displayDate = formatDisplayDate(metadata);
   const protocolYear = new Date(displayDate).getFullYear() || new Date().getFullYear();
   const protocolNumber = metadata.projectNumber?.trim()
     ? `${metadata.projectNumber.trim()} / ${protocolYear}`
@@ -184,26 +186,41 @@ export function MeasurementProtocolsWorkspacePage() {
   const objectType = metadata.titlePageObjectType || "Budynek jednorodzinny / Lokal mieszkalny";
   const stampText = metadata.contractorSignature || "PIECZĘĆ WYKONAWCY";
 
-  // WHY: the page counter here mirrors PdfProtocolDocument's actual page output so
-  // the footer "STRONA X Z Y" stays internally consistent. We MUST include
-  // every section the PDF renders, otherwise the "Z Y" total under-counts and the
-  // footer prints "STRONA 8 Z 7" for an 8-page document.
-  let currentUiPage = 1;
-  const titlePageIndex = currentUiPage++;
-  currentUiPage++; // PdfProjectSummaryPage (always rendered when previewOnly is undefined)
-  const circuitListStartPage = currentUiPage;
-  currentUiPage += circuitListPages.length;
-  const unifiedStartPage = currentUiPage;
-  if (unifiedPages.length > 0) currentUiPage += unifiedPages.length;
-  const rcdPageIndex = currentUiPage;
-  if ((protocols.rcdRows?.length ?? 0) > 0) currentUiPage++;
-  // WHY: schematic snapshots can span multiple A4 landscape sheets (one per circuit
-  // group). We reserve at least 1 slot so totalUiPages stays consistent before the
-  // async snapshot completes, then expand it once the real image count lands.
-  const schematicStartPage = currentUiPage;
-  currentUiPage += Math.max(1, schematicImages.length);
-  const dinRailPageIndex = currentUiPage++;
-  const totalUiPages = currentUiPage - 1;
+  // WHY: single source of truth for "how many pages does this PDF actually
+  // produce?" — mirrors PdfProtocolDocument's page assembly exactly. Drift
+  // between this and the PDF render shows up as a footer that prints
+  // "STRONA 8 Z 7" on an 8-page document. See `countPdfPages` JSDoc for the
+  // exhaustive list of which `previewOnly` branches contribute pages.
+  //
+  // The workspace represents the full document (no `previewOnly`), and the
+  // PDF export pipeline always renders both the wires-off and wires-on DIN
+  // rail snapshots (see `pdfExportService.ts:32-36`), so each DIN rail array
+  // is length 1 here too. The placeholder `["x"]` only contributes to the
+  // *count*, never to the rendered image — the actual preview comes from
+  // `dinRailPreviewUrl`.
+  const dinRailWithoutWiresImagesForCount = dinRailPreviewUrl ? ["x"] : [];
+  const dinRailImagesForCount = dinRailPreviewUrl ? ["x"] : [];
+  const totalUiPages = countPdfPages(metadata, symbols, {
+    schematicImages,
+    dinRailImages: dinRailImagesForCount,
+    dinRailWithoutWiresImages: dinRailWithoutWiresImagesForCount,
+  });
+
+  // WHY: derive each section's start page index by walking the same primitives
+  // `countPdfPages` uses. We can't read the index *out of* `countPdfPages`
+  // (it only returns the total), but we can recompute it from inputs that we
+  // already have here, so the page numbers stay consistent with the total.
+  // The first two pages are always the title page and the project summary.
+  const titlePageIndex = 1;
+  const circuitListStartPage = 3;
+  const unifiedStartPage = circuitListStartPage + circuitListPages.length;
+  const rcdPageIndex = unifiedStartPage + unifiedPages.length;
+  const schematicStartPage = rcdPageIndex + ((protocols.rcdRows?.length ?? 0) > 0 ? 1 : 0);
+  // WHY: schematic snapshots can span multiple A4 landscape sheets (one per
+  // circuit group). Until the async snapshot completes, `schematicImages` is
+  // `[]`, so the total reflects zero schematic pages. Once the snapshot
+  // lands, both this index and `totalUiPages` update in the same render.
+  const dinRailPageIndex = schematicStartPage + schematicImages.length;
 
   return (
     <div className="mp-page">

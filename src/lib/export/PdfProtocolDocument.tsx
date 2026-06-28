@@ -2,9 +2,13 @@ import { Document, Image, Page, View, Text } from "@react-pdf/renderer";
 import type { ProjectMetadata, MeasurementUnifiedProtocolRow } from "../../types/projectMetadata";
 import type { SymbolItem } from "../../types/symbolItem";
 import { buildCircuitListTableRows, buildCircuitRowsFromSymbols, type CircuitListTableRow } from "../circuitRows";
-import { formatDateForField } from "../projectMetadata";
 
-import { CIRCUIT_LIST_ROWS_PER_PAGE, UNIFIED_ROWS_PER_PAGE, buildPdfCircuitGroups } from "./pdfPages/pdfHelpers";
+import {
+  CIRCUIT_LIST_ROWS_PER_PAGE,
+  UNIFIED_ROWS_PER_PAGE,
+  buildPdfCircuitGroups,
+  formatDisplayDate,
+} from "./pdfPages/pdfHelpers";
 import { chunkRows } from "../measurementProtocolHelpers";
 import { PdfTitlePage } from "./pdfPages/PdfTitlePage";
 import { PdfProjectSummaryPage } from "./pdfPages/PdfProjectSummaryPage";
@@ -34,7 +38,12 @@ export function PdfProtocolDocument({
   const groupedCircuits = buildPdfCircuitGroups(symbols);
   const circuitListRows = buildCircuitListTableRows(buildCircuitRowsFromSymbols(symbols));
 
-  const displayDate = formatDateForField(metadata.drawingDate) || formatDateForField(new Date().toISOString());
+  // WHY: must use the same helper as MeasurementProtocolsWorkspacePage so the
+  // header date printed in the PDF matches what the user sees in the preview.
+  // `formatDateForField` (ISO `YYYY-MM-DD`) was historically called here, but
+  // the preview fell back to `toLocaleDateString("pl-PL")` (`DD.MM.YYYY`),
+  // producing different strings for the same project — bug.
+  const displayDate = formatDisplayDate(metadata);
   const fallbackObjectName = metadata.titlePageObjectType || metadata.projectNumber || "Nowe zlecenie";
 
   const unifiedRows = metadata.measurementProtocols?.unifiedRows ?? [];

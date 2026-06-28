@@ -1,7 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createDefaultSymbolItem } from "../../types/symbolItem";
 import { createEmptyProjectMetadata } from "../projectMetadata";
-import { buildPdfCircuitGroups } from "./pdfPages/pdfHelpers";
+import {
+  buildPdfCircuitGroups,
+  countPdfPages,
+  formatDisplayDate,
+} from "./pdfPages/pdfHelpers";
 import {
   PdfProtocolDocument,
 } from "./PdfProtocolDocument";
@@ -518,6 +522,123 @@ describe("PdfProtocolDocument", () => {
     for (const paddingBottom of pageFooters) {
       expect(paddingBottom).toBeGreaterThan(0);
     }
+  });
+
+  // -------------------------------------------------------------------------
+  // UI ↔ PDF consistency — Bug A + Bug B regressions.
+  // Both the workspace preview and the PDF must call `formatDisplayDate` /
+  // `countPdfPages` so they render the same date string and the same total
+  // page count for the same input.
+  // -------------------------------------------------------------------------
+
+  it("renders the same display date in the PDF header as formatDisplayDate (Bug A regression)", () => {
+    // Pin the fake clock so the empty-drawingDate fallback is deterministic
+    // across CI environments and timezones.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-21T12:00:00Z"));
+    try {
+      const metadata = createEmptyProjectMetadata();
+      const expected = formatDisplayDate(metadata);
+
+      const document = PdfProtocolDocument({
+        metadata,
+        symbols: [],
+        schematicImages: [],
+        dinRailImages: [],
+        previewOnly: "title-page",
+      });
+
+      const text = collectTextContent(document).join("\n");
+      // The title page header prints "Data dokumentacji: <displayDate>".
+      // Pin that the string produced by formatDisplayDate actually appears
+      // in the PDF render — no fallback to ISO, no fallback to locale.
+      expect(text).toContain(expected);
+      // Polish engineering convention: DD.MM.YYYY.
+      expect(expected).toMatch(/^\d{2}\.\d{2}\.\d{4}$/);
+      // Old ISO fallback must NOT show up anymore.
+      expect(text).not.toMatch(/Data dokumentacji:\s*\d{4}-\d{2}-\d{2}/);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("renders the same display date on the circuit-list header (Bug A regression, multi-page contract)", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-03-08T10:00:00Z"));
+    try {
+      const metadata = createEmptyProjectMetadata();
+      const expected = formatDisplayDate(metadata);
+
+      const symbols = Array.from({ length: 12 }, (_, i) =>
+        createDefaultSymbolItem({
+          id: `mcb-${i}`,
+          type: "MCB 1P",
+          deviceKind: "mcb",
+          referenceDesignation: `F${i + 1}`,
+          circuitName: `Obwód ${i + 1}`,
+          phase: "L1",
+        }),
+      );
+
+      const document = PdfProtocolDocument({
+        metadata,
+        symbols,
+        schematicImages: [],
+        dinRailImages: [],
+        previewOnly: "circuit-list",
+      });
+
+      const pages = collectA4PageTextContent(document);
+      const circuitPages = pages.filter((pageText) => pageText.includes("Zestawienie obwod"));
+      // Every circuit-list page must show the same display date — drift here
+      // is the bug.
+      expect(circuitPages.length).toBeGreaterThanOrEqual(2);
+      for (const pageText of circuitPages) {
+        expect(pageText).toContain(expected);
+      }
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("countPdfPages equals the actual A4 page count of the rendered PDF (Bug B regression)", () => {
+    // WHY: pin the contract — the helper is the single source of truth for
+    // "how many pages does the PDF render?". If the helper and the renderer
+    // ever diverge (e.g. a new section added to PdfProtocolDocument but not
+    // to countPdfPages), this test fails.
+    const rcd = createDefaultSymbolItem({
+      id: "rcd-1",
+      deviceKind: "rcd",
+      label: "RCD 1",
+      referenceDesignation: "Q1",
+      groupName: "Grupa 1",
+    });
+    const mcb = createDefaultSymbolItem({
+      id: "mcb-1",
+      deviceKind: "mcb",
+      referenceDesignation: "F1",
+      rcdSymbolId: rcd.id,
+    });
+
+    const metadata = createEmptyProjectMetadata();
+    const symbols = [rcd, mcb];
+
+    const document = PdfProtocolDocument({
+      metadata,
+      symbols,
+      schematicImages: ["data:image/png;base64,iVBORw0KGgo="],
+      dinRailImages: ["<svg wires-on/>"],
+      dinRailWithoutWiresImages: ["<svg wires-off/>"],
+    });
+
+    const totalPages = collectA4PageTextContent(document).length;
+    const helperCount = countPdfPages(metadata, symbols, {
+      schematicImages: ["data:image/png;base64,iVBORw0KGgo="],
+      dinRailImages: ["<svg wires-on/>"],
+      dinRailWithoutWiresImages: ["<svg wires-off/>"],
+    });
+
+    expect(totalPages).toBe(helperCount);
   });
 });
 
