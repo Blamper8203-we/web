@@ -37,6 +37,19 @@ export function SchematicCellEditor({
       editor.focus();
       const caret = editor.value.length;
       editor.setSelectionRange(caret, caret);
+
+      // Mobile fix #3: scrollIntoView z blok/center sprawia że przeglądarka
+      // przewija najbliższego scrollable ancestor tak, aby input był widoczny
+      // nad klawiaturą ekranową (40vh scroll-margin w CSS zostawia miejsce).
+      // Na desktop tryb "nearest" zachowuje się jak brak scrolla gdy input
+      // jest już widoczny — bezpieczne dla obu platform.
+      if (typeof editor.scrollIntoView === "function") {
+        editor.scrollIntoView({
+          block: "nearest",
+          inline: "nearest",
+          behavior: "smooth",
+        });
+      }
     });
   }, []);
 
