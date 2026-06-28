@@ -81,60 +81,6 @@
 /* Responsive */
 @media (max-width: 768px) {
   .sheet-tabs-bar {
-    grid-column: 1;
-    grid-row: 1;
-    gap: 4px;
-    padding: 6px 12px;
-    min-height: auto;
-    background: var(--toolbar-background);
-    border-bottom: 1px solid var(--panel-border);
-    border-top: 0;
-    justify-content: flex-start;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: none;
-    position: relative;
-    touch-action: pan-x;
-  }
-
-  .sheet-tabs-bar::-webkit-scrollbar {
-    display: none;
-  }
-
-  .sheet-tab {
-    flex: 0 0 auto;
-    flex-direction: column;
-    gap: 4px;
-    min-height: 52px;
-    min-width: 64px;
-    padding: 6px 8px;
-    border-radius: 0;
-    background: transparent !important;
-    border: 0 !important;
-    box-shadow: none !important;
-    color: var(--text-tertiary);
-  }
-
-  .sheet-tab span {
-    font-size: 10px;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-  }
-
-  .sheet-tab-icon {
-    width: 22px;
-    height: 22px;
-    font-size: 20px;
-  }
-
-  .sheet-tab.active {
-    color: var(--accent-primary-hover);
-  }
-
-  .sheet-tab.active .sheet-tab-icon {
-    color: var(--accent-primary-hover);
+    display: none !important;
   }
 }

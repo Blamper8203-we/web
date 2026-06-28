@@ -43,6 +43,10 @@
 }
 
 @media (max-width: 768px) {
+  .main-content {
+    padding-bottom: calc(60px + env(safe-area-inset-bottom));
+  }
+
   .main-content.is-right-panel-hidden {
     grid-template-columns: 1fr;
   }

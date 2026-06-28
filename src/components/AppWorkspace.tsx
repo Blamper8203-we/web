@@ -315,7 +315,13 @@ export function AppWorkspace({
         showLeftPanel={sheetPanel.showLeftPanel}
         showRightPanel={sheetPanel.showRightPanel}
         onCloseLeftPanel={() => sheetPanel.setShowLeftPanel(false)}
-        onOpenLeftPanel={() => sheetPanel.setShowLeftPanel(true)}
+        onOpenLeftPanel={() => {
+          if (sheetPanel.activeSheet === "sheet1" && !dinRail.isVisible && window.innerWidth <= 768) {
+            handleOpenDinRailGenerator();
+          } else {
+            sheetPanel.setShowLeftPanel(true);
+          }
+        }}
         onChangeSheet={sheetPanel.setActiveSheet}
         onRequestLeftPanelTab={(tabName) => {
           sheetPanel.setShowLeftPanel(true);
@@ -334,8 +340,18 @@ export function AppWorkspace({
           activePaletteGroupTitle,
           setActivePaletteGroupTitle,
           setPaletteContextMenu,
-          handleOpenDinRailGenerator: handleOpenDinRailGenerator,
-          onPaletteItemTap: handlePaletteInsert,
+          handleOpenDinRailGenerator: () => {
+            handleOpenDinRailGenerator();
+            if (window.innerWidth <= 768) {
+              sheetPanel.setShowLeftPanel(false);
+            }
+          },
+          onPaletteItemTap: (templateId) => {
+            handlePaletteInsert(templateId);
+            if (window.innerWidth <= 768) {
+              sheetPanel.setShowLeftPanel(false);
+            }
+          },
           currentWireSettings,
           onChangeDefaultWireSettings: setCurrentWireSettings,
           selectedConnectionId,

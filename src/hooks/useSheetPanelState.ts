@@ -15,10 +15,22 @@ import type { SheetType, RightTab } from "../lib/appHelpers";
 export function useSheetPanelState() {
   const [activeSheet, setActiveSheet] = useState<SheetType>("sheet1");
   const [activeRightTab, setActiveRightTab] = useState<RightTab>("balance");
-  const [showRightPanel, setShowRightPanel] = useState(() => typeof window !== "undefined" ? window.innerWidth > 768 : true);
-  const [showLeftPanel, setShowLeftPanel] = useState(() => typeof window !== "undefined" ? window.innerWidth > 768 : true);
+  const [showRightPanel, setShowRightPanel] = useState(true);
+  const [showLeftPanel, setShowLeftPanel] = useState(true);
   const resizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastWideRef = useRef(typeof window !== "undefined" ? window.innerWidth > 768 : true);
+  const lastWideRef = useRef(true);
+
+  // Zastosuj faktyczny stan paneli dopiero po zamontowaniu (aby uniknąć błędu Hydracji na SSR)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isWide = window.innerWidth > 768;
+      lastWideRef.current = isWide;
+      if (!isWide) {
+        setShowLeftPanel(false);
+        setShowRightPanel(false);
+      }
+    }
+  }, []);
 
   // Automatycznie pokazuj/ukrywaj panele przy zmianie rozmiaru okna (z debounce)
   // Działa tylko przy przekroczeniu progu 768px – nie nadpisuje ręcznych przełączeń

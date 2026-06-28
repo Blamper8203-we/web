@@ -104,17 +104,19 @@ export function AppHeader({
   const menu = useToolbarMenuState();
   const isNative = Capacitor.isNativePlatform();
   const [isAboutOpen, setIsAboutOpen] = useState(false);
-  const [isMobileViewport, setIsMobileViewport] = useState(
-    () => typeof window !== "undefined" ? window.innerWidth <= 768 : false,
-  );
+  // Zastosuj deterministyczny stan na SSR
+  const [isMobileViewport, setIsMobileViewport] = useState<boolean>(false);
 
-  // Wykrywanie mobile viewport przez media query (reszta UI używa tego hooka)
   useEffect(() => {
-    const handleResize = () => {
+    if (typeof window !== "undefined") {
       setIsMobileViewport(window.innerWidth <= 768);
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+      
+      const handleResize = () => {
+        setIsMobileViewport(window.innerWidth <= 768);
+      };
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
+    }
   }, []);
 
   // Drukuj — wydzielone z inline `window.print()` dla testowalności.

@@ -4,6 +4,8 @@ import { AppWorkspaceCanvas, type AppWorkspaceCanvasProps } from "./AppWorkspace
 import { AppRightPanel, type AppRightPanelProps } from "./AppRightPanel";
 import { AppSheetTabs } from "./AppSheetTabs";
 import { PdfWorkspaceShell } from "./PdfWorkspaceShell";
+import { BottomNav } from "./mobile/BottomNav";
+import { FloatingAddButton } from "./mobile/FloatingAddButton";
 
 import type { SheetType } from "../lib/appHelpers";
 
@@ -95,6 +97,9 @@ export function MainWorkspace(props: MainWorkspaceProps) {
             showLeftPanel={showLeftPanel}
             onClose={onCloseLeftPanel}
           />
+          {showLeftPanel && (
+            <div className="mobile-panel-overlay" onClick={onCloseLeftPanel} />
+          )}
           <AppWorkspaceCanvas
             {...workspaceCanvasProps}
             activeSheet={activeSheet}
@@ -113,6 +118,17 @@ export function MainWorkspace(props: MainWorkspaceProps) {
         onChangeSheet={onChangeSheet}
         showLeftPanel={showLeftPanel}
         onOpenLeftPanel={onOpenLeftPanel}
+      />
+
+      <FloatingAddButton 
+        isVisible={activeSheet === "sheet1" && !showLeftPanel} 
+        onClick={onOpenLeftPanel} 
+      />
+
+      <BottomNav 
+        activeSheet={activeSheet} 
+        onChangeSheet={onChangeSheet} 
+        onOpenMenu={onOpenLeftPanel} 
       />
     </div>
   );
