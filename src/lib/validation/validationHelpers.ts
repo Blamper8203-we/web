@@ -22,6 +22,30 @@ export function parseProtectionRating(protectionType: string): number {
 }
 
 /**
+ * Parse the rated current (in amperes) out of an FR (main fuse-disconnector
+ * / rozłącznik główny) rating string. Realistic FR inputs are "63", "63A",
+ * "63 A", "100 A" — i.e. just the amperage, with an optional space and
+ * case-insensitive "A" suffix.
+ *
+ * WHY this is NOT `parseProtectionRating`: FR ratings in DINBoard projects
+ * never carry a B/C/D tripping-curve prefix (that's MCB territory — see
+ * `parseProtectionRating`). `createDefaultSymbolItem` ships `frRatedCurrent`
+ * as `"63A"`, and `parseProtectionRating("63A")` returns 0 because the
+ * `[BCDZK](\d+)` regex does not match a leading digit. That 0 silently
+ * short-circuited VAL-007 (main overload) and VAL-023 (main ↔ branch
+ * coordination) for every real project. This helper restores the intended
+ * behaviour for the realistic input shape.
+ *
+ * Returns 0 for empty / non-numeric input (same sentinel as
+ * `parseProtectionRating`).
+ */
+export function parseFrRating(frRatedCurrent: string): number {
+  if (!frRatedCurrent) return 0;
+  const match = frRatedCurrent.match(/^\s*(\d+)\s*[aA]?\s*$/);
+  return match ? parseInt(match[1], 10) : 0;
+}
+
+/**
  * Look up the maximum continuous current (A) for a given cable cross-section
  * (mm²). Returns 0 if the cross-section is not in the table.
  *

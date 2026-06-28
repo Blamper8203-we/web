@@ -40,7 +40,7 @@ describe("validateMainOverload", () => {
       id: "fr-1",
       deviceKind: "fr",
       type: "FR",
-      frRatedCurrent: "B63",
+      frRatedCurrent: "63A",
     });
     // 15000 W on L1+L2+L3 (balanced) = 5000 W per phase = ~24 A
     // on the breaker (not 65 A).  Below 63 A, should not trigger.
@@ -61,7 +61,7 @@ describe("validateMainOverload", () => {
       id: "fr-1",
       deviceKind: "fr",
       type: "FR",
-      frRatedCurrent: "B25",
+      frRatedCurrent: "25A",
     });
     // 6900 W on L1 only = 33.3 A on L1; other phases empty.  > 25 A FR.
     const heavyL1 = createDefaultSymbolItem({

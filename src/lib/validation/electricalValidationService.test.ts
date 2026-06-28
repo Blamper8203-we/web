@@ -754,4 +754,54 @@ describe('electricalValidationService', () => {
     expect(lowVoltageResult.errors.some((entry) => entry.code === 'VAL-002')).toBe(true);
     expect(highVoltageResult.errors.some((entry) => entry.code === 'VAL-002')).toBe(false);
   });
+
+  it('should evaluate VAL-007 / VAL-023 against a realistic FR ("63A") — regression guard for parseFrRating', () => {
+    // Realistic fixture: FR carries frRatedCurrent="63A" (the default from
+    // createDefaultSymbolItem). Before this fix, parseProtectionRating("63A")
+    // returned 0, so VAL-007 silently never fired and VAL-023 silently never
+    // fired for the FR path. This test pins the realistic behaviour.
+    const fr: Partial<SymbolItem> = {
+      id: 'fr-real',
+      type: 'FR',
+      deviceKind: 'fr',
+      frRatedCurrent: '63A',
+    };
+    const heavyL1: Partial<SymbolItem> = {
+      id: 'mcb-heavy-l1',
+      type: 'MCB 1P',
+      deviceKind: 'mcb',
+      phase: 'L1',
+      protectionType: 'B32',
+      cableCrossSection: 10,
+      cableLength: 10,
+      powerW: 6900, // 33.3 A on L1, exceeds the 63 A FR? No — but it does
+                     // cross 25 A. Use a heavier load to cross 63 A.
+    };
+    const veryHeavyL1: Partial<SymbolItem> = {
+      ...heavyL1,
+      id: 'mcb-very-heavy-l1',
+      powerW: 15000, // 72.5 A on L1, exceeds the 63 A FR
+    };
+    const branch: Partial<SymbolItem> = {
+      ...heavyL1,
+      id: 'mcb-branch-b63',
+      protectionType: 'B63',
+      powerW: 100,
+    };
+
+    const overloadResult = validateProject([fr as SymbolItem, veryHeavyL1 as SymbolItem]);
+    expect(overloadResult.errors).toContainEqual(
+      expect.objectContaining({
+        code: 'VAL-007',
+        symbolId: 'fr-real',
+      }),
+    );
+
+    const coordinationResult = validateProject([fr as SymbolItem, branch as SymbolItem]);
+    expect(coordinationResult.warnings).toContainEqual(
+      expect.objectContaining({
+        code: 'VAL-023',
+      }),
+    );
+  });
 });

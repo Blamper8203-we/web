@@ -12,7 +12,7 @@
 import type { SymbolItem } from "../../../types/symbolItem";
 import { isMainBreaker } from "../../deviceIdentification";
 import type { ValidationResult } from "../electricalValidationService";
-import { parseProtectionRating } from "../validationHelpers";
+import { parseProtectionRating, parseFrRating } from "../validationHelpers";
 
 export function validateMainProtectionCoordination(
   symbols: SymbolItem[],
@@ -22,7 +22,7 @@ export function validateMainProtectionCoordination(
   const mainRatings = [
     ...symbols
       .filter(isMainBreaker)
-      .map((symbol) => ({ rating: parseProtectionRating(symbol.frRatedCurrent), symbolId: symbol.id })),
+      .map((symbol) => ({ rating: parseFrRating(symbol.frRatedCurrent), symbolId: symbol.id })),
     ...(configuredMainBreakerA && configuredMainBreakerA > 0
       ? [{ rating: configuredMainBreakerA, symbolId: undefined }]
       : []),

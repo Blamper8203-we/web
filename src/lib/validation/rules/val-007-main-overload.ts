@@ -14,7 +14,7 @@
 import type { SymbolItem } from "../../../types/symbolItem";
 import { isMainBreaker } from "../../deviceIdentification";
 import { calculateCircuitPhaseCurrents } from "../circuitPhaseCurrents";
-import { parseProtectionRating } from "../validationHelpers";
+import { parseFrRating } from "../validationHelpers";
 import type { ValidationResult } from "../electricalValidationService";
 
 export function validateMainOverload(
@@ -46,7 +46,7 @@ export function validateMainOverload(
   }
 
   for (const mainBreaker of mainBreakers) {
-    const mainRating = parseProtectionRating(mainBreaker.frRatedCurrent);
+    const mainRating = parseFrRating(mainBreaker.frRatedCurrent);
     if (mainRating <= 0) continue;
 
     if (maxPhaseCurrent > mainRating) {

@@ -8,6 +8,7 @@ import {
   normalizeRcdType,
   normalizeSinglePhase,
   normalizeValidationText,
+  parseFrRating,
   parseProtectionRating,
 } from "./validationHelpers";
 import { createDefaultSymbolItem } from "../../types/symbolItem";
@@ -30,6 +31,30 @@ describe("parseProtectionRating", () => {
   it("is case-insensitive", () => {
     expect(parseProtectionRating("b16")).toBe(16);
     expect(parseProtectionRating("c20")).toBe(20);
+  });
+});
+
+describe("parseFrRating", () => {
+  it("parses the realistic FR rating shapes (no tripping-curve prefix)", () => {
+    expect(parseFrRating("63")).toBe(63);
+    expect(parseFrRating("63A")).toBe(63);
+    expect(parseFrRating("63 A")).toBe(63);
+    expect(parseFrRating("63a")).toBe(63);
+    expect(parseFrRating("100 A")).toBe(100);
+  });
+
+  it("returns 0 for empty or non-numeric input", () => {
+    expect(parseFrRating("")).toBe(0);
+    expect(parseFrRating("xyz")).toBe(0);
+  });
+
+  it("does not pick up MCB-style tripping-curve prefixes (regression guard)", () => {
+    // B63 / C20 / D32 are MCB strings — they MUST go through
+    // parseProtectionRating, not parseFrRating. Returning 0 here is
+    // intentional: a malformed FR string (e.g. one that was copied from an
+    // MCB field) should be treated as "unknown", not silently parsed.
+    expect(parseFrRating("B63")).toBe(0);
+    expect(parseFrRating("C25")).toBe(0);
   });
 });
 
