@@ -26,6 +26,7 @@ import { useImportedModules } from "../hooks/useImportedModules";
 import { useSheetPanelState } from "../hooks/useSheetPanelState";
 import { useDialogState } from "../hooks/useDialogState";
 import { useSchematicState } from "../hooks/useSchematicState";
+import { useIsMobileViewport } from "../hooks/useViewport";
 import type { ProjectMetadata } from "../types/projectMetadata";
 import type { SymbolItem } from "../types/symbolItem";
 import type { ConnectionItem, WireColor, WireType, RoutingMode, FerruleColor } from "../types/connectionItem";
@@ -272,6 +273,12 @@ export function AppWorkspace({
     setShowDinRailGroups: sheetPanel.setShowDinRailGroups,
   });
 
+  // Detekcja mobile dla callbacków (tap-to-place, auto-zamknięcie panelu po wyborze).
+  // Wcześniej czytaliśmy window.innerWidth bezpośrednio — działało w chwili
+  // kliknięcia, ale nie reagowało na obrót telefonu w trakcie sesji. Hook czyta
+  // matchMedia i reaguje na resize, więc wartość tu jest aktualna.
+  const isMobileViewport = useIsMobileViewport();
+
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
     <main className={`app-shell ui-theme-${uiTheme}`}>
@@ -316,7 +323,7 @@ export function AppWorkspace({
         showRightPanel={sheetPanel.showRightPanel}
         onCloseLeftPanel={() => sheetPanel.setShowLeftPanel(false)}
         onOpenLeftPanel={() => {
-          if (sheetPanel.activeSheet === "sheet1" && !dinRail.isVisible && window.innerWidth <= 768) {
+          if (sheetPanel.activeSheet === "sheet1" && !dinRail.isVisible && isMobileViewport) {
             handleOpenDinRailGenerator();
           } else {
             sheetPanel.setShowLeftPanel(true);
@@ -342,13 +349,13 @@ export function AppWorkspace({
           setPaletteContextMenu,
           handleOpenDinRailGenerator: () => {
             handleOpenDinRailGenerator();
-            if (window.innerWidth <= 768) {
+            if (isMobileViewport) {
               sheetPanel.setShowLeftPanel(false);
             }
           },
           onPaletteItemTap: (templateId) => {
             handlePaletteInsert(templateId);
-            if (window.innerWidth <= 768) {
+            if (isMobileViewport) {
               sheetPanel.setShowLeftPanel(false);
             }
           },

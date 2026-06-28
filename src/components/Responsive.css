@@ -1,6 +1,48 @@
 /* ================================================================
    Responsive
+   ================================================================
+
+   Mobile/desktop visibility classes (.mobile-only / .desktop-only):
+   Domyślnie desktop-only jest widoczne, mobile-only ukryte. Klasa
+   `is-mobile-viewport` jest ustawiana na <html> przez inline script
+   w index.html PRZED hydration Reacta (gdy matchMedia wskazuje
+   max-width: 768px). Dzięki temu CSS przełącza widoczność elementów
+   natychmiast po pierwszym paint — eliminuje FOUC na telefonie,
+   gdzie React.useState(false) + useEffect miał ~50ms opóźnienia
+   na pierwszym renderze.
+
+   Boundary 768px musi się zgadzać z `MOBILE_MAX_WIDTH_PX` w
+   src/hooks/useViewport.ts oraz z inline scriptem w index.html.
    ================================================================ */
+
+.mobile-only {
+  display: none !important;
+}
+
+.desktop-only {
+  display: inline-flex;
+}
+
+html.is-mobile-viewport .mobile-only {
+  display: inline-flex !important;
+}
+
+html.is-mobile-viewport .desktop-only {
+  display: none !important;
+}
+
+/* Fallback: @media query działa równolegle dla klientów bez inline script
+   (np. gdy skrypt z jakiegoś powodu nie wykonał się — błąd parsowania,
+   wyłączony JS). Zapewnia że układ jest spójny w obu ścieżkach. */
+@media (max-width: 768px) {
+  .mobile-only {
+    display: inline-flex !important;
+  }
+
+  .desktop-only {
+    display: none !important;
+  }
+}
 
 @media (max-width: 1024px) {
   :root {
@@ -128,12 +170,18 @@
   }
 
   .pdf-workspace-tabs {
+    /* Mobile: pokaż górny pasek z zakładkami PDF (domyślnie ukryty w
+       MainContent.css). Na desktop prawy panel pełni tę rolę. */
+    display: flex;
     padding: 8px;
+    /* Bezpieczne górne wcięcie pod AppHeader na iPhone notch. */
+    padding-top: calc(8px + env(safe-area-inset-top));
   }
 
   .pdf-workspace-tab {
     min-height: 32px;
     padding: 7px 10px;
+    font-size: 12px;
   }
 
 

@@ -78,9 +78,29 @@
   font-size: 13px;
 }
 
+/* "Dodaj Moduł" — mobilna akcja otwierająca paletę (FAB na canvasie nie zawsze
+   wystarczy, gdy BottomNav zasłania prawy dolny róg). Klasa zamiast inline style
+   żeby mobile/tablet CSS mógł ją nadpisać (np. ukryć na tablecie w pionie). */
+.sheet-tab--add-module {
+  margin-left: auto;
+  padding: 10px 12px;
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+.sheet-tab--add-module:hover {
+  background: var(--accent-primary-soft);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .sheet-tabs-bar {
     display: none !important;
+  }
+
+  /* Na wąskim viewport FAB + BottomNav obsługują nawigację, przycisk
+     "Dodaj Moduł" w tabs-barze jest zbędny — ukryty. */
+  .sheet-tab--add-module {
+    display: none;
   }
 }

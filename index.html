@@ -68,6 +68,32 @@
   </head>
 
   <body>
+    <script>
+      // WHY: Eliminacja FOUC (Flash Of Unstyled Content) na mobile.
+      // AppHeader renderuje warunkowo hamburger vs menu tekstowe na podstawie
+      // hooka `useIsMobileLayout`, którego initial state to `false` (SSR-safe).
+      // Bez tego skryptu na telefonie przez ~50ms widać pełne desktopowe menu
+      // zanim React wykryje viewport i przełączy layout. Ustawiamy klasę
+      // `is-mobile-viewport` na <html> PRZED hydration, a CSS w Responsive.css
+      // używa jej do pokazywania/ukrywania elementów mobile/desktop od razu,
+      // bez czekania na JavaScript.
+      //
+      // Boundary 768px musi być zsynchronizowana z `MOBILE_MAX_WIDTH_PX`
+      // w src/hooks/useViewport.ts oraz z media queries w Responsive.css.
+      (function () {
+        try {
+          if (
+            typeof window.matchMedia === "function" &&
+            window.matchMedia("(max-width: 768px)").matches
+          ) {
+            document.documentElement.classList.add("is-mobile-viewport");
+          }
+        } catch (_error) {
+          // matchMedia nie jest dostępne (np. bardzo stara przeglądarka)
+          // → nie robimy nic, aplikacja pozostanie w desktop layout.
+        }
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

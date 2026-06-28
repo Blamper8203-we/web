@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AppIcon } from "./AppIcon";
 import "./AppHeader.css";
 import type { SheetType } from "../lib/appHelpers";
 import type { AppUiTheme } from "../hooks/app/useAppPersistence";
-import { Capacitor } from "@capacitor/core";
+import { useIsMobileLayout, useIsNativePlatform } from "../hooks/useViewport";
 import { useToolbarMenuState } from "../hooks/useToolbarMenuState";
 import { AppHeaderFileMenu } from "./AppHeaderFileMenu";
 import { AboutDialog } from "./AboutDialog";
@@ -102,29 +102,15 @@ export function AppHeader({
   showTemporaryStatus,
 }: AppHeaderProps) {
   const menu = useToolbarMenuState();
-  const isNative = Capacitor.isNativePlatform();
+  const isNative = useIsNativePlatform();
+  const isMobileLayout = useIsMobileLayout();
   const [isAboutOpen, setIsAboutOpen] = useState(false);
-  // Zastosuj deterministyczny stan na SSR
-  const [isMobileViewport, setIsMobileViewport] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setIsMobileViewport(window.innerWidth <= 768);
-      
-      const handleResize = () => {
-        setIsMobileViewport(window.innerWidth <= 768);
-      };
-      window.addEventListener("resize", handleResize);
-      return () => window.removeEventListener("resize", handleResize);
-    }
-  }, []);
 
   // Drukuj — wydzielone z inline `window.print()` dla testowalności.
   const handlePrint = () => {
     window.print();
   };
 
-  const isMobileLayout = isNative || isMobileViewport;
   const showCenterToolbar = !isMobileLayout && activeSheet !== "sheet4";
 
   return (
@@ -134,158 +120,164 @@ export function AppHeader({
       }`}
     >
       <div className="toolbar-left">
-        {isMobileLayout ? (
-          <button
-            type="button"
-            className="toolbar-menu-btn mobile-hamburger"
-            onClick={(e) => {
-              e.stopPropagation();
-              menu.toggle("mobile");
-            }}
-          >
-            <AppIcon name="menu" size={24} />
-          </button>
-        ) : (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              marginRight: "12px",
-              marginLeft: "8px",
-              width: "24px",
-              height: "24px",
-              borderRadius: "4px",
-              overflow: "hidden",
-              opacity: 0.9,
-              cursor: "default",
-            }}
-          >
-            <img
-              src="/favicon-192.png"
-              alt="DinBoard Logo"
-              style={{ width: "100%", height: "100%", objectFit: "contain" }}
-            />
-          </div>
-        )}
+        {/* Hamburger: widoczny tylko na mobile. Klasa .mobile-only w Responsive.css
+            jest ukrywana domyślnie i pokazywana przez `html.is-mobile-viewport`,
+            ustawiane przez inline script w index.html PRZED hydration Reacta.
+            Dzięki temu eliminujemy FOUC na telefonie — pierwszy render nie
+            pokazuje pełnego menu desktopowego przez ~50ms przed przełączeniem.
+            Warunek JS nadal jest potrzebny do `menu.toggle("mobile")` w handlerze. */}
+        <button
+          type="button"
+          className="toolbar-menu-btn mobile-only mobile-hamburger"
+          onClick={(e) => {
+            e.stopPropagation();
+            menu.toggle("mobile");
+          }}
+        >
+          <AppIcon name="menu" size={24} />
+        </button>
 
-        {!isMobileLayout && (
-          <>
-            <div style={{ position: "relative" }}>
-              <button
-                type="button"
-                className={`toolbar-menu-btn ${menu.isOpen("file") ? "active" : ""}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  menu.toggle("file");
-                }}
-              >
-                Plik
-              </button>
-              {menu.isOpen("file") && (
-                <AppHeaderFileMenu
-                  hasUnsavedChanges={hasUnsavedChanges}
-                  onClose={menu.closeAll}
-                  onNewProject={onNewProject}
-                  onOpenProject={onOpenProject}
-                  onSaveProject={onSaveProject}
-                  onExportPdf={onExportPdf}
-                  onExportPng={onExportPng}
-                  onExportDinRailPngWithDescriptionsNoBrackets={
-                    onExportDinRailPngWithDescriptionsNoBrackets
-                  }
-                  onExportBom={onExportBom}
-                  onPrint={handlePrint}
-                  showTemporaryStatus={showTemporaryStatus}
-                />
-              )}
-            </div>
+        <div
+          className="desktop-only"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginRight: "12px",
+            marginLeft: "8px",
+            width: "24px",
+            height: "24px",
+            borderRadius: "4px",
+            overflow: "hidden",
+            opacity: 0.9,
+            cursor: "default",
+          }}
+        >
+          <img
+            src="/favicon-192.png"
+            alt="DinBoard Logo"
+            style={{ width: "100%", height: "100%", objectFit: "contain" }}
+          />
+        </div>
 
-            <div style={{ position: "relative" }}>
-              <button
-                type="button"
-                className={`toolbar-menu-btn ${menu.isOpen("view") ? "active" : ""}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  menu.toggle("view");
-                }}
-              >
-                Widok
-              </button>
-              {menu.isOpen("view") && (
-                <AppHeaderViewMenu
-                  showRightPanel={showRightPanel}
-                  showDinRailGroups={showDinRailGroups}
-                  activeSheet={activeSheet}
-                  onClose={menu.closeAll}
-                  onToggleRightPanel={onToggleRightPanel}
-                  onToggleDinRailGroups={onToggleDinRailGroups}
-                  onChangeSheet={onChangeSheet}
-                />
-              )}
-            </div>
-
-            <div style={{ position: "relative" }}>
-              <button
-                type="button"
-                className={`toolbar-menu-btn ${menu.isOpen("tools") ? "active" : ""}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  menu.toggle("tools");
-                }}
-              >
-                Narzędzia
-              </button>
-              {menu.isOpen("tools") && (
-                <AppHeaderToolsMenu
-                  onClose={menu.closeAll}
-                  onOpenDinRailGenerator={onOpenDinRailGenerator}
-                  onOpenSvgImport={onOpenSvgImport}
-                  onOpenImportedModulesManager={onOpenImportedModulesManager}
-                />
-              )}
-            </div>
-
-            <button type="button" className="toolbar-menu-btn" onClick={onOpenHelp}>
-              Pomoc
-            </button>
-
+        {/* Menu tekstowe (Plik, Widok, ...): widoczne tylko na desktop (CSS klasa
+            .desktop-only). Na mobile ukryte przez `html.is-mobile-viewport` —
+            eliminuje FOUC analogicznie do hamburger buttona powyżej. */}
+        <div className="desktop-only" style={{ display: "flex", alignItems: "center" }}>
+          <div style={{ position: "relative" }}>
             <button
               type="button"
-              className="toolbar-menu-btn"
-              onClick={() => setIsAboutOpen(true)}
-            >
-              O aplikacji
-            </button>
-
-            <button
-              type="button"
-              className="toolbar-menu-btn"
-              style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#e8eaef" }}
-              onClick={onOpenFeedback}
-            >
-              <AppIcon name="feedback" size={14} />
-              Zgłoś pomysł
-            </button>
-
-            <a
-              href="https://suppi.pl/dinboard"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="toolbar-menu-btn toolbar-menu-btn--donate-tablet"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-                color: "#FFB020",
-                textDecoration: "none",
+              className={`toolbar-menu-btn ${menu.isOpen("file") ? "active" : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                menu.toggle("file");
               }}
             >
-              <AppIcon name="coffee" size={14} />
-              Postaw kawę
-            </a>
-          </>
-        )}
+              Plik
+            </button>
+            {menu.isOpen("file") && (
+              <AppHeaderFileMenu
+                hasUnsavedChanges={hasUnsavedChanges}
+                onClose={menu.closeAll}
+                onNewProject={onNewProject}
+                onOpenProject={onOpenProject}
+                onSaveProject={onSaveProject}
+                onExportPdf={onExportPdf}
+                onExportPng={onExportPng}
+                onExportDinRailPngWithDescriptionsNoBrackets={
+                  onExportDinRailPngWithDescriptionsNoBrackets
+                }
+                onExportBom={onExportBom}
+                onPrint={handlePrint}
+                showTemporaryStatus={showTemporaryStatus}
+              />
+            )}
+          </div>
+
+          <div style={{ position: "relative" }}>
+            <button
+              type="button"
+              className={`toolbar-menu-btn ${menu.isOpen("view") ? "active" : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                menu.toggle("view");
+              }}
+            >
+              Widok
+            </button>
+            {menu.isOpen("view") && (
+              <AppHeaderViewMenu
+                showRightPanel={showRightPanel}
+                showDinRailGroups={showDinRailGroups}
+                activeSheet={activeSheet}
+                onClose={menu.closeAll}
+                onToggleRightPanel={onToggleRightPanel}
+                onToggleDinRailGroups={onToggleDinRailGroups}
+                onChangeSheet={onChangeSheet}
+              />
+            )}
+          </div>
+
+          <div style={{ position: "relative" }}>
+            <button
+              type="button"
+              className={`toolbar-menu-btn ${menu.isOpen("tools") ? "active" : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                menu.toggle("tools");
+              }}
+            >
+              Narzędzia
+            </button>
+            {menu.isOpen("tools") && (
+              <AppHeaderToolsMenu
+                onClose={menu.closeAll}
+                onOpenDinRailGenerator={onOpenDinRailGenerator}
+                onOpenSvgImport={onOpenSvgImport}
+                onOpenImportedModulesManager={onOpenImportedModulesManager}
+              />
+            )}
+          </div>
+
+          <button type="button" className="toolbar-menu-btn" onClick={onOpenHelp}>
+            Pomoc
+          </button>
+
+          <button
+            type="button"
+            className="toolbar-menu-btn"
+            onClick={() => setIsAboutOpen(true)}
+          >
+            O aplikacji
+          </button>
+
+          <button
+            type="button"
+            className="toolbar-menu-btn"
+            style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#e8eaef" }}
+            onClick={onOpenFeedback}
+          >
+            <AppIcon name="feedback" size={14} />
+            Zgłoś pomysł
+          </button>
+
+          <a
+            href="https://suppi.pl/dinboard"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="toolbar-menu-btn toolbar-menu-btn--donate-tablet"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              color: "#FFB020",
+              textDecoration: "none",
+            }}
+          >
+            <AppIcon name="coffee" size={14} />
+            Postaw kawę
+          </a>
+        </div>
       </div>
 
       {showCenterToolbar && (

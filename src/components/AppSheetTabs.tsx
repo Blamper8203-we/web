@@ -44,11 +44,10 @@ export function AppSheetTabs({ activeSheet, onChangeSheet, showLeftPanel, onOpen
         </button>
       ))}
       {!showLeftPanel && onOpenLeftPanel && (
-        <button 
-          className="sheet-tab mobile-only-tab" 
-          type="button" 
-          onClick={onOpenLeftPanel} 
-          style={{ marginLeft: "auto", color: "var(--accent-primary)", borderColor: "var(--accent-primary)", padding: "10px 12px" }}
+        <button
+          className="sheet-tab sheet-tab--add-module"
+          type="button"
+          onClick={onOpenLeftPanel}
         >
           <AppIcon className="sheet-tab-icon" name="plus" />
           <span>Dodaj Moduł</span>
