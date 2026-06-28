@@ -2,6 +2,22 @@
 <html lang="pl">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // WHY: Google Consent Mode v2 default — ad_storage/ad_user_data/
+      // ad_personalization are denied until the user clicks "Akceptuję"
+      // in the cookie banner. Without this default, AdSense would assume
+      // consent and Google could flag the site for non-compliance. Vercel
+      // Analytics doesn't use cookies so analytics_storage stays granted.
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('consent', 'default', {
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        analytics_storage: 'granted',
+        wait_for_update: 500
+      });
+    </script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3277911929620177" crossorigin="anonymous"></script>
     <meta name="google-site-verification" content="_rRq2dI-gB5nvPnF5o1iP38rDiycHMr9BYNlprhjvrQ" />
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />

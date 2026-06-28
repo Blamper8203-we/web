@@ -18,10 +18,10 @@ export function LandingFooter({ onOpenFeedback }: LandingFooterProps) {
         </div>
 
         <div className="flex gap-6">
-          <a href="#" className="hover:text-amber-500 transition-colors">
+          <a href="/polityka-prywatnosci" className="hover:text-amber-500 transition-colors">
             Polityka Prywatności
           </a>
-          <a href="#" className="hover:text-amber-500 transition-colors">
+          <a href="/regulamin" className="hover:text-amber-500 transition-colors">
             Warunki korzystania
           </a>
           <a onClick={onOpenFeedback} className="hover:text-amber-500 transition-colors cursor-pointer">

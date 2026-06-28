@@ -98,6 +98,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,json}"],
+        navigateFallbackDenylist: [/^\/sitemap\.xml$/, /^\/robots\.txt$/],
         runtimeCaching: [
           {
             urlPattern: /^\/assets\/modules\/.*\.svg$/,

@@ -1,0 +1,3391 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DINBoard — schemat UI · ekspercki</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #f7f5f0;
+  --surface: #ffffff;
+  --surface-2: #fbf9f4;
+  --surface-3: #f3ede0;
+  --line: #e9e3d6;
+  --line-soft: #f0eadb;
+  --text: #14171e;
+  --text-muted: #5a6275;
+  --text-dim: #8a8478;
+
+  /* semantyka */
+  --primary: #2f6f5e;
+  --primary-soft: rgba(47, 111, 94, 0.08);
+  --primary-strong: #245649;
+  --accent: #c97b3f;
+  --accent-soft: rgba(201, 123, 63, 0.10);
+  --danger: #b06367;
+  --danger-soft: rgba(176, 99, 103, 0.10);
+  --danger-strong: #92484c;
+  --warn: #c79a3b;
+  --warn-soft: rgba(199, 154, 59, 0.10);
+
+  /* DINBoard dark UI tokens */
+  --db-bg-app: #1a1d23;
+  --db-bg-panel: #20242c;
+  --db-bg-canvas: #0B0B0D;
+  --db-bg-header: #20242c;
+  --db-bg-status: #1a1d23;
+  --db-line: #2e3238;
+  --db-line-2: #3a3f48;
+  --db-text: #e8eaef;
+  --db-text-muted: #9aa3b2;
+  --db-text-dim: #6b7280;
+  --db-brand: #2f80ed;
+  --db-brand-soft: rgba(47, 128, 237, 0.15);
+  --db-accent: #FFB020;
+  --db-danger: #ef4444;
+  --db-warn: #f59e0b;
+  --db-ok: #10b981;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── TOP HEADER ──────────────────────────────────────── */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(247, 245, 240, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  color: var(--text);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.topbar-logo {
+  width: 28px; height: 28px;
+  background: var(--primary);
+  color: white;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+}
+.topbar-search {
+  flex: 1;
+  max-width: 480px;
+  position: relative;
+  margin: 0 auto;
+}
+.topbar-search input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 14px 9px 38px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.topbar-search input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+.topbar-search svg {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-dim);
+  width: 16px; height: 16px;
+}
+.topbar-search kbd {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  background: var(--surface-3);
+  color: var(--text-muted);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+}
+.search-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  max-height: 360px;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(20, 23, 30, 0.12);
+  display: none;
+}
+.search-results.open { display: block; }
+.search-result {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line-soft);
+  cursor: pointer;
+  font-size: 13px;
+}
+.search-result:last-child { border-bottom: none; }
+.search-result:hover, .search-result.focused {
+  background: var(--primary-soft);
+}
+.search-result .sr-kind {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--primary);
+  font-weight: 600;
+  margin-right: 8px;
+}
+.search-result .sr-title {
+  font-weight: 600;
+  color: var(--text);
+}
+.search-result .sr-path {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  display: block;
+  margin-top: 2px;
+}
+.search-empty {
+  padding: 14px;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+}
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.topbar-actions a {
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+.topbar-actions a:hover { background: var(--surface-3); color: var(--text); }
+
+/* ── LAYOUT — sidebar + main ─────────────────────────── */
+.layout {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 32px 24px 96px;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 48px;
+}
+@media (max-width: 1024px) {
+  .layout { grid-template-columns: 1fr; padding: 24px 16px 64px; }
+  .toc { position: static; max-height: none; }
+}
+
+/* ── TOC (sticky) ────────────────────────────────────── */
+.toc {
+  position: sticky;
+  top: 76px;
+  align-self: start;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.toc-title {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 600;
+  margin-bottom: 12px;
+  padding-left: 10px;
+}
+.toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-left: 1px solid var(--line);
+}
+.toc-list li {
+  margin: 0;
+}
+.toc-list a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px 7px 14px;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  margin-left: -1px;
+  transition: all 0.12s;
+  line-height: 1.35;
+}
+.toc-list a:hover { color: var(--text); background: var(--surface-3); }
+.toc-list a.active {
+  color: var(--primary);
+  border-left-color: var(--primary);
+  background: var(--primary-soft);
+  font-weight: 600;
+}
+.toc-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+  font-weight: 500;
+}
+.toc-list a.active .toc-num { color: var(--primary); }
+
+/* ── MAIN content ────────────────────────────────────── */
+main { min-width: 0; }
+
+/* ── Hero ────────────────────────────────────────────── */
+.hero {
+  margin-bottom: 64px;
+  position: relative;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  top: -60px; left: -100px;
+  width: 360px; height: 360px;
+  background: radial-gradient(circle, var(--primary-soft) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--primary);
+  background: var(--primary-soft);
+  padding: 6px 14px;
+  border-radius: 999px;
+  margin-bottom: 20px;
+}
+.hero-eyebrow svg { width: 14px; height: 14px; }
+.hero h1 {
+  font-family: 'DM Serif Display', serif;
+  font-weight: 400;
+  font-size: 52px;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  margin: 0 0 18px;
+}
+.hero p.lede {
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  margin: 0 0 32px;
+  max-width: 740px;
+}
+
+/* ── Stats strip ─────────────────────────────────────── */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+@media (max-width: 720px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.stat-num {
+  font-family: 'DM Serif Display', serif;
+  font-size: 28px;
+  color: var(--primary);
+  line-height: 1;
+}
+.stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ── Architecture mini-map ───────────────────────────── */
+.archmap {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 48px;
+}
+.archmap-title {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.archmap-flow {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  align-items: stretch;
+}
+@media (max-width: 720px) { .archmap-flow { grid-template-columns: 1fr; } }
+.archmap-node {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.archmap-node.entry { border-color: var(--primary); background: var(--primary-soft); }
+.archmap-node.region { background: var(--db-bg-panel); color: var(--db-text); border-color: var(--db-line); }
+.archmap-node-label {
+  font-weight: 600;
+  font-size: 13px;
+}
+.archmap-node-file {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 3px;
+}
+.archmap-node.region .archmap-node-file { color: var(--db-text-dim); }
+.archmap-arrow {
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-dim);
+  z-index: 1;
+}
+@media (max-width: 720px) {
+  .archmap-arrow { display: none; }
+  .archmap-node { margin-bottom: 4px; }
+}
+
+/* ── Quick jump grid ─────────────────────────────────── */
+.quickjump {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 64px;
+}
+@media (max-width: 920px) { .quickjump { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .quickjump { grid-template-columns: 1fr; } }
+.qj-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.qj-card:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(20, 23, 30, 0.06);
+}
+.qj-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 600;
+}
+.qj-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+}
+.qj-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+/* ── Sections ────────────────────────────────────────── */
+section {
+  margin-bottom: 80px;
+  scroll-margin-top: 80px;
+}
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 8px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--line);
+}
+.section-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: var(--accent);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.section-title {
+  font-family: 'DM Serif Display', serif;
+  font-weight: 400;
+  font-size: 34px;
+  line-height: 1.1;
+  margin: 0;
+  flex: 1;
+}
+.section-desc {
+  color: var(--text-muted);
+  font-size: 15px;
+  max-width: 760px;
+  margin: 16px 0 32px;
+}
+
+/* ── Component reference card ────────────────────────── */
+.comp {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: start;
+  transition: border-color 0.15s;
+}
+.comp:hover { border-color: var(--primary); }
+.comp.high-risk { border-left: 3px solid var(--danger); }
+.comp.med-risk { border-left: 3px solid var(--warn); }
+.comp-name {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.comp-path {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+.comp-purpose {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin-top: 8px;
+}
+.comp-meta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.badge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--surface-3);
+  color: var(--text-muted);
+  font-family: 'Outfit', sans-serif;
+}
+.badge.risk-high { background: var(--danger-soft); color: var(--danger-strong); }
+.badge.risk-med { background: var(--warn-soft); color: var(--warn); }
+.badge.risk-low { background: var(--primary-soft); color: var(--primary-strong); }
+.badge.expert {
+  background: var(--surface-3);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ── Wireframe mockup ────────────────────────────────── */
+.wireframe {
+  background: var(--db-bg-app);
+  border-radius: 14px;
+  border: 1px solid var(--db-line);
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(20, 23, 30, 0.18);
+  font-family: 'Outfit', sans-serif;
+  margin-bottom: 24px;
+}
+.wf-legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: var(--surface-3);
+  border-bottom: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.wf-legend strong { color: var(--text); margin-right: 12px; }
+.wf-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.wf-legend .swatch {
+  width: 10px; height: 10px; border-radius: 2px;
+  display: inline-block;
+}
+.wf-header {
+  background: var(--db-bg-header);
+  border-bottom: 1px solid var(--db-line);
+  padding: 0 16px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--db-text);
+  position: relative;
+}
+.wf-region-tag {
+  position: absolute;
+  top: -10px;
+  background: var(--surface);
+  color: var(--primary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+}
+.wf-logo {
+  width: 24px; height: 24px;
+  background: var(--db-brand);
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  color: white;
+  font-weight: 700;
+  font-size: 12px;
+}
+.wf-menu {
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--db-text);
+  border-radius: 4px;
+}
+.wf-menu.active { background: var(--db-line); }
+.wf-center { display: flex; gap: 4px; margin: 0 auto; }
+.wf-icon-btn {
+  width: 32px; height: 32px;
+  border-radius: 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  display: grid;
+  place-items: center;
+  color: var(--db-text-muted);
+  font-size: 14px;
+}
+.wf-icon-btn.primary { background: var(--db-brand); color: white; }
+.wf-icon-btn.danger { color: var(--db-danger); }
+.wf-icon-btn:disabled { opacity: 0.4; }
+.wf-zoom-pill {
+  background: var(--db-line);
+  color: var(--db-text);
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.wf-filename {
+  font-size: 12px;
+  color: var(--db-text-muted);
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wf-body {
+  display: grid;
+  grid-template-columns: 260px 1fr 320px;
+  min-height: 480px;
+  position: relative;
+}
+.wf-region { position: relative; }
+.wf-region-tag.top-left { left: 16px; }
+.wf-region-tag.top-right { right: 16px; }
+
+.wf-left-panel {
+  background: var(--db-bg-panel);
+  border-right: 1px solid var(--db-line);
+  padding: 24px 12px 12px;
+  color: var(--db-text);
+}
+.wf-left-panel-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--db-text-muted);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.wf-palette-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.wf-palette-tab {
+  background: var(--db-bg-app);
+  border: 1px solid var(--db-line);
+  color: var(--db-text-muted);
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.wf-palette-tab.active { color: var(--db-text); border-color: var(--db-brand); }
+.wf-palette-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.wf-palette-item {
+  background: var(--db-bg-app);
+  border: 1px solid var(--db-line);
+  border-radius: 6px;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.wf-palette-item.rcd { border-color: var(--db-danger); }
+.wf-palette-thumb {
+  width: 36px; height: 24px;
+  background: linear-gradient(180deg, #475569, #334155);
+  border-radius: 3px;
+}
+.wf-palette-thumb.rcd { background: linear-gradient(180deg, #ef4444, #b91c1c); }
+.wf-palette-label {
+  font-size: 10px;
+  color: var(--db-text-muted);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.wf-canvas {
+  background:
+    radial-gradient(circle at 50% 50%, #1f2229 0%, #0B0B0D 80%);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.wf-canvas::before {
+  content: "";
+  position: absolute;
+  inset: 30px 50px;
+  background-image:
+    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+}
+.wf-rail {
+  position: relative;
+  width: 80%; height: 4px;
+  background: linear-gradient(180deg, #94a3b8, #475569);
+  border-radius: 2px;
+  z-index: 1;
+}
+.wf-rail-modules {
+  position: absolute;
+  left: 5%; right: 5%;
+  bottom: -2px;
+  display: flex;
+  gap: 2px;
+  z-index: 1;
+}
+.wf-rail-module {
+  width: 28px; height: 36px;
+  background: linear-gradient(180deg, #f8fafc, #cbd5e1);
+  border: 1px solid #94a3b8;
+  border-radius: 2px;
+}
+.wf-rail-module.rcd { background: linear-gradient(180deg, #ef4444, #991b1b); border-color: #7f1d1d; }
+.wf-canvas-hud {
+  position: absolute;
+  bottom: 12px; right: 12px;
+  font-size: 11px;
+  color: var(--db-text-muted);
+  background: rgba(0,0,0,0.6);
+  padding: 4px 8px;
+  border-radius: 4px;
+  z-index: 2;
+}
+
+.wf-right-panel {
+  background: var(--db-bg-panel);
+  border-left: 1px solid var(--db-line);
+  padding: 24px 12px 12px;
+  color: var(--db-text);
+  display: flex;
+  flex-direction: column;
+}
+.wf-right-tabs {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 12px;
+  background: var(--db-bg-app);
+  padding: 4px;
+  border-radius: 6px;
+}
+.wf-right-tab {
+  flex: 1;
+  background: transparent;
+  color: var(--db-text-muted);
+  font-size: 11px;
+  padding: 6px 4px;
+  border-radius: 4px;
+  text-align: center;
+}
+.wf-right-tab.active { background: var(--db-line); color: var(--db-text); }
+.wf-form-field { margin-bottom: 10px; }
+.wf-form-label {
+  font-size: 11px;
+  color: var(--db-text-muted);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.wf-form-control {
+  background: var(--db-bg-app);
+  border: 1px solid var(--db-line);
+  color: var(--db-text);
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  width: 100%;
+}
+
+.wf-sheet-tabs {
+  background: var(--db-bg-header);
+  border-top: 1px solid var(--db-line);
+  padding: 0 16px;
+  display: flex;
+  gap: 4px;
+  height: 44px;
+  align-items: center;
+  position: relative;
+}
+.wf-sheet-tab {
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--db-text-muted);
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.wf-sheet-tab.active { background: var(--db-brand); color: white; }
+
+.wf-statusbar {
+  background: var(--db-bg-status);
+  border-top: 1px solid var(--db-line);
+  padding: 6px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--db-text-muted);
+  position: relative;
+}
+.wf-status-group { display: inline-flex; align-items: center; gap: 14px; }
+.wf-status-item { display: inline-flex; align-items: center; gap: 5px; }
+.wf-status-item.warn { color: var(--db-warn); }
+.wf-status-item.danger { color: var(--db-danger); }
+.wf-status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--db-ok); }
+
+/* ── Tree ────────────────────────────────────────────── */
+.tree {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.8;
+  overflow-x: auto;
+}
+.tree ul { list-style: none; padding-left: 20px; margin: 0; }
+.tree li { position: relative; }
+.tree li::before {
+  content: "├─";
+  position: absolute;
+  left: -16px;
+  color: var(--text-dim);
+}
+.tree li:last-child::before { content: "└─"; }
+.tree .file { color: var(--primary); }
+.tree .file.heavy { color: var(--accent); }
+.tree .dir { color: var(--text); font-weight: 600; }
+
+/* ── Layer discipline bar ────────────────────────────── */
+.layers {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+}
+@media (max-width: 920px) { .layers { grid-template-columns: 1fr; } }
+.layer {
+  background: var(--surface);
+  padding: 16px;
+}
+.layer-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+.layer-folder {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+.layer-role {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ── Interactive wireframe (section 01) ──────────────── */
+.wf-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px 12px 0 0;
+  border-bottom: none;
+  padding: 12px 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.wf-controls-label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+.wf-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+.wf-tab {
+  padding: 7px 12px;
+  font-size: 12px;
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+  color: var(--text-muted);
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 500;
+  transition: all 0.12s;
+}
+.wf-tab:hover { color: var(--text); border-color: var(--primary); }
+.wf-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+.wf-tab:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.wf-current {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.wf-current strong { color: var(--text); font-weight: 600; }
+.wf-current .key {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--surface-3);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+.wireframe { border-radius: 0 0 14px 14px; border-top: none; }
+
+.wf-body { display: grid; grid-template-columns: 260px 1fr 320px; min-height: 480px; position: relative; }
+@media (max-width: 920px) { .wf-body { grid-template-columns: 1fr; min-height: auto; } }
+
+.wf-left-panel, .wf-canvas, .wf-right-panel { position: relative; }
+.wf-canvas-label {
+  position: absolute;
+  top: 12px; left: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--db-text-dim);
+  letter-spacing: 0.1em;
+  z-index: 2;
+}
+
+.wf-content { display: none; flex-direction: column; flex: 1; }
+.wf-content.active { display: flex; }
+.wf-canvas .wf-content.active { display: flex; align-items: center; justify-content: center; }
+
+.wf-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+
+.wf-rail { position: relative; width: 80%; height: 4px; background: linear-gradient(180deg, #94a3b8, #475569); border-radius: 2px; z-index: 1; }
+.wf-rail-modules { position: absolute; left: 5%; right: 5%; bottom: -2px; display: flex; gap: 2px; z-index: 1; }
+.wf-rail-module {
+  width: 28px; height: 36px;
+  background: linear-gradient(180deg, #f8fafc, #cbd5e1);
+  border: 1px solid #94a3b8;
+  border-radius: 2px;
+}
+.wf-rail-module.rcd { background: linear-gradient(180deg, #ef4444, #991b1b); border-color: #7f1d1d; }
+
+.wf-wire { stroke: #facc15; stroke-width: 3; fill: none; stroke-linecap: round; }
+.wf-wire.live { stroke: var(--db-brand); stroke-width: 4; }
+
+.wf-a4 {
+  width: 280px; height: 380px;
+  background: white;
+  border-radius: 2px;
+  position: relative;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  padding: 14px;
+  z-index: 1;
+}
+.wf-a4-grid {
+  position: absolute; inset: 14px;
+  background-image:
+    linear-gradient(90deg, #e5e7eb 1px, transparent 1px),
+    linear-gradient(#e5e7eb 1px, transparent 1px);
+  background-size: 20px 20px;
+  opacity: 0.4;
+}
+.wf-a4-schematic { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; gap: 8px; padding-top: 10px; }
+.wf-a4-row { display: flex; gap: 6px; align-items: center; }
+.wf-a4-cell {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  font-size: 9px;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 2px 4px;
+  border-radius: 2px;
+  min-width: 32px;
+  text-align: center;
+  color: #1e293b;
+}
+.wf-a4-line { flex: 1; height: 2px; background: #334155; }
+.wf-a4-pagebadge {
+  position: absolute;
+  bottom: 6px; right: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: #64748b;
+}
+
+.wf-table {
+  width: 90%; max-width: 540px;
+  background: white;
+  border-radius: 4px;
+  overflow: hidden;
+  z-index: 1;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  font-size: 11px;
+  color: #1e293b;
+}
+.wf-table-row {
+  display: grid;
+  grid-template-columns: 40px 1fr 80px 60px 60px 70px;
+  padding: 6px 10px;
+  border-bottom: 1px solid #e2e8f0;
+  gap: 8px;
+  align-items: center;
+}
+.wf-table-row.head { background: #f1f5f9; font-weight: 600; font-size: 10px; color: #475569; }
+.wf-table-row:last-child { border-bottom: none; }
+.wf-table-row .mono { font-family: 'JetBrains Mono', monospace; font-size: 10px; }
+.wf-table-row .tag {
+  display: inline-block;
+  background: #dbeafe;
+  color: #1e40af;
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+.wf-pdf-preview {
+  width: 320px; height: 440px;
+  background: white;
+  border-radius: 2px;
+  position: relative;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  padding: 24px;
+  z-index: 1;
+  color: #1e293b;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.wf-pdf-band { height: 4px; background: var(--db-brand); border-radius: 2px; margin-bottom: 8px; }
+.wf-pdf-h1 { font-family: 'DM Serif Display', serif; font-size: 18px; margin: 4px 0; }
+.wf-pdf-h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; font-weight: 600; margin: 8px 0 4px; }
+.wf-pdf-line { height: 6px; background: #e2e8f0; border-radius: 2px; }
+.wf-pdf-line.short { width: 60%; }
+.wf-pdf-line.medium { width: 80%; }
+.wf-pdf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 4px; }
+.wf-pdf-cell { font-size: 9px; color: #475569; }
+
+.wf-pdf-nav { display: flex; flex-direction: column; gap: 6px; }
+.wf-pdf-nav-btn {
+  background: var(--db-bg-app);
+  border: 1px solid var(--db-line);
+  color: var(--db-text-muted);
+  font-size: 11px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  text-align: left;
+}
+.wf-pdf-nav-btn.active { background: var(--db-brand); color: white; border-color: var(--db-brand); }
+
+.wf-page-thumbs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 10px;
+}
+.wf-page-thumb {
+  background: white;
+  border: 1px solid var(--db-line);
+  border-radius: 2px;
+  aspect-ratio: 0.7;
+  display: grid;
+  place-items: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #475569;
+}
+
+/* ── State flow diagram (section 02) ────────────────── */
+.stateflow {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 24px;
+  overflow-x: auto;
+}
+.stateflow-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.stateflow-legend .dot {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border-radius: 2px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.stateflow-svg { width: 100%; min-width: 760px; height: auto; display: block; }
+
+.pattern-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+.pattern {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px;
+}
+.pattern-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.pattern-flow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  word-break: break-word;
+}
+.pattern-flow .layer-tag {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+}
+.pattern-flow .layer-tag.ui { background: var(--primary-soft); color: var(--primary-strong); }
+.pattern-flow .layer-tag.hook { background: var(--accent-soft); color: var(--accent); }
+.pattern-flow .layer-tag.lib { background: rgba(99, 102, 241, 0.1); color: #4f46e5; }
+.pattern-flow .layer-tag.store { background: var(--surface-3); color: var(--text-muted); }
+
+/* ── Risk heatmap (section 10) ──────────────────────── */
+.heatmap {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 16px;
+}
+.heatmap-row {
+  display: grid;
+  grid-template-columns: 200px repeat(4, 1fr);
+  border-bottom: 1px solid var(--line-soft);
+}
+.heatmap-row:last-child { border-bottom: none; }
+.heatmap-row.head { background: var(--surface-3); }
+.heatmap-cell {
+  padding: 12px 14px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-right: 1px solid var(--line-soft);
+}
+.heatmap-cell:last-child { border-right: none; }
+.heatmap-cell.head {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+.heatmap-cell.label {
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface-2);
+  font-size: 13px;
+}
+.heatmap-score { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+.heatmap-score .pip { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.heatmap-score.low .pip { background: var(--db-ok); }
+.heatmap-score.med .pip { background: var(--db-warn); }
+.heatmap-score.high .pip { background: var(--db-danger); }
+.heatmap-score.low { color: var(--primary-strong); }
+.heatmap-score.med { color: #92400e; }
+.heatmap-score.high { color: var(--danger-strong); }
+
+@media (max-width: 920px) {
+  .heatmap-row { grid-template-columns: 1fr; }
+  .heatmap-cell { border-right: none; border-bottom: 1px solid var(--line-soft); }
+}
+
+/* ── Sheet card grid ─────────────────────────────────── */
+.sheet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.sheet-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+}
+.sheet-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.sheet-tab-icon {
+  width: 28px; height: 28px;
+  background: var(--db-brand);
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  color: white;
+  font-weight: 700;
+  font-size: 12px;
+}
+.sheet-tab-title {
+  font-weight: 600;
+  font-size: 15px;
+}
+.sheet-tab-meta {
+  margin-left: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  background: var(--surface-3);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.sheet-card-region { margin-bottom: 12px; }
+.sheet-card-region:last-child { margin-bottom: 0; }
+.sheet-card-region-label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+.sheet-card-region-content {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+.sheet-card-region-content code { font-size: 12px; }
+
+/* ── Two column ──────────────────────────────────────── */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 920px) { .two-col { grid-template-columns: 1fr; } }
+
+/* ── Menu mockup ─────────────────────────────────────── */
+.menu-mockup {
+  background: var(--db-bg-panel);
+  border: 1px solid var(--db-line);
+  border-radius: 8px;
+  padding: 6px;
+  min-width: 240px;
+  color: var(--db-text);
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+}
+.menu-mockup .mi {
+  padding: 8px 12px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.menu-mockup .mi.divider {
+  height: 1px; padding: 0; margin: 4px 0;
+  background: var(--db-line);
+}
+.menu-mockup .mi kbd {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--db-text-dim);
+  font-family: 'JetBrains Mono', monospace;
+}
+.menu-mockup .mi.danger { color: var(--db-danger); }
+
+/* ── Dialog grid ─────────────────────────────────────── */
+.dialog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+/* ── Glossary table ──────────────────────────────────── */
+.glossary {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.glossary-row {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr 0.8fr;
+  gap: 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 13px;
+  align-items: center;
+}
+.glossary-row:last-child { border-bottom: none; }
+.glossary-row.head {
+  background: var(--surface-3);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+.glossary-row:hover:not(.head) { background: var(--surface-2); }
+@media (max-width: 920px) {
+  .glossary-row { grid-template-columns: 1fr; }
+}
+.glossary-row .g-name { font-weight: 600; }
+.glossary-row .g-path {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.glossary-row .g-desc { color: var(--text-muted); }
+
+/* ── Token palette ───────────────────────────────────── */
+.token-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+.token {
+  border-radius: 8px;
+  padding: 14px;
+  color: white;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.token.dark-text { color: var(--text); }
+
+/* ── Footer ──────────────────────────────────────────── */
+.doc-footer {
+  margin-top: 96px;
+  padding-top: 32px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--text-dim);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+/* ── Back to top ─────────────────────────────────────── */
+.back-top {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  background: var(--primary);
+  color: white;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 12px rgba(20, 23, 30, 0.18);
+  cursor: pointer;
+  border: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 40;
+}
+.back-top.visible { opacity: 1; pointer-events: auto; }
+.back-top:hover { background: var(--primary-strong); }
+
+/* ── Print styles ────────────────────────────────────── */
+@media print {
+  .topbar, .toc, .back-top, .topbar-actions { display: none; }
+  .layout { grid-template-columns: 1fr; padding: 0; }
+  body { background: white; }
+  section { page-break-inside: avoid; }
+}
+
+/* ── Misc ────────────────────────────────────────────── */
+h3 {
+  font-weight: 600;
+  font-size: 17px;
+  margin: 24px 0 8px;
+  color: var(--text);
+}
+h4 {
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 24px 0 12px;
+}
+code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  background: var(--surface-2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--line-soft);
+  color: var(--text);
+}
+p { margin: 0 0 12px; }
+ul { margin: 0 0 12px; padding-left: 20px; }
+li { margin-bottom: 4px; color: var(--text-muted); font-size: 14px; }
+li strong { color: var(--text); }
+
+</style>
+</head>
+<body>
+
+<!-- ── TOP HEADER ─────────────────────────────────────────── -->
+<header class="topbar">
+  <a href="#top" class="topbar-brand">
+    <span class="topbar-logo">DB</span>
+    <span>DINBoard UI Schema</span>
+  </a>
+  <div class="topbar-search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <input id="search" type="search" placeholder="Szukaj komponentu, pliku, słowa kluczowego…" autocomplete="off" />
+    <kbd>/</kbd>
+    <div id="search-results" class="search-results"></div>
+  </div>
+  <div class="topbar-actions">
+    <a href="#glossary">Indeks</a>
+    <a href="#top">↑ Top</a>
+  </div>
+</header>
+
+<!-- ── LAYOUT ─────────────────────────────────────────────── -->
+<div class="layout">
+
+  <!-- ── TOC ────────────────────────────────────────────── -->
+  <aside>
+    <nav class="toc" aria-label="Spis treści">
+      <div class="toc-title">Spis treści</div>
+      <ul class="toc-list" id="toc-list">
+        <li><a href="#sec-00"><span class="toc-num">00</span>Architektura</a></li>
+        <li><a href="#sec-01"><span class="toc-num">01</span>Powłoka (interaktywna)</a></li>
+        <li><a href="#sec-02"><span class="toc-num">02</span>Warstwy + state flow</a></li>
+        <li><a href="#sec-03"><span class="toc-num">03</span>Pięć arkuszy</a></li>
+        <li><a href="#sec-04"><span class="toc-num">04</span>Nagłówek</a></li>
+        <li><a href="#sec-05"><span class="toc-num">05</span>Prawy panel</a></li>
+        <li><a href="#sec-06"><span class="toc-num">06</span>Pasek statusu</a></li>
+        <li><a href="#sec-07"><span class="toc-num">07</span>Dialogi</a></li>
+        <li><a href="#sec-08"><span class="toc-num">08</span>Routing</a></li>
+        <li><a href="#sec-09"><span class="toc-num">09</span>Tokeny wizualne</a></li>
+        <li><a href="#sec-10"><span class="toc-num">10</span>Ryzyko (heatmapa)</a></li>
+        <li><a href="#glossary"><span class="toc-num">★</span>Indeks komponentów</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- ── MAIN ────────────────────────────────────────────── -->
+  <main id="top">
+
+    <!-- ── HERO ─────────────────────────────────────────── -->
+    <div class="hero">
+      <span class="hero-eyebrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        DINBoard · pełny schemat UI
+      </span>
+      <h1>Interfejs DINBoard<br/>od zewnątrz i od środka</h1>
+      <p class="lede">
+        Kompletna mapa powłoki aplikacji: routing, nagłówek, panele boczne, 5 arkuszy, pasek statusu, 9 dialogów, drzewo plików, tokeny wizualne, diagram przepływu stanu oraz heatmapa ryzyka. Naciśnij <kbd>/</kbd> aby szukać, klikaj zakładki w mockupie poniżej, żeby zobaczyć każdy arkusz.
+      </p>
+      <div class="stats">
+        <div class="stat"><div class="stat-num">5</div><div class="stat-label">arkuszy roboczych</div></div>
+        <div class="stat"><div class="stat-num">~40</div><div class="stat-label">komponentów UI</div></div>
+        <div class="stat"><div class="stat-num">9</div><div class="stat-label">dialogów/overlayów</div></div>
+        <div class="stat"><div class="stat-num">2</div><div class="stat-label">trasy routera</div></div>
+      </div>
+
+      <div class="archmap">
+        <div class="archmap-title">Mapa architektury — od wejścia do canvasu</div>
+        <div class="archmap-flow">
+          <div class="archmap-node entry">
+            <div class="archmap-node-label">Landing</div>
+            <div class="archmap-node-file">/ · PublicLandingPage</div>
+          </div>
+          <span class="archmap-arrow">→</span>
+          <div class="archmap-node entry">
+            <div class="archmap-node-label">AppShell</div>
+            <div class="archmap-node-file">/app · AppWorkspace</div>
+          </div>
+          <span class="archmap-arrow">→</span>
+          <div class="archmap-node region">
+            <div class="archmap-node-label">Header + Status</div>
+            <div class="archmap-node-file">AppHeader · StatusBar</div>
+          </div>
+          <span class="archmap-arrow">→</span>
+          <div class="archmap-node region">
+            <div class="archmap-node-label">MainWorkspace</div>
+            <div class="archmap-node-file">Left + Canvas + Right</div>
+          </div>
+          <span class="archmap-arrow">→</span>
+          <div class="archmap-node region">
+            <div class="archmap-node-label">5 arkuszy</div>
+            <div class="archmap-node-file">AppSheetTabs</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="quickjump">
+        <a class="qj-card" href="#sec-01">
+          <span class="qj-num">01</span>
+          <span class="qj-title">Powłoka interaktywna</span>
+          <span class="qj-desc">Klikaj zakładki, zobacz jak zmienia się każdy z 5 arkuszy</span>
+        </a>
+        <a class="qj-card" href="#sec-03">
+          <span class="qj-num">03</span>
+          <span class="qj-title">Arkusze</span>
+          <span class="qj-desc">5 kart: Rozdzielnica, Połączenia, Schemat, Lista, PDF</span>
+        </a>
+        <a class="qj-card" href="#sec-04">
+          <span class="qj-num">04</span>
+          <span class="qj-title">Nagłówek</span>
+          <span class="qj-desc">Menu Plik/Widok/Narzędzia/Ustawienia + pasek narzędzi</span>
+        </a>
+        <a class="qj-card" href="#sec-05">
+          <span class="qj-num">05</span>
+          <span class="qj-title">Prawy panel</span>
+          <span class="qj-desc">Zasilanie · Bilans · Walidacja · Edycja</span>
+        </a>
+        <a class="qj-card" href="#sec-07">
+          <span class="qj-num">07</span>
+          <span class="qj-title">Dialogi</span>
+          <span class="qj-desc">9 modali z plikami źródłowymi</span>
+        </a>
+        <a class="qj-card" href="#sec-08">
+          <span class="qj-num">08</span>
+          <span class="qj-title">Routing</span>
+          <span class="qj-desc">/ i /app · Landing vs App</span>
+        </a>
+        <a class="qj-card" href="#sec-10">
+          <span class="qj-num">10</span>
+          <span class="qj-title">Heatmapa ryzyka</span>
+          <span class="qj-desc">5 subsystemów × 4 wymiary ryzyka</span>
+        </a>
+        <a class="qj-card" href="#glossary">
+          <span class="qj-num">★</span>
+          <span class="qj-title">Indeks</span>
+          <span class="qj-desc">Alfabetyczny spis komponentów z plikiem i ryzykiem</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- ── 01 — POWŁOKA INTERAKTYWNA ─────────────────── -->
+    <section id="sec-01">
+      <div class="section-head">
+        <span class="section-num">01</span>
+        <h2 class="section-title">Powłoka aplikacji — interaktywna</h2>
+      </div>
+      <p class="section-desc">
+        Klikaj zakładki poniżej, żeby zobaczyć jak zmienia się zawartość trzech kolumn (lewy panel / canvas / prawy panel) dla każdego z 5 arkuszy. Header, pasek zakładek u dołu canvasu i status bar są stałe — zmienia się tylko środek. Nawigacja klawiaturą: <kbd>←</kbd> <kbd>→</kbd>.
+      </p>
+
+      <!-- Controls -->
+      <div class="wf-controls">
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <span class="wf-controls-label">Arkusz:</span>
+          <div class="wf-tabs" id="wf-tabs" role="tablist">
+            <button class="wf-tab active" data-sheet="1" role="tab" aria-selected="true">▦ Rozdzielnica</button>
+            <button class="wf-tab" data-sheet="1c" role="tab">▤ Połączenia</button>
+            <button class="wf-tab" data-sheet="2" role="tab">⌘ Schemat</button>
+            <button class="wf-tab" data-sheet="3" role="tab">☰ Lista</button>
+            <button class="wf-tab" data-sheet="4" role="tab">📄 PDF</button>
+          </div>
+        </div>
+        <div class="wf-current">
+          <span class="key">←</span><span class="key">→</span>
+          <span>aktywny: <strong id="wf-current-name">Rozdzielnica (sheet1)</strong></span>
+        </div>
+      </div>
+
+      <!-- Wireframe -->
+      <div class="wireframe">
+        <div class="wf-legend">
+          <strong>Legenda regionów (stałe):</strong>
+          <span><span class="swatch" style="background:var(--db-brand)"></span>A Header</span>
+          <span><span class="swatch" style="background:var(--accent)"></span>B Lewy (per arkusz)</span>
+          <span><span class="swatch" style="background:var(--primary)"></span>C Canvas (per arkusz)</span>
+          <span><span class="swatch" style="background:var(--warn)"></span>D Prawy (per arkusz)</span>
+          <span><span class="swatch" style="background:var(--danger)"></span>E Zakładki</span>
+          <span><span class="swatch" style="background:var(--db-text-muted)"></span>F Status</span>
+        </div>
+
+        <!-- Header (static) -->
+        <div class="wf-header">
+          <span class="wf-region-tag" style="left:50%;transform:translateX(-50%);top:-10px">A · AppHeader</span>
+          <div class="wf-logo">DB</div>
+          <span class="wf-menu active">Plik</span>
+          <span class="wf-menu">Widok</span>
+          <span class="wf-menu">Narzędzia</span>
+          <span class="wf-menu">Pomoc</span>
+          <span class="wf-menu">O aplikacji</span>
+          <div class="wf-center">
+            <button class="wf-icon-btn" disabled>↶</button>
+            <button class="wf-icon-btn" disabled>↷</button>
+            <button class="wf-icon-btn danger">✕</button>
+            <button class="wf-icon-btn">▭</button>
+            <button class="wf-icon-btn">⇪</button>
+            <span class="wf-zoom-pill">100%</span>
+          </div>
+          <span class="wf-filename">▣ Garaz_Bema.dinboard</span>
+          <button class="wf-icon-btn">⚙</button>
+        </div>
+
+        <div class="wf-body" id="wf-body" data-active-sheet="1">
+          <aside class="wf-left-panel">
+            <span class="wf-region-tag top-left" style="top:-10px">B · AppLeftPanel</span>
+
+            <div class="wf-content active" data-wf-content="1">
+              <div class="wf-left-panel-title">
+                <span style="display:inline-block;width:8px;height:8px;background:var(--db-brand);border-radius:2px"></span>
+                MODUŁY
+              </div>
+              <div class="wf-palette-tabs">
+                <span class="wf-palette-tab active">Rozdzielnice</span>
+                <span class="wf-palette-tab">Zabezpieczenia</span>
+                <span class="wf-palette-tab">RCD</span>
+                <span class="wf-palette-tab">Listwy</span>
+              </div>
+              <div class="wf-palette-grid">
+                <div class="wf-palette-item"><div class="wf-palette-thumb"></div><div class="wf-palette-label">MCB 1P B16</div></div>
+                <div class="wf-palette-item"><div class="wf-palette-thumb"></div><div class="wf-palette-label">MCB 1P C10</div></div>
+                <div class="wf-palette-item rcd"><div class="wf-palette-thumb rcd"></div><div class="wf-palette-label">RCD 4P 30mA</div></div>
+                <div class="wf-palette-item"><div class="wf-palette-thumb"></div><div class="wf-palette-label">Blok 4×7</div></div>
+                <div class="wf-palette-item"><div class="wf-palette-thumb"></div><div class="wf-palette-label">Listwa N</div></div>
+                <div class="wf-palette-item"><div class="wf-palette-thumb"></div><div class="wf-palette-label">Listwa PE</div></div>
+              </div>
+            </div>
+
+            <div class="wf-content" data-wf-content="1c">
+              <div class="wf-left-panel-title">
+                <span style="display:inline-block;width:8px;height:8px;background:#facc15;border-radius:2px"></span>
+                USTAWIENIA DRUTU
+              </div>
+              <div class="wf-form-field"><div class="wf-form-label">● Kolor</div><div class="wf-form-control" style="display:flex;gap:6px;align-items:center"><span style="display:inline-block;width:14px;height:14px;background:#facc15;border-radius:50%"></span>żółty</div></div>
+              <div class="wf-form-field"><div class="wf-form-label">⊟ Przekrój</div><div class="wf-form-control">2.5 mm²</div></div>
+              <div class="wf-form-field"><div class="wf-form-label">⌐ Typ</div><div class="wf-form-control">LgY</div></div>
+              <div class="wf-form-field"><div class="wf-form-label">⌐ Routing</div><div class="wf-form-control">Manhattan</div></div>
+              <div class="wf-form-field"><div class="wf-form-label">○ Tulejka</div><div class="wf-form-control">szara 2×0.75</div></div>
+            </div>
+
+            <div class="wf-content" data-wf-content="2">
+              <div class="wf-left-panel-title">
+                <span style="display:inline-block;width:8px;height:8px;background:var(--db-brand);border-radius:2px"></span>
+                PROJEKT
+              </div>
+              <div class="wf-form-field"><div class="wf-form-label">⌂ Adres</div><div class="wf-form-control">ul. Bema 14, Warszawa</div></div>
+              <div class="wf-form-field"><div class="wf-form-label">☻ Inwestor</div><div class="wf-form-control">Jan Kowalski</div></div>
+              <div class="wf-form-field"><div class="wf-form-label">⚡ Napięcie</div><div class="wf-form-control">400V / 3-fazowe</div></div>
+              <div class="wf-form-field"><div class="wf-form-label">⚡ Moc</div><div class="wf-form-control">14.2 kW</div></div>
+              <div style="margin-top:10px;padding:8px;background:var(--db-brand);color:white;font-size:11px;border-radius:4px;text-align:center;font-weight:600">📑 Eksportuj PDF</div>
+            </div>
+
+            <div class="wf-content" data-wf-content="3">
+              <div style="text-align:center;padding:30px 0;color:var(--db-text-muted)">
+                <div style="font-size:11px;letter-spacing:0.1em;margin-bottom:6px">LISTA</div>
+                <div style="font-size:14px;font-weight:600;color:var(--db-text)">Lista obwodów</div>
+                <div style="font-size:11px;margin-top:6px">Karty w wersji mobile</div>
+              </div>
+            </div>
+
+            <div class="wf-content" data-wf-content="4">
+              <div class="wf-left-panel-title">
+                <span style="display:inline-block;width:8px;height:8px;background:var(--db-danger);border-radius:2px"></span>
+                STRONA TYTUŁOWA
+              </div>
+              <div class="wf-form-field"><div class="wf-form-label">🖼 Logo</div><div class="wf-form-control">logo_firma.png</div></div>
+              <div class="wf-form-field"><div class="wf-form-label">Tytuł</div><div class="wf-form-control">Projekt rozdzielnicy głównej</div></div>
+              <div class="wf-form-field"><div class="wf-form-label">☐ Checklista</div><div class="wf-form-control">12/15 ✓</div></div>
+              <div style="margin-top:10px;padding:8px;background:var(--db-line);font-size:11px;border-radius:4px;text-align:center">⟲ Resetuj dokumentację</div>
+            </div>
+          </aside>
+
+          <main class="wf-canvas">
+            <span class="wf-region-tag" style="left:50%;transform:translateX(-50%);top:-10px">C · AppWorkspaceCanvas</span>
+
+            <div class="wf-content active" data-wf-content="1">
+              <div class="wf-canvas-label">SZyna DIN · WIDOK 1:1</div>
+              <div style="position:relative;text-align:center;z-index:1">
+                <div class="wf-rail"></div>
+                <div class="wf-rail-modules">
+                  <div class="wf-rail-module rcd"></div>
+                  <div class="wf-rail-module"></div>
+                  <div class="wf-rail-module"></div>
+                  <div class="wf-rail-module"></div>
+                  <div class="wf-rail-module rcd"></div>
+                  <div class="wf-rail-module"></div>
+                  <div class="wf-rail-module"></div>
+                  <div class="wf-rail-module"></div>
+                  <div class="wf-rail-module"></div>
+                  <div class="wf-rail-module"></div>
+                </div>
+              </div>
+              <div class="wf-canvas-hud">100% · 12 modułów · 2 grupy</div>
+            </div>
+
+            <div class="wf-content" data-wf-content="1c">
+              <div class="wf-canvas-label">POŁĄCZENIA · DRAWING</div>
+              <svg viewBox="0 0 400 240" style="width:80%;height:auto;z-index:1">
+                <line x1="40" y1="120" x2="200" y2="120" class="wf-wire" />
+                <line x1="200" y1="120" x2="200" y2="180" class="wf-wire" />
+                <line x1="200" y1="180" x2="360" y2="180" class="wf-wire live" />
+                <rect x="30" y="100" width="20" height="40" fill="#ef4444" stroke="#7f1d1d" />
+                <rect x="180" y="110" width="20" height="20" fill="#f8fafc" stroke="#94a3b8" />
+                <rect x="350" y="170" width="20" height="20" fill="#f8fafc" stroke="#94a3b8" />
+                <circle cx="200" cy="120" r="4" fill="#facc15" stroke="#854d0e" stroke-width="2" />
+                <circle cx="200" cy="180" r="4" fill="#facc15" stroke="#854d0e" stroke-width="2" />
+              </svg>
+              <div class="wf-canvas-hud">drut #3 zaznaczony · 14 połączeń</div>
+            </div>
+
+            <div class="wf-content" data-wf-content="2">
+              <div class="wf-canvas-label">SCHEMAT · A4</div>
+              <div class="wf-a4">
+                <div class="wf-a4-grid"></div>
+                <div class="wf-a4-schematic">
+                  <div class="wf-a4-row"><span class="wf-a4-cell">L1</span><div class="wf-a4-line"></div><span class="wf-a4-cell">MCB1</span><div class="wf-a4-line"></div><span class="wf-a4-cell">F1</span></div>
+                  <div class="wf-a4-row"><span class="wf-a4-cell">L2</span><div class="wf-a4-line"></div><span class="wf-a4-cell">MCB2</span><div class="wf-a4-line"></div><span class="wf-a4-cell">F2</span></div>
+                  <div class="wf-a4-row"><span class="wf-a4-cell">L3</span><div class="wf-a4-line"></div><span class="wf-a4-cell">MCB3</span><div class="wf-a4-line"></div><span class="wf-a4-cell">F3</span></div>
+                  <div class="wf-a4-row"><span class="wf-a4-cell">N</span><div class="wf-a4-line"></div><span class="wf-a4-cell">N-bus</span></div>
+                  <div class="wf-a4-row"><span class="wf-a4-cell">PE</span><div class="wf-a4-line"></div><span class="wf-a4-cell">PE-bus</span></div>
+                </div>
+                <div class="wf-a4-pagebadge">A4 · 1/2</div>
+              </div>
+              <div class="wf-canvas-hud">zoom 100% · strona 1 z 2</div>
+            </div>
+
+            <div class="wf-content" data-wf-content="3">
+              <div class="wf-canvas-label">LISTA OBWODÓW</div>
+              <div class="wf-table">
+                <div class="wf-table-row head"><div>#</div><div>Opis</div><div>Zabezp.</div><div>Przekrój</div><div>Moc</div><div>Faza</div></div>
+                <div class="wf-table-row"><div class="mono">F1</div><div>Gniazda parter</div><div class="mono">B16</div><div class="mono">2.5</div><div class="mono">2300W</div><div><span class="tag">L1</span></div></div>
+                <div class="wf-table-row"><div class="mono">F2</div><div>Oświetlenie</div><div class="mono">B10</div><div class="mono">1.5</div><div class="mono">600W</div><div><span class="tag">L2</span></div></div>
+                <div class="wf-table-row"><div class="mono">F3</div><div>Kuchnia</div><div class="mono">B20</div><div class="mono">4.0</div><div class="mono">3400W</div><div><span class="tag">L3</span></div></div>
+                <div class="wf-table-row"><div class="mono">F4</div><div>Łazienka</div><div class="mono">B16</div><div class="mono">2.5</div><div class="mono">1800W</div><div><span class="tag">L1</span></div></div>
+                <div class="wf-table-row"><div class="mono">F5</div><div>Garaż</div><div class="mono">B16</div><div class="mono">2.5</div><div class="mono">2200W</div><div><span class="tag">L2</span></div></div>
+              </div>
+            </div>
+
+            <div class="wf-content" data-wf-content="4">
+              <div class="wf-canvas-label">PDF · STRONA GŁÓWNA</div>
+              <div class="wf-pdf-preview">
+                <div class="wf-pdf-band"></div>
+                <div class="wf-pdf-h1">Projekt rozdzielnicy</div>
+                <div class="wf-pdf-h2">Dane inwestora</div>
+                <div class="wf-pdf-line medium"></div>
+                <div class="wf-pdf-line short"></div>
+                <div class="wf-pdf-h2">Adres</div>
+                <div class="wf-pdf-line"></div>
+                <div class="wf-pdf-line medium"></div>
+                <div class="wf-pdf-h2">Parametry</div>
+                <div class="wf-pdf-grid">
+                  <div class="wf-pdf-cell">Napięcie</div><div class="wf-pdf-cell">400V</div>
+                  <div class="wf-pdf-cell">Zabezpieczenie</div><div class="wf-pdf-cell">63A</div>
+                  <div class="wf-pdf-cell">Moc</div><div class="wf-pdf-cell">14.2 kW</div>
+                </div>
+                <div style="margin-top:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:#94a3b8;text-align:right">Strona 1 / 7 · A4</div>
+              </div>
+              <div class="wf-canvas-hud">PDF · Strona główna</div>
+            </div>
+          </main>
+
+          <aside class="wf-right-panel">
+            <span class="wf-region-tag top-right" style="top:-10px">D · AppRightPanel</span>
+
+            <div class="wf-content active" data-wf-content="1">
+              <div class="wf-right-tabs">
+                <span class="wf-right-tab active">⚡ Zasilanie</span>
+                <span class="wf-right-tab">⚖ Bilans</span>
+                <span class="wf-right-tab">✓ Walidacja</span>
+                <span class="wf-right-tab">✎ Edycja</span>
+              </div>
+              <div class="wf-form-field"><div class="wf-form-label">⚡ Napięcie</div><div class="wf-form-control">230V</div></div>
+              <div class="wf-form-field"><div class="wf-form-label">▭ Fazy</div><div class="wf-form-control">3-fazowe</div></div>
+              <div class="wf-form-field"><div class="wf-form-label">⊘ Główne</div><div class="wf-form-control">63A</div></div>
+              <div class="wf-form-field"><div class="wf-form-label">⚖ Moc</div><div class="wf-form-control">12.5 kW</div></div>
+              <div class="wf-form-field"><div class="wf-form-label">⚖ Jednoczesność</div><div class="wf-form-control">0.7</div></div>
+              <div style="margin-top:8px;padding:8px;background:var(--db-line);border-radius:4px;font-size:11px;color:var(--db-text-muted);text-align:center">⚙ Zarządzaj RCD</div>
+            </div>
+
+            <div class="wf-content" data-wf-content="1c">
+              <div class="wf-left-panel-title">DRUT #3</div>
+              <div class="wf-form-row">
+                <div class="wf-form-field"><div class="wf-form-label">Kolor</div><div class="wf-form-control" style="display:flex;gap:6px;align-items:center;padding:6px 8px"><span style="display:inline-block;width:12px;height:12px;background:var(--db-brand);border-radius:50%"></span>niebieski</div></div>
+                <div class="wf-form-field"><div class="wf-form-label">Przekrój</div><div class="wf-form-control">4 mm²</div></div>
+              </div>
+              <div class="wf-form-field"><div class="wf-form-label">Od</div><div class="wf-form-control">F1:L1</div></div>
+              <div class="wf-form-field"><div class="wf-form-label">Do</div><div class="wf-form-control">Gniazdo-1</div></div>
+              <div class="wf-form-field"><div class="wf-form-label">Tulejka</div><div class="wf-form-control">szara 2×0.75</div></div>
+              <div style="margin-top:8px;padding:8px;background:var(--db-danger);color:white;border-radius:4px;font-size:11px;text-align:center">✕ Usuń drut</div>
+            </div>
+
+            <div class="wf-content" data-wf-content="2">
+              <div class="wf-right-tabs">
+                <span class="wf-right-tab active">⚡ Zasilanie</span>
+                <span class="wf-right-tab">⚖ Bilans</span>
+                <span class="wf-right-tab">✓ Walidacja</span>
+                <span class="wf-right-tab">✎ Edycja</span>
+              </div>
+              <div class="wf-form-field"><div class="wf-form-label">⚡ Napięcie</div><div class="wf-form-control">400V</div></div>
+              <div class="wf-form-field"><div class="wf-form-label">⚖ Moc</div><div class="wf-form-control">14.2 kW</div></div>
+              <div style="margin-top:14px;border-top:1px solid var(--db-line);padding-top:12px">
+                <div class="wf-left-panel-title">STRONY SCHEMATU</div>
+                <div class="wf-page-thumbs">
+                  <div class="wf-page-thumb">1</div>
+                  <div class="wf-page-thumb">2</div>
+                  <div class="wf-page-thumb">3</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="wf-content" data-wf-content="3">
+              <div class="wf-right-tabs">
+                <span class="wf-right-tab">⚡ Zasilanie</span>
+                <span class="wf-right-tab">⚖ Bilans</span>
+                <span class="wf-right-tab active">✓ Walidacja</span>
+                <span class="wf-right-tab">✎ Edycja</span>
+              </div>
+              <div style="background:var(--db-line);padding:10px;border-radius:6px;margin-bottom:8px">
+                <div style="font-size:11px;color:var(--db-danger);font-weight:600;margin-bottom:4px">⚠ 2 błędy</div>
+                <div style="font-size:11px;color:var(--db-text)">• F3: przekrój 4mm² za mały przy 3400W → zwiększ do 6mm²</div>
+              </div>
+              <div style="background:var(--db-line);padding:10px;border-radius:6px;margin-bottom:8px">
+                <div style="font-size:11px;color:var(--db-warn);font-weight:600;margin-bottom:4px">⚠ 5 ostrzeżeń</div>
+                <div style="font-size:11px;color:var(--db-text)">• Asymetria faz: L1:8.4kW, L2:3.2kW, L3:2.6kW</div>
+              </div>
+              <div style="margin-top:auto;padding:8px;background:var(--db-brand);color:white;border-radius:4px;font-size:11px;text-align:center;font-weight:600">⟲ Auto-balance</div>
+            </div>
+
+            <div class="wf-content" data-wf-content="4">
+              <div class="wf-left-panel-title">SEKCJE PDF</div>
+              <div class="wf-pdf-nav">
+                <div class="wf-pdf-nav-btn active">📄 Strona główna</div>
+                <div class="wf-pdf-nav-btn">▦ Tabela zbiorcza</div>
+                <div class="wf-pdf-nav-btn">⚠ RCD i uziemienie</div>
+                <div class="wf-pdf-nav-btn">☰ Lista obwodów</div>
+                <div class="wf-pdf-nav-btn">▭ Rozdzielnica elektryczna</div>
+                <div class="wf-pdf-nav-btn">⌐ Rozdzielnica połączenia</div>
+                <div class="wf-pdf-nav-btn">⌘ Schemat obwodów</div>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <div class="wf-sheet-tabs">
+          <span class="wf-region-tag" style="left:50%;transform:translateX(-50%);top:-10px">E · AppSheetTabs</span>
+          <span class="wf-sheet-tab active" data-mirror="1">▦ Rozdzielnica</span>
+          <span class="wf-sheet-tab" data-mirror="1c">▤ Połączenia</span>
+          <span class="wf-sheet-tab" data-mirror="2">⌘ Schemat obwodów</span>
+          <span class="wf-sheet-tab" data-mirror="3">☰ Lista obwodów</span>
+          <span class="wf-sheet-tab" data-mirror="4">📄 Dokumentacja PDF</span>
+        </div>
+
+        <div class="wf-statusbar">
+          <span class="wf-region-tag" style="left:50%;transform:translateX(-50%);top:-10px">F · AppStatusBar</span>
+          <div class="wf-status-group">
+            <span class="wf-status-item"><span class="wf-status-dot"></span> Gotowy</span>
+            <span class="wf-status-item">▣ Garaz_Bema.dinboard <span style="color:var(--db-danger)">●</span></span>
+          </div>
+          <div class="wf-status-group">
+            <span class="wf-status-item">⊙ 100%</span>
+            <span class="wf-status-item warn">⚡ 14.2 kW</span>
+            <span class="wf-status-item">⚑ Grupy: 3</span>
+            <span class="wf-status-item">▭ Moduły: 24</span>
+            <span class="wf-status-item danger">✓ 2 błędy</span>
+            <span class="wf-status-item warn">✓ 5 ostrzeżeń</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sheet-grid">
+        <div class="comp" data-searchable="AppHeader nagłówek toolbar menu"><div class="comp-name">A · AppHeader</div><div class="comp-path">src/components/AppHeader.tsx</div><div class="comp-purpose">Stały region. Logotyp, 6 menu, środkowy pasek narzędzi, nazwa pliku, ⚙.</div><div class="comp-meta"><span class="badge risk-low">standard</span></div></div>
+        <div class="comp" data-searchable="AppLeftPanel lewy panel paleta"><div class="comp-name">B · AppLeftPanel</div><div class="comp-path">src/components/AppLeftPanel.tsx</div><div class="comp-purpose">Zmienia się per arkusz. Paleta / wire settings / project props / empty / PDF config.</div><div class="comp-meta"><span class="badge risk-low">standard</span></div></div>
+        <div class="comp high-risk" data-searchable="AppWorkspaceCanvas canvas Pixi schematic connections circuitList"><div class="comp-name">C · AppWorkspaceCanvas</div><div class="comp-path">src/components/AppWorkspaceCanvas.tsx</div><div class="comp-purpose">Renderuje aktywny arkusz. Lazy Pixi / Canvas 2D. Puste stany gdy brak danych.</div><div class="comp-meta"><span class="badge risk-high">wysokie ryzyko</span><span class="badge expert">canvas-expert</span></div></div>
+        <div class="comp" data-searchable="AppRightPanel prawy panel zasilanie bilans walidacja edycja"><div class="comp-name">D · AppRightPanel</div><div class="comp-path">src/components/AppRightPanel.tsx</div><div class="comp-purpose">Zmienia się per arkusz. 4 zakładki / wire editor / 4 zakładki + miniatury / walidacja / PDF nav.</div><div class="comp-meta"><span class="badge risk-med">domena</span></div></div>
+        <div class="comp" data-searchable="AppSheetTabs sheet tabs zakładki arkusze"><div class="comp-name">E · AppSheetTabs</div><div class="comp-path">src/components/AppSheetTabs.tsx</div><div class="comp-purpose">Stały region. 5 zakładek, mobile hamburger, ukrywa Połączenia w natywnej apce.</div><div class="comp-meta"><span class="badge risk-low">standard</span></div></div>
+        <div class="comp" data-searchable="AppStatusBar status bar pasek statusu metryki"><div class="comp-name">F · AppStatusBar</div><div class="comp-path">src/components/AppStatusBar.tsx</div><div class="comp-purpose">Stały region. Metryki projektu + status zapisu + liczniki błędów.</div><div class="comp-meta"><span class="badge risk-low">standard</span></div></div>
+      </div>
+    </section>
+
+      <!-- Annotated wireframe -->
+      <div class="wireframe">
+        <div class="wf-legend">
+          <strong>Legenda:</strong>
+          <span><span class="swatch" style="background:var(--db-brand)"></span>A Header</span>
+          <span><span class="swatch" style="background:var(--accent)"></span>B Lewy panel</span>
+          <span><span class="swatch" style="background:var(--primary)"></span>C Canvas</span>
+          <span><span class="swatch" style="background:var(--warn)"></span>D Prawy panel</span>
+          <span><span class="swatch" style="background:var(--danger)"></span>E Zakładki</span>
+          <span><span class="swatch" style="background:var(--db-text-muted)"></span>F Status</span>
+        </div>
+
+        <div class="wf-header">
+          <span class="wf-region-tag" style="left:50%;transform:translateX(-50%);top:-10px">A · AppHeader</span>
+          <div class="wf-logo">DB</div>
+          <span class="wf-menu active">Plik</span>
+          <span class="wf-menu">Widok</span>
+          <span class="wf-menu">Narzędzia</span>
+          <span class="wf-menu">Pomoc</span>
+          <span class="wf-menu">O aplikacji</span>
+          <div class="wf-center">
+            <button class="wf-icon-btn" disabled title="Undo">↶</button>
+            <button class="wf-icon-btn" disabled title="Redo">↷</button>
+            <button class="wf-icon-btn danger" title="Delete">✕</button>
+            <button class="wf-icon-btn" title="Generator szyny DIN">▭</button>
+            <button class="wf-icon-btn" title="Import SVG">⇪</button>
+            <span class="wf-zoom-pill">100%</span>
+          </div>
+          <span class="wf-filename">▣ Nowe zlecenie.dinboard</span>
+          <button class="wf-icon-btn" title="Ustawienia">⚙</button>
+        </div>
+
+        <div class="wf-body">
+          <aside class="wf-left-panel wf-region">
+            <span class="wf-region-tag top-left" style="top:-10px">B · AppLeftPanel</span>
+            <div class="wf-left-panel-title">
+              <span style="display:inline-block;width:8px;height:8px;background:var(--db-brand);border-radius:2px"></span>
+              MODUŁY
+            </div>
+            <div class="wf-palette-tabs">
+              <span class="wf-palette-tab active">Rozdzielnice</span>
+              <span class="wf-palette-tab">Zabezpieczenia</span>
+              <span class="wf-palette-tab">RCD</span>
+              <span class="wf-palette-tab">Listwy</span>
+            </div>
+            <div class="wf-palette-grid">
+              <div class="wf-palette-item"><div class="wf-palette-thumb"></div><div class="wf-palette-label">MCB 1P B16</div></div>
+              <div class="wf-palette-item"><div class="wf-palette-thumb"></div><div class="wf-palette-label">MCB 1P C10</div></div>
+              <div class="wf-palette-item rcd"><div class="wf-palette-thumb rcd"></div><div class="wf-palette-label">RCD 4P 30mA</div></div>
+              <div class="wf-palette-item"><div class="wf-palette-thumb"></div><div class="wf-palette-label">Blok 4×7</div></div>
+              <div class="wf-palette-item"><div class="wf-palette-thumb"></div><div class="wf-palette-label">Listwa N</div></div>
+              <div class="wf-palette-item"><div class="wf-palette-thumb"></div><div class="wf-palette-label">Listwa PE</div></div>
+            </div>
+          </aside>
+
+          <main class="wf-canvas wf-region">
+            <span class="wf-region-tag" style="left:50%;transform:translateX(-50%);top:-10px">C · AppWorkspaceCanvas</span>
+            <div style="position:relative;width:100%;height:100%">
+              <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:1">
+                <div style="font-size:12px;color:var(--db-text-dim);margin-bottom:8px;letter-spacing:0.1em">SZyna DIN · WIDOK 1:1</div>
+                <div class="wf-rail"></div>
+                <div class="wf-rail-modules">
+                  <div class="wf-rail-module rcd"></div>
+                  <div class="wf-rail-module"></div>
+                  <div class="wf-rail-module"></div>
+                  <div class="wf-rail-module"></div>
+                  <div class="wf-rail-module rcd"></div>
+                  <div class="wf-rail-module"></div>
+                  <div class="wf-rail-module"></div>
+                  <div class="wf-rail-module"></div>
+                  <div class="wf-rail-module"></div>
+                  <div class="wf-rail-module"></div>
+                </div>
+              </div>
+              <div class="wf-canvas-hud">100% · 12 modułów · 2 grupy</div>
+            </div>
+          </main>
+
+          <aside class="wf-right-panel wf-region">
+            <span class="wf-region-tag top-right" style="top:-10px">D · AppRightPanel</span>
+            <div class="wf-right-tabs">
+              <span class="wf-right-tab active">⚡ Zasilanie</span>
+              <span class="wf-right-tab">⚖ Bilans</span>
+              <span class="wf-right-tab">✓ Walidacja</span>
+              <span class="wf-right-tab">✎ Edycja</span>
+            </div>
+            <div class="wf-form-field">
+              <div class="wf-form-label">⚡ Napięcie</div>
+              <div class="wf-form-control">230V</div>
+            </div>
+            <div class="wf-form-field">
+              <div class="wf-form-label">▭ Liczba faz</div>
+              <div class="wf-form-control">3-fazowe</div>
+            </div>
+            <div class="wf-form-field">
+              <div class="wf-form-label">⊘ Zabezpieczenie główne</div>
+              <div class="wf-form-control">63A</div>
+            </div>
+            <div class="wf-form-field">
+              <div class="wf-form-label">⚖ Moc przyłączeniowa</div>
+              <div class="wf-form-control">12.5 kW</div>
+            </div>
+            <div class="wf-form-field">
+              <div class="wf-form-label">⚖ Współczynnik jednoczesności</div>
+              <div class="wf-form-control">0.7</div>
+            </div>
+          </aside>
+        </div>
+
+        <div class="wf-sheet-tabs">
+          <span class="wf-region-tag" style="left:50%;transform:translateX(-50%);top:-10px">E · AppSheetTabs</span>
+          <span class="wf-sheet-tab active">▦ Rozdzielnica</span>
+          <span class="wf-sheet-tab">▤ Połączenia</span>
+          <span class="wf-sheet-tab">⌘ Schemat obwodów</span>
+          <span class="wf-sheet-tab">☰ Lista obwodów</span>
+          <span class="wf-sheet-tab">📄 Dokumentacja PDF</span>
+        </div>
+
+        <div class="wf-statusbar">
+          <span class="wf-region-tag" style="left:50%;transform:translateX(-50%);top:-10px">F · AppStatusBar</span>
+          <div class="wf-status-group">
+            <span class="wf-status-item"><span class="wf-status-dot"></span> Gotowy</span>
+            <span class="wf-status-item">▣ Nowe zlecenie.dinboard</span>
+          </div>
+          <div class="wf-status-group">
+            <span class="wf-status-item">⊙ 100%</span>
+            <span class="wf-status-item warn">⚡ 12.5 kW</span>
+            <span class="wf-status-item">⚑ Grupy: 2</span>
+            <span class="wf-status-item">▭ Moduły: 12</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Annotation cards -->
+      <div class="sheet-grid">
+        <div class="comp" data-searchable="AppHeader nagłówek toolbar menu plik widok narzędzia">
+          <div>
+            <div class="comp-name">A · AppHeader</div>
+            <div class="comp-path">src/components/AppHeader.tsx</div>
+            <div class="comp-purpose">Nagłówek z logotypem, 6 dropdown menu, środkowy pasek narzędzi (undo/redo/delete/DIN/SVG/zoom) oraz nazwą pliku i ⚙ Ustawienia. Na mobile &lt;768px lub w natywnej apce wszystko chowa się w hamburger drawerze.</div>
+            <div class="comp-meta">
+              <span class="badge risk-low">standard</span>
+              <span class="badge expert">AppHeader.tsx</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="comp" data-searchable="AppLeftPanel lewy panel paleta modułów categories">
+          <div>
+            <div class="comp-name">B · AppLeftPanel</div>
+            <div class="comp-path">src/components/AppLeftPanel.tsx</div>
+            <div class="comp-purpose">Lewy panel — paleta modułów do drag&amp;drop. Zawartość zmienia się per aktywna zakładka (paleta / właściwości projektu / connections / pusty stan).</div>
+            <div class="comp-meta">
+              <span class="badge risk-low">standard</span>
+              <span class="badge expert">AppLeftPanel.tsx</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="comp high-risk" data-searchable="AppWorkspaceCanvas canvas Pixi schematic connections circuitList lazy">
+          <div>
+            <div class="comp-name">C · AppWorkspaceCanvas</div>
+            <div class="comp-path">src/components/AppWorkspaceCanvas.tsx</div>
+            <div class="comp-purpose">Renderuje aktywny arkusz: szynę DIN (Pixi.js), połączenia, schemat (canvas 2D) lub listę obwodów. Lazy-loaded dla wydajności. Zawiera puste stany gdy brak szyny/modułów.</div>
+            <div class="comp-meta">
+              <span class="badge risk-high">wysokie ryzyko</span>
+              <span class="badge expert">canvas-expert</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="comp" data-searchable="AppRightPanel prawy panel zasilanie bilans walidacja edycja">
+          <div>
+            <div class="comp-name">D · AppRightPanel</div>
+            <div class="comp-path">src/components/AppRightPanel.tsx</div>
+            <div class="comp-purpose">Prawy panel z 4 zakładkami: Zasilanie, Bilans, Walidacja, Edycja. Formularze metadanych + akcje (RCD, fazy). Na arkuszu Schemat dolna połowa zawiera miniatury stron A4.</div>
+            <div class="comp-meta">
+              <span class="badge risk-med">domena</span>
+              <span class="badge expert">AppRightPanel.tsx</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="comp" data-searchable="AppSheetTabs sheet tabs zakładki arkusze">
+          <div>
+            <div class="comp-name">E · AppSheetTabs</div>
+            <div class="comp-path">src/components/AppSheetTabs.tsx</div>
+            <div class="comp-purpose">Pasek 5 zakładek zawsze widoczny u dołu canvasu. <code>sheet1_connections</code> ukryte w natywnej apce (Capacitor).</div>
+            <div class="comp-meta">
+              <span class="badge risk-low">standard</span>
+              <span class="badge expert">AppSheetTabs.tsx</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="comp" data-searchable="AppStatusBar status bar pasek statusu metryki zoom moc">
+          <div>
+            <div class="comp-name">F · AppStatusBar</div>
+            <div class="comp-path">src/components/AppStatusBar.tsx</div>
+            <div class="comp-purpose">Pasek statusu u dołu. Nazwa pliku (z czerwoną kropką przy niezapisanych), status zapisu, zoom, łączna moc, grupy, moduły, licznik błędów/ostrzeżeń.</div>
+            <div class="comp-meta">
+              <span class="badge risk-low">standard</span>
+              <span class="badge expert">AppStatusBar.tsx</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 02 — WARSTWY ───────────────────────────────── -->
+    <section id="sec-02">
+      <div class="section-head">
+        <span class="section-num">02</span>
+        <h2 class="section-title">Warstwy kodu — co gdzie żyje</h2>
+      </div>
+      <p class="section-desc">
+        DINBoard trzyma ścisłego MVVM-podobnego podziału. Komponenty tylko renderują, hooki orkiestrują stan, <code>lib/</code> liczy domenę, <code>types/</code> deklaruje kontrakty. Każda warstwa ma swoje <code>may / may not</code> — złamanie tej reguły to dług techniczny.
+      </p>
+
+      <div class="layers">
+        <div class="layer">
+          <div class="layer-name">UI</div>
+          <div class="layer-folder">src/components/**</div>
+          <div class="layer-role">Tylko renderowanie. Zero obliczeń domenowych. Konsumuje dane z <code>lib/</code>.</div>
+        </div>
+        <div class="layer">
+          <div class="layer-name">Orchestracja</div>
+          <div class="layer-folder">src/hooks/**</div>
+          <div class="layer-role">Stan UI, debounced persist, koordynacja akcji. Persistencja tylko przez <code>lib/</code>.</div>
+        </div>
+        <div class="layer">
+          <div class="layer-name">Domena</div>
+          <div class="layer-folder">src/lib/**</div>
+          <div class="layer-role">Wszystkie obliczenia: fazy, walidacja, geometria, eksport PDF, parsowanie SVG, I/O pliku.</div>
+        </div>
+        <div class="layer">
+          <div class="layer-name">Kontrakty</div>
+          <div class="layer-folder">src/types/**</div>
+          <div class="layer-role">Tylko typy i normalizery. Nigdy obliczenia.</div>
+        </div>
+        <div class="layer">
+          <div class="layer-name">Desktop</div>
+          <div class="layer-folder">src-tauri/**</div>
+          <div class="layer-role">Integracja OS (Tauri). Nigdy domena.</div>
+        </div>
+      </div>
+
+      <h4>State flow — diagram przepływu</h4>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:0">
+        Każda akcja użytkownika przepływa przez ściśle określone warstwy. UI wysyła intencję → hook ją orkiestruje → lib liczy domenę → store zapisuje. Poniżej: diagram pełnego cyklu + 3 najczęstsze wzorce akcji.
+      </p>
+      <div class="stateflow">
+        <div class="stateflow-legend">
+          <span><span class="dot" style="background:var(--db-brand)"></span>UI</span>
+          <span><span class="dot" style="background:var(--accent)"></span>Hook</span>
+          <span><span class="dot" style="background:#6366f1"></span>Lib (domena)</span>
+          <span><span class="dot" style="background:var(--text-dim)"></span>Store (persist)</span>
+        </div>
+        <svg class="stateflow-svg" viewBox="0 0 900 280" xmlns="http://www.w3.org/2000/svg">
+          <rect x="20" y="40" width="200" height="200" rx="8" fill="#fbf9f4" stroke="#e9e3d6"/>
+          <rect x="240" y="40" width="200" height="200" rx="8" fill="#fef7ee" stroke="#e9d8c2"/>
+          <rect x="460" y="40" width="200" height="200" rx="8" fill="#eef2ff" stroke="#c7d2fe"/>
+          <rect x="680" y="40" width="200" height="200" rx="8" fill="#f3f4f6" stroke="#e5e7eb"/>
+
+          <text x="120" y="28" text-anchor="middle" font-family="Outfit" font-size="12" font-weight="600" fill="#2f80ed">UI</text>
+          <text x="340" y="28" text-anchor="middle" font-family="Outfit" font-size="12" font-weight="600" fill="#c97b3f">Hook</text>
+          <text x="560" y="28" text-anchor="middle" font-family="Outfit" font-size="12" font-weight="600" fill="#4f46e5">Lib</text>
+          <text x="780" y="28" text-anchor="middle" font-family="Outfit" font-size="12" font-weight="600" fill="#6b7280">Store</text>
+
+          <rect x="40" y="65" width="160" height="40" rx="6" fill="white" stroke="#2f80ed"/>
+          <text x="120" y="90" text-anchor="middle" font-family="Outfit" font-size="13" fill="#14171e">user action</text>
+          <rect x="40" y="120" width="160" height="36" rx="6" fill="white" stroke="#2f80ed"/>
+          <text x="120" y="143" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#14171e">AppHeader / Canvas</text>
+          <rect x="40" y="170" width="160" height="36" rx="6" fill="white" stroke="#2f80ed"/>
+          <text x="120" y="193" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#14171e">AppLeftPanel / Right</text>
+
+          <rect x="260" y="65" width="160" height="40" rx="6" fill="white" stroke="#c97b3f"/>
+          <text x="340" y="90" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#14171e">useSymbolActions /</text>
+          <text x="340" y="103" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#14171e">useProjectActions</text>
+          <rect x="260" y="120" width="160" height="40" rx="6" fill="white" stroke="#c97b3f"/>
+          <text x="340" y="145" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#14171e">useSymbolHistory</text>
+          <rect x="260" y="175" width="160" height="36" rx="6" fill="white" stroke="#c97b3f"/>
+          <text x="340" y="198" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#14171e">useAppPersistence</text>
+
+          <rect x="480" y="65" width="160" height="40" rx="6" fill="white" stroke="#6366f1"/>
+          <text x="560" y="90" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#14171e">circuitRows / phaseDistribution</text>
+          <rect x="480" y="120" width="160" height="40" rx="6" fill="white" stroke="#6366f1"/>
+          <text x="560" y="145" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#14171e">validateProject</text>
+          <rect x="480" y="175" width="160" height="36" rx="6" fill="white" stroke="#6366f1"/>
+          <text x="560" y="198" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#14171e">projectFile.ts (save/load)</text>
+
+          <rect x="700" y="65" width="160" height="40" rx="6" fill="white" stroke="#9ca3af"/>
+          <text x="780" y="90" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#14171e">React state (useState)</text>
+          <rect x="700" y="120" width="160" height="40" rx="6" fill="white" stroke="#9ca3af"/>
+          <text x="780" y="145" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#14171e">localStorage (debounced)</text>
+          <rect x="700" y="175" width="160" height="36" rx="6" fill="white" stroke="#9ca3af"/>
+          <text x="780" y="198" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#14171e">Tauri fs (.dinboard)</text>
+
+          <defs>
+            <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#5a6275"/>
+            </marker>
+          </defs>
+
+          <line x1="200" y1="138" x2="260" y2="85" stroke="#5a6275" stroke-width="1.5" marker-end="url(#arr)"/>
+          <line x1="200" y1="138" x2="260" y2="140" stroke="#5a6275" stroke-width="1.5" marker-end="url(#arr)"/>
+          <line x1="200" y1="188" x2="260" y2="193" stroke="#5a6275" stroke-width="1.5" marker-end="url(#arr)"/>
+
+          <line x1="420" y1="85" x2="480" y2="85" stroke="#5a6275" stroke-width="1.5" marker-end="url(#arr)"/>
+          <line x1="420" y1="140" x2="480" y2="140" stroke="#5a6275" stroke-width="1.5" marker-end="url(#arr)"/>
+          <line x1="420" y1="193" x2="480" y2="193" stroke="#5a6275" stroke-width="1.5" marker-end="url(#arr)"/>
+
+          <line x1="640" y1="85" x2="700" y2="85" stroke="#5a6275" stroke-width="1.5" marker-end="url(#arr)"/>
+          <line x1="640" y1="140" x2="700" y2="140" stroke="#5a6275" stroke-width="1.5" marker-end="url(#arr)"/>
+          <line x1="640" y1="193" x2="700" y2="193" stroke="#5a6275" stroke-width="1.5" marker-end="url(#arr)"/>
+
+          <path d="M 700 95 Q 670 230 420 210" stroke="#c97b3f" stroke-width="1.5" stroke-dasharray="4,4" fill="none" marker-end="url(#arr)"/>
+          <text x="555" y="248" text-anchor="middle" font-family="Outfit" font-size="11" fill="#c97b3f" font-style="italic">re-render via state</text>
+        </svg>
+      </div>
+
+      <h4 style="margin-top:24px">3 najczęstsze wzorce przepływu</h4>
+      <div class="pattern-grid">
+        <div class="pattern">
+          <div class="pattern-name">Drop modułu z palety na szynę</div>
+          <div class="pattern-flow">
+            <span class="layer-tag ui">UI</span> palette drag → canvas drop<br>
+            <span class="layer-tag hook">Hook</span> usePaletteActions.handlePaletteDrop<br>
+            <span class="layer-tag hook">Hook</span> history.executeSymbolsCommand<br>
+            <span class="layer-tag lib">Lib</span> symbolItem.ts (defaults)<br>
+            <span class="layer-tag store">Store</span> setSymbols + persist debounced
+          </div>
+        </div>
+        <div class="pattern">
+          <div class="pattern-name">Zapis pliku .dinboard</div>
+          <div class="pattern-flow">
+            <span class="layer-tag ui">UI</span> AppHeader → Plik → Zapisz<br>
+            <span class="layer-tag hook">Hook</span> useProjectActions.handleSaveProject<br>
+            <span class="layer-tag lib">Lib</span> projectFile.ts (build → serialize)<br>
+            <span class="layer-tag lib">Lib</span> Tauri fs.writeFile / browser download<br>
+            <span class="layer-tag store">Store</span> setHasUnsavedChanges(false)
+          </div>
+        </div>
+        <div class="pattern">
+          <div class="pattern-name">Import własnego SVG modułu</div>
+          <div class="pattern-flow">
+            <span class="layer-tag ui">UI</span> AppHeader → Narzędzia → Import SVG<br>
+            <span class="layer-tag hook">Hook</span> dialog.setSvgImportDialogOpen<br>
+            <span class="layer-tag ui">UI</span> SvgImportDialog (file picker)<br>
+            <span class="layer-tag lib">Lib</span> importedModuleCatalog.parseSvg<br>
+            <span class="layer-tag hook">Hook</span> useImportedModules.handleSvgImportCommit<br>
+            <span class="layer-tag store">Store</span> importedModules[] + persist
+          </div>
+        </div>
+      </div>
+
+      <h4 style="margin-top:32px">Drzewo kluczowych plików</h4>
+      <div class="tree">
+<span class="dir">src/</span>
+<ul>
+  <li><span class="dir">App.tsx</span> — shell, routing, provider stanu</li>
+  <li><span class="dir">components/</span>
+    <ul>
+      <li><span class="file">AppHeader.tsx</span> · <span class="file">AppHeaderMenus.tsx</span> · <span class="file">AppHeaderFileMenu.tsx</span> · <span class="file">AppHeaderCenterAndDrawer.tsx</span></li>
+      <li><span class="file">AppLeftPanel.tsx</span> · <span class="file">AppRightPanel.tsx</span> · <span class="file">AppWorkspaceCanvas.tsx</span></li>
+      <li><span class="file">AppSheetTabs.tsx</span> · <span class="file">AppStatusBar.tsx</span> · <span class="file">AppDialogsLayer.tsx</span></li>
+      <li><span class="file heavy">DinRailCanvasPixi.tsx</span> · <span class="file heavy">DinRailConnectionsCanvas.tsx</span> · <span class="file heavy">SchematicCanvas.tsx</span></li>
+      <li><span class="file">CircuitListPage.tsx</span> · <span class="file">CircuitEditPanel.tsx</span> · <span class="file">CircuitCalculators.tsx</span></li>
+      <li><span class="file">PowerBalancePage.tsx</span> · <span class="file">ValidationPanel.tsx</span></li>
+      <li><span class="file heavy">PdfWorkspaceShell.tsx</span> · <span class="file heavy">PdfDocumentationPage.tsx</span> · <span class="file heavy">MeasurementProtocolsWorkspacePage.tsx</span></li>
+      <li><span class="file">SvgImportDialog.tsx</span> · <span class="file">RcdManagementDialog.tsx</span> · <span class="file">ImportedModulesDialog.tsx</span></li>
+      <li><span class="file">HelpDialog.tsx</span> · <span class="file">AboutDialog.tsx</span> · <span class="file">UnsavedChangesDialog.tsx</span> · <span class="file">FeedbackModal.tsx</span></li>
+      <li><span class="dir">canvasLayers/</span> · <span class="dir">measurementProtocols/</span> · <span class="dir">landing/</span></li>
+    </ul>
+  </li>
+  <li><span class="dir">hooks/</span> — useSymbolHistory · useSymbolActions · useProjectActions · usePaletteActions · useImportedModules · useSheetPanelState · useDialogState · useSchematicState</li>
+  <li><span class="dir">lib/</span> — phaseDistribution · validation · schematic · modules · connections · export · circuitRows · projectFile</li>
+  <li><span class="dir">types/</span> — symbolItem · circuitRow · connectionItem · projectMetadata</li>
+</ul>
+      </div>
+    </section>
+
+    <!-- ── 03 — ARKUSZE ───────────────────────────────── -->
+    <section id="sec-03">
+      <div class="section-head">
+        <span class="section-num">03</span>
+        <h2 class="section-title">Pięć arkuszy — co się zmienia</h2>
+      </div>
+      <p class="section-desc">
+        Shell stały, zawartość trzech kolumn zmienna. <code>sheet4</code> (PDF) ma specjalny layout — <code>PdfWorkspaceShell</code> zastępuje standardowy 3-kolumnowy układ własną strukturą z kontekstem <code>PdfWorkspaceContext</code>.
+      </p>
+
+      <div class="sheet-grid">
+        <div class="comp">
+          <div class="sheet-card-head" style="border:none;padding:0;margin-bottom:10px">
+            <div class="sheet-tab-icon">▦</div>
+            <div class="sheet-tab-title">Rozdzielnica</div>
+            <span class="sheet-tab-meta">sheet1</span>
+          </div>
+          <div class="sheet-card-region">
+            <div class="sheet-card-region-label">Lewy panel</div>
+            <div class="sheet-card-region-content"><code>palette-browser</code> — zakładki kategorii + siatka modułów DnD. CTA „Wygeneruj szynę" gdy brak.</div>
+          </div>
+          <div class="sheet-card-region">
+            <div class="sheet-card-region-label">Canvas</div>
+            <div class="sheet-card-region-content"><code>DinRailCanvas</code> (Pixi, lazy) — szyna z modułami, snap, drag, selekcja grup.</div>
+          </div>
+          <div class="sheet-card-region">
+            <div class="sheet-card-region-label">Prawy panel</div>
+            <div class="sheet-card-region-content">4 zakładki: Zasilanie / Bilans / Walidacja / Edycja.</div>
+          </div>
+          <div class="comp-meta">
+            <span class="badge risk-high">canvas</span>
+            <span class="badge expert">canvas-expert</span>
+          </div>
+        </div>
+
+        <div class="comp">
+          <div class="sheet-card-head" style="border:none;padding:0;margin-bottom:10px">
+            <div class="sheet-tab-icon">▤</div>
+            <div class="sheet-tab-title">Połączenia</div>
+            <span class="sheet-tab-meta">sheet1_connections</span>
+          </div>
+          <div class="sheet-card-region">
+            <div class="sheet-card-region-label">Lewy panel</div>
+            <div class="sheet-card-region-content"><code>ConnectionsLeftPanel</code> — domyślny drut: kolor, przekrój, typ, tryb routingu, tulejka.</div>
+          </div>
+          <div class="sheet-card-region">
+            <div class="sheet-card-region-label">Canvas</div>
+            <div class="sheet-card-region-content"><code>DinRailConnectionsCanvas</code> — rysowanie drutów Manhattan/Orthogonal. Selekcja istniejącego drutu.</div>
+          </div>
+          <div class="sheet-card-region">
+            <div class="sheet-card-region-label">Prawy panel</div>
+            <div class="sheet-card-region-content"><code>ConnectionsRightPanel</code> — edycja drutu i powiązanego symbolu.</div>
+          </div>
+          <div class="comp-meta">
+            <span class="badge risk-high">canvas</span>
+            <span class="badge expert">canvas-expert</span>
+          </div>
+        </div>
+
+        <div class="comp">
+          <div class="sheet-card-head" style="border:none;padding:0;margin-bottom:10px">
+            <div class="sheet-tab-icon">⌘</div>
+            <div class="sheet-tab-title">Schemat obwodów</div>
+            <span class="sheet-tab-meta">sheet2</span>
+          </div>
+          <div class="sheet-card-region">
+            <div class="sheet-card-region-label">Lewy panel</div>
+            <div class="sheet-card-region-content"><code>ProjectPropertiesPage</code> — metadane projektu + przycisk „Eksportuj PDF".</div>
+          </div>
+          <div class="sheet-card-region">
+            <div class="sheet-card-region-label">Canvas</div>
+            <div class="sheet-card-region-content"><code>SchematicCanvas</code> — schemat wielostronicowy A4, edycja komórek inline, zoom/pan.</div>
+          </div>
+          <div class="sheet-card-region">
+            <div class="sheet-card-region-label">Prawy panel</div>
+            <div class="sheet-card-region-content">Góra: standardowe 4 zakładki. Dół: miniatury stron A4.</div>
+          </div>
+          <div class="comp-meta">
+            <span class="badge risk-high">canvas</span>
+            <span class="badge expert">canvas-expert</span>
+          </div>
+        </div>
+
+        <div class="comp">
+          <div class="sheet-card-head" style="border:none;padding:0;margin-bottom:10px">
+            <div class="sheet-tab-icon">☰</div>
+            <div class="sheet-tab-title">Lista obwodów</div>
+            <span class="sheet-tab-meta">sheet3</span>
+          </div>
+          <div class="sheet-card-region">
+            <div class="sheet-card-region-label">Lewy panel</div>
+            <div class="sheet-card-region-content">Pusty stan (etykieta). Na mobile — karty obwodów.</div>
+          </div>
+          <div class="sheet-card-region">
+            <div class="sheet-card-region-label">Canvas</div>
+            <div class="sheet-card-region-content"><code>CircuitListPage</code> — tabela obwodów z danych <code>buildCircuitRowsFromSymbols</code>.</div>
+          </div>
+          <div class="sheet-card-region">
+            <div class="sheet-card-region-label">Prawy panel</div>
+            <div class="sheet-card-region-content">Standardowe 4 zakładki.</div>
+          </div>
+          <div class="comp-meta">
+            <span class="badge risk-med">domena</span>
+            <span class="badge expert">electrical-expert</span>
+          </div>
+        </div>
+
+        <div class="comp" style="grid-column:span 2">
+          <div class="sheet-card-head" style="border:none;padding:0;margin-bottom:10px">
+            <div class="sheet-tab-icon" style="background:var(--db-danger)">📄</div>
+            <div class="sheet-tab-title">Dokumentacja PDF</div>
+            <span class="sheet-tab-meta">sheet4</span>
+          </div>
+          <div class="sheet-card-region">
+            <div class="sheet-card-region-label">Układ specjalny</div>
+            <div class="sheet-card-region-content"><code>PdfWorkspaceShell</code> zastępuje standardowy 3-kolumnowy układ. Własny kontekst <code>PdfWorkspaceContext</code> + 7 sekcji podglądu A4: <strong>Strona główna, Tabela zbiorcza, RCD i uziemienie, Lista obwodów, Rozdzielnica elektryczna, Rozdzielnica połączenia, Schemat obwodów</strong>.</div>
+          </div>
+          <div class="two-col">
+            <div class="sheet-card-region">
+              <div class="sheet-card-region-label">Lewy panel</div>
+              <div class="sheet-card-region-content"><code>PdfDocumentationPage</code> — konfiguracja strony tytułowej.</div>
+            </div>
+            <div class="sheet-card-region">
+              <div class="sheet-card-region-label">Canvas</div>
+              <div class="sheet-card-region-content"><code>MeasurementProtocolsWorkspacePage</code> — podgląd A4 wybranej sekcji.</div>
+            </div>
+          </div>
+          <div class="sheet-card-region">
+            <div class="sheet-card-region-label">Prawy panel</div>
+            <div class="sheet-card-region-content">Nawigacja pionowa po 7 sekcjach PDF. <code>useTransition</code> dla płynnego przełączania.</div>
+          </div>
+          <div class="comp-meta">
+            <span class="badge risk-high">pdf-expert</span>
+            <span class="badge expert">pdf-expert</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 04 — HEADER ────────────────────────────────── -->
+    <section id="sec-04">
+      <div class="section-head">
+        <span class="section-num">04</span>
+        <h2 class="section-title">Nagłówek — menu i narzędzia</h2>
+      </div>
+      <p class="section-desc">
+        <code>AppHeader</code> ma 6 dropdownów po lewej (Plik, Widok, Narzędzia, Pomoc, O aplikacji, Zgłoś pomysł + link Postaw kawę), środkowy pasek narzędzi (undo/redo/delete/DIN/SVG/zoom) oraz nazwę pliku i ⚙ po prawej. Na mobile (&lt;768px lub natywnie) wszystko chowa się w hamburger drawerze.
+      </p>
+
+      <div class="two-col">
+        <div>
+          <h3>Plik</h3>
+          <div class="menu-mockup">
+            <div class="mi">📄 Nowy projekt</div>
+            <div class="mi">📂 Otwórz projekt…</div>
+            <div class="mi">💾 Zapisz</div>
+            <div class="mi">💾 Zapisz jako…</div>
+            <div class="mi divider"></div>
+            <div class="mi">📑 Eksportuj PDF</div>
+            <div class="mi">📊 Eksportuj BOM</div>
+            <div class="mi">🖼 Eksportuj PNG z opisami</div>
+            <div class="mi">🖼 Eksportuj PNG szyny bez nawiasów</div>
+            <div class="mi divider"></div>
+            <div class="mi">🖨 Drukuj <kbd>Ctrl+P</kbd></div>
+          </div>
+        </div>
+        <div>
+          <h3>Widok</h3>
+          <div class="menu-mockup">
+            <div class="mi">⊞ Pokaż prawy panel</div>
+            <div class="mi">⚑ Pokaż grupy RCD</div>
+            <div class="mi divider"></div>
+            <div class="mi">▦ Rozdzielnica</div>
+            <div class="mi">▤ Połączenia</div>
+            <div class="mi">⌘ Schemat obwodów</div>
+            <div class="mi">☰ Lista obwodów</div>
+            <div class="mi">📄 Dokumentacja PDF</div>
+          </div>
+        </div>
+        <div>
+          <h3>Narzędzia</h3>
+          <div class="menu-mockup">
+            <div class="mi">▭ Generator szyny DIN</div>
+            <div class="mi">⇪ Import SVG modułu</div>
+            <div class="mi">📦 Zarządzaj importowanymi modułami</div>
+          </div>
+        </div>
+        <div>
+          <h3>Ustawienia (⚙)</h3>
+          <div class="menu-mockup">
+            <div class="mi">🎨 Motyw: Modern</div>
+            <div class="mi">🎨 Motyw: Classic</div>
+            <div class="mi divider"></div>
+            <div class="mi">⊞ Pokaż prawy panel</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 05 — PRAWY PANEL ──────────────────────────── -->
+    <section id="sec-05">
+      <div class="section-head">
+        <span class="section-num">05</span>
+        <h2 class="section-title">Prawy panel — 4 zakładki</h2>
+      </div>
+      <p class="section-desc">
+        Prawy panel jest współdzielony między arkuszami Rozdzielnica, Schemat i Lista. Na arkuszu Połączenia zastępuje go <code>ConnectionsRightPanel</code>. Każda z 4 zakładek to osobny podkomponent z własną logiką domenową.
+      </p>
+
+      <div class="sheet-grid">
+        <div class="comp">
+          <div class="sheet-card-head" style="border:none;padding:0;margin-bottom:10px">
+            <div class="sheet-tab-icon">⚡</div>
+            <div class="sheet-tab-title">Zasilanie</div>
+            <span class="sheet-tab-meta">config</span>
+          </div>
+          <ul style="font-size:13px">
+            <li>Napięcie: 230V / 400V</li>
+            <li>Liczba faz: 1 / 3</li>
+            <li>Zabezpieczenie główne: 25/32/40/63/80/100/125 A</li>
+            <li>Moc przyłączeniowa [kW]</li>
+            <li>Współczynnik jednoczesności (0.1–1.0)</li>
+            <li><strong>Zarządzaj RCD</strong> → otwiera <code>RcdManagementDialog</code></li>
+          </ul>
+          <div class="comp-meta">
+            <span class="badge risk-med">metadane</span>
+          </div>
+        </div>
+
+        <div class="comp">
+          <div class="sheet-card-head" style="border:none;padding:0;margin-bottom:10px">
+            <div class="sheet-tab-icon">⚖</div>
+            <div class="sheet-tab-title">Bilans faz</div>
+            <span class="sheet-tab-meta">balance</span>
+          </div>
+          <ul style="font-size:13px">
+            <li>Bieżące obciążenie L1/L2/L3 [W]</li>
+            <li>Sugestie przeniesienia obwodu</li>
+            <li><strong>Auto-balance</strong> — automatyczny rozkład</li>
+            <li>Akceptacja sugestii jednym klikiem</li>
+          </ul>
+          <div class="comp-meta">
+            <span class="badge risk-high">domena</span>
+            <span class="badge expert">electrical-expert</span>
+          </div>
+        </div>
+
+        <div class="comp">
+          <div class="sheet-card-head" style="border:none;padding:0;margin-bottom:10px">
+            <div class="sheet-tab-icon">✓</div>
+            <div class="sheet-tab-title">Walidacja</div>
+            <span class="sheet-tab-meta">validation</span>
+          </div>
+          <ul style="font-size:13px">
+            <li>Lista błędów i ostrzeżeń z <code>validateProject</code></li>
+            <li>Severity: error / warning / info</li>
+            <li>Klik → przeskakuje do modułu</li>
+            <li>Quick-fix napraw jednym klikiem</li>
+          </ul>
+          <div class="comp-meta">
+            <span class="badge risk-high">domena</span>
+            <span class="badge expert">electrical-expert</span>
+          </div>
+        </div>
+
+        <div class="comp">
+          <div class="sheet-card-head" style="border:none;padding:0;margin-bottom:10px">
+            <div class="sheet-tab-icon">✎</div>
+            <div class="sheet-tab-title">Edycja obwodu</div>
+            <span class="sheet-tab-meta">circuitEdit</span>
+          </div>
+          <ul style="font-size:13px">
+            <li>Formularz wybranego modułu (MCB/RCD/RCBO/…)</li>
+            <li>Przekrój, moc, opis, grupa, RCD nadrzędne</li>
+            <li>Walidacja inline + hint pól</li>
+            <li>Auto-przejście do zakładki przy wyborze</li>
+          </ul>
+          <div class="comp-meta">
+            <span class="badge risk-high">domena</span>
+            <span class="badge expert">electrical-expert</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 06 — STATUS BAR ───────────────────────────── -->
+    <section id="sec-06">
+      <div class="section-head">
+        <span class="section-num">06</span>
+        <h2 class="section-title">Pasek statusu</h2>
+      </div>
+      <p class="section-desc">
+        <code>AppStatusBar</code> zawsze widoczny u dołu. Po lewej: nazwa pliku (czerwona kropka przy niezapisanych) + status. Po prawej: zoom, łączna moc, grupy RCD, moduły oraz licznik błędów/ostrzeżeń (pojawia się tylko gdy &gt; 0).
+      </p>
+
+      <div class="wireframe" style="margin-bottom:16px">
+        <div class="wf-statusbar" style="border-top:none">
+          <div class="wf-status-group">
+            <span class="wf-status-item"><span class="wf-status-dot"></span> Gotowy</span>
+            <span class="wf-status-item">▣ <strong style="color:var(--db-text)">Garaz_Warszawa_Bema.dinboard</strong> <span style="color:var(--db-danger);font-size:14px;line-height:1">●</span></span>
+          </div>
+          <div class="wf-status-group">
+            <span class="wf-status-item">⊙ <strong style="color:var(--db-text)">100%</strong></span>
+            <span class="wf-status-item warn">⚡ <strong style="color:var(--db-warn)">14.2 kW</strong></span>
+            <span class="wf-status-item">⚑ Grupy: <strong style="color:var(--db-text)">3</strong></span>
+            <span class="wf-status-item">▭ Moduły: <strong style="color:var(--db-text)">24</strong></span>
+            <span class="wf-status-item danger">✓ <strong style="color:var(--db-danger)">2 błędy</strong></span>
+            <span class="wf-status-item warn">✓ <strong style="color:var(--db-warn)">5 ostrzeżeń</strong></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 07 — DIALOGI ──────────────────────────────── -->
+    <section id="sec-07">
+      <div class="section-head">
+        <span class="section-num">07</span>
+        <h2 class="section-title">Dialogi i overlaye</h2>
+      </div>
+      <p class="section-desc">
+        <code>AppDialogsLayer</code> renderuje wszystkie modale — overlay na wierzchu shella. Wywoływane z menu Plik/Narzędzia, z prawego panelu (Zarządzaj RCD), z kontekstu palety (prawy klik) lub z headera (Pomoc, O aplikacji, Zgłoś pomysł). Osobny modal dla niezapisanych zmian przy Nowy/Otwórz.
+      </p>
+
+      <div class="dialog-grid">
+        <div class="comp" data-searchable="SvgImportDialog import svg moduł upload">
+          <div>
+            <div class="comp-name">Import SVG modułu</div>
+            <div class="comp-path">SvgImportDialog.tsx</div>
+            <div class="comp-purpose">Wgrywanie własnych SVG, normalizacja, kategoryzacja i commit do katalogu modułów.</div>
+            <div class="comp-meta"><span class="badge risk-high">SVG</span><span class="badge expert">canvas-expert</span></div>
+          </div>
+        </div>
+
+        <div class="comp">
+          <div>
+            <div class="comp-name">Zarządzanie importowanymi modułami</div>
+            <div class="comp-path">ImportedModulesDialog.tsx</div>
+            <div class="comp-purpose">Lista importowanych modułów, zmiana kategorii, usuwanie.</div>
+            <div class="comp-meta"><span class="badge risk-med">moduły</span></div>
+          </div>
+        </div>
+
+        <div class="comp">
+          <div>
+            <div class="comp-name">Zarządzanie RCD</div>
+            <div class="comp-path">RcdManagementDialog.tsx</div>
+            <div class="comp-purpose">Tabela wszystkich RCD: prąd znamionowy, różnicowy, typ (AC/A/B). Bulk edit + undo.</div>
+            <div class="comp-meta"><span class="badge risk-high">domena</span><span class="badge expert">electrical-expert</span></div>
+          </div>
+        </div>
+
+        <div class="comp">
+          <div>
+            <div class="comp-name">Niezapisane zmiany</div>
+            <div class="comp-path">UnsavedChangesDialog.tsx</div>
+            <div class="comp-purpose">Wyzwalany przy Nowy/Otwórz gdy projekt ma niezapisane zmiany. Akcje: Zapisz / Odrzuć / Anuluj.</div>
+            <div class="comp-meta"><span class="badge risk-med">flow</span></div>
+          </div>
+        </div>
+
+        <div class="comp">
+          <div>
+            <div class="comp-name">Pomoc</div>
+            <div class="comp-path">HelpDialog.tsx</div>
+            <div class="comp-purpose">Skróty klawiszowe, opis funkcji, linki do dokumentacji.</div>
+            <div class="comp-meta"><span class="badge risk-low">info</span></div>
+          </div>
+        </div>
+
+        <div class="comp">
+          <div>
+            <div class="comp-name">O aplikacji</div>
+            <div class="comp-path">AboutDialog.tsx</div>
+            <div class="comp-purpose">Wersja, autor, link donate, changelog.</div>
+            <div class="comp-meta"><span class="badge risk-low">info</span></div>
+          </div>
+        </div>
+
+        <div class="comp">
+          <div>
+            <div class="comp-name">Zgłoś pomysł</div>
+            <div class="comp-path">FeedbackModal.tsx</div>
+            <div class="comp-purpose">Formularz feedbacku dostępny z headera na każdej stronie.</div>
+            <div class="comp-meta"><span class="badge risk-low">info</span></div>
+          </div>
+        </div>
+
+        <div class="comp">
+          <div>
+            <div class="comp-name">Usuń moduł z palety (confirm)</div>
+            <div class="comp-path">AppDialogsLayer.tsx (inline)</div>
+            <div class="comp-purpose">Confirm dialog po prawym kliku na moduł w palecie.</div>
+            <div class="comp-meta"><span class="badge risk-low">flow</span></div>
+          </div>
+        </div>
+
+        <div class="comp">
+          <div>
+            <div class="comp-name">Context menu palety</div>
+            <div class="comp-path">AppDialogsLayer.tsx (inline)</div>
+            <div class="comp-purpose">Prawy klik na moduł — akcja „Usuń z palety".</div>
+            <div class="comp-meta"><span class="badge risk-low">flow</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 08 — ROUTING ──────────────────────────────── -->
+    <section id="sec-08">
+      <div class="section-head">
+        <span class="section-num">08</span>
+        <h2 class="section-title">Routing aplikacji</h2>
+      </div>
+      <p class="section-desc">
+        Tylko dwie ścieżki React Router. Landing (publiczna, marketing) i App (właściwy edytor). Cała reszta — zakładki, dialogi, panele — to stan wewnętrzny <code>AppWorkspace</code>, nie URL.
+      </p>
+
+      <div class="two-col">
+        <div>
+          <h4><code>/</code> · LandingRoute</h4>
+          <div class="tree" style="font-size:13px">
+            <span class="dir">PublicLandingPage.tsx</span>
+            <ul>
+              <li><span class="file">LandingHeader.tsx</span></li>
+              <li><span class="file">LandingHero.tsx</span></li>
+              <li><span class="file">LandingFeatures.tsx</span></li>
+              <li><span class="file">LandingKnowledgeBase.tsx</span></li>
+              <li><span class="file">LandingFaq.tsx</span></li>
+              <li><span class="file">LandingSandboxPreview.tsx</span></li>
+              <li><span class="file">LandingFooter.tsx</span></li>
+              <li>landingData.tsx (copy + obrazy)</li>
+            </ul>
+          </div>
+          <p style="font-size:13px;color:var(--text-muted);margin-top:10px">
+            Marketing. Przyciski: „Nowy projekt" → <code>/app</code> z akcją <code>new</code>, „Otwórz projekt" → file picker + nawigacja z <code>load_data</code>.
+          </p>
+        </div>
+
+        <div>
+          <h4><code>/app</code> · AppRoute</h4>
+          <div class="tree" style="font-size:13px">
+            <span class="dir">AppWorkspace</span> (App.tsx)
+            <ul>
+              <li><span class="file">AppHeader</span></li>
+              <li><span class="file">MainWorkspace</span>
+                <ul>
+                  <li><span class="file">AppLeftPanel</span></li>
+                  <li><span class="file">AppWorkspaceCanvas</span> <em>(lazy)</em></li>
+                  <li><span class="file">AppRightPanel</span></li>
+                  <li><span class="file">AppSheetTabs</span></li>
+                </ul>
+              </li>
+              <li><span class="file">AppStatusBar</span></li>
+              <li><span class="file">AppDialogsLayer</span></li>
+            </ul>
+            <br/>
+            <span class="dir">Kontekst z Outlet:</span>
+            <ul>
+              <li>initialAction: "new" | "last" | "load_data"</li>
+              <li>initialData: ProjectFileData | null</li>
+            </ul>
+          </div>
+          <p style="font-size:13px;color:var(--text-muted);margin-top:10px">
+            Właściwy edytor. Outlet z <code>AppLayout</code> przekazuje inicjalną akcję i dane po nawigacji z landing page.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 09 — TOKENY ───────────────────────────────── -->
+    <section id="sec-09">
+      <div class="section-head">
+        <span class="section-num">09</span>
+        <h2 class="section-title">Tokeny wizualne — ciemny motyw</h2>
+      </div>
+      <p class="section-desc">
+        UI działa w motywie ciemnym. Kolor marki żyje w 3 miejscach (CSS vars w <code>App.css</code>, hardcoded fallbacks w ~13 plikach CSS, <code>pdfStyles.ts</code> dla eksportu PDF) — zmiana brandu wymaga synchronizacji tych trzech źródeł. Motywy: „Modern" (domyślny) vs „Classic" przełączane w ⚙.
+      </p>
+
+      <h4>Powierzchnie</h4>
+      <div class="token-grid" style="margin-bottom:24px">
+        <div class="token" style="background:#1a1d23">--bg-app<br/>#1a1d23</div>
+        <div class="token" style="background:#20242c">--bg-panel<br/>#20242c</div>
+        <div class="token" style="background:#0B0B0D">--bg-canvas<br/>#0B0B0D</div>
+        <div class="token" style="background:#0d79f2">--brand<br/>#2f80ed</div>
+      </div>
+
+      <h4>Semantyka</h4>
+      <div class="token-grid">
+        <div class="token" style="background:#10b981">OK · #10b981</div>
+        <div class="token" style="background:#f59e0b">Ostrzeżenie · #f59e0b</div>
+        <div class="token" style="background:#ef4444">Błąd · #ef4444</div>
+        <div class="token dark-text" style="background:#FFB020">Donate · #FFB020</div>
+      </div>
+    </section>
+
+    <!-- ── 10 — HEATMAPA RYZYKA ─────────────────────── -->
+    <section id="sec-10">
+      <div class="section-head">
+        <span class="section-num">10</span>
+        <h2 class="section-title">Subsystemy ryzyka — heatmapa</h2>
+      </div>
+      <p class="section-desc">
+        Wizualna mapa 5 subsystemów × 4 wymiary ryzyka. <strong>Częstotliwość zmian</strong> — jak często ten obszar się zmienia. <strong>Blast radius</strong> — co się psuje gdy zepsujesz. <strong>Pinning test</strong> — czy masz test chroniący regresję. <strong>Delegate</strong> — kto w zespole to ogarnia. Czerwone = wysokie ryzyko, żółte = średnie, zielone = niskie.
+      </p>
+
+      <div class="heatmap">
+        <div class="heatmap-row head">
+          <div class="heatmap-cell head">Subsystem</div>
+          <div class="heatmap-cell head">Częstotliwość zmian</div>
+          <div class="heatmap-cell head">Blast radius</div>
+          <div class="heatmap-cell head">Pinning test</div>
+          <div class="heatmap-cell head">Delegate</div>
+        </div>
+
+        <div class="heatmap-row">
+          <div class="heatmap-cell label">Domena elektryczna</div>
+          <div class="heatmap-cell"><span class="heatmap-score low"><span class="pip"></span>niska</span></div>
+          <div class="heatmap-cell"><span class="heatmap-score high"><span class="pip"></span>wysoki</span></div>
+          <div class="heatmap-cell"><span class="heatmap-score high"><span class="pip"></span>wymagany</span></div>
+          <div class="heatmap-cell"><span class="badge expert">electrical-expert</span></div>
+        </div>
+
+        <div class="heatmap-row">
+          <div class="heatmap-cell label">Canvas i interakcje</div>
+          <div class="heatmap-cell"><span class="heatmap-score med"><span class="pip"></span>średnia</span></div>
+          <div class="heatmap-cell"><span class="heatmap-score high"><span class="pip"></span>wysoki</span></div>
+          <div class="heatmap-cell"><span class="heatmap-score high"><span class="pip"></span>wymagany</span></div>
+          <div class="heatmap-cell"><span class="badge expert">canvas-expert</span></div>
+        </div>
+
+        <div class="heatmap-row">
+          <div class="heatmap-cell label">Import SVG i moduły</div>
+          <div class="heatmap-cell"><span class="heatmap-score low"><span class="pip"></span>niska</span></div>
+          <div class="heatmap-cell"><span class="heatmap-score med"><span class="pip"></span>średni</span></div>
+          <div class="heatmap-cell"><span class="heatmap-score high"><span class="pip"></span>wymagany</span></div>
+          <div class="heatmap-cell"><span class="badge expert">canvas-expert</span></div>
+        </div>
+
+        <div class="heatmap-row">
+          <div class="heatmap-cell label">I/O pliku projektu</div>
+          <div class="heatmap-cell"><span class="heatmap-score low"><span class="pip"></span>niska</span></div>
+          <div class="heatmap-cell"><span class="heatmap-score high"><span class="pip"></span>wysoki</span></div>
+          <div class="heatmap-cell"><span class="heatmap-score high"><span class="pip"></span>wymagany</span></div>
+          <div class="heatmap-cell"><span class="badge expert">project-io-expert</span></div>
+        </div>
+
+        <div class="heatmap-row">
+          <div class="heatmap-cell label">Eksport PDF</div>
+          <div class="heatmap-cell"><span class="heatmap-score med"><span class="pip"></span>średnia</span></div>
+          <div class="heatmap-cell"><span class="heatmap-score med"><span class="pip"></span>średni</span></div>
+          <div class="heatmap-cell"><span class="heatmap-score med"><span class="pip"></span>zalecany</span></div>
+          <div class="heatmap-cell"><span class="badge expert">pdf-expert</span></div>
+        </div>
+      </div>
+
+      <h4 style="margin-top:32px">Skąd bierze się ocena?</h4>
+      <div class="sheet-grid">
+        <div class="comp high-risk">
+          <div class="comp-name">Domena elektryczna</div>
+          <div class="comp-path">phaseDistribution · validation · circuitRows · projectMetadata · symbolItem</div>
+          <div class="comp-purpose">Bilans faz, walidacja MCB/RCD/RCBO, relacja RCD→MCB, L1/L2/L3, dane do PDF i podsumowań. Zmiana w <code>validateProject</code> zmienia wynik w PDF — wysoki blast radius.</div>
+          <div class="comp-meta"><span class="badge risk-high">domena</span><span class="badge expert">electrical-expert</span></div>
+        </div>
+        <div class="comp high-risk">
+          <div class="comp-name">Canvas i interakcje</div>
+          <div class="comp-path">DinRailCanvasPixi · DinRailConnectionsCanvas · SchematicCanvas · dinRailSnap · schematic</div>
+          <div class="comp-purpose">Wydajność z wieloma modułami, jakość SVG w zoom, brak flickerów, pointer events, drag&amp;drop, snapping, selekcja grupowa, spójność view↔export.</div>
+          <div class="comp-meta"><span class="badge risk-high">canvas</span><span class="badge expert">canvas-expert</span></div>
+        </div>
+        <div class="comp high-risk">
+          <div class="comp-name">Import SVG i moduły</div>
+          <div class="comp-path">importedModuleCatalog · svgAsset · svgNormalization · ModuleAssetPreview</div>
+          <div class="comp-purpose">Nie degraduj oryginalnej jakości SVG. Walidacja importów. Bezpieczne <code>dangerouslySetInnerHTML</code>.</div>
+          <div class="comp-meta"><span class="badge risk-high">SVG</span><span class="badge expert">canvas-expert</span></div>
+        </div>
+        <div class="comp high-risk">
+          <div class="comp-name">I/O pliku projektu</div>
+          <div class="comp-path">projectFile · useProjectActions · useSymbolHistory · src-tauri</div>
+          <div class="comp-purpose">Nigdy po cichu nie zmieniaj kontraktu pliku. Nigdy nie łam wstecznej kompatybilności. Migracje obowiązkowe. Round-trip test dla każdej zmiany formatu.</div>
+          <div class="comp-meta"><span class="badge risk-high">I/O</span><span class="badge expert">project-io-expert</span></div>
+        </div>
+        <div class="comp high-risk" style="grid-column:span 2">
+          <div class="comp-name">Eksport PDF</div>
+          <div class="comp-path">export/** · PdfDocumentationPage · PdfPreviewWorkspace · MeasurementProtocolsWorkspacePage · pdfStyles</div>
+          <div class="comp-purpose">PDF to deliverables inżynierski. Bez wyraźnej prośby nie zmieniaj: danych wejściowych raportu, kolejności, sekcji, spójności UI↔PDF.</div>
+          <div class="comp-meta"><span class="badge risk-high">PDF</span><span class="badge expert">pdf-expert</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── GLOSARIUSZ / INDEKS ───────────────────────── -->
+    <section id="glossary">
+      <div class="section-head">
+        <span class="section-num">★</span>
+        <h2 class="section-title">Indeks komponentów</h2>
+      </div>
+      <p class="section-desc">
+        Alfabetyczny spis wszystkich plików UI z krótkim opisem, poziomem ryzyka i przypisanym ekspertem domeny. Użyj wyszukiwarki na górze, żeby szybko znaleźć komponent po nazwie lub fragmencie ścieżki.
+      </p>
+
+      <div class="glossary">
+        <div class="glossary-row head">
+          <div>Komponent</div>
+          <div>Ścieżka</div>
+          <div>Rola</div>
+          <div>Ekspert / ryzyko</div>
+        </div>
+
+        <div class="glossary-row">
+          <div class="g-name">AboutDialog</div>
+          <div class="g-path">AboutDialog.tsx</div>
+          <div class="g-desc">Modal „O aplikacji" — wersja, autor, donate.</div>
+          <div><span class="badge risk-low">info</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">AppDialogsLayer</div>
+          <div class="g-path">AppDialogsLayer.tsx</div>
+          <div class="g-desc">Warstwa overlay renderująca wszystkie modale warunkowo.</div>
+          <div><span class="badge risk-med">flow</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">AppErrorBoundary</div>
+          <div class="g-path">AppErrorBoundary.tsx</div>
+          <div class="g-desc">Bezpiecznik błędów React na najwyższym poziomie.</div>
+          <div><span class="badge risk-low">system</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">AppHeader</div>
+          <div class="g-path">AppHeader.tsx</div>
+          <div class="g-desc">Nagłówek: logotyp, menu, narzędzia, nazwa pliku, ⚙.</div>
+          <div><span class="badge risk-low">standard</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">AppHeaderCenterAndDrawer</div>
+          <div class="g-path">AppHeaderCenterAndDrawer.tsx</div>
+          <div class="g-desc">Środkowy pasek narzędzi + mobile drawer.</div>
+          <div><span class="badge risk-low">standard</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">AppHeaderFileMenu</div>
+          <div class="g-path">AppHeaderFileMenu.tsx</div>
+          <div class="g-desc">Dropdown Plik.</div>
+          <div><span class="badge risk-low">standard</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">AppHeaderMenus</div>
+          <div class="g-path">AppHeaderMenus.tsx</div>
+          <div class="g-desc">Dropdowny Widok/Narzędzia/Ustawienia.</div>
+          <div><span class="badge risk-low">standard</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">AppIcon</div>
+          <div class="g-path">AppIcon.tsx</div>
+          <div class="g-desc">Rejestr inline SVG ikon (lucide-style).</div>
+          <div><span class="badge risk-low">standard</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">AppLeftPanel</div>
+          <div class="g-path">AppLeftPanel.tsx</div>
+          <div class="g-desc">Lewy panel: paleta/właściwości/pusty stan per arkusz.</div>
+          <div><span class="badge risk-low">standard</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">AppRightPanel</div>
+          <div class="g-path">AppRightPanel.tsx</div>
+          <div class="g-desc">Prawy panel z 4 zakładkami: Zasilanie/Bilans/Walidacja/Edycja.</div>
+          <div><span class="badge risk-med">domena</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">AppSheetTabs</div>
+          <div class="g-path">AppSheetTabs.tsx</div>
+          <div class="g-desc">Pasek 5 zakładek nawigacji między arkuszami.</div>
+          <div><span class="badge risk-low">standard</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">AppStatusBar</div>
+          <div class="g-path">AppStatusBar.tsx</div>
+          <div class="g-desc">Pasek statusu u dołu — metryki projektu.</div>
+          <div><span class="badge risk-low">standard</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">AppWorkspaceCanvas</div>
+          <div class="g-path">AppWorkspaceCanvas.tsx</div>
+          <div class="g-desc">Renderuje aktywny arkusz (lazy Pixi/Canvas2D).</div>
+          <div><span class="badge risk-high">canvas</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">CircuitCalculators</div>
+          <div class="g-path">CircuitCalculators.tsx</div>
+          <div class="g-desc">Kalkulatory w edycji obwodu (przekrój, spadek napięcia).</div>
+          <div><span class="badge risk-high">domena</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">CircuitEditPanel</div>
+          <div class="g-path">CircuitEditPanel.tsx</div>
+          <div class="g-desc">Formularz edycji wybranego modułu.</div>
+          <div><span class="badge risk-high">domena</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">CircuitListPage</div>
+          <div class="g-path">CircuitListPage.tsx</div>
+          <div class="g-desc">Tabela obwodów na arkuszu Lista.</div>
+          <div><span class="badge risk-med">domena</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">ConnectionsLeftPanel</div>
+          <div class="g-path">ConnectionsLeftPanel.tsx</div>
+          <div class="g-desc">Domyślne ustawienia drutu na arkuszu Połączenia.</div>
+          <div><span class="badge risk-med">domena</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">ConnectionsRightPanel</div>
+          <div class="g-path">ConnectionsRightPanel.tsx</div>
+          <div class="g-desc">Edycja wybranego drutu po prawej.</div>
+          <div><span class="badge risk-med">domena</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">DinRailCanvasPixi</div>
+          <div class="g-path">DinRailCanvasPixi.tsx</div>
+          <div class="g-desc">Główny canvas szyny DIN (Pixi.js). Lazy.</div>
+          <div><span class="badge risk-high">canvas</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">DinRailCanvasViewport</div>
+          <div class="g-path">DinRailCanvasViewport.tsx</div>
+          <div class="g-desc">Viewport Pixi z zoom/pan.</div>
+          <div><span class="badge risk-high">canvas</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">DinRailConnectionsCanvas</div>
+          <div class="g-path">DinRailConnectionsCanvas.tsx</div>
+          <div class="g-desc">Canvas rysowania połączeń drutowych. Lazy.</div>
+          <div><span class="badge risk-high">canvas</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">FeedbackModal</div>
+          <div class="g-path">FeedbackModal.tsx</div>
+          <div class="g-desc">Modal zgłoszenia pomysłu (dostępny z każdej strony).</div>
+          <div><span class="badge risk-low">info</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">HelpDialog</div>
+          <div class="g-path">HelpDialog.tsx</div>
+          <div class="g-desc">Modal pomocy ze skrótami.</div>
+          <div><span class="badge risk-low">info</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">ImportedModulesDialog</div>
+          <div class="g-path">ImportedModulesDialog.tsx</div>
+          <div class="g-desc">Zarządzanie importowanymi modułami.</div>
+          <div><span class="badge risk-med">moduły</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">MainWorkspace</div>
+          <div class="g-path">MainWorkspace.tsx</div>
+          <div class="g-desc">Kompozycja 3-kolumnowego obszaru + sheet tabs.</div>
+          <div><span class="badge risk-low">standard</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">MeasurementProtocolsWorkspacePage</div>
+          <div class="g-path">MeasurementProtocolsWorkspacePage.tsx</div>
+          <div class="g-desc">Podgląd A4 wybranej sekcji PDF.</div>
+          <div><span class="badge risk-high">PDF</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">MobileFieldCircuitRow</div>
+          <div class="g-path">MobileFieldCircuitRow.tsx</div>
+          <div class="g-desc">Karta obwodu w wersji mobile.</div>
+          <div><span class="badge risk-low">mobile</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">ModuleAssetPreview</div>
+          <div class="g-path">ModuleAssetPreview.tsx</div>
+          <div class="g-desc">Podgląd SVG modułu w palecie + raster fallback.</div>
+          <div><span class="badge risk-high">SVG</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">PdfDocumentationPage</div>
+          <div class="g-path">PdfDocumentationPage.tsx</div>
+          <div class="g-desc">Lewa kolumna w arkuszu PDF: konfiguracja strony tytułowej.</div>
+          <div><span class="badge risk-high">PDF</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">PdfWorkspaceShell</div>
+          <div class="g-path">PdfWorkspaceShell.tsx</div>
+          <div class="g-desc">Specjalny shell dla arkusza PDF (PdfWorkspaceContext).</div>
+          <div><span class="badge risk-high">PDF</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">PowerBalancePage</div>
+          <div class="g-path">PowerBalancePage.tsx</div>
+          <div class="g-desc">Zakładka Bilans w prawym panelu.</div>
+          <div><span class="badge risk-high">domena</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">ProjectPropertiesPage</div>
+          <div class="g-path">ProjectPropertiesPage.tsx</div>
+          <div class="g-desc">Metadane projektu na arkuszu Schemat (lewa kolumna).</div>
+          <div><span class="badge risk-med">metadane</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">PublicLandingPage</div>
+          <div class="g-path">PublicLandingPage.tsx</div>
+          <div class="g-desc">Strona marketingowa na trasie <code>/</code>.</div>
+          <div><span class="badge risk-low">marketing</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">RcdManagementDialog</div>
+          <div class="g-path">RcdManagementDialog.tsx</div>
+          <div class="g-desc">Bulk edit RCD: prąd, różnicowy, typ.</div>
+          <div><span class="badge risk-high">domena</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">SchematicCanvas</div>
+          <div class="g-path">SchematicCanvas.tsx</div>
+          <div class="g-desc">Canvas schematu obwodów (Canvas 2D).</div>
+          <div><span class="badge risk-high">canvas</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">SchematicCellEditor</div>
+          <div class="g-path">SchematicCellEditor.tsx</div>
+          <div class="g-desc">Inline edycja komórek schematu.</div>
+          <div><span class="badge risk-high">canvas</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">SchematicScrollbars</div>
+          <div class="g-path">SchematicScrollbars.tsx</div>
+          <div class="g-desc">Własne scrollbary schematu.</div>
+          <div><span class="badge risk-high">canvas</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">SchematicZoomDock</div>
+          <div class="g-path">SchematicZoomDock.tsx</div>
+          <div class="g-desc">Dock zoom schematu.</div>
+          <div><span class="badge risk-high">canvas</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">SvgImportDialog</div>
+          <div class="g-path">SvgImportDialog.tsx</div>
+          <div class="g-desc">Import własnego SVG modułu.</div>
+          <div><span class="badge risk-high">SVG</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">UnsavedChangesDialog</div>
+          <div class="g-path">UnsavedChangesDialog.tsx</div>
+          <div class="g-desc">Modal wyzwalany przy Nowy/Otwórz gdy są niezapisane zmiany.</div>
+          <div><span class="badge risk-med">flow</span></div>
+        </div>
+        <div class="glossary-row">
+          <div class="g-name">ValidationPanel</div>
+          <div class="g-path">ValidationPanel.tsx</div>
+          <div class="g-desc">Lista błędów/ostrzeżeń z quick-fix.</div>
+          <div><span class="badge risk-high">domena</span></div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="doc-footer">
+      <div>DINBoard Web · pełny schemat UI · 2026-06-27</div>
+      <div>Skrót: <kbd>/</kbd> szukaj · <kbd>↑</kbd> spis treści · druk: <kbd>Ctrl/Cmd+P</kbd></div>
+    </footer>
+
+  </main>
+</div>
+
+<button class="back-top" id="back-top" title="Wróć na górę">↑</button>
+
+<script>
+// ── Scroll spy for TOC ─────────────────────────────────
+const tocLinks = document.querySelectorAll('#toc-list a');
+const sections = Array.from(document.querySelectorAll('section[id]'));
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      tocLinks.forEach(a => {
+        a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+      });
+    }
+  });
+}, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+
+sections.forEach(s => observer.observe(s));
+
+// ── Back to top ─────────────────────────────────────────
+const backTop = document.getElementById('back-top');
+window.addEventListener('scroll', () => {
+  backTop.classList.toggle('visible', window.scrollY > 600);
+});
+backTop.addEventListener('click', () => {
+  document.getElementById('top').scrollIntoView({ behavior: 'smooth' });
+});
+
+// ── Search ──────────────────────────────────────────────
+const searchInput = document.getElementById('search');
+const searchResults = document.getElementById('search-results');
+
+// Build search index from any element with [data-searchable]
+const index = [];
+document.querySelectorAll('[data-searchable]').forEach(el => {
+  const query = el.dataset.searchable.toLowerCase();
+  // Find the closest section id
+  const sec = el.closest('section[id]');
+  const name = el.querySelector('.comp-name')?.textContent?.trim() || el.textContent.trim().split('\n')[0];
+  const path = el.querySelector('.comp-path')?.textContent?.trim() || '';
+  const secId = sec?.id || '';
+  index.push({ query, name, path, secId, el });
+});
+
+function highlight(text, q) {
+  const i = text.toLowerCase().indexOf(q.toLowerCase());
+  if (i < 0) return text;
+  return text.slice(0, i) + '<mark style="background:var(--warn-soft);color:inherit;padding:0 2px;border-radius:2px">' + text.slice(i, i + q.length) + '</mark>' + text.slice(i + q.length);
+}
+
+let focusIdx = -1;
+function renderResults(q) {
+  if (q.length < 2) { searchResults.classList.remove('open'); searchResults.innerHTML = ''; focusIdx = -1; return; }
+  const ql = q.toLowerCase();
+  const matches = index.filter(item => item.query.includes(ql));
+  if (matches.length === 0) {
+    searchResults.innerHTML = '<div class="search-empty">Brak dopasowań dla „' + escapeHtml(q) + '"</div>';
+    searchResults.classList.add('open');
+    focusIdx = -1;
+    return;
+  }
+  searchResults.innerHTML = matches.slice(0, 12).map((m, i) => `
+    <div class="search-result" data-i="${i}" data-target="#${m.secId}">
+      <span class="sr-kind">${i === 0 ? '↑' : '·'}</span>
+      <span class="sr-title">${highlight(m.name, q)}</span>
+      ${m.path ? `<span class="sr-path">${highlight(m.path, q)}</span>` : ''}
+    </div>
+  `).join('');
+  searchResults.classList.add('open');
+  focusIdx = -1;
+  searchResults.querySelectorAll('.search-result').forEach(el => {
+    el.addEventListener('click', () => {
+      const target = document.querySelector(el.dataset.target);
+      if (target) {
+        searchInput.value = '';
+        searchResults.classList.remove('open');
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+}
+
+function escapeHtml(s) { return s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+searchInput.addEventListener('input', e => renderResults(e.target.value));
+searchInput.addEventListener('keydown', e => {
+  const items = searchResults.querySelectorAll('.search-result');
+  if (e.key === 'ArrowDown') { e.preventDefault(); focusIdx = Math.min(focusIdx + 1, items.length - 1); updateFocus(items); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); focusIdx = Math.max(focusIdx - 1, 0); updateFocus(items); }
+  else if (e.key === 'Enter' && focusIdx >= 0) { e.preventDefault(); items[focusIdx]?.click(); }
+  else if (e.key === 'Escape') { searchInput.value = ''; searchResults.classList.remove('open'); }
+});
+function updateFocus(items) {
+  items.forEach((el, i) => el.classList.toggle('focused', i === focusIdx));
+  if (items[focusIdx]) items[focusIdx].scrollIntoView({ block: 'nearest' });
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.topbar-search')) searchResults.classList.remove('open');
+});
+
+// Global keyboard shortcut "/" to focus search
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement !== searchInput && !e.metaKey && !e.ctrlKey) {
+    e.preventDefault();
+    searchInput.focus();
+    searchInput.select();
+  }
+});
+
+// ── Update active TOC on click ──────────────────────────
+tocLinks.forEach(a => {
+  a.addEventListener('click', () => {
+    tocLinks.forEach(x => x.classList.remove('active'));
+    a.classList.add('active');
+  });
+});
+
+// ── Interactive wireframe tab switcher (section 01) ──────
+const SHEET_NAMES = {
+  '1': 'Rozdzielnica (sheet1)',
+  '1c': 'Połączenia (sheet1_connections)',
+  '2': 'Schemat obwodów (sheet2)',
+  '3': 'Lista obwodów (sheet3)',
+  '4': 'Dokumentacja PDF (sheet4)',
+};
+const MIRROR_NAMES = {
+  '1': '▦ Rozdzielnica',
+  '1c': '▤ Połączenia',
+  '2': '⌘ Schemat obwodów',
+  '3': '☰ Lista obwodów',
+  '4': '📄 Dokumentacja PDF',
+};
+const wfBody = document.getElementById('wf-body');
+const wfCurrent = document.getElementById('wf-current-name');
+const wfTabs = document.querySelectorAll('#wf-tabs .wf-tab');
+const wfMirrorTabs = document.querySelectorAll('.wf-sheet-tab[data-mirror]');
+const order = ['1', '1c', '2', '3', '4'];
+
+function switchSheet(sheetId) {
+  // Activate tab buttons (top)
+  wfTabs.forEach(t => {
+    const isActive = t.dataset.sheet === sheetId;
+    t.classList.toggle('active', isActive);
+    t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+  });
+  // Sync body data attribute
+  if (wfBody) wfBody.dataset.activeSheet = sheetId;
+  // Show/hide content blocks per sheet
+  document.querySelectorAll('[data-wf-content]').forEach(el => {
+    el.classList.toggle('active', el.dataset.wfContent === sheetId);
+  });
+  // Update status label
+  if (wfCurrent) wfCurrent.textContent = SHEET_NAMES[sheetId] || sheetId;
+  // Sync mirror tabs at bottom
+  wfMirrorTabs.forEach(t => {
+    t.classList.toggle('active', t.dataset.mirror === sheetId);
+  });
+  // Update hash so the URL also reflects the choice
+  try { history.replaceState(null, '', '#sec-01?sheet=' + sheetId); } catch (e) {}
+}
+
+wfTabs.forEach(t => {
+  t.addEventListener('click', () => switchSheet(t.dataset.sheet));
+});
+wfMirrorTabs.forEach(t => {
+  t.addEventListener('click', () => switchSheet(t.dataset.mirror));
+});
+
+// Keyboard navigation ←/→ when section 01 is in view
+document.addEventListener('keydown', (e) => {
+  if (document.activeElement && /input|textarea/i.test(document.activeElement.tagName)) return;
+  if (!wfBody) return;
+  const rect = document.querySelector('#sec-01')?.getBoundingClientRect();
+  if (!rect || rect.bottom < 0 || rect.top > window.innerHeight) return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+    e.preventDefault();
+    const current = wfBody.dataset.activeSheet || '1';
+    const idx = order.indexOf(current);
+    if (idx < 0) return;
+    const nextIdx = e.key === 'ArrowRight'
+      ? (idx + 1) % order.length
+      : (idx - 1 + order.length) % order.length;
+    switchSheet(order[nextIdx]);
+  }
+});
+
+// Initialize from URL hash if present
+const hashMatch = location.hash.match(/sheet=([\w]+)/);
+if (hashMatch && SHEET_NAMES[hashMatch[1]]) {
+  switchSheet(hashMatch[1]);
+}
+</script>
+</body>
+</html>

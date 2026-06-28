@@ -1,0 +1,136 @@
+.legal-page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 48px 24px 96px;
+  color: #1f2937;
+  line-height: 1.7;
+  font-size: 16px;
+  background: #ffffff;
+  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+/* WHY: custom scrollbar so the legal pages feel consistent with the rest of
+   the app instead of showing the browser-default chunky scrollbar. */
+.legal-page::-webkit-scrollbar {
+  width: 8px;
+}
+
+.legal-page::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+.legal-page::-webkit-scrollbar-thumb {
+  background: #9ca3af;
+  border-radius: 4px;
+}
+
+.legal-page::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Firefox scrollbar */
+.legal-page {
+  scrollbar-width: thin;
+  scrollbar-color: #9ca3af #f3f4f6;
+}
+
+.legal-article h1 {
+  font-size: 32px;
+  margin-bottom: 8px;
+  color: #111827;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.legal-updated {
+  color: #6b7280;
+  font-size: 14px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 16px;
+}
+
+.legal-article h2 {
+  font-size: 22px;
+  margin-top: 36px;
+  margin-bottom: 12px;
+  color: #111827;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.legal-article h3 {
+  font-size: 17px;
+  margin-top: 18px;
+  margin-bottom: 8px;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.legal-article p,
+.legal-article li {
+  margin-bottom: 10px;
+}
+
+.legal-article ul,
+.legal-article ol {
+  padding-left: 24px;
+}
+
+.legal-article a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.legal-article a:hover {
+  color: #1d4ed8;
+}
+
+.legal-article code {
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  .legal-page {
+    background: #0b0f17;
+    color: #e5e7eb;
+    scrollbar-color: #374151 #111827;
+  }
+  .legal-page::-webkit-scrollbar-track {
+    background: #111827;
+  }
+  .legal-page::-webkit-scrollbar-thumb {
+    background: #374151;
+  }
+  .legal-page::-webkit-scrollbar-thumb:hover {
+    background: #4b5563;
+  }
+  .legal-article h1,
+  .legal-article h2 {
+    color: #f9fafb;
+  }
+  .legal-article h3 {
+    color: #f3f4f6;
+  }
+  .legal-updated {
+    color: #9ca3af;
+    border-color: #1f2937;
+  }
+  .legal-article code {
+    background: #1f2937;
+    color: #e5e7eb;
+  }
+  .legal-article a {
+    color: #60a5fa;
+  }
+  .legal-article a:hover {
+    color: #93c5fd;
+  }
+}

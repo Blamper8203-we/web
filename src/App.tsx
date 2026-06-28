@@ -39,6 +39,9 @@ import type { SymbolItem } from "./types/symbolItem";
 import type { ConnectionItem, WireColor, WireType, RoutingMode, FerruleColor } from "./types/connectionItem";
 import { PublicLandingPage } from "./components/PublicLandingPage";
 import { FeedbackModal } from "./components/FeedbackModal";
+import { PrivacyPolicy } from "./components/legal/PrivacyPolicy";
+import { TermsOfService } from "./components/legal/TermsOfService";
+import { CookieConsent } from "./components/CookieConsent";
 import "./App.css";
 import "./components/AppLayout.css";
 import "./components/Responsive.css";
@@ -602,6 +605,11 @@ export function AppLayout() {
     <AppErrorBoundary>
       <Outlet context={contextValue} />
       {isFeedbackModalOpen && <FeedbackModal onClose={() => setIsFeedbackModalOpen(false)} />}
+      {/* WHY: Cookie consent banner lives at the router root so it shows on
+          every route (landing, app workspace, legal pages) exactly once per
+          visitor. Drawn after the Outlet so it floats above page content
+          regardless of which route is active. */}
+      <CookieConsent />
       {/* WHY: mount Analytics at the router root so it tracks every page view
           (landing + workspace) without per-route wiring. Sits inside
           AppErrorBoundary so a render-time crash in the tracked tree still
@@ -645,19 +653,14 @@ function AppRoute() {
   const { initialAction, initialData, openFeedback } = useOutletContext<AppContextType>();
   return (
     <>
-      {/* WHY: /app is the actual work surface (workspace editor). Without a
-          page-specific canonical and og:url, /app is treated as a duplicate
-          of / (Google indexes the canonical URL). See LandingRoute comment
-          for full context. */}
+      {/* WHY: /app is the actual work surface (workspace editor). It requires
+          JavaScript and user interaction — Google can't crawl it meaningfully.
+          noindex prevents it from appearing in search results. */}
       <Helmet>
         <title>DINBoard – Otwórz lub utwórz projekt rozdzielnicy</title>
-        <meta name="description" content="Otwórz istniejący projekt rozdzielnicy elektrycznej lub utwórz nowy. Edytor DIN rail, schemat obwodów, bilans mocy, dokumentacja PDF." />
+        <meta name="robots" content="noindex, nofollow" />
+        <meta name="description" content="Edytor rozdzielnicy DINBoard — narzędzie do projektowania, nie strona publiczna." />
         <link rel="canonical" href="https://dinboard.pl/app" />
-        <meta property="og:title" content="DINBoard – Otwórz lub utwórz projekt rozdzielnicy" />
-        <meta property="og:description" content="Otwórz istniejący projekt lub utwórz nowy. Edytor rozdzielnicy, schemat obwodów, bilans mocy, dokumentacja PDF zgodna z PN-HD 60364." />
-        <meta property="og:url" content="https://dinboard.pl/app" />
-        <meta name="twitter:title" content="DINBoard – Otwórz lub utwórz projekt rozdzielnicy" />
-        <meta name="twitter:description" content="Otwórz istniejący projekt lub utwórz nowy. Edytor rozdzielnicy, schemat obwodów, bilans mocy, dokumentacja PDF." />
       </Helmet>
       <AppWorkspace
         initialAction={initialAction}
@@ -675,6 +678,8 @@ export const routes = [
     children: [
       { index: true, element: <LandingRoute /> },
       { path: "app", element: <AppRoute /> },
+      { path: "polityka-prywatnosci", element: <PrivacyPolicy /> },
+      { path: "regulamin", element: <TermsOfService /> },
     ],
   },
 ];
