@@ -334,6 +334,13 @@ export function DinRailCanvas({
         </div>
       )}
 
+      {/* WHY: Mobile drag-drop was previously blocked by a `window.innerWidth <= 768` guard
+          on `onSurfacePointerDown`, `onSurfaceDrop`, and `onBeginDragForSymbol`. That guard
+          silently no-op'd placing modules on the rail on every phone — PWA mobile web and
+          Capacitor iOS/Android — which broke the core UX for the distribution audience.
+          The rail surface already has `touch-action: none` in DinRailCanvas.css, so native
+          scroll/zoom conflicts are handled by the browser. Multi-touch pinch/pan gestures
+          can still be filtered at the source (event.touches) if they ever interfere. */}
       <DinRailCanvasViewport
         viewportRef={viewportRef}
         surfaceRef={surfaceRef}
@@ -355,20 +362,11 @@ export function DinRailCanvas({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
-        onSurfacePointerDown={(event: React.PointerEvent<HTMLDivElement>) => {
-          if (window.innerWidth <= 768) return;
-          handleSurfacePointerDown(event);
-        }}
+        onSurfacePointerDown={handleSurfacePointerDown}
         onSurfaceDragOver={handleDragOver}
-        onSurfaceDrop={(event: React.DragEvent<HTMLDivElement>) => {
-          if (window.innerWidth <= 768) return;
-          handleDrop(event);
-        }}
+        onSurfaceDrop={handleDrop}
         onSurfaceDragLeave={handleDragLeave}
-        onBeginDragForSymbol={(symbolId) => (event: React.PointerEvent<HTMLElement>) => {
-          if (window.innerWidth <= 768) return;
-          beginDragForSymbol(event, symbolId);
-        }}
+        onBeginDragForSymbol={(symbolId) => (event: React.PointerEvent<HTMLElement>) => beginDragForSymbol(event, symbolId)}
         onRequestLeftPanelTab={onRequestLeftPanelTab}
         bindMeasuredNode={bindMeasuredNode}
       />
