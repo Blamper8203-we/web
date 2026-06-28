@@ -5,6 +5,7 @@ interface SchematicTabProps {
    */
   schematicImages: string[];
   schematicError: string | null;
+  onRetry?: () => void;
   displayDate: string;
   objectType: string;
   /**
@@ -22,6 +23,7 @@ interface SchematicTabProps {
 export function SchematicTab({
   schematicImages,
   schematicError,
+  onRetry,
   isLoading,
 }: SchematicTabProps) {
   const hasImages = schematicImages.length > 0;
@@ -73,6 +75,16 @@ export function SchematicTab({
                   ? "Schemat generowany jest z dodanych obwodów, faz i zabezpieczeń."
                   : "Dodaj obwody, fazy i zabezpieczenia, aby zobaczyć schemat.")}
             </span>
+            {schematicError && onRetry ? (
+              <button
+                type="button"
+                className="accent-btn"
+                onClick={onRetry}
+                style={{ marginTop: "var(--space-3, 12px)" }}
+              >
+                Spróbuj ponownie
+              </button>
+            ) : null}
           </div>
         </div>
       )}

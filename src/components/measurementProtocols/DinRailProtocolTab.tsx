@@ -4,6 +4,7 @@ import { PageFooter } from "./ProtocolShared";
 interface DinRailProtocolTabProps {
   dinRailPreviewUrl: string | null;
   dinRailPreviewError: string | null;
+  onRetry?: () => void;
   displayDate: string;
   objectType: string;
   dinRailPageIndex: number;
@@ -14,6 +15,7 @@ interface DinRailProtocolTabProps {
 export function DinRailProtocolTab({
   dinRailPreviewUrl,
   dinRailPreviewError,
+  onRetry,
   displayDate,
   objectType,
   dinRailPageIndex,
@@ -56,6 +58,16 @@ return (
             <div className="mp-din-rail-preview-empty">
               <strong>{dinRailPreviewError ? "Nie udało się odświeżyć widoku." : "Odświeżanie widoku rozdzielnicy..."}</strong>
               <span>{dinRailPreviewError ?? "Podgląd zostanie pokazany po przygotowaniu snapshotu szyny DIN."}</span>
+              {dinRailPreviewError && onRetry ? (
+                <button
+                  type="button"
+                  className="accent-btn"
+                  onClick={onRetry}
+                  style={{ marginTop: "var(--space-3, 12px)" }}
+                >
+                  Spróbuj ponownie
+                </button>
+              ) : null}
             </div>
           )}
         </div>

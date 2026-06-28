@@ -44,10 +44,12 @@ export function MeasurementProtocolsWorkspacePage() {
   
   const [dinRailPreviewUrl, setDinRailPreviewUrl] = useState<string | null>(null);
   const [dinRailPreviewError, setDinRailPreviewError] = useState<string | null>(null);
+  const [dinRailRetryCounter, setDinRailRetryCounter] = useState(0);
 
   const [schematicImages, setSchematicImages] = useState<string[]>([]);
   const [schematicError, setSchematicError] = useState<string | null>(null);
   const [schematicIsLoading, setSchematicIsLoading] = useState(false);
+  const [schematicRetryCounter, setSchematicRetryCounter] = useState(0);
 
   const protocols = metadata.measurementProtocols;
   const unifiedPages = chunkRows(protocols.unifiedRows, UNIFIED_ROWS_PER_PAGE);
@@ -98,7 +100,7 @@ export function MeasurementProtocolsWorkspacePage() {
     return () => {
       isCancelled = true;
     };
-  }, [activeTab, symbols, rail, connections]);
+  }, [activeTab, symbols, rail, connections, dinRailRetryCounter]);
 
   useEffect(() => {
     if (activeTab !== "schematic") {
@@ -145,7 +147,7 @@ export function MeasurementProtocolsWorkspacePage() {
     return () => {
       isCancelled = true;
     };
-  }, [activeTab, symbols, metadata]);
+  }, [activeTab, symbols, metadata, schematicRetryCounter]);
 
   const updateProtocols = (patch: Partial<MeasurementProtocolsData>) => {
     onChange({
@@ -252,6 +254,7 @@ export function MeasurementProtocolsWorkspacePage() {
           <DinRailProtocolTab
             dinRailPreviewUrl={dinRailPreviewUrl}
             dinRailPreviewError={dinRailPreviewError}
+            onRetry={() => setDinRailRetryCounter((counter) => counter + 1)}
             displayDate={displayDate}
             objectType={objectType}
             dinRailPageIndex={activeTab === "din-rail-connections" ? dinRailPageIndex + 1 : dinRailPageIndex}
@@ -264,6 +267,7 @@ export function MeasurementProtocolsWorkspacePage() {
           <SchematicTab
             schematicImages={schematicImages}
             schematicError={schematicError}
+            onRetry={() => setSchematicRetryCounter((counter) => counter + 1)}
             displayDate={displayDate}
             objectType={objectType}
             schematicStartPage={schematicStartPage}

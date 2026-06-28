@@ -567,7 +567,27 @@ export function PdfDocumentationPage() {
           <span>{isExportingPdf ? "Przygotowanie..." : "Eksportuj PDF"}</span>
         </button>
       </footer>
-      {exportError ? <p className="pd-export-error">{exportError}</p> : null}
+      {exportError ? (
+        <p className="pd-export-error" role="alert">
+          {exportError}{" "}
+          <button
+            type="button"
+            onClick={handleExportPdf}
+            disabled={isExportingPdf}
+            style={{
+              background: "none",
+              border: "none",
+              color: "var(--accent-primary)",
+              cursor: "pointer",
+              padding: 0,
+              textDecoration: "underline",
+              font: "inherit",
+            }}
+          >
+            Spróbuj ponownie
+          </button>
+        </p>
+      ) : null}
     </section>
   );
 }
