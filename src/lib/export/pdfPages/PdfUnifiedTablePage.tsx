@@ -165,15 +165,17 @@ export function PdfUnifiedTablePage({
       )}
 
       <View style={[styles.mtAuto]}>
-        <View style={[styles.flexRow, styles.borderT, styles.pt4, { alignItems: 'flex-end', justifyContent: 'flex-end' }]}>
-          <View style={[styles.textCenter, { width: 250 }]}>
-            <View style={styles.signatureSlot}><Text style={[styles.textXs, styles.textGray300, styles.italic]}>miejsce na pieczęć / podpis</Text></View>
-            <View style={[styles.borderT, styles.pt2]}>
-              <Text style={[styles.textSm, styles.fontBold, styles.textGray700, styles.uppercase]}>Sprawdził (Wykonawca/Elektryk)</Text>
-              <Text style={[styles.textXs, styles.textGray400, styles.mt1]}>Podpis osoby z uprawnieniami SEP</Text>
+        {metadata.isFormalDocumentationMode !== false ? (
+          <View style={[styles.flexRow, styles.borderT, styles.pt4, { alignItems: 'flex-end', justifyContent: 'flex-end' }]}>
+            <View style={[styles.textCenter, { width: 250 }]}>
+              <View style={styles.signatureSlot}><Text style={[styles.textXs, styles.textGray300, styles.italic]}>miejsce na pieczęć / podpis</Text></View>
+              <View style={[styles.borderT, styles.pt2]}>
+                <Text style={[styles.textSm, styles.fontBold, styles.textGray700, styles.uppercase]}>Sprawdził (Wykonawca/Elektryk)</Text>
+                <Text style={[styles.textXs, styles.textGray400, styles.mt1]}>Podpis osoby z uprawnieniami SEP</Text>
+              </View>
             </View>
           </View>
-        </View>
+        ) : null}
         <View style={[styles.textCenter, styles.mt6]} fixed>
           <Text
             style={[styles.textXs, styles.textGray400, styles.uppercase]}

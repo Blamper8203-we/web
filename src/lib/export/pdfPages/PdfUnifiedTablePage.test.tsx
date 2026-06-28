@@ -107,4 +107,26 @@ describe("PdfUnifiedTablePage - Dane techniczne i narzędzia pomiarowe", () => {
 
     expect(text).not.toContain("3. Zalecenia");
   });
+
+  it("renders the SEP signature footer in formal mode (isFormalDocumentationMode=true)", () => {
+    const metadata = createEmptyProjectMetadata();
+    metadata.isFormalDocumentationMode = true;
+
+    const text = renderUnified(metadata, 0, 1);
+
+    expect(text).toContain("Sprawdził (Wykonawca/Elektryk)");
+    expect(text).toContain("Podpis osoby z uprawnieniami SEP");
+    expect(text).toContain("miejsce na pieczęć / podpis");
+  });
+
+  it("hides the SEP signature footer when isFormalDocumentationMode=false", () => {
+    const metadata = createEmptyProjectMetadata();
+    metadata.isFormalDocumentationMode = false;
+
+    const text = renderUnified(metadata, 0, 1);
+
+    expect(text).not.toContain("Sprawdził (Wykonawca/Elektryk)");
+    expect(text).not.toContain("Podpis osoby z uprawnieniami SEP");
+    expect(text).not.toContain("miejsce na pieczęć / podpis");
+  });
 });

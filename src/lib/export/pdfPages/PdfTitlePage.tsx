@@ -11,6 +11,12 @@ interface PdfTitlePageProps {
 }
 
 export function PdfTitlePage({ metadata, displayDate }: PdfTitlePageProps) {
+  // WHY: UI hides SEP / signature fields when isFormalDocumentationMode is false
+  // (ProjectPropertiesPage.tsx:176,243,336,369) and the schematic title block
+  // replaces signatures with "nie dotyczy" (schematicTitleBlockRenderer.ts:189,199).
+  // The PDF must mirror UI/schematic — otherwise toggling "Robocza / uproszczona"
+  // would silently still emit a full formal PDF.
+  const isFormalDocumentationMode = metadata.isFormalDocumentationMode !== false;
 
   const drawingDateStr = metadata.drawingDate?.trim() || "";
   let resolvedYear = new Date().getFullYear();
@@ -179,67 +185,73 @@ export function PdfTitlePage({ metadata, displayDate }: PdfTitlePageProps) {
             </View>
           ) : null}
         </View>
-        <View style={[styles.border, styles.roundedXl, styles.p3, styles.grid2Col, styles.justifyCenter]}>
-          <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb1]}>Uprawnienia SEP (Kwalifikacyjne)</Text>
-          <View style={[styles.flexCol, styles.mt1]}>
-            <View style={[styles.flexRow, styles.mb1]}>
-              <Text style={[styles.fontSemiBold, styles.textGray700, styles.textSm, { width: 110 }]}>Eksploatacja (E):</Text>
-              <Text style={[styles.fontBold, styles.textGray950, styles.textSm, styles.flex1]}>{sepE}</Text>
-            </View>
-            <View style={[styles.flexRow]}>
-              <Text style={[styles.fontSemiBold, styles.textGray700, styles.textSm, { width: 110 }]}>Dozór (D):</Text>
-              <Text style={[styles.fontBold, styles.textGray950, styles.textSm, styles.flex1]}>{sepD}</Text>
-            </View>
-            <View style={[styles.flexRow, styles.mt1]}>
-              <Text style={[styles.fontSemiBold, styles.textGray700, styles.textSm, { width: 110 }]}>Ważne do:</Text>
-              <Text style={[styles.fontBold, styles.textGray950, styles.textSm, styles.flex1]}>{sepValidUntil}</Text>
+        {isFormalDocumentationMode ? (
+          <View style={[styles.border, styles.roundedXl, styles.p3, styles.grid2Col, styles.justifyCenter]}>
+            <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb1]}>Uprawnienia SEP (Kwalifikacyjne)</Text>
+            <View style={[styles.flexCol, styles.mt1]}>
+              <View style={[styles.flexRow, styles.mb1]}>
+                <Text style={[styles.fontSemiBold, styles.textGray700, styles.textSm, { width: 110 }]}>Eksploatacja (E):</Text>
+                <Text style={[styles.fontBold, styles.textGray950, styles.textSm, styles.flex1]}>{sepE}</Text>
+              </View>
+              <View style={[styles.flexRow]}>
+                <Text style={[styles.fontSemiBold, styles.textGray700, styles.textSm, { width: 110 }]}>Dozór (D):</Text>
+                <Text style={[styles.fontBold, styles.textGray950, styles.textSm, styles.flex1]}>{sepD}</Text>
+              </View>
+              <View style={[styles.flexRow, styles.mt1]}>
+                <Text style={[styles.fontSemiBold, styles.textGray700, styles.textSm, { width: 110 }]}>Ważne do:</Text>
+                <Text style={[styles.fontBold, styles.textGray950, styles.textSm, styles.flex1]}>{sepValidUntil}</Text>
+              </View>
             </View>
           </View>
-        </View>
+        ) : null}
       </View>
 
-      <View style={[styles.bgWhite, styles.border, { borderColor: "#1e3a5f" }, styles.roundedXl, styles.p3, styles.mb3, styles.textCenter]}>
-        <Text style={[styles.textSm, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb2]}>Pełna treść oświadczenia wykonawcy</Text>
-        <Text style={[styles.textSm, styles.fontNormal, styles.textGray800, { lineHeight: 1.5 }]}>
-          Oświadczam, że instalacja elektryczna w wyżej wymienionym obiekcie została wykonana zgodnie z przepisami ustawy Prawo Budowlane, obowiązującymi normami technicznymi (w tym PN-HD 60364-6) oraz sztuką budowlaną. Przeprowadzone pomiary odbiorcze wykazały skuteczność zastosowanych środków ochrony przeciwporażeniowej.
-        </Text>
-      </View>
+      {isFormalDocumentationMode ? (
+        <View style={[styles.bgWhite, styles.border, { borderColor: "#1e3a5f" }, styles.roundedXl, styles.p3, styles.mb3, styles.textCenter]}>
+          <Text style={[styles.textSm, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb2]}>Pełna treść oświadczenia wykonawcy</Text>
+          <Text style={[styles.textSm, styles.fontNormal, styles.textGray800, { lineHeight: 1.5 }]}>
+            Oświadczam, że instalacja elektryczna w wyżej wymienionym obiekcie została wykonana zgodnie z przepisami ustawy Prawo Budowlane, obowiązującymi normami technicznymi (w tym PN-HD 60364-6) oraz sztuką budowlaną. Przeprowadzone pomiary odbiorcze wykazały skuteczność zastosowanych środków ochrony przeciwporażeniowej.
+          </Text>
+        </View>
+      ) : null}
 
       <View style={[styles.mtAuto]}>
-        <View style={[styles.flexRow, styles.borderT, styles.pt4, { alignItems: 'flex-end', justifyContent: 'space-between' }]}>
-          <View style={[styles.textCenter, styles.itemsCenter, { width: 165 }]}>
-            <View style={[styles.borderDashed, styles.roundedLg, styles.bgGray50, styles.titleStampSlot, styles.mb1]}>
-              <Text style={[styles.textXs, styles.textGray400, styles.fontSemiBold, styles.uppercase]}>{stampText}</Text>
+        {isFormalDocumentationMode ? (
+          <View style={[styles.flexRow, styles.borderT, styles.pt4, { alignItems: 'flex-end', justifyContent: 'space-between' }]}>
+            <View style={[styles.textCenter, styles.itemsCenter, { width: 165 }]}>
+              <View style={[styles.borderDashed, styles.roundedLg, styles.bgGray50, styles.titleStampSlot, styles.mb1]}>
+                <Text style={[styles.textXs, styles.textGray400, styles.fontSemiBold, styles.uppercase]}>{stampText}</Text>
+              </View>
+              <Text style={[styles.textXs, styles.textGray500]}>Pieczęć wykonawcy</Text>
             </View>
-            <Text style={[styles.textXs, styles.textGray500]}>Pieczęć wykonawcy</Text>
+            <View style={[styles.textCenter, { width: 165 }]}>
+              <View style={styles.signatureSlot}>
+                {designerSignatureText ? (
+                  <Text style={[styles.textSm, styles.fontSemiBold, styles.textGray700]}>{designerSignatureText}</Text>
+                ) : (
+                  <Text style={[styles.textXs, styles.textGray300, styles.italic]}>miejsce na podpis</Text>
+                )}
+              </View>
+              <View style={[styles.borderT, styles.pt2]}>
+                <Text style={[styles.textSm, styles.fontBold, styles.textGray700, styles.uppercase]}>Podpis Elektryka</Text>
+                <Text style={[styles.textXs, styles.textGray400, styles.mt1]}>Osoba uprawniona (pomiarowiec)</Text>
+              </View>
+            </View>
+            <View style={[styles.textCenter, { width: 165 }]}>
+              <View style={styles.signatureSlot}>
+                {investorSignatureText ? (
+                  <Text style={[styles.textSm, styles.fontSemiBold, styles.textGray700]}>{investorSignatureText}</Text>
+                ) : (
+                  <Text style={[styles.textXs, styles.textGray300, styles.italic]}>miejsce na podpis</Text>
+                )}
+              </View>
+              <View style={[styles.borderT, styles.pt2]}>
+                <Text style={[styles.textSm, styles.fontBold, styles.textGray700, styles.uppercase]}>Podpis Inwestora</Text>
+                <Text style={[styles.textXs, styles.textGray400, styles.mt1]}>Właściciel / zarządca obiektu</Text>
+              </View>
+            </View>
           </View>
-          <View style={[styles.textCenter, { width: 165 }]}>
-            <View style={styles.signatureSlot}>
-              {designerSignatureText ? (
-                <Text style={[styles.textSm, styles.fontSemiBold, styles.textGray700]}>{designerSignatureText}</Text>
-              ) : (
-                <Text style={[styles.textXs, styles.textGray300, styles.italic]}>miejsce na podpis</Text>
-              )}
-            </View>
-            <View style={[styles.borderT, styles.pt2]}>
-              <Text style={[styles.textSm, styles.fontBold, styles.textGray700, styles.uppercase]}>Podpis Elektryka</Text>
-              <Text style={[styles.textXs, styles.textGray400, styles.mt1]}>Osoba uprawniona (pomiarowiec)</Text>
-            </View>
-          </View>
-          <View style={[styles.textCenter, { width: 165 }]}>
-            <View style={styles.signatureSlot}>
-              {investorSignatureText ? (
-                <Text style={[styles.textSm, styles.fontSemiBold, styles.textGray700]}>{investorSignatureText}</Text>
-              ) : (
-                <Text style={[styles.textXs, styles.textGray300, styles.italic]}>miejsce na podpis</Text>
-              )}
-            </View>
-            <View style={[styles.borderT, styles.pt2]}>
-              <Text style={[styles.textSm, styles.fontBold, styles.textGray700, styles.uppercase]}>Podpis Inwestora</Text>
-              <Text style={[styles.textXs, styles.textGray400, styles.mt1]}>Właściciel / zarządca obiektu</Text>
-            </View>
-          </View>
-        </View>
+        ) : null}
         <View style={[styles.textCenter, styles.mt6]} fixed>
           <Text
             style={[styles.textXs, styles.textGray400, styles.uppercase]}
