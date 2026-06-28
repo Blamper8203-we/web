@@ -1,5 +1,6 @@
 
 import { WIRE_COLORS_MAP, WIRE_THICKNESS_MAP } from "../../lib/dinRailCanvas/constants";
+import { DEFAULT_CUSTOM_RADIUS } from "../../lib/connections/connectionsLogic";
 import type { DraggingHandle, DraggingSegment } from "../../hooks/connections/useConnectionsMutations";
 
 export interface DinRailConnectionWiresProps {
@@ -175,7 +176,7 @@ export function DinRailConnectionWires({
                     
                     const startDir = w.connection.fromDirection || (w.fromHS.isTop ? "top" : "bottom");
                     const endDir = w.connection.toDirection || (w.toHS.isTop ? "top" : "bottom");
-                    const bendRadius = w.connection.customRadius ?? 0;
+                    const bendRadius = w.connection.customRadius ?? DEFAULT_CUSTOM_RADIUS;
                     const startClearance = (w.fromExitOffset ?? 30) + 40 + bendRadius; 
                     const endClearance = (w.toExitOffset ?? 30) + 40 + bendRadius;
 

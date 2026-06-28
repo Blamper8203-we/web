@@ -4,8 +4,9 @@ export const DEFAULT_CONFIG: DinRailConfig = { rows: 1, modulesPerRow: 24 };
 export const MAX_INITIAL_SCALE = 0.25;
 export const MIN_SCALE = 0.1;
 export const MAX_SCALE = 5;
-export const PIXI_MAX_RESOLUTION = 2;
-export const PIXI_LABEL_SYMBOL_LIMIT = 64;
+// WHY: PIXI_MAX_RESOLUTION and PIXI_LABEL_SYMBOL_LIMIT were removed 2026-06-28
+// along with the Pixi.js label renderer (hooks/canvas/useDinRailPixiApp.ts).
+// The renderer is permanently disabled; the constants are gone with it.
 
 
 export const DIN_RAIL_PREVIEW_CANVAS_WIDTH = 360;

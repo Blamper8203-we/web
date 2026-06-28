@@ -30,6 +30,7 @@ import {
   WIRE_COLORS_MAP,
   FERRULE_COLORS_MAP,
   getAutoFerruleColor,
+  DEFAULT_CUSTOM_RADIUS,
 } from "../connections/connectionsLogic";
 
 // WHY: this renderer produces SVG (vector) instead of PNG (raster) so that the PDF page
@@ -130,7 +131,7 @@ function calculateBounds(
       const toPt = { x: toSymbol.x + toHS.x, y: toSymbol.y + toHS.y };
 
       const hasFerrule = conn.ferruleColor && conn.ferruleColor !== "none";
-      const customRadius = conn.customRadius ?? 0;
+      const customRadius = conn.customRadius ?? DEFAULT_CUSTOM_RADIUS;
       const fromFerruleLen = getFerruleLength(fromSymbol.deviceKind, fromSymbol.moduleRef);
       const toFerruleLen = getFerruleLength(toSymbol.deviceKind, toSymbol.moduleRef);
       const fromExitOffsetVal = hasFerrule
@@ -537,7 +538,7 @@ export async function exportDinRailToSvg(
       const toPt = { x: toSymbol.x + toHS.x, y: toSymbol.y + toHS.y };
 
       const hasFerrule = conn.ferruleColor && conn.ferruleColor !== "none";
-      const customRadius = conn.customRadius ?? 0;
+      const customRadius = conn.customRadius ?? DEFAULT_CUSTOM_RADIUS;
       const fromFerruleLen = getFerruleLength(fromSymbol.deviceKind, fromSymbol.moduleRef);
       const toFerruleLen = getFerruleLength(toSymbol.deviceKind, toSymbol.moduleRef);
 

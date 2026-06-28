@@ -1,3 +1,5 @@
+import { DEFAULT_CUSTOM_RADIUS } from "../connections/connectionsLogic";
+
 export interface Point {
   x: number;
   y: number;
@@ -309,7 +311,7 @@ export function pointsToRoundedPath(points: Point[], radius: number): string {
  */
 export function calculateWirePath(from: Point, to: Point, options: WireRoutingOptions = {}): string {
   const p = calculateWirePoints(from, to, options);
-  const radius = options.customRadius ?? 52;
+  const radius = options.customRadius ?? DEFAULT_CUSTOM_RADIUS;
   return pointsToRoundedPath(p, radius);
 }
 

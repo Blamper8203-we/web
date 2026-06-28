@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
+// @ts-expect-error - @types/node not in tsconfig; Vitest provides Node globals at runtime
+import { readFileSync } from "fs";
+// @ts-expect-error - see above
+import { dirname, resolve } from "path";
+// @ts-expect-error - see above
+import { fileURLToPath } from "url";
 import {
+  DEFAULT_CUSTOM_RADIUS,
   getAutoFerruleColor,
   getFerruleLength,
   isTerminalZlaczka,
@@ -85,5 +92,42 @@ describe("connectionsLogic - getFerruleLength", () => {
   it("returns 90 even when deviceKind is unusual, if moduleRef marks it as Złączka", () => {
     // Złączka detection is based on moduleRef, not deviceKind
     expect(getFerruleLength("other", "złączka-5pin")).toBe(90);
+  });
+});
+
+describe("connectionsLogic - DEFAULT_CUSTOM_RADIUS", () => {
+  it("is 52 (view default, exported with the project as the visible default)", () => {
+    // Single source of truth for wire bend radius default. Editor (Pixi) and
+    // exports (snapshot raster, SVG, PDF) must read this same number.
+    expect(DEFAULT_CUSTOM_RADIUS).toBe(52);
+  });
+
+  it("keeps view and export in sync (no stray `?? 0` or `?? 52` literals remain)", () => {
+    // WHY regression: drift between editor and export shows as rounded corners
+    // in the canvas but sharp corners in the PDF the electrician ships.
+    const here = dirname(fileURLToPath(import.meta.url));
+    const repoRoot = resolve(here, "..", "..", "..");
+    const guardedFiles = [
+      "src/lib/routing/wireRoutingEngine.ts",
+      "src/lib/connections/wirePathGenerator.ts",
+      "src/lib/export/dinRailSnapshotService.ts",
+      "src/lib/export/dinRailSvgRenderer.ts",
+      "src/components/canvasLayers/DinRailConnectionWires.tsx",
+      "src/components/ConnectionsLeftPanel.tsx",
+    ];
+
+    const stalePattern = /\.customRadius\s*\?\?\s*(?:0|52)\b/g;
+
+    for (const relPath of guardedFiles) {
+      const absPath = resolve(repoRoot, relPath);
+      const source = readFileSync(absPath, "utf8");
+      const matches = source.match(stalePattern);
+      expect(
+        matches,
+        `${relPath} still substitutes customRadius with a bare numeric literal ` +
+          `(matches: ${matches ? matches.join(", ") : "none"}). ` +
+          `Use DEFAULT_CUSTOM_RADIUS from connectionsLogic to keep view and export in sync.`,
+      ).toBeNull();
+    }
   });
 });

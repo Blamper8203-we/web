@@ -16,7 +16,7 @@ import type { ConnectionItem, FerruleColor } from "../../types/connectionItem";
 import { computeGroupedWiredPaths } from "../connections/wirePathGenerator";
 import { getSymbolTerminals, findTerminalByName, resolveConnectionIsFromTop, resolveConnectionIsToTop } from "../modules/moduleTerminals";
 import { calculateWirePoints, type Point } from "../routing/wireRoutingEngine";
-import { getFerruleLength, WIRE_THICKNESS_MAP, WIRE_COLORS_MAP, FERRULE_COLORS_MAP, getAutoFerruleColor } from "../connections/connectionsLogic";
+import { getFerruleLength, WIRE_THICKNESS_MAP, WIRE_COLORS_MAP, FERRULE_COLORS_MAP, getAutoFerruleColor, DEFAULT_CUSTOM_RADIUS } from "../connections/connectionsLogic";
 
 
 
@@ -348,7 +348,7 @@ function calculateSnapshotBounds(
       const toPt = { x: toSymbol.x + toHS.x, y: toSymbol.y + toHS.y };
 
       const hasFerrule = conn.ferruleColor && conn.ferruleColor !== "none";
-      const customRadius = conn.customRadius ?? 0;
+      const customRadius = conn.customRadius ?? DEFAULT_CUSTOM_RADIUS;
       
       const fromFerruleLen = getFerruleLength(fromSymbol.deviceKind, fromSymbol.moduleRef);
       const toFerruleLen = getFerruleLength(toSymbol.deviceKind, toSymbol.moduleRef);
@@ -522,19 +522,19 @@ function drawWiresConnections(
     const outlineColor = w.connection.wireColor === "black" ? "#888888" : colors.dark;
       
     // 1. Dark outline base (Outer Edge)
-    drawWireOnCanvas(ctx, w.pointsArr, w.connection.customRadius ?? 0, outlineColor, wireThickness + 1.8);
+    drawWireOnCanvas(ctx, w.pointsArr, w.connection.customRadius ?? DEFAULT_CUSTOM_RADIUS, outlineColor, wireThickness + 1.8);
     // 2. Main color (Midtone)
     const mainColor = w.connection.wireColor === "green-yellow" ? "#2e7d32" : colors.hex;
-    drawWireOnCanvas(ctx, w.pointsArr, w.connection.customRadius ?? 0, mainColor, wireThickness);
+    drawWireOnCanvas(ctx, w.pointsArr, w.connection.customRadius ?? DEFAULT_CUSTOM_RADIUS, mainColor, wireThickness);
     
     // 3. Yellow stripes overlay for PE
     if (w.connection.wireColor === "green-yellow") {
-      drawWireOnCanvas(ctx, w.pointsArr, w.connection.customRadius ?? 0, "#FFD600", wireThickness * 0.45);
+      drawWireOnCanvas(ctx, w.pointsArr, w.connection.customRadius ?? DEFAULT_CUSTOM_RADIUS, "#FFD600", wireThickness * 0.45);
     }
 
     // 3.1. 3D Highlight (Cylindrical glossy sheen)
-    drawWireOnCanvas(ctx, w.pointsArr, w.connection.customRadius ?? 0, "rgba(255, 255, 255, 0.08)", Math.max(2, wireThickness * 0.35));
-    drawWireOnCanvas(ctx, w.pointsArr, w.connection.customRadius ?? 0, "rgba(255, 255, 255, 0.18)", Math.max(1, wireThickness * 0.1));
+    drawWireOnCanvas(ctx, w.pointsArr, w.connection.customRadius ?? DEFAULT_CUSTOM_RADIUS, "rgba(255, 255, 255, 0.08)", Math.max(2, wireThickness * 0.35));
+    drawWireOnCanvas(ctx, w.pointsArr, w.connection.customRadius ?? DEFAULT_CUSTOM_RADIUS, "rgba(255, 255, 255, 0.18)", Math.max(1, wireThickness * 0.1));
   }
 }
 

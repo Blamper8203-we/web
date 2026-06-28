@@ -32,6 +32,13 @@ export const WIRE_THICKNESS_MAP: Record<number, number> = {
   16: 60,
 };
 
+// WHY: Single source of truth for wire bend radius default. Any drift between view
+// (Pixi canvas, editor) and export (snapshot raster, SVG render) becomes a visible
+// inconsistency in the engineering deliverable the electrician ships to site — the
+// PDF must look like what they edited. Keep all `customRadius ?? X` sites pointed
+// here; do not reintroduce scattered literals.
+export const DEFAULT_CUSTOM_RADIUS = 52;
+
 export interface DefaultWireSettings {
   wireColor: WireColor;
   wireCrossSection: number;

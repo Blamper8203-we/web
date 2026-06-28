@@ -2,7 +2,7 @@ import type { ConnectionItem } from "../../types/connectionItem";
 import { type SymbolItem, isDistributionBlockSymbol } from "../../types/symbolItem";
 import { getSymbolTerminals, findTerminalByName, resolveConnectionIsFromTop, resolveConnectionIsToTop } from "../modules/moduleTerminals";
 import { calculateWirePath, calculateWirePoints, type Point } from "../routing/wireRoutingEngine";
-import { getFerruleLength, WIRE_THICKNESS_MAP } from "./connectionsLogic";
+import { getFerruleLength, WIRE_THICKNESS_MAP, DEFAULT_CUSTOM_RADIUS } from "./connectionsLogic";
 
 export function computeGroupedWiredPaths(
   symbols: SymbolItem[],
@@ -179,7 +179,7 @@ export function computeGroupedWiredPaths(
     keyIndices[d.key] = index + 1;
 
     const hasFerrule = d.connection.ferruleColor && d.connection.ferruleColor !== "none";
-    const customRadius = d.connection.customRadius ?? 52;
+    const customRadius = d.connection.customRadius ?? DEFAULT_CUSTOM_RADIUS;
     
     const fromFerruleLen = getFerruleLength(d.fromDeviceKind, d.fromModuleRef);
     const toFerruleLen = getFerruleLength(d.toDeviceKind, d.toModuleRef);
