@@ -56,8 +56,13 @@
   }
 
   .main-content.is-pdf-workspace {
+    /* Na mobile oba aside (left/right) są ukryte przez useSheetPanelState
+       (showLeftPanel=false, showRightPanel=false) i reguły CSS w Responsive.css.
+       Dlatego grid ma tylko 2 rowy: górny pasek z zakładkami PDF (auto)
+       + canvas A4 (1fr). Stary grid miał 3 rowy z pustym 200-40vh który
+       marnował pionową przestrzeń na telefonie. */
     grid-template-columns: 1fr;
-    grid-template-rows: 44px minmax(0, 1fr) minmax(200px, 40vh);
+    grid-template-rows: auto minmax(0, 1fr);
   }
 
   .main-content.is-pdf-workspace .left-panel {
@@ -137,7 +142,11 @@
 }
 
 .pdf-workspace-tabs {
-  display: flex;
+  /* Domyślnie ukryty — na desktop tę rolę pełni prawy panel (pdf-right-panel-tab).
+     Na mobile prawy panel jest chowamy (useSheetPanelState), więc pokazujemy
+     ten górny pasek żeby user mógł przełączyć zakładkę PDF. Reguła mobile
+     override jest w Responsive.css @media (max-width: 768px). */
+  display: none;
   gap: 4px;
   padding: 8px 12px;
   background: var(--panel-header-background);

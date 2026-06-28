@@ -118,9 +118,31 @@ export function PdfWorkspaceShell({
           position: "absolute",
           inset: 0,
           display: "flex",
-          flexDirection: "row",
+          flexDirection: "column",
           overflow: "hidden",
         }}>
+          {/* Górny pasek z zakładkami PDF — mobile only (CSS w Responsive.css
+              ukrywa go na desktop, bo tam tę rolę pełni prawy panel).
+              Rozwiązuje bug: na telefonie panele były ukryte, user nie mógł
+              przełączyć zakładki (title-page / schematic / RCD / itd.). */}
+          <div className="pdf-workspace-tabs" role="tablist">
+            {getPdfDocumentationTabs().map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={pdfPreviewTab === tab.id}
+                className={`pdf-workspace-tab ${pdfPreviewTab === tab.id ? "active" : ""}`}
+                onClick={() => {
+                  startPdfTabTransition(() => {
+                    setPdfPreviewTab(tab.id);
+                  });
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
           <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", background: "transparent" }}>
             <Suspense fallback={<div className="pdf-preview-workspace__empty"><strong>Ładowanie arkusza A4...</strong></div>}>
               <MeasurementProtocolsWorkspacePage />
