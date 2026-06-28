@@ -30,11 +30,19 @@ export function LandingHero({ onOpenProjectFile, onOpenNewProject }: LandingHero
               DINBoard wspiera elektryka przy wykonaniu rozdzielnicy, tworzeniu czytelnego schematu instalacji, sprawdzeniu obwodów oraz przygotowaniu profesjonalnej dokumentacji odbiorczej PDF. Wszystko w Twojej przeglądarce.
             </p>
 
-            {/* Profesjonalne info o wersji testowej */}
-            <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-900/90 border border-amber-500/30 max-w-xl">
-              <i data-lucide="alert-triangle" className="w-5 h-5 text-amber-500 shrink-0 mt-0.5"></i>
-              <div className="text-xs text-gray-300">
-                <strong className="text-amber-500">Wersja testowa (BETA):</strong> Aplikacja rozwija się dynamicznie. Wygenerowane schematy i obliczenia bilansu faz należy zweryfikować z wiedzą inżynierską przed montażem.
+            {/* Profesjonalne info o bezpieczeństwie i wersji testowej */}
+            <div className="flex flex-col gap-3 p-4 rounded-xl bg-slate-900/90 border border-amber-500/30 max-w-xl">
+              <div className="flex items-start gap-3">
+                <i data-lucide="alert-triangle" className="w-5 h-5 text-amber-500 shrink-0 mt-0.5"></i>
+                <div className="text-xs text-gray-300 leading-relaxed">
+                  <strong className="text-amber-500">Bezpieczeństwo przede wszystkim:</strong> Jeżeli nie posiadasz uprawnień elektrycznych (SEP), każdy schemat zaprojektowany w tej aplikacji musi zostać bezwzględnie sprawdzony i zatwierdzony przez wykwalifikowanego elektryka. Prąd elektryczny stanowi bezpośrednie zagrożenie zdrowia i życia — nie wykonuj montażu instalacji na własną rękę bez odpowiedniej wiedzy.
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <i data-lucide="info" className="w-5 h-5 text-blue-400 shrink-0 mt-0.5"></i>
+                <div className="text-xs text-gray-300 leading-relaxed">
+                  <strong className="text-blue-400">Wersja testowa (BETA):</strong> Aplikacja rozwija się dynamicznie. Wygenerowane schematy i obliczenia bilansu mocy mają charakter pomocniczy.
+                </div>
               </div>
             </div>
 

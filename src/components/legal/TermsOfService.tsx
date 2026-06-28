@@ -192,11 +192,22 @@ export function TermsOfService() {
               <li>przeprowadzenie wymaganych odbiorów instalacji.</li>
             </ul>
             <p>
-              Operator nie ponosi odpowiedzialności za szkody wynikłe z
-              zastosowania Aplikacji do projektowania instalacji elektrycznych
-              bez weryfikacji przez uprawnioną osobę. W maksymalnym zakresie
-              dozwolonym przez prawo odpowiedzialność Operatora jest ograniczona
-              do kwoty 0 PLN (Aplikacja jest bezpłatna).
+              <strong>Ostrzeżenie o bezpieczeństwie (dla osób bez uprawnień):</strong>
+              <br />
+              Prąd elektryczny stanowi śmiertelne zagrożenie. Jeśli nie posiadasz
+              odpowiednich kwalifikacji elektrycznych, zaprojektowany w
+              Aplikacji schemat obwodów jest jedynie szkicem poglądowym.
+              Bezwzględnie musisz skonsultować się z kwalifikowanym elektrykiem,
+              który zweryfikuje poprawność schematu (m.in. dobór zabezpieczeń
+              oraz przekrojów przewodów) przed jakimikolwiek zakupami materiałów
+              czy próbą fizycznego montażu rozdzielnicy.
+            </p>
+            <p>
+              Operator nie ponosi odpowiedzialności za szkody na mieniu, zdrowiu lub życiu 
+              wynikłe z zastosowania Aplikacji do projektowania instalacji elektrycznych
+              i wykonywania montażu na własną rękę bez weryfikacji i odbioru przez uprawnioną osobę. 
+              W maksymalnym zakresie dozwolonym przez prawo odpowiedzialność Operatora 
+              jest ograniczona do kwoty 0 PLN (Aplikacja jest bezpłatna).
             </p>
           </section>
 
