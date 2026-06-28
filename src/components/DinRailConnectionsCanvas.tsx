@@ -2,11 +2,10 @@
 // DinRailConnectionsCanvas — structural map
 // =============================================================================
 //
-// WHY: this file is ~2130 lines because it owns the whole "wire connections"
-// workspace (pan/zoom, wire drawing, terminal snapping, ferrule rendering,
-// inline edit, sidebar). Splitting it is a real refactor project (1-2 days,
-// touches canvas — a high-risk area per AGENTS.md). Until then, this header
-// is the safety net: read it before you edit.
+// WHY: this file owns the "wire connections" SVG render tree.
+// Note: It was previously a ~2130 lines "God file" but has been split into
+// multiple `canvasLayers/` and domain-specific hooks (`useConnectionsViewport`,
+// `useConnectionsDrawing`, etc.). This file is now primarily the SVG DOM composition.
 //
 // REGIONS (line numbers shift as the file grows):
 //

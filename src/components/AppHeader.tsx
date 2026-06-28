@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { AppIcon } from "./AppIcon";
 import "./AppHeader.css";
 import type { SheetType } from "../lib/appHelpers";
-import type { AppUiTheme } from "../App";
+import type { AppUiTheme } from "../hooks/app/useAppPersistence";
 import { Capacitor } from "@capacitor/core";
 import { useToolbarMenuState } from "../hooks/useToolbarMenuState";
 import { AppHeaderFileMenu } from "./AppHeaderFileMenu";

@@ -12,43 +12,43 @@ export function LandingSandboxPreview() {
   }, []);
 
   return (
-    <section id="demo-sandbox" className="py-16 bg-[#0B0F19] border-b border-gray-900 relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-10">
-          <span className="text-amber-500 text-xs font-bold tracking-widest uppercase font-mono block mb-2">
+    <section id="demo-sandbox" className="landing-preview-section">
+      <div className="landing-container">
+        <div className="landing-preview-header">
+          <span className="landing-preview-badge">
             PODGLĄD APLIKACJI
           </span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-white m-0 pb-2">
+          <h2 className="landing-preview-title">
             Przejrzysty i intuicyjny interfejs roboczy
           </h2>
-          <p className="text-sm text-gray-400 m-0">
+          <p className="landing-preview-desc">
             Zobacz, jak zaprojektowałem przestrzeń roboczą programu DinBoard pod kątem szybkiej i wygodnej pracy instalatora.
           </p>
         </div>
 
-        <div className="rounded-2xl overflow-hidden shadow-2xl border border-slate-800/80 bg-slate-900 relative aspect-[16/9]">
+        <div className="landing-preview-container">
           {SLIDER_IMAGES.map((src, index) => (
             <div
               key={src}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
+              className={`landing-preview-slide ${
+                index === currentSlide ? "is-active" : "is-inactive"
               }`}
             >
               <img
                 src={src}
                 alt={`Zrzut ekranu aplikacji DinBoard ${index + 1}`}
                 draggable={false}
-                className="w-full h-full object-cover pointer-events-none select-none"
+                className="landing-preview-image"
               />
             </div>
           ))}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10 pointer-events-auto">
+          <div className="landing-preview-controls">
             {SLIDER_IMAGES.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentSlide(index)}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  index === currentSlide ? "bg-blue-500 w-6" : "bg-white/30 hover:bg-white/50 w-2"
+                className={`landing-preview-dot ${
+                  index === currentSlide ? "is-active" : "is-inactive"
                 }`}
                 aria-label={`Przejdź do slajdu ${index + 1}`}
               />

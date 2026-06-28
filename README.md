@@ -18,14 +18,14 @@ desktopie (Tauri 2), web (PWA), iOS/Android (Capacitor 8).
 | `npm run test` | PASS, ~35–45 s |
 | `npm run check` (build + test) | PASS |
 | Commits (30 dni) | 139+ |
-| Stos | React 19, Vite 8, Pixi 8, Tauri 2, Capacitor 8, Vitest 4 |
+| Stos | React 19, Vite 8, Tauri 2, Capacitor 8, Vitest 4 |
 
 ---
 
 ## Co działa
 
 - **4 widoki arkuszy** na jednym stanie (`symbols` + `metadata`):
-  - Szyna DIN (canvas Pixi, drag, snap, RCD/MCB)
+  - Szyna DIN (canvas DOM/SVG, drag, snap, RCD/MCB)
   - Schemat jednokreskowy (auto-layout, etykiety)
   - Lista obwodów (eksport BOM)
   - Dokumentacja PDF (protokoły pomiarowe, karta tytułowa)
@@ -45,7 +45,7 @@ desktopie (Tauri 2), web (PWA), iOS/Android (Capacitor 8).
 
 | Co | Gdzie | Wpływ | Status |
 |---|---|---|---|
-| Plik-kontener canvas | `src/components/DinRailConnectionsCanvas.tsx` (2130 linii) | Duże zmiany ryzykowne | Mapa regionów dodana (2026-06), pełny split odłożony |
+| Plik-kontener canvas | `src/components/DinRailConnectionsCanvas.tsx` (~490 linii po refaktoryzacji) | Złożoność warstw SVG | Rozbity na sub-hooki i warstwy (canvasLayers) |
 | Duży moduł terminali | `src/lib/modules/moduleTerminals.ts` (33 KB) | Wysoki próg wejścia | Stabilny, refaktor tylko w parze z testem |
 | Asymetria testów | `src/lib/circuitEdit/` miała 1 test dla 19 KB logiki | Ryzyko regresji w polach obwodu | +27 testów dodanych (2026-06-16), ryzyko obniżone |
 | Walidacja monolityczna | `electricalValidationService.ts` miał 25.9 KB / 750 linii | Plik-kontener 14 reguł + helpery + stałe | Rozbite (2026-06): 4 pliki helperów + 14 reguł + dispatcher 5 KB |

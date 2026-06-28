@@ -1,6 +1,7 @@
 import type { SymbolItem } from "../../../types/symbolItem";
 import type { TerminalHotspot } from "./terminalTypes";
 import { normalizePathText } from "./terminalHelpers";
+import { getTerminalBlockCategory } from "../../../types/symbolItem";
 
 export function getTerminalBlockFallbackTerminals(
   symbol: SymbolItem,
@@ -58,7 +59,7 @@ export function getTerminalBlockFallbackTerminals(
     for (let i = 0; i < 8; i++) {
       hotspots.push({ name: names[i], x: width * explicitPercentages[i], y: height * 0.5, type: "pe", isTop: true, direction: "auto-vertical", visualInset: 0, radius: width * (31.3 / 1361) });
     }
-  } else if (symbol.type === "Blok rozdzielczy" || normalizePathText(symbol.moduleRef || "").includes("blok rozdzielczy")) {
+  } else if (getTerminalBlockCategory(symbol) === "Blok rozdzielczy") {
     // Blok rozdzielczy (np. 4x7 pin, 4x15 pin)
     const labelLower = (symbol.label || "").toLowerCase();
     const pathLower = normalizePathText(symbol.moduleRef || symbol.visualPath || "");

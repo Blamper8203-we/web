@@ -1,5 +1,5 @@
 import type { SymbolItem } from "../../types/symbolItem";
-import { isDistributionBlockSymbol } from "../../types/symbolItem";
+import { isDistributionBlockSymbol, getTerminalBlockCategory } from "../../types/symbolItem";
 import { svgTerminalCache } from "./svgTerminalCache";
 import type { TerminalHotspot } from "./terminals/terminalTypes";
 import { getSymbolPoles } from "./terminals/terminalHelpers";
@@ -15,12 +15,11 @@ export function getSymbolTerminals(symbol: SymbolItem): TerminalHotspot[] {
     const width = symbol.width;
     const height = symbol.height || 1103;
 
-    // Check if we should use uniform scaling ("meet") or stretching ("none")
-    // Listwy and GSU use "none". Everything else (including Blok rozdzielczy) uses "meet"
+    const categoryEnum = getTerminalBlockCategory(symbol);
     const useMeet = !(
       (symbol.moduleRef || "").toLowerCase().includes("listwy do rozdzielnicy") ||
       (symbol.moduleRef || "").toLowerCase().includes("gsu") ||
-      (symbol.moduleRef || "").toLowerCase().includes("blok rozdzielczy")
+      categoryEnum === "Blok rozdzielczy"
     );
 
     let vbWidth = 0;

@@ -1,20 +1,15 @@
 import { useState, useEffect } from "react";
 
-const TAILWIND_SCRIPT_ID = "tailwind-cdn-landing";
-
-export function useTailwindSandbox() {
+export function useLandingAssets() {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    if (!document.getElementById(TAILWIND_SCRIPT_ID)) {
-      // Konfiguracja Tailwind przeniesiona do tailwind.config.js
-      // Tailwind generowany w buildzie (import "./landing-tailwind.css" w PublicLandingPage.tsx)
-
-      // Udajemy natychmiastową gotowość (nie czekamy na pobranie Tailwind CDN)
+    if (!document.getElementById("landing-lucide-icons")) {
       setTimeout(() => setIsReady(true), 50);
 
       // Ikony Lucide z CDN
       const lucideScript = document.createElement("script");
+      lucideScript.id = "landing-lucide-icons";
       lucideScript.src = "https://unpkg.com/lucide@latest";
       lucideScript.onload = () => {
         if ((window as any).lucide) {
@@ -37,9 +32,7 @@ export function useTailwindSandbox() {
       }
     }
 
-    return () => {
-      // Skrypty zostawiamy na wypadek przejścia w tę i z powrotem, ale ich zakres i tak ogranicza się do #landing-page-root
-    };
+    return () => {};
   }, []);
 
   return isReady;

@@ -17,6 +17,14 @@ export type DeviceKind =
   | "terminalBlock"
   | "other";
 
+export type TerminalBlockCategory = 
+  | "Blok rozdzielczy"
+  | "Listwy zaciskowe"
+  | "Złącza"
+  | "Inne"
+  | string; // Keep string to be safe for user-defined or imported modules that aren't strict yet
+
+
 export type PhaseAssignment =
   | "L1"
   | "L2"
@@ -379,4 +387,24 @@ export function normalizeSymbolItems(
 
       return symbol;
     });
+}
+
+export function getTerminalBlockCategory(symbol: Partial<SymbolBase>): TerminalBlockCategory | null {
+  const value = normalizeSymbolIdentityText(
+    symbol.type,
+    symbol.label,
+    symbol.visualPath,
+    symbol.moduleRef,
+  );
+
+  if (value.includes("blok") || value.includes("block") || value.includes("rozdzielcz") || value.includes("distribution")) {
+    return "Blok rozdzielczy";
+  }
+  if (value.includes("listwa") || value.includes("listwy")) {
+    return "Listwy zaciskowe";
+  }
+  if ((value.includes("zlacz") && !value.includes("rozlacznik")) || value.includes("zacisk")) {
+    return "Złącza";
+  }
+  return "Inne";
 }

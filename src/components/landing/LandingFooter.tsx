@@ -1,35 +1,34 @@
-
 interface LandingFooterProps {
   onOpenFeedback: () => void;
 }
 
 export function LandingFooter({ onOpenFeedback }: LandingFooterProps) {
   return (
-    <footer className="bg-[#05080E] border-t border-gray-900 py-12 text-gray-500 text-[11px]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-6">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded flex items-center justify-center overflow-hidden grayscale opacity-70">
-            <img src="/favicon-192.png" alt="DinBoard Logo" className="w-full h-full object-contain" />
+    <footer className="landing-footer">
+      <div className="landing-footer-container">
+        <div className="landing-footer-brand">
+          <div className="landing-footer-logo-wrapper">
+            <img src="/favicon-192.png" alt="DinBoard Logo" />
           </div>
           <div>
-            <span className="text-sm font-bold text-white block">DinBoard</span>
-            <span className="block text-[10px] text-gray-600">Narzędzie dla nowoczesnych elektryków.</span>
+            <span className="landing-footer-title">DinBoard</span>
+            <span className="landing-footer-subtitle">Narzędzie dla nowoczesnych elektryków.</span>
           </div>
         </div>
 
-        <div className="flex gap-6">
-          <a href="/polityka-prywatnosci" className="hover:text-amber-500 transition-colors">
+        <div className="landing-footer-links">
+          <a href="/polityka-prywatnosci" className="landing-footer-link">
             Polityka Prywatności
           </a>
-          <a href="/regulamin" className="hover:text-amber-500 transition-colors">
+          <a href="/regulamin" className="landing-footer-link">
             Warunki korzystania
           </a>
-          <a onClick={onOpenFeedback} className="hover:text-amber-500 transition-colors cursor-pointer">
+          <a onClick={onOpenFeedback} className="landing-footer-link">
             Zgłoś błąd / Kontakt
           </a>
         </div>
 
-        <span className="text-gray-600">© 2026 DinBoard.pl. Wszelkie prawa zastrzeżone.</span>
+        <span className="landing-footer-copyright">© 2026 DinBoard.pl. Wszelkie prawa zastrzeżone.</span>
       </div>
     </footer>
   );

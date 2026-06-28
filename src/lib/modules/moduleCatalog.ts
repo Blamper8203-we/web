@@ -1,4 +1,4 @@
-import type { CircuitTypeValue, DeviceKind, PhaseAssignment } from "../../types/symbolItem";
+import { getTerminalBlockCategory, type CircuitTypeValue, type DeviceKind, type PhaseAssignment } from "../../types/symbolItem";
 import {
   currentModuleEntries,
   groupOrder,
@@ -152,15 +152,21 @@ export function getPaletteTemplateDimensions(template: {
 
   const originalModuleRef = template.moduleRef ?? "";
   const moduleRef = originalModuleRef.toLocaleLowerCase("pl-PL");
-  const category = template.category?.toLocaleLowerCase("pl-PL") ?? "";
   const modules = Math.max(1, template.modules);
   let width = modules * MODULE_UNIT_WIDTH;
   let height = MODULE_UNIT_HEIGHT;
 
+  const categoryEnum = getTerminalBlockCategory({
+    type: template.category,
+    label: template.category,
+    visualPath: "",
+    moduleRef: originalModuleRef
+  });
+
   if (moduleRef.includes("blok rozdzielczy 4x7")) {
     width = Math.round(71 * MODULE_PX_PER_MM * 100) / 100;
     height = Math.round(97 * MODULE_PX_PER_MM * 100) / 100;
-  } else if (moduleRef.includes("blok rozdzielczy")) {
+  } else if (categoryEnum === "Blok rozdzielczy") {
     // Fallback dla ewentualnych innych bloków rozdzielczych zdefiniowanych w przyszłości (ok. 4 moduły szerokości, 88mm wys)
     width = modules * MODULE_UNIT_WIDTH;
     height = Math.round(88 * 13.29);
@@ -174,12 +180,10 @@ export function getPaletteTemplateDimensions(template: {
   const customHeightMm = MODULE_HEIGHT_MM_BY_REF[originalModuleRef];
   const shouldUseAuthoredModuleSize =
     !!customHeightMm &&
-    !moduleRef.includes("blok rozdzielczy") &&
-    !category.includes("listwy") &&
-    !category.includes("z\u0142\u0105cza") &&
-    !moduleRef.includes("listwa") &&
-    !moduleRef.includes("zlacze") &&
-    !moduleRef.includes("zlacza");
+    categoryEnum !== "Blok rozdzielczy" &&
+    categoryEnum !== "Listwy zaciskowe" &&
+    categoryEnum !== "Złącza";
+
   if (shouldUseAuthoredModuleSize && customHeightMm) {
     width = Math.round(modules * MODULE_UNIT_WIDTH * 100) / 100;
     height = Math.round(customHeightMm * MODULE_PX_PER_MM * 100) / 100;

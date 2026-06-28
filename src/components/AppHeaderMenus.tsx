@@ -1,5 +1,5 @@
 import { AppIcon } from "./AppIcon";
-import type { AppUiTheme } from "../App";
+import type { AppUiTheme } from "../hooks/app/useAppPersistence";
 import type { SheetType } from "../lib/appHelpers";
 
 interface AppHeaderViewMenuProps {
