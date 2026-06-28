@@ -85,7 +85,7 @@ async function fetchWithTimeout(path) {
 async function probeHtmlRoute(path) {
   const response = await fetchWithTimeout(path);
   const text = await response.text();
-  const containsRoot = text.includes('<div id="root"></div>');
+  const containsRoot = text.includes('id="root"');
 
   return {
     route: `${BASE_URL}${path}`,
