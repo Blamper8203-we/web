@@ -1,3 +1,5 @@
+import { PinchZoomImage } from "./PinchZoomImage";
+
 interface SchematicTabProps {
   /**
    * Array of PNG data URLs, one per A4 landscape page of the schematic.
@@ -47,15 +49,10 @@ export function SchematicTab({
             key={`schematic-page-${index}`}
             className="a4-page a4-page--landscape"
           >
-            <img
+            <PinchZoomImage
               src={src}
               alt={`Schemat obwodów — arkusz ${index + 1}`}
-              style={{
-                display: "block",
-                width: "100%",
-                height: "100%",
-                objectFit: "contain",
-              }}
+              className="mp-zoom-preview"
             />
           </div>
         ))

@@ -1,5 +1,6 @@
 
 import { PageFooter } from "./ProtocolShared";
+import { PinchZoomImage } from "./PinchZoomImage";
 
 interface DinRailProtocolTabProps {
   dinRailPreviewUrl: string | null;
@@ -48,10 +49,10 @@ return (
         <div className="mt-3 mp-din-rail-preview-frame">
           {dinRailPreviewUrl ? (
             <div className="mp-din-rail-preview-image text-center">
-              <img 
-                src={dinRailPreviewUrl} 
-                alt={altText} 
-                style={{ maxWidth: "100%", height: "auto", display: "inline-block" }} 
+              <PinchZoomImage
+                src={dinRailPreviewUrl}
+                alt={altText}
+                className="mp-zoom-preview"
               />
             </div>
           ) : (

@@ -150,7 +150,7 @@ describe("SchematicTab", () => {
     expect(landscape.length).toBe(1);
   });
 
-  it("renders the image sheet as a bare .a4-page wrapping the <img> (no inner header/footer chrome)", () => {
+  it("renders the image sheet as a bare .a4-page wrapping the pinch-zoom wrapper (no inner header/footer chrome)", () => {
     const { container } = render(
       <SchematicTab
         {...baseProps}
@@ -161,15 +161,21 @@ describe("SchematicTab", () => {
     // WHY: the PDF-rendered PNG already contains the schematic title bar,
     // the "Arkusz X z Y" badge, and the page footer. Adding a second set of
     // those elements around the <img> produces a duplicated chrome bug.
-    // Pin the structure: .a4-page > <img>, nothing else. If a future change
-    // re-introduces inner wrappers (e.g. .flex.flex-col, .border-b-2, or
-    // a <footer>), this test fails and the regression is caught.
+    // Od 2026-06-28 .a4-page--landscape zawiera PinchZoomImage wrapper
+    // (ktory renderuje img z pinch-to-zoom na mobile) — bez inner chrome.
+    // Jeśli ktoś doda flex-col / border-b-2 / footer do środka — ten test
+    // złapie regresję zduplikowanego chrome.
     const page = container.querySelector(".a4-page--landscape");
     expect(page).not.toBeNull();
 
+    // Dokładnie 1 bezpośrednie dziecko: wrapper pinch-zoom-image.
     const directChildren = page ? Array.from(page.children) : [];
     expect(directChildren).toHaveLength(1);
-    expect(directChildren[0]?.tagName.toLowerCase()).toBe("img");
+    expect(directChildren[0]?.classList.contains("pinch-zoom-image")).toBe(true);
+
+    // Ten wrapper zawiera img z src z props (1:1 mapping).
+    const imgInside = page?.querySelector(".pinch-zoom-image img");
+    expect(imgInside?.getAttribute("src")).toBe("data:image/png;base64,AAA");
 
     // Defensive: no "Schemat obwodów" badge text, no "Strona X z Y" counter,
     // no footer element — those are all already baked into the PNG.
