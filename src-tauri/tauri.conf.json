@@ -10,7 +10,15 @@
     "frontendDist": "../dist"
   },
   "app": {
-    "withGlobalTauri": true,
+    // WHY: withGlobalTauri=false. The renderer imports @tauri-apps/api/core as ES
+    // modules (see src/lib/projectFile.ts:1). The single mention of
+    // window.__TAURI__ in source is a doc comment, not runtime code (grep -r
+    // "window\.__TAURI__" src/ returns one match, a comment at
+    // projectFile.ts:367). Exposing the global object lets any code in the
+    // webview invoke Tauri commands (open/save .dinboard files) without going
+    // through the bundled JS, which is the most attractive target if any
+    // future XSS slips past the SVG sanitiser.
+    "withGlobalTauri": false,
     "windows": [
       {
         "title": "DINBoard Tauri",
@@ -21,7 +29,92 @@
       }
     ],
     "security": {
-      "csp": null
+      // WHY: Tauri 2 CSP — object form so each directive is reviewable.
+      // Tauri auto-appends a per-build nonce to inline <script>/<style>
+      // tags and hashes for the bundled JS, so we don't need 'unsafe-inline'
+      // for the bundle itself. We DO allow a small set of host patterns that
+      // the public landing page (loaded on "/") and the app surface (on
+      // "/app") actually need inside the same Tauri webview.
+      //
+      //   script-src 'self'                    — Vite/Rollup bundle only.
+      //                   https://googlesyndication.com
+      //                                            — Google AdSense script
+      //                                              (index.html line 21).
+      //                   https://unpkg.com       — landing-page Lucide
+      //                                              icons (PublicLandingPage).
+      //
+      //   style-src  'self' 'unsafe-inline'    — Tailwind / React inline
+      //                                              styles + index.html
+      //                                              inline <style> in
+      //                                              build (vite-react-ssg).
+      //                   https://fonts.googleapis.com
+      //                                            — landing-page Roboto
+      //                                              CSS file.
+      //
+      //   img-src    'self' data: blob:        — SVG cache uses data: URIs
+      //                                              (svgAsset.ts:157,195 and
+      //                                              friends); URL.createObjectURL
+      //                                              uses blob: for PDF/
+      //                                              download flows
+      //                                              (useProjectActions.ts:376).
+      //                   https://dinboard.pl    — og:images referenced
+      //                                              from index.html meta
+      //                                              tags.
+      //
+      //   connect-src 'self'                   — own origin (PWA / module
+      //                                              manifest / SVG fetch).
+      //                   ipc: https://ipc.localhost
+      //                                            — Tauri 2 IPC for
+      //                                              invoke() calls to
+      //                                              open_project_file_with_dialog
+      //                                              and save_project_file_with_dialog.
+      //                   https://api.web3forms.com
+      //                                            — FeedbackModal POST.
+      //                   https://dinboard.pl    — module manifest / asset
+      //                                              fetches that hit the
+      //                                              production CDN.
+      //                   https://fonts.googleapis.com https://fonts.gstatic.com
+      //                                            — landing-page Roboto
+      //                                              font + PWA runtime
+      //                                              caching rule
+      //                                              (vite.config.ts:127).
+      //
+      //   font-src   'self' data:              — Roboto served as data URI
+      //                                              in some flows; default
+      //                                              font stack from system.
+      //                   https://fonts.gstatic.com
+      //                                            — landing-page Roboto
+      //                                              woff2.
+      //
+      //   frame-src  https://googlesyndication.com
+      //                                          — AdSense iframes on the
+      //                                              landing page (defensive,
+      //                                              harmless if unused).
+      //
+      //   object-src 'none'                    — block <object>/<embed>.
+      //   base-uri   'self'                    — block <base> hijack.
+      //   form-action 'self'                   — block form submissions to
+      //                                              external origins.
+      //
+      // Trade-off: the public landing page inside the same webview loads
+      // Google AdSense + Roboto + web3forms + Lucide. A tighter policy that
+      // locked all of those out would break the landing page rendering on
+      // "/". The script-src list is restricted to those exact hosts; nothing
+      // else can execute. The window.__TAURI__ global is gone (see above),
+      // so even an injected <script> can't reach the file system through
+      // Tauri commands.
+      "csp": {
+        "default-src": "'self'",
+        "script-src": "'self' https://googlesyndication.com https://unpkg.com",
+        "style-src": "'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "img-src": "'self' data: blob: https://dinboard.pl",
+        "font-src": "'self' data: https://fonts.gstatic.com",
+        "connect-src": "'self' ipc: https://ipc.localhost https://api.web3forms.com https://dinboard.pl https://fonts.googleapis.com https://fonts.gstatic.com",
+        "frame-src": "https://googlesyndication.com",
+        "object-src": "'none'",
+        "base-uri": "'self'",
+        "form-action": "'self'"
+      }
     }
   },
   "bundle": {
