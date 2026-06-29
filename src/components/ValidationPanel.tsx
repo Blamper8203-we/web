@@ -3,7 +3,7 @@ import "./ValidationPanel.css";
 import type { ValidationResult, ValidationSeverity } from "../lib/validation/electricalValidationService";
 import { getValidationEditTargetForMessage } from "../lib/validation/validationEditTargets";
 import { buildValidationDisplayGroupsForSymbols, getValidationReadiness } from "../lib/validation/validationPresentation";
-import { getValidationRuleDescription } from "../lib/validation/validationRuleDescriptions";
+import { getValidationRemediation, getValidationRuleDescription } from "../lib/validation/validationRuleDescriptions";
 import {
   getValidationQuickFixesForMessage,
   type ValidationQuickFixId,
@@ -216,6 +216,15 @@ export function ValidationPanel({
                       <span className="validation-code" title={buildRuleTooltip(msg.code)}>{msg.code}</span>
                       <span className="validation-message">{msg.message}</span>
                       {msg.details && <span className="validation-details">{msg.details}</span>}
+                      {(() => {
+                        const remediation = getValidationRemediation(msg.code);
+                        return remediation ? (
+                          <span className="validation-remediation">
+                            <AppIcon name="help" size={12} />
+                            <strong>Co zrobić:</strong> {remediation}
+                          </span>
+                        ) : null;
+                      })()}
                       {(editTarget && msg.symbolId && onEditSymbolField) || (quickFixes.length > 0 && onApplyQuickFix) ? (
                         <div className="validation-quick-actions">
                           {editTarget && msg.symbolId && onEditSymbolField ? (

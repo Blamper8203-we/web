@@ -100,4 +100,17 @@ describe("ValidationPanel — rule-code tooltip", () => {
 
     expect(screen.getByText("Dokumentacja poprawna")).toBeInTheDocument();
   });
+
+  it("renders the remediation hint as a 'Co zrobić' line under the finding", () => {
+    render(
+      <ValidationPanel
+        {...baseProps}
+        symbols={readySymbols}
+        result={resultWithError("VAL-007", "Przeciążenie wyłącznika głównego")}
+      />,
+    );
+
+    expect(screen.getByText(/Co zrobić:/)).toBeInTheDocument();
+    expect(screen.getByText(/Bilans/)).toBeInTheDocument();
+  });
 });

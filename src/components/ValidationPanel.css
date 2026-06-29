@@ -340,6 +340,25 @@
   line-height: 1.45;
 }
 
+.validation-remediation {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 5px;
+  margin-top: 4px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: var(--state-info-soft);
+  border: 1px solid var(--state-info-border);
+  color: var(--text-main);
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+
+.validation-remediation strong {
+  color: var(--accent-blue);
+  white-space: nowrap;
+}
+
 .validation-quick-actions {
   display: flex;
   flex-wrap: wrap;

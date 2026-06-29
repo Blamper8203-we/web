@@ -53,6 +53,9 @@ export interface ValidationMessage {
   details?: string;
   severity: ValidationSeverity;
   symbolId?: string;
+  /** Optional short instruction ("Kliknij obwód → Zmień fazę na L2"). Filled
+   *  by `getValidationRemediation` from the registry — rules do not set it. */
+  remediation?: string;
 }
 
 /** Aggregated result of `validateProject`. `isValid` is `true` iff
