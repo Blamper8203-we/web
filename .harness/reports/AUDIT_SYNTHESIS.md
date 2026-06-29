@@ -85,7 +85,7 @@ To NIE są duplikaty — raczej grupy powiązanych tematów:
 | `WIRE_THICKNESS_MAP` / `WIRE_COLORS_MAP` | 4 pliki (3 inline kopie + 1 kanoniczna) | **SYN-X1** |
 | `findConnectedComponent` / `getHotspotPhase` / `checkConnectionWarning` / `getSymbolAssetUrl` | `connectionsLogic.ts` vs `canvasHelpers.ts` | **SYN-X2** |
 | Helpersy identyfikacyjne modułów | 5+ plików z różnymi implementacjami | electrical D-1 + canvas M-1 + related |
-| `normalizeSinglePhase` | 3 pliki (phaseBalanceSuggestions, phaseImbalanceInsights, validationHelpers) | electrical C-2 / D-2 |
+| `normalizeSinglePhase` | ~~3 pliki (phaseBalanceSuggestions, phaseImbalanceInsights, validationHelpers)~~ **ZAMKNIĘTE 2026-06-29: verified re-export, not duplication.** Jedyna implementacja: `phaseDistributionCalculator.ts:450`. Re-eksport (bez kopiowania ciała): `validationHelpers.ts:59`. Pozostałe 2 pliki importują z różnych ścieżek (`phaseDistributionCalculator` bezpośrednio lub `validationHelpers` przez re-eksport) — to jest convenience import, nie duplikacja logiki. Brak implementacji. | — | — |
 | `isGroupHeadSymbol` | `domain/symbolGrouping.ts` (czysta) + `phaseDistributionCalculator.ts:416-427` (string-match) | electrical C-1, H-1, L-2 |
 | `DeviceKind` / `CircuitDeviceKind` (camelCase vs kebab-case) | `symbolItem.ts:1-9` vs `circuitRow.ts:1-9` | electrical C-3, M-2 |
 | `SymbolHistorySnapshot` inline | 6 call sites (App.tsx, useProjectActions) | project-io P1-4, P2-6 |
@@ -311,7 +311,7 @@ Batch: wszystkie P2/P3 z wszystkich audytów, pogrupowane per plik.
 | # | Pytanie | Blokuje | Owner |
 |---|---|---|---|
 | Q1 | `WIRE_THICKNESS_MAP[16] = 60` (3 kopie) czy 54 (1 kopia)? | Warstwa 2a (canvas C-2) | canvas-expert |
-| Q2 | FR (rozłącznik główny) — head grupy w bilansie czy nie? | Warstwa 2b (electrical C-1) | electrical-expert |
+| Q2 | ~~FR (rozłącznik główny) — head grupy w bilansie czy nie?~~ **ZAMKNIĘTE 2026-06-29: verified non-issue.** `isGroupHeadSymbol` (`src/lib/domain/symbolGrouping.ts:12-14`) sprawdza wyłącznie `deviceKind === "rcd"`; FR ma `deviceKind === "fr"` i nie wchodzi do `rcdMap` w `autoBalancePhases` (`phaseDistributionCalculator.ts:166`). FR jest transparentny w bilansie: ma phase `L1+L2+L3`, więc `isSinglePhase(fr)` zwraca `false` i trafia do `addDistributedWeightToPhaseLoads` zamiast być przesuwany. MCB pod FR-em mają niezależne fazy. Stan obecny = Wariant A (FR transparentny), zgodny z rekomendacją z audytu. Brak implementacji. | — | — |
 | Q3 | `ConnectionsRightPanel` — implementacja (A) czy usunięcie (B)? | Warstwa 0d (code-discipline P0-1) | developer + product |
 | Q4 | PDF „separate" — implementacja brakujących stron (A) czy drop (B)? | Warstwa 2j (pdf P0-1) | pdf-expert |
 | Q5 | Pixi canvas — lazy import (A) czy usunięcie (B)? | Warstwa 4b (canvas H-7) | canvas-expert |

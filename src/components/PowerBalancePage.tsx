@@ -36,7 +36,18 @@ interface PowerBalancePageProps {
 export function PowerBalancePage({ symbols, onApplyBalance, onApplyPhaseMove, metadata }: PowerBalancePageProps) {
   const distribution = calculateTotalDistribution(symbols);
   const totalPower = distribution.l1PowerW + distribution.l2PowerW + distribution.l3PowerW;
-  const totalCurrent = distribution.l1CurrentA + distribution.l2CurrentA + distribution.l3CurrentA;
+  // WHY: phase-card fill bar must be scaled against the HEAVIEST phase, not
+  // the sum of all three. With an ideal 10/10/10 A balance, scaling against
+  // the sum (30 A) would show 33% fill on every card — visually identical to
+  // a barely-loaded installation. Scaling against max(L1,L2,L3) makes a
+  // perfect balance show 100% on every card and an asymmetric balance show
+  // 100% on the heaviest phase with the others proportional.
+  const maxPhaseCurrent = Math.max(
+    distribution.l1CurrentA,
+    distribution.l2CurrentA,
+    distribution.l3CurrentA,
+    1,
+  );
   const simultaneityFactor = Math.max(0.1, Math.min(1, metadata.simultaneityFactor));
   const calculatedPower = totalPower * simultaneityFactor;
   const connectionPower = Math.max(0, metadata.contractedPowerKw) * 1000;
@@ -95,21 +106,21 @@ export function PowerBalancePage({ symbols, onApplyBalance, onApplyPhaseMove, me
         <PhaseCard
           color="brown"
           label="L1"
-          maxCurrent={Math.max(totalCurrent, 1)}
+          maxCurrent={maxPhaseCurrent}
           power={distribution.l1PowerW}
           current={distribution.l1CurrentA}
         />
         <PhaseCard
           color="black"
           label="L2"
-          maxCurrent={Math.max(totalCurrent, 1)}
+          maxCurrent={maxPhaseCurrent}
           power={distribution.l2PowerW}
           current={distribution.l2CurrentA}
         />
         <PhaseCard
           color="gray"
           label="L3"
-          maxCurrent={Math.max(totalCurrent, 1)}
+          maxCurrent={maxPhaseCurrent}
           power={distribution.l3PowerW}
           current={distribution.l3CurrentA}
         />
@@ -160,7 +171,7 @@ function PhaseCard({
         <strong>{current.toFixed(1)} A</strong>
       </div>
       <div className="pb-phase-track">
-        <div className="pb-phase-fill" style={{ width: `${fillPercent}%` }} />
+        <div className="pb-phase-fill" data-testid="pb-phase-fill" style={{ width: `${fillPercent}%` }} />
       </div>
       <span className="pb-phase-power">{power.toFixed(0)} W</span>
     </div>
