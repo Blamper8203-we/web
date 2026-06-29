@@ -155,6 +155,72 @@
   outline: none;
 }
 
+.validation-rules-reference {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.validation-rules-reference-header {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.validation-rules-reference-header strong {
+  color: var(--text-main);
+  font-size: 0.78rem;
+}
+
+.validation-rules-reference-hint {
+  margin-left: auto;
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+}
+
+.validation-rules-reference-list {
+  list-style: none;
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+}
+
+.validation-rules-reference-item {
+  padding: 6px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  background: var(--panel-background-alt);
+}
+
+.validation-rules-reference-row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.validation-rules-reference-description {
+  color: var(--text-main);
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+
+.validation-rules-reference-norm {
+  margin-top: 2px;
+  margin-left: 36px;
+  font-size: 0.7rem;
+  font-style: italic;
+  color: var(--text-tertiary);
+}
+
 .validation-count.errors {
   color: var(--accent-red);
   border-color: var(--state-danger-border);

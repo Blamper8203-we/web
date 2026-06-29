@@ -7,9 +7,10 @@
  * standard section the rule follows.
  */
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { ValidationPanel } from "./ValidationPanel";
 import type { ValidationResult } from "../lib/validation/electricalValidationService";
+import { createDefaultSymbolItem } from "../types/symbolItem";
 
 function emptyResult(): ValidationResult {
   return { isValid: true, errors: [], warnings: [], info: [] };
@@ -37,7 +38,16 @@ describe("ValidationPanel — rule-code tooltip", () => {
   // the panel actually renders the findings list instead of an empty-state
   // placeholder ("Walidacja gotowa" / "Brak obwodów do sprawdzenia").
   const readySymbols = [
-    { id: "sym-1", deviceKind: "mcb" as const, referenceDesignation: "F1", circuitName: "Oświetlenie", label: "F1", type: "MCB", displayModuleNumber: "#1", moduleNumber: 1 },
+    createDefaultSymbolItem({
+      id: "sym-1",
+      deviceKind: "mcb" as const,
+      referenceDesignation: "F1",
+      circuitName: "Oświetlenie",
+      label: "F1",
+      type: "MCB",
+      displayModuleNumber: "#1",
+      moduleNumber: 1,
+    }),
   ];
 
   it("renders a tooltip with the rule description when VAL-001 fires", () => {
@@ -87,7 +97,7 @@ describe("ValidationPanel — rule-code tooltip", () => {
     // Provide at least one MCB so `readiness` resolves to "ready" (otherwise
     // the panel shows "Walidacja gotowa" / "Brak obwodów" empty states).
     const symbols = [
-      { id: "sym-1", deviceKind: "mcb" as const },
+      createDefaultSymbolItem({ id: "sym-1", deviceKind: "mcb" as const }),
     ];
 
     render(
@@ -112,5 +122,37 @@ describe("ValidationPanel — rule-code tooltip", () => {
 
     expect(screen.getByText(/Co zrobić:/)).toBeInTheDocument();
     expect(screen.getByText(/Bilans/)).toBeInTheDocument();
+  });
+
+  it("renders the collapsible Rules reference section with the rule count", () => {
+    render(
+      <ValidationPanel
+        {...baseProps}
+        symbols={readySymbols}
+        result={resultWithError("VAL-001", "Asymetria faz 47%")}
+      />,
+    );
+
+    // Header is always rendered; the list starts collapsed.
+    expect(screen.getByText(/Reguły walidacji \(\d+\)/)).toBeInTheDocument();
+    // No individual rule descriptions visible yet (collapsed by default).
+    expect(screen.queryByText(/Sprawdza czy obciążenie L1\/L2\/L3/)).not.toBeInTheDocument();
+  });
+
+  it("expands the Rules reference section when the header is clicked", () => {
+    render(
+      <ValidationPanel
+        {...baseProps}
+        symbols={readySymbols}
+        result={resultWithError("VAL-001", "Asymetria faz 47%")}
+      />,
+    );
+
+    const header = screen.getByRole("button", { name: /Reguły walidacji/ });
+    fireEvent.click(header);
+
+    // After expanding, VAL-001's specific description should be in the DOM,
+    // verifying the registry is wired end-to-end.
+    expect(screen.getByText(/Sprawdza czy obciążenie L1\/L2\/L3/)).toBeInTheDocument();
   });
 });

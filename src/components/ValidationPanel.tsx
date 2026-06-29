@@ -3,7 +3,11 @@ import "./ValidationPanel.css";
 import type { ValidationResult, ValidationSeverity } from "../lib/validation/electricalValidationService";
 import { getValidationEditTargetForMessage } from "../lib/validation/validationEditTargets";
 import { buildValidationDisplayGroupsForSymbols, getValidationReadiness } from "../lib/validation/validationPresentation";
-import { getValidationRemediation, getValidationRuleDescription } from "../lib/validation/validationRuleDescriptions";
+import {
+  getValidationRemediation,
+  getValidationRuleDescription,
+  VALIDATION_RULE_DESCRIPTIONS,
+} from "../lib/validation/validationRuleDescriptions";
 import {
   getValidationQuickFixesForMessage,
   type ValidationQuickFixId,
@@ -168,6 +172,8 @@ export function ValidationPanel({
         ) : null}
       </div>
 
+      <RulesReferenceSection />
+
       <div className="validation-group-list">
         {filteredGroups.map((group) => {
           const visibleGroupSeverity = getHighestSeverity(group.messages.map((message) => message.severity));
@@ -286,6 +292,52 @@ function SeverityBadge({ severity }: { severity: ValidationSeverity }) {
   const label = severity === "Error" ? "Błąd" : severity === "Warning" ? "Ostrzeżenie" : "Info";
 
   return <span className={`validation-severity-badge ${severity.toLowerCase()}`}>{label}</span>;
+}
+
+function RulesReferenceSection() {
+  const [isOpen, setIsOpen] = useState(false);
+  // Sorted list of all registered rule codes — drawn from the registry so
+  // adding a new VAL-XXX entry to `VALIDATION_RULE_DESCRIPTIONS` automatically
+  // shows up here without touching this component.
+  const entries = useMemo(
+    () =>
+      Object.entries(VALIDATION_RULE_DESCRIPTIONS).sort(([a], [b]) =>
+        a.localeCompare(b, "en", { numeric: true }),
+      ),
+    [],
+  );
+
+  return (
+    <section className="card validation-rules-reference">
+      <button
+        className="validation-rules-reference-header"
+        type="button"
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((current) => !current)}
+      >
+        <AppIcon name="help" size={14} />
+        <strong>Reguły walidacji ({entries.length})</strong>
+        <span className="validation-rules-reference-hint">
+          {isOpen ? "Zwiń" : "Pokaż wszystkie reguły"}
+        </span>
+      </button>
+      {isOpen && (
+        <ul className="validation-rules-reference-list">
+          {entries.map(([code, entry]) => (
+            <li key={code} className="validation-rules-reference-item">
+              <div className="validation-rules-reference-row">
+                <span className="validation-code">{code}</span>
+                <span className="validation-rules-reference-description">{entry.description}</span>
+              </div>
+              {entry.normRef && (
+                <div className="validation-rules-reference-norm">{entry.normRef}</div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
 }
 
 type SeverityFilterMode = "all" | "errors" | "errors-warnings" | "warnings" | "info";
