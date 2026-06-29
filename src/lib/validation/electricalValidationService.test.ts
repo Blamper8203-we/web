@@ -601,13 +601,13 @@ describe('electricalValidationService', () => {
 
     const result = validateProject([mcb as SymbolItem]);
 
-    expect(result.info).toContainEqual(
+    expect(result.warnings).toContainEqual(
       expect.objectContaining({
         code: 'VAL-018',
         symbolId: 'mcb-missing-fields',
       }),
     );
-    expect(result.info).toContainEqual(
+    expect(result.warnings).toContainEqual(
       expect.objectContaining({
         code: 'VAL-019',
         symbolId: 'mcb-missing-fields',
