@@ -84,25 +84,45 @@
 .validation-summary {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
 }
 
+.validation-filter-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.validation-filter-select select {
+  min-height: 26px;
+  padding: 2px 8px;
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  background: var(--panel-background);
+  color: var(--text-main);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.validation-counts {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .validation-count {
-  appearance: none;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  min-height: 28px;
-  padding: 4px 8px;
+  min-height: 24px;
+  padding: 3px 8px;
   border: 1px solid var(--panel-border);
   border-radius: 6px;
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   font-weight: 600;
-  cursor: pointer;
-  opacity: 0.58;
-}
-
-.validation-count.active {
   opacity: 1;
 }
 

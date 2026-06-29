@@ -1,4 +1,4 @@
-import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import { useMemo, useState } from "react";
 import "./ValidationPanel.css";
 import type { ValidationResult, ValidationSeverity } from "../lib/validation/electricalValidationService";
 import { getValidationEditTargetForMessage } from "../lib/validation/validationEditTargets";
@@ -42,9 +42,11 @@ export function ValidationPanel({
   const [expandedGroupIds, setExpandedGroupIds] = useState<Set<string>>(
     () => new Set(groups.filter((group) => group.severity === "Error").map((group) => group.id)),
   );
-  const [visibleSeverities, setVisibleSeverities] = useState<Set<ValidationSeverity>>(
-    () => new Set(["Error", "Warning", "Info"]),
-  );
+  // WHY: severity filter is now driven by a single dropdown mode rather than
+  // three toggle buttons. Single source of truth = no risk of dropdown and
+  // buttons disagreeing about what's visible.
+  const [severityFilterMode, setSeverityFilterMode] = useState<SeverityFilterMode>("all");
+  const visibleSeverities = useMemo(() => severityModeToSet(severityFilterMode), [severityFilterMode]);
   const filteredGroups = useMemo(
     () =>
       groups
@@ -114,35 +116,43 @@ export function ValidationPanel({
       <div className="card validation-summary-card">
         <strong>{errorCount > 0 ? "Dokumentacja wymaga poprawek" : "Dokumentacja z ostrzeżeniami"}</strong>
         <div className="validation-summary">
-          <button
-            className={`validation-count errors ${visibleSeverities.has("Error") ? "active" : ""}`}
-            type="button"
-            aria-pressed={visibleSeverities.has("Error")}
-            onClick={() => toggleSeverityFilter("Error", setVisibleSeverities)}
-          >
-            <AppIcon name="validation" size={14} />
-            Błędy: {errorCount}
-          </button>
-          <button
-            className={`validation-count warnings ${visibleSeverities.has("Warning") ? "active" : ""}`}
-            type="button"
-            aria-pressed={visibleSeverities.has("Warning")}
-            onClick={() => toggleSeverityFilter("Warning", setVisibleSeverities)}
-          >
-            <AppIcon name="validation" size={14} />
-            Ostrzeżenia: {warningCount}
-          </button>
-          {infoCount > 0 && (
-            <button
-              className={`validation-count info ${visibleSeverities.has("Info") ? "active" : ""}`}
-              type="button"
-              aria-pressed={visibleSeverities.has("Info")}
-              onClick={() => toggleSeverityFilter("Info", setVisibleSeverities)}
+          <label className="validation-filter-select">
+            <span>Pokaż:</span>
+            <select
+              value={severityFilterMode}
+              onChange={(e) => setSeverityFilterMode(e.target.value as SeverityFilterMode)}
             >
-              <AppIcon name="help" size={14} />
-              Info: {infoCount}
-            </button>
-          )}
+              <option value="all">Wszystkie ({totalMessageCount})</option>
+              {errorCount > 0 && (
+                <option value="errors">Tylko błędy ({errorCount})</option>
+              )}
+              {(errorCount + warningCount) > 0 && (
+                <option value="errors-warnings">Błędy + ostrzeżenia ({errorCount + warningCount})</option>
+              )}
+              {warningCount > 0 && (
+                <option value="warnings">Tylko ostrzeżenia ({warningCount})</option>
+              )}
+              {infoCount > 0 && (
+                <option value="info">Tylko info ({infoCount})</option>
+              )}
+            </select>
+          </label>
+          <div className="validation-counts">
+            <span className="validation-count errors" aria-label={`Błędy: ${errorCount}`}>
+              <AppIcon name="validation" size={14} />
+              Błędy: {errorCount}
+            </span>
+            <span className="validation-count warnings" aria-label={`Ostrzeżenia: ${warningCount}`}>
+              <AppIcon name="validation" size={14} />
+              Ostrzeżenia: {warningCount}
+            </span>
+            {infoCount > 0 && (
+              <span className="validation-count info" aria-label={`Info: ${infoCount}`}>
+                <AppIcon name="help" size={14} />
+                Info: {infoCount}
+              </span>
+            )}
+          </div>
         </div>
         {hiddenMessageCount > 0 ? (
           <span className="validation-filter-note">Ukryto: {hiddenMessageCount}</span>
@@ -269,6 +279,23 @@ function SeverityBadge({ severity }: { severity: ValidationSeverity }) {
   return <span className={`validation-severity-badge ${severity.toLowerCase()}`}>{label}</span>;
 }
 
+type SeverityFilterMode = "all" | "errors" | "errors-warnings" | "warnings" | "info";
+
+function severityModeToSet(mode: SeverityFilterMode): Set<ValidationSeverity> {
+  switch (mode) {
+    case "all":
+      return new Set<ValidationSeverity>(["Error", "Warning", "Info"]);
+    case "errors":
+      return new Set<ValidationSeverity>(["Error"]);
+    case "errors-warnings":
+      return new Set<ValidationSeverity>(["Error", "Warning"]);
+    case "warnings":
+      return new Set<ValidationSeverity>(["Warning"]);
+    case "info":
+      return new Set<ValidationSeverity>(["Info"]);
+  }
+}
+
 function buildRuleTooltip(code: string): string {
   const entry = getValidationRuleDescription(code);
   if (!entry) return "";
@@ -283,20 +310,4 @@ function getHighestSeverity(severities: ValidationSeverity[]): ValidationSeverit
   if (severities.includes("Error")) return "Error";
   if (severities.includes("Warning")) return "Warning";
   return "Info";
-}
-
-function toggleSeverityFilter(
-  severity: ValidationSeverity,
-  setVisibleSeverities: Dispatch<SetStateAction<Set<ValidationSeverity>>>,
-) {
-  setVisibleSeverities((current) => {
-    const next = new Set(current);
-    if (next.has(severity)) {
-      next.delete(severity);
-    } else {
-      next.add(severity);
-    }
-
-    return next.size > 0 ? next : current;
-  });
 }
