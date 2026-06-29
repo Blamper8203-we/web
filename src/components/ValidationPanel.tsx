@@ -3,6 +3,7 @@ import "./ValidationPanel.css";
 import type { ValidationResult, ValidationSeverity } from "../lib/validation/electricalValidationService";
 import { getValidationEditTargetForMessage } from "../lib/validation/validationEditTargets";
 import { buildValidationDisplayGroupsForSymbols, getValidationReadiness } from "../lib/validation/validationPresentation";
+import { getValidationRuleDescription } from "../lib/validation/validationRuleDescriptions";
 import {
   getValidationQuickFixesForMessage,
   type ValidationQuickFixId,
@@ -33,7 +34,14 @@ export function ValidationPanel({
   const groups = buildValidationDisplayGroupsForSymbols(result, symbols);
   const readiness = getValidationReadiness(symbols);
   const symbolMap = useMemo(() => new Map(symbols.map((symbol) => [symbol.id, symbol])), [symbols]);
-  const [expandedGroupIds, setExpandedGroupIds] = useState<Set<string>>(() => new Set());
+  // WHY: groups with at least one Error open automatically so the user lands
+  // on the most actionable findings without an extra click. Groups with only
+  // Warning/Info stay collapsed (less urgent, user can drill in if needed).
+  // Uses `groups` (not `filteredGroups`) so the set is stable when the user
+  // toggles severity filters later.
+  const [expandedGroupIds, setExpandedGroupIds] = useState<Set<string>>(
+    () => new Set(groups.filter((group) => group.severity === "Error").map((group) => group.id)),
+  );
   const [visibleSeverities, setVisibleSeverities] = useState<Set<ValidationSeverity>>(
     () => new Set(["Error", "Warning", "Info"]),
   );
@@ -205,7 +213,7 @@ export function ValidationPanel({
                       key={`${msg.code}-${msg.symbolId ?? "project"}-${msg.message}`}
                       className={`validation-item ${msg.severity.toLowerCase()}`}
                     >
-                      <span className="validation-code">{msg.code}</span>
+                      <span className="validation-code" title={buildRuleTooltip(msg.code)}>{msg.code}</span>
                       <span className="validation-message">{msg.message}</span>
                       {msg.details && <span className="validation-details">{msg.details}</span>}
                       {(editTarget && msg.symbolId && onEditSymbolField) || (quickFixes.length > 0 && onApplyQuickFix) ? (
@@ -250,6 +258,16 @@ function SeverityBadge({ severity }: { severity: ValidationSeverity }) {
   const label = severity === "Error" ? "Błąd" : severity === "Warning" ? "Ostrzeżenie" : "Info";
 
   return <span className={`validation-severity-badge ${severity.toLowerCase()}`}>{label}</span>;
+}
+
+function buildRuleTooltip(code: string): string {
+  const entry = getValidationRuleDescription(code);
+  if (!entry) return "";
+
+  // WHY: tooltip text combines plain rule explanation with the standard
+  // reference when available. NormRef is shown italicized after the
+  // description so the user immediately sees the engineering context.
+  return entry.normRef ? `${entry.description}\n\n${entry.normRef}` : entry.description;
 }
 
 function getHighestSeverity(severities: ValidationSeverity[]): ValidationSeverity {
