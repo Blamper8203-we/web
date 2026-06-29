@@ -3,7 +3,9 @@ import {
   createDefaultProjectMetadata,
   createEmptyProjectMetadata,
   DEFAULT_ATTACHMENT_ITEMS,
+  DEFAULT_POWER_FACTOR,
   mergeDefaultAttachmentItems,
+  normalizePowerFactor,
   normalizeProjectMetadata,
   normalizeSimultaneityFactor,
   normalizeAttachmentItems,
@@ -52,6 +54,21 @@ describe("power metadata normalization", () => {
     expect(normalizeSimultaneityFactor(0)).toBe(0.1);
     expect(normalizeSimultaneityFactor(0.755)).toBe(0.76);
     expect(normalizeSimultaneityFactor(2)).toBe(1);
+  });
+
+  it("defaults power factor to 0.9 on fresh projects", () => {
+    expect(DEFAULT_POWER_FACTOR).toBe(0.9);
+    expect(createDefaultProjectMetadata().powerFactor).toBe(0.9);
+    expect(createEmptyProjectMetadata().powerFactor).toBe(0.9);
+    expect(normalizeProjectMetadata({}).powerFactor).toBe(0.9);
+  });
+
+  it("keeps power factor within realistic engineering bounds (0.5..1)", () => {
+    expect(normalizePowerFactor(0)).toBe(0.5);
+    expect(normalizePowerFactor(0.85)).toBe(0.85);
+    expect(normalizePowerFactor(2)).toBe(1);
+    // falls back to default when input is not finite
+    expect(normalizePowerFactor(Number.NaN)).toBe(0.9);
   });
 });
 

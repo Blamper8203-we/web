@@ -113,6 +113,7 @@ export function useProjectActions({
     handleApplyPhaseMoveSuggestion,
   } = usePhaseBalanceActions({
     symbols, selectedSymbolId, selectedSymbolIds,
+    powerFactor: metadata.powerFactor,
     executeSymbolsCommand, showTemporaryStatus,
   });
 

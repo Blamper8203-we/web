@@ -23,6 +23,7 @@ import {
 export function calculateCircuitPhaseCurrents(
   symbols: SymbolItem[],
   phaseVoltage: number,
+  powerFactor: number = 0.9,
 ): Pick<
   { l1CurrentA: number; l2CurrentA: number; l3CurrentA: number },
   "l1CurrentA" | "l2CurrentA" | "l3CurrentA"
@@ -46,10 +47,10 @@ export function calculateCircuitPhaseCurrents(
     l3PowerW += l3;
   }
 
-  return {
-    l1CurrentA: calculateCurrent(l1PowerW, "L1", phaseVoltage),
-    l2CurrentA: calculateCurrent(l2PowerW, "L2", phaseVoltage),
-    l3CurrentA: calculateCurrent(l3PowerW, "L3", phaseVoltage),
+return {
+    l1CurrentA: calculateCurrent(l1PowerW, "L1", phaseVoltage, powerFactor),
+    l2CurrentA: calculateCurrent(l2PowerW, "L2", phaseVoltage, powerFactor),
+    l3CurrentA: calculateCurrent(l3PowerW, "L3", phaseVoltage, powerFactor),
   };
 }
 

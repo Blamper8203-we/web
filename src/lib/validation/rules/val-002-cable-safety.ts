@@ -33,12 +33,13 @@ export function validateCableSafety(
   symbols: SymbolItem[],
   result: ValidationResult,
   phaseVoltage: number,
+  powerFactor: number = 0.9,
 ): void {
   for (const symbol of symbols) {
     if (symbol.powerW <= 0) continue;
     if (symbol.deviceKind !== "mcb" && symbol.deviceKind !== "rcbo") continue;
 
-    const current = calculateCurrent(symbol.powerW, symbol.phase, phaseVoltage);
+    const current = calculateCurrent(symbol.powerW, symbol.phase, phaseVoltage, powerFactor);
     const protectionRating = parseProtectionRating(symbol.protectionType);
 
     if (protectionRating <= 0) continue;

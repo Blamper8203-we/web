@@ -11,7 +11,7 @@ export interface PhaseBalanceRow {
   isPhaseLocked: boolean;
 }
 
-export function buildPhaseBalanceRows(symbols: SymbolItem[], voltage = 230): PhaseBalanceRow[] {
+export function buildPhaseBalanceRows(symbols: SymbolItem[], voltage = 230, powerFactor = 0.9): PhaseBalanceRow[] {
   return symbols
     .filter((symbol) => symbol.deviceKind === "mcb" || symbol.deviceKind === "rcbo")
     .map((symbol) => ({
@@ -20,7 +20,7 @@ export function buildPhaseBalanceRows(symbols: SymbolItem[], voltage = 230): Pha
       circuitName: symbol.circuitName || symbol.label || symbol.type || "Obwód",
       phase: symbol.phase || "-",
       powerW: Math.max(0, symbol.powerW),
-      currentA: calculateCurrent(symbol.powerW, symbol.phase, voltage),
+      currentA: calculateCurrent(symbol.powerW, symbol.phase, voltage, powerFactor),
       isPhaseLocked: symbol.isPhaseLocked,
     }))
     .sort(compareBalanceRows);

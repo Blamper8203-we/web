@@ -117,4 +117,9 @@ export interface ProjectMetadata {
   mainBreakerA: 25 | 32 | 40 | 63 | 80 | 100 | 125;
   contractedPowerKw: number;
   simultaneityFactor: number;
+  // WHY: power factor (cosφ) controls how current is computed from installed
+  // power. 0.9 is a conservative default for mixed residential / light-commercial
+  // loads; workshops with large motors may need ~0.8. Per-symbol override would
+  // require a schema migration, so the value lives here as a project-level knob.
+  powerFactor: number;
 }

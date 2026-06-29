@@ -20,6 +20,8 @@ const DEFAULT_STANDARDS = [
 ];
 export const DEFAULT_SIMULTANEITY_FACTOR = 0.6;
 
+export const DEFAULT_POWER_FACTOR = 0.9;
+
 export const DEFAULT_WORK_SCOPE_ITEMS = [
   "Montaż rozdzielnicy głównej",
   "Układanie przewodów i osprzętu",
@@ -211,6 +213,7 @@ export function createDefaultProjectMetadata(): ProjectMetadata {
     mainBreakerA: 63,
     contractedPowerKw: 14,
     simultaneityFactor: DEFAULT_SIMULTANEITY_FACTOR,
+    powerFactor: DEFAULT_POWER_FACTOR,
   };
 }
 
@@ -256,6 +259,7 @@ export function createEmptyProjectMetadata(): ProjectMetadata {
     mainBreakerA: 63,
     contractedPowerKw: 14,
     simultaneityFactor: DEFAULT_SIMULTANEITY_FACTOR,
+    powerFactor: DEFAULT_POWER_FACTOR,
   };
 }
 
@@ -361,6 +365,7 @@ export function normalizeProjectMetadata(
     mainBreakerA: raw?.mainBreakerA ?? defaults.mainBreakerA,
     contractedPowerKw: raw?.contractedPowerKw ?? defaults.contractedPowerKw,
     simultaneityFactor: normalizeSimultaneityFactor(raw?.simultaneityFactor, defaults.simultaneityFactor),
+    powerFactor: normalizePowerFactor(raw?.powerFactor, defaults.powerFactor),
   };
 }
 
@@ -370,6 +375,14 @@ export function normalizeSimultaneityFactor(value: number | undefined, fallback 
   }
 
   return Math.max(0.1, Math.min(1, Math.round(Number(value) * 100) / 100));
+}
+
+export function normalizePowerFactor(value: number | undefined, fallback = DEFAULT_POWER_FACTOR): number {
+  if (!Number.isFinite(value)) {
+    return fallback;
+  }
+
+  return Math.max(0.5, Math.min(1, Math.round(Number(value) * 100) / 100));
 }
 
 export function resetDocumentationFields(metadata: ProjectMetadata): ProjectMetadata {

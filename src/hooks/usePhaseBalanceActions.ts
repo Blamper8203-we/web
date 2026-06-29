@@ -22,6 +22,7 @@ interface UsePhaseBalanceActionsParams {
   symbols: SymbolItem[];
   selectedSymbolId: string | null;
   selectedSymbolIds: string[];
+  powerFactor: number;
   executeSymbolsCommand: (
     label: string,
     before: SymbolHistorySnapshot,
@@ -35,15 +36,16 @@ export function usePhaseBalanceActions({
   symbols,
   selectedSymbolId,
   selectedSymbolIds,
+  powerFactor,
   executeSymbolsCommand,
   showTemporaryStatus,
 }: UsePhaseBalanceActionsParams) {
   const handleAutoBalance = useCallback(
     (mode: BalanceMode, scope: BalanceScope, previewOnly = false) => {
-      const distributionBefore = calculateTotalDistribution(symbols);
+      const distributionBefore = calculateTotalDistribution(symbols, powerFactor);
       const plan = autoBalancePhases(symbols, mode, scope);
       const applied = applyBalancePlan(symbols, plan);
-      const distributionAfter = calculateTotalDistribution(applied.symbols);
+      const distributionAfter = calculateTotalDistribution(applied.symbols, powerFactor);
       const details: BalanceChangeDetail[] = [];
 
       const beforeById = new Map(symbols.map((symbol) => [symbol.id, symbol]));
@@ -89,7 +91,7 @@ export function usePhaseBalanceActions({
 
       return { message: previewMessage, details, severity };
     },
-    [executeSymbolsCommand, selectedSymbolId, selectedSymbolIds, showTemporaryStatus, symbols],
+    [executeSymbolsCommand, powerFactor, selectedSymbolId, selectedSymbolIds, showTemporaryStatus, symbols],
   );
 
   const handleApplyPhaseMoveSuggestion = useCallback(
@@ -110,13 +112,13 @@ export function usePhaseBalanceActions({
         return;
       }
 
-      const distributionBefore = calculateTotalDistribution(symbols);
+      const distributionBefore = calculateTotalDistribution(symbols, powerFactor);
       const nextSymbols = symbols.map((symbol) =>
         symbol.id === symbolId
           ? { ...symbol, phase: toPhase as PhaseAssignment }
           : symbol,
       );
-      const distributionAfter = calculateTotalDistribution(nextSymbols);
+      const distributionAfter = calculateTotalDistribution(nextSymbols, powerFactor);
       const label = target.referenceDesignation || target.circuitName || target.label || target.id;
       const message = `Przeniesiono ${label}: ${target.phase} -> ${toPhase}. Asymetria ${distributionBefore.imbalancePercent.toFixed(1)}% -> ${distributionAfter.imbalancePercent.toFixed(1)}%.`;
 
@@ -127,7 +129,7 @@ export function usePhaseBalanceActions({
         message,
       );
     },
-    [executeSymbolsCommand, selectedSymbolId, selectedSymbolIds, showTemporaryStatus, symbols],
+    [executeSymbolsCommand, powerFactor, selectedSymbolId, selectedSymbolIds, showTemporaryStatus, symbols],
   );
 
   return {

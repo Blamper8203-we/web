@@ -75,6 +75,8 @@ export interface ValidationConfig {
   mainBreakerA?: number;
   /** Imbalance threshold percent. Default: 30. */
   imbalanceThresholdPercent?: number;
+  /** Power factor used to compute current from installed power. Default: 0.9. */
+  powerFactor?: number;
 }
 
 /**
@@ -101,6 +103,7 @@ export function validateProject(
       : configOrImbalanceThreshold ?? {};
   const phaseVoltage = config.supplyVoltageV ?? PHASE_VOLTAGE;
   const imbalanceThresholdPercent = config.imbalanceThresholdPercent ?? IMBALANCE_THRESHOLD_PERCENT;
+  const powerFactor = config.powerFactor ?? 0.9;
 
   const result: ValidationResult = {
     isValid: true,
@@ -109,7 +112,7 @@ export function validateProject(
     info: [],
   };
 
-  const phaseLoads = calculateTotalDistribution(symbols);
+  const phaseLoads = calculateTotalDistribution(symbols, powerFactor);
 
   // 1. Phase-level (whole project)
   validatePhaseImbalance(phaseLoads, result, imbalanceThresholdPercent);
@@ -119,12 +122,12 @@ export function validateProject(
   validateCableDataCompleteness(symbols, result);
 
   // 3. Per-circuit electrical safety
-  validateCableSafety(symbols, result, phaseVoltage);
+  validateCableSafety(symbols, result, phaseVoltage, powerFactor);
   validateProtectionMismatch(symbols, result);
   validateNoRcdProtection(symbols, result);
 
   // 4. RCD-related and coordination (heavier, may need the same RCD map)
-  validateMainOverload(symbols, result, phaseVoltage, config.mainBreakerA);
+  validateMainOverload(symbols, result, phaseVoltage, config.mainBreakerA, powerFactor);
   validateRcdOverload(symbols, result);
   validateRcdHierarchy(symbols, result);
   validateRcdSelectivity(symbols, result);

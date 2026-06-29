@@ -139,6 +139,7 @@ function createMockMetadata(overrides?: Partial<ProjectMetadata>): ProjectMetada
     mainBreakerA: 63,
     contractedPowerKw: 0,
     simultaneityFactor: 1,
+    powerFactor: 0.9,
     ...overrides,
   };
 }

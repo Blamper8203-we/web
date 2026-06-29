@@ -1,6 +1,6 @@
 import { useMemo, useEffect, useRef } from "react";
 import type { RightTab } from "../lib/appHelpers";
-import { normalizeSimultaneityFactor } from "../lib/projectMetadata";
+import { normalizePowerFactor, normalizeSimultaneityFactor } from "../lib/projectMetadata";
 import type { ValidationResult } from "../lib/validation/electricalValidationService";
 import type { ValidationQuickFixId } from "../lib/validation/validationQuickFixes";
 import type { ProjectMetadata } from "../types/projectMetadata";
@@ -278,6 +278,26 @@ export function AppRightPanel({
                           simultaneityFactor: normalizeSimultaneityFactor(
                             Number(e.target.value),
                             metadata.simultaneityFactor,
+                          ),
+                        })
+                      }
+                    />
+                  </label>
+                  <label className="power-config-field">
+                    <span><AppIcon className="accent-green" name="validation" size={12} />Współczynnik mocy (cosφ)</span>
+                    <input
+                      value={metadata.powerFactor}
+                      inputMode="decimal"
+                      type="number"
+                      min="0.5"
+                      max="1"
+                      step="0.05"
+                      onChange={(e) =>
+                        handleMetadataChange({
+                          ...metadata,
+                          powerFactor: normalizePowerFactor(
+                            Number(e.target.value),
+                            metadata.powerFactor,
                           ),
                         })
                       }

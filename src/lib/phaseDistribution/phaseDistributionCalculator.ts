@@ -45,7 +45,7 @@ export function distributePower(powerW: number, phase: PhaseAssignment | string 
   }
 }
 
-export function calculateTotalDistribution(symbols: SymbolItem[]): PhaseDistributionResult {
+export function calculateTotalDistribution(symbols: SymbolItem[], powerFactor: number = 0.9): PhaseDistributionResult {
   let l1 = 0, l2 = 0, l3 = 0;
 
   for (const symbol of symbols) {
@@ -63,13 +63,22 @@ export function calculateTotalDistribution(symbols: SymbolItem[]): PhaseDistribu
     l3 += dl3;
   }
 
-  return computeResultFromPowers(l1, l2, l3);
+  return computeResultFromPowers(l1, l2, l3, powerFactor);
 }
 
-export function calculateCurrent(powerW: number, phase: PhaseAssignment | string | undefined | null, voltage: number = 230): number {
+export function calculateCurrent(
+  powerW: number,
+  phase: PhaseAssignment | string | undefined | null,
+  voltage: number = 230,
+  powerFactor: number = 0.9,
+): number {
   if (powerW <= 0) return 0;
 
-  const cosPhi = 0.9;
+  // WHY: 0.9 is the project default for mixed residential / light-commercial
+  // loads (lighting, sockets, light AGD). The value lives on `ProjectMetadata`
+  // and is passed in by callers that have access to it; this signature keeps a
+  // fallback so older call sites keep compiling.
+  const cosPhi = powerFactor > 0 ? powerFactor : 0.9;
   const phaseUpper = (phase || "").toUpperCase();
 
   switch (phaseUpper) {
@@ -497,15 +506,15 @@ function addDistributedWeightToPhaseLoads(
   loads[2] += getWeight(l3Power, mode, voltage);
 }
 
-function computeResultFromPowers(l1: number, l2: number, l3: number): PhaseDistributionResult {
+function computeResultFromPowers(l1: number, l2: number, l3: number, powerFactor: number = 0.9): PhaseDistributionResult {
   const voltage = 230;
   return {
     l1PowerW: l1,
     l2PowerW: l2,
     l3PowerW: l3,
-    l1CurrentA: calculateCurrent(l1, "L1", voltage),
-    l2CurrentA: calculateCurrent(l2, "L1", voltage),
-    l3CurrentA: calculateCurrent(l3, "L1", voltage),
+    l1CurrentA: calculateCurrent(l1, "L1", voltage, powerFactor),
+    l2CurrentA: calculateCurrent(l2, "L1", voltage, powerFactor),
+    l3CurrentA: calculateCurrent(l3, "L1", voltage, powerFactor),
     imbalancePercent: calculateImbalancePercent(l1, l2, l3),
   };
 }

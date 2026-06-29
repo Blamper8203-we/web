@@ -22,10 +22,11 @@ export function validateMainOverload(
   result: ValidationResult,
   phaseVoltage: number,
   configuredMainBreakerA?: number,
+  powerFactor: number = 0.9,
 ): void {
   const mainBreakers = symbols.filter(isMainBreaker);
 
-  const phaseCurrents = calculateCircuitPhaseCurrents(symbols, phaseVoltage);
+  const phaseCurrents = calculateCircuitPhaseCurrents(symbols, phaseVoltage, powerFactor);
   const maxPhaseCurrent = Math.max(
     phaseCurrents.l1CurrentA,
     phaseCurrents.l2CurrentA,

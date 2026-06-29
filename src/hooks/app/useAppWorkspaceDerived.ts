@@ -43,9 +43,10 @@ export function useAppWorkspaceDerived({
       return validateProject(symbols, {
         supplyVoltageV: metadata.supplyVoltageV,
         mainBreakerA: metadata.mainBreakerA,
+        powerFactor: metadata.powerFactor,
       });
     },
-    [hasGeneratedDinRail, symbols, metadata.supplyVoltageV, metadata.mainBreakerA],
+    [hasGeneratedDinRail, symbols, metadata.supplyVoltageV, metadata.mainBreakerA, metadata.powerFactor],
   );
 
   const errorCount = validationResult.errors.length;

@@ -11,6 +11,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { PowerBalancePage } from "./PowerBalancePage";
+import type { ProjectMetadata } from "../types/projectMetadata";
 import type { SymbolItem } from "../types/symbolItem";
 import { createDefaultSymbolItem } from "../types/symbolItem";
 import { createDefaultProjectMetadata } from "../lib/projectMetadata";
@@ -129,5 +130,38 @@ describe("PowerBalancePage — phase card fill bar", () => {
 
     const singlePhaseChip = chips.find((el) => el.textContent === "L1")?.closest("span.pb-phase-chip");
     expect(singlePhaseChip?.getAttribute("title")).toBe("");
+  });
+
+  it("shows the configured power factor next to the BILANS FAZ header", () => {
+    const metadata: ProjectMetadata = { ...createDefaultProjectMetadata(), powerFactor: 0.85 };
+
+    render(
+      <PowerBalancePage
+        symbols={[]}
+        metadata={metadata}
+        {...noopHandlers}
+      />,
+    );
+
+    expect(screen.getByText(/cosφ = 0\.85/)).toBeInTheDocument();
+  });
+
+  it("computes higher per-phase current when power factor is reduced", () => {
+    const symbols = [makeMcb("m1", 1000, "L1")];
+    const defaultMetadata = createDefaultProjectMetadata();
+    const inductiveMetadata: ProjectMetadata = { ...defaultMetadata, powerFactor: 0.8 };
+
+    const { container: defaultContainer } = render(
+      <PowerBalancePage symbols={symbols} metadata={defaultMetadata} {...noopHandlers} />,
+    );
+    const defaultCurrent = defaultContainer.querySelector(".pb-phase-card strong")?.textContent ?? "";
+
+    const { container: inductiveContainer } = render(
+      <PowerBalancePage symbols={symbols} metadata={inductiveMetadata} {...noopHandlers} />,
+    );
+    const inductiveCurrent = inductiveContainer.querySelector(".pb-phase-card strong")?.textContent ?? "";
+
+    // cosφ=0.8 -> higher current than cosφ=0.9 for the same 1000W.
+    expect(parseFloat(inductiveCurrent)).toBeGreaterThan(parseFloat(defaultCurrent));
   });
 });

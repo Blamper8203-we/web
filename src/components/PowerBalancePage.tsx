@@ -35,7 +35,7 @@ interface PowerBalancePageProps {
 }
 
 export function PowerBalancePage({ symbols, onApplyBalance, onApplyPhaseMove, metadata }: PowerBalancePageProps) {
-  const distribution = calculateTotalDistribution(symbols);
+  const distribution = calculateTotalDistribution(symbols, metadata.powerFactor);
   const totalPower = distribution.l1PowerW + distribution.l2PowerW + distribution.l3PowerW;
   // WHY: phase-card fill bar must be scaled against the HEAVIEST phase, not
   // the sum of all three. With an ideal 10/10/10 A balance, scaling against
@@ -56,7 +56,7 @@ export function PowerBalancePage({ symbols, onApplyBalance, onApplyPhaseMove, me
   const reservePower = connectionPower - calculatedPower;
   const imbalance = distribution.imbalancePercent;
   const imbalanceClass = imbalance > 30 ? "critical" : imbalance > 15 ? "warning" : "ok";
-  const balanceRows = buildPhaseBalanceRows(symbols, metadata.supplyVoltageV);
+  const balanceRows = buildPhaseBalanceRows(symbols, metadata.supplyVoltageV, metadata.powerFactor);
   const imbalanceInsights = buildPhaseImbalanceInsights(balanceRows);
   const moveSuggestions = buildPhaseMoveSuggestions(balanceRows);
 
@@ -102,7 +102,12 @@ export function PowerBalancePage({ symbols, onApplyBalance, onApplyPhaseMove, me
         </div>
       </div>
 
-      <div className="section-header">BILANS FAZ</div>
+      <div className="section-header">
+          BILANS FAZ
+          <span className="pb-phase-cosphi" title="Współczynnik mocy użyty do przeliczenia prądu z mocy zainstalowanej">
+            {" "}(cosφ = {metadata.powerFactor.toFixed(2)})
+          </span>
+        </div>
       <div className="card pb-phases">
         <PhaseCard
           color="brown"
@@ -171,7 +176,7 @@ function PhaseCard({
         <span className="pb-phase-label">{label}</span>
         <strong>{current.toFixed(1)} A</strong>
       </div>
-      <div className="pb-phase-track">
+      <div className="pb-phase-track" title={`100% = ${maxCurrent.toFixed(1)} A`}>
         <div className="pb-phase-fill" data-testid="pb-phase-fill" style={{ width: `${fillPercent}%` }} />
       </div>
       <span className="pb-phase-power">{power.toFixed(0)} W</span>

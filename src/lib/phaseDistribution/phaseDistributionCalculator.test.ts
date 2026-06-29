@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { applyBalancePlan, autoBalancePhases, calculateTotalDistribution, distributePower } from './phaseDistributionCalculator';
+import { applyBalancePlan, autoBalancePhases, calculateCurrent, calculateTotalDistribution, distributePower } from './phaseDistributionCalculator';
 import { createDefaultSymbolItem, type SymbolItem } from '../../types/symbolItem';
 
 describe('phaseDistributionCalculator', () => {
@@ -231,5 +231,27 @@ describe('distributePower - edge cases', () => {
     expect(l1).toBe(300);
     expect(l2).toBe(300);
     expect(l3).toBe(300);
+  });
+
+  it('honors a custom power factor for calculateCurrent (motor-driven workshop ≈ 0.8)', () => {
+    // 1000 W single-phase at 230 V:
+    //   cosφ=0.9 → 4.83 A
+    //   cosφ=0.8 → 5.43 A
+    // The lower power factor raises the current, which is the standard
+    // engineering correction for inductive loads.
+    expect(calculateCurrent(1000, 'L1', 230, 0.9)).toBeCloseTo(4.83, 2);
+    expect(calculateCurrent(1000, 'L1', 230, 0.8)).toBeCloseTo(5.43, 2);
+  });
+
+  it('propagates powerFactor through calculateTotalDistribution', () => {
+    const symbols: Partial<SymbolItem>[] = [
+      { id: '1', phase: 'L1', powerW: 1000 },
+    ];
+    const defaultResult = calculateTotalDistribution(symbols as SymbolItem[]);
+    const highInductive = calculateTotalDistribution(symbols as SymbolItem[], 0.8);
+    // Lower cosφ -> higher current for the same installed power.
+    expect(highInductive.l1CurrentA).toBeGreaterThan(defaultResult.l1CurrentA);
+    // Powers stay identical — only the current conversion is affected.
+    expect(highInductive.l1PowerW).toBe(defaultResult.l1PowerW);
   });
 });
