@@ -132,6 +132,29 @@
   filter: brightness(1.08);
 }
 
+.validation-export-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 26px;
+  padding: 3px 9px;
+  border: 1px solid var(--state-info-border);
+  border-radius: 6px;
+  color: var(--accent-blue);
+  background: var(--state-info-soft);
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.validation-export-btn:hover,
+.validation-export-btn:focus-visible {
+  border-color: var(--accent-primary-hover);
+  background: rgba(30, 58, 95, 0.16);
+  outline: none;
+}
+
 .validation-count.errors {
   color: var(--accent-red);
   border-color: var(--state-danger-border);

@@ -116,6 +116,15 @@ export function ValidationPanel({
       <div className="card validation-summary-card">
         <strong>{errorCount > 0 ? "Dokumentacja wymaga poprawek" : "Dokumentacja z ostrzeżeniami"}</strong>
         <div className="validation-summary">
+          <button
+            className="validation-export-btn"
+            type="button"
+            onClick={() => copyReportToClipboard(filteredGroups)}
+            title="Kopiuj listę wyników jako tekst do schowka"
+          >
+            <AppIcon name="print" size={14} />
+            Kopiuj raport
+          </button>
           <label className="validation-filter-select">
             <span>Pokaż:</span>
             <select
@@ -310,4 +319,55 @@ function getHighestSeverity(severities: ValidationSeverity[]): ValidationSeverit
   if (severities.includes("Error")) return "Error";
   if (severities.includes("Warning")) return "Warning";
   return "Info";
+}
+
+function formatReportForClipboard(
+  groups: ReturnType<typeof buildValidationDisplayGroupsForSymbols>,
+): string {
+  const date = new Date().toISOString().split("T")[0];
+  const lines: string[] = [];
+  lines.push(`Raport walidacji DINBoard — ${date}`);
+  lines.push("=".repeat(50));
+  lines.push("");
+
+  if (groups.length === 0) {
+    lines.push("Brak problemów w wybranym filtrze.");
+    return lines.join("\n");
+  }
+
+  for (const group of groups) {
+    lines.push(`[${group.severity.toUpperCase()}] ${group.title} — ${group.subtitle}`);
+    for (const msg of group.messages) {
+      lines.push(`  ${msg.code}: ${msg.message}`);
+      if (msg.details) lines.push(`    ${msg.details}`);
+    }
+    lines.push("");
+  }
+
+  return lines.join("\n");
+}
+
+async function copyReportToClipboard(
+  groups: ReturnType<typeof buildValidationDisplayGroupsForSymbols>,
+): Promise<void> {
+  const text = formatReportForClipboard(groups);
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    // Fallback: select-and-copy via a temporary textarea (older browsers,
+    // non-secure contexts). Errors here are silent — clipboard failures
+    // should not block the user from continuing work.
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand("copy");
+    } catch {
+      /* ignore */
+    }
+    document.body.removeChild(textarea);
+  }
 }
