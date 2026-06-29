@@ -12,6 +12,7 @@ import {
 import { chunkRows } from "../measurementProtocolHelpers";
 import { PdfTitlePage } from "./pdfPages/PdfTitlePage";
 import { PdfProjectSummaryPage } from "./pdfPages/PdfProjectSummaryPage";
+import { PdfDocumentationContentPage, hasDocumentationContent } from "./pdfPages/PdfDocumentationContentPage";
 import { PdfCircuitListPage } from "./pdfPages/PdfCircuitListPage";
 import { PdfUnifiedTablePage } from "./pdfPages/PdfUnifiedTablePage";
 import { PdfRcdTablePage } from "./pdfPages/PdfRcdTablePage";
@@ -63,6 +64,13 @@ export function PdfProtocolDocument({
         <PdfProjectSummaryPage
           metadata={metadata}
           groupedCircuits={groupedCircuits}
+          displayDate={displayDate}
+        />
+      )}
+
+      {(!previewOnly || previewOnly === "documentation") && hasDocumentationContent(metadata) && (
+        <PdfDocumentationContentPage
+          metadata={metadata}
           displayDate={displayDate}
         />
       )}
