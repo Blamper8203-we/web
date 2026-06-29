@@ -99,7 +99,11 @@ const MIN_REFINEMENT_DIFF = 0.01;
 const MAX_MOVE_REFINEMENT_STEPS = 50;
 const MAX_SWAP_REFINEMENT_STEPS = 30;
 const ZERO_POWER_UNIT_WEIGHT = 0.001;
-const TARGET_IMBALANCE_PERCENT = 3.0;
+// WHY: 5% (not 3% or 10%) — PN-HD 60364 does not pin a number; the polish
+// engineering practice treats ≤ 10% as acceptable and ≤ 5% as good. The
+// auto-balance refinement stops once it cannot improve below this target,
+// so a tighter threshold only matters when near-perfect balance is reachable.
+const TARGET_IMBALANCE_PERCENT = 5.0;
 const MIN_SWAP_IMPROVEMENT_PERCENT = 0.5;
 const INDUCTION_OVEN_ENABLED_KEY = "GroupScenario.InductionWithOven.Enabled";
 const INDUCTION_OVEN_PATTERN_KEY = "GroupScenario.InductionWithOven.Pattern";
@@ -254,6 +258,16 @@ export function autoBalancePhases(
     if (processedIds.has(symbol.id)) continue;
     if (!isSinglePhase(symbol)) {
       addDistributedWeightToPhaseLoads(plan.loads, symbol.powerW, symbol.phase, mode, voltage);
+      continue;
+    }
+
+    // WHY: a zero-power MCB contributes nothing to the imbalance but would
+    // still get a phase assignment if pushed through `plan.units`. That
+    // surprises the user (their empty circuit suddenly landed on L2).
+    // Skip it entirely; the symbol keeps its current phase (defaults to L1
+    // via createDefaultSymbolItem) and reappears once a non-zero powerW
+    // is entered.
+    if (symbol.powerW <= 0) {
       continue;
     }
 

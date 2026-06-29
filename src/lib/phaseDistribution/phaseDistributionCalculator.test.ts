@@ -161,6 +161,22 @@ describe('phaseDistributionCalculator', () => {
     expect(['L1', 'L2', 'L3']).toContain(assigned);
   });
 
+  it('leaves a zero-power single-phase MCB phase unchanged (no surprise reassignment)', () => {
+    // Regression: previously a 0 W MCB still received a phase assignment via
+    // ZERO_POWER_UNIT_WEIGHT, making the user's empty circuit land on an
+    // arbitrary phase. Now zero-power circuits are skipped entirely.
+    const symbols: SymbolItem[] = [
+      createDefaultSymbolItem({ id: 'real', type: 'MCB 1P', phase: 'L1', powerW: 1000, width: 18, height: 90 }),
+      createDefaultSymbolItem({ id: 'empty', type: 'MCB 1P', phase: 'L1', powerW: 0, width: 18, height: 90 }),
+    ];
+
+    const plan = autoBalancePhases(symbols, 'Current', 'AllSinglePhase');
+    const applied = applyBalancePlan(symbols, plan);
+
+    const empty = applied.symbols.find((symbol) => symbol.id === 'empty');
+    expect(empty?.phase).toBe('L1');
+  });
+
   it('excludes terminal blocks (Listwy do rozdzielnicy) from phase load totals', () => {
     // Regression: previously a listwa with phase="L1+L2+L3" and any
     // powerW > 0 would falsely contribute to the phase total. The

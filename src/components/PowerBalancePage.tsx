@@ -7,6 +7,7 @@ import { buildPhaseMoveSuggestions, type PhaseMoveSuggestion } from "../lib/phas
 import { buildPhaseImbalanceInsights } from "../lib/phaseDistribution/phaseImbalanceInsights";
 import {
   calculateTotalDistribution,
+  distributePower,
   type BalanceMode,
   type BalanceScope,
 } from "../lib/phaseDistribution/phaseDistributionCalculator";
@@ -203,7 +204,12 @@ function PhaseBalanceTable({ rows }: { rows: PhaseBalanceRow[] }) {
                   <td className="pb-circuit-ref">{row.referenceDesignation}</td>
                   <td className="pb-circuit-name">{row.circuitName}</td>
                   <td>
-                    <span className={`pb-phase-chip ${phaseClass(row.phase)}`}>{row.phase}</span>
+                    <span
+                      className={`pb-phase-chip ${phaseClass(row.phase)}`}
+                      title={phaseBreakdownTooltip(row.phase, row.powerW)}
+                    >
+                      {row.phase}
+                    </span>
                   </td>
                   <td>{formatPower(row.powerW)}</td>
                   <td>{row.currentA.toFixed(1)} A</td>
@@ -224,6 +230,24 @@ function formatPower(powerW: number): string {
   }
 
   return `${powerW.toFixed(0)} W`;
+}
+
+// WHY: multi-phase circuits (L1+L2, L1+L3, L2+L3, L1+L2+L3) split their
+// power across the listed phases. Showing only the raw "phase" string leaves
+// the user guessing how the load distributes; a tooltip with the explicit
+// L1/L2/L3 watt breakdown makes the contribution visible without expanding
+// the table.
+function phaseBreakdownTooltip(phase: string, powerW: number): string {
+  if (!phase.includes("+") || powerW <= 0) {
+    return "";
+  }
+
+  const [l1, l2, l3] = distributePower(powerW, phase);
+  const parts: string[] = [];
+  if (l1 > 0) parts.push(`L1: ${formatPower(l1)}`);
+  if (l2 > 0) parts.push(`L2: ${formatPower(l2)}`);
+  if (l3 > 0) parts.push(`L3: ${formatPower(l3)}`);
+  return parts.length > 0 ? parts.join(", ") : "";
 }
 
 function phaseClass(phase: string): string {

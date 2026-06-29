@@ -9,7 +9,7 @@
  * and an asymmetric installation fills 100% on the heaviest phase.
  */
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { PowerBalancePage } from "./PowerBalancePage";
 import type { SymbolItem } from "../types/symbolItem";
 import { createDefaultSymbolItem } from "../types/symbolItem";
@@ -89,5 +89,45 @@ describe("PowerBalancePage — phase card fill bar", () => {
     for (const fill of fills) {
       expect((fill as HTMLElement).style.width).toBe("3%");
     }
+  });
+
+  it("renders a per-phase watt breakdown as a tooltip on multi-phase circuit chips", () => {
+    // 9000 W L1+L2+L3 -> L1: 3.00 kW, L2: 3.00 kW, L3: 3.00 kW
+    const symbols = [
+      createDefaultSymbolItem({
+        id: "threephase",
+        deviceKind: "mcb",
+        powerW: 9000,
+        phase: "L1+L2+L3",
+        circuitType: "Sila",
+        circuitName: "Plyta indukcyjna",
+      }),
+      createDefaultSymbolItem({
+        id: "singlephase",
+        deviceKind: "mcb",
+        powerW: 1000,
+        phase: "L1",
+        circuitType: "Gniazdo",
+        circuitName: "Gniazdko",
+      }),
+    ];
+
+    render(
+      <PowerBalancePage
+        symbols={symbols}
+        metadata={createDefaultProjectMetadata()}
+        {...noopHandlers}
+      />,
+    );
+
+    // Scope to the table — "L1" also appears as a phase-card label outside the table.
+    const table = screen.getByRole("table");
+    const chips = within(table).getAllByText(/^L1(\+L2(\+L3)?)?$/);
+
+    const threePhaseChip = chips.find((el) => el.textContent === "L1+L2+L3")?.closest("span.pb-phase-chip");
+    expect(threePhaseChip?.getAttribute("title")).toBe("L1: 3.00 kW, L2: 3.00 kW, L3: 3.00 kW");
+
+    const singlePhaseChip = chips.find((el) => el.textContent === "L1")?.closest("span.pb-phase-chip");
+    expect(singlePhaseChip?.getAttribute("title")).toBe("");
   });
 });
