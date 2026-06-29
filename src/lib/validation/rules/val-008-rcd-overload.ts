@@ -29,8 +29,8 @@ export function validateRcdOverload(
     if (rcd.rcdRatedCurrent > 0 && totalCurrent > rcd.rcdRatedCurrent) {
       result.warnings.push({
         code: "VAL-008",
-        message: `Przeciążenie RCD "${rcd.label || rcd.id}"`,
-        details: `Suma zabezpieczeń obwodów: ${totalCurrent}A, znamionowy prąd RCD: ${rcd.rcdRatedCurrent}A`,
+        message: `RCD ${rcd.rcdRatedCurrent}A przeciążony (suma zabezpieczeń ${totalCurrent}A) w obwodzie "${rcd.label || rcd.id}"`,
+        details: `Suma prądów zabezpieczeń obwodów podrzędnych: ${totalCurrent}A, prąd znamionowy RCD: ${rcd.rcdRatedCurrent}A. Rozdziel obwody lub wymień RCD na wyższy prąd.`,
         severity: "Warning",
         symbolId: rcd.id,
       });

@@ -28,10 +28,11 @@ export function validateProtectionMismatch(
     if (maxCableCurrent <= 0) continue;
 
     if (protectionRating > maxCableCurrent * 1.45) {
+      const safeLimit = (maxCableCurrent * 1.45).toFixed(0);
       result.errors.push({
         code: "VAL-005",
-        message: `Zabezpieczenie zbyt duże dla przewodu w obwodzie "${symbol.circuitName || symbol.label}"`,
-        details: `Zabezpieczenie: ${protectionRating}A, przewód ${symbol.cableCrossSection}mm2 nie zapewnia ochrony przy przeciążeniu >${(maxCableCurrent * 1.45).toFixed(0)}A`,
+        message: `Zabezpieczenie ${protectionRating}A przekracza ochronę kabla ${symbol.cableCrossSection}mm² w obwodzie "${symbol.circuitName || symbol.label}"`,
+        details: `Dopuszczalne maksimum dla kabla ${symbol.cableCrossSection}mm² to ${safeLimit}A (1,45 × ${maxCableCurrent}A). Zmniejsz zabezpieczenie lub zwiększ przekrój.`,
         severity: "Error",
         symbolId: symbol.id,
       });
