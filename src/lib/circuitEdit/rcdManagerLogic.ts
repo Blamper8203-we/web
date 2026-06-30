@@ -8,6 +8,35 @@ export interface RcdManagerUpdateEntry {
   rcdType: string;
 }
 
+// WHY: H-3 audit fix. Dla RCD i dla symboli z rcdSymbolId oryginalny kod
+// rebuilduje caly symbol przez createDefaultSymbolItem nawet gdy wartosci
+// sie nie zmienily. To powoduje (a) niepotrzebny rerender w React gdy
+// referencja idzie do state, (b) side-effecty createDefaultSymbolItem
+// odpala sie dla calego projektu przy kazdej edycji RCD, (c) ryzyko
+// przyszlych regression (gdy ktos doda telemetrie do createDefaultSymbolItem,
+// nagle kazda edycja RCD bedzie telemetrowana). Fix: porownaj wartosci
+// przed/po i zwroc oryginalny symbol jesli identyczne.
+function buildRcdUpdate(
+  symbol: SymbolItem,
+  rcdRatedCurrent: number,
+  rcdResidualCurrent: number,
+  rcdType: string,
+): SymbolItem {
+  if (
+    symbol.rcdRatedCurrent === rcdRatedCurrent &&
+    symbol.rcdResidualCurrent === rcdResidualCurrent &&
+    symbol.rcdType === rcdType
+  ) {
+    return symbol;
+  }
+  return createDefaultSymbolItem({
+    ...symbol,
+    rcdRatedCurrent,
+    rcdResidualCurrent,
+    rcdType,
+  });
+}
+
 /**
  * Aktualizuje listę symboli o nowe ustawienia z menedżera RCD.
  * Aplikuje te same zmiany dla samego RCD i wszystkich podłączonych do niego MCB/RCBO.
@@ -25,12 +54,12 @@ export function applyRcdManagerUpdates(
         return symbol;
       }
 
-      return createDefaultSymbolItem({
-        ...symbol,
-        rcdRatedCurrent: Math.max(1, Math.round(nextRcd.rcdRatedCurrent)),
-        rcdResidualCurrent: Math.max(1, Math.round(nextRcd.rcdResidualCurrent)),
-        rcdType: nextRcd.rcdType.trim().toUpperCase() || "A",
-      });
+      return buildRcdUpdate(
+        symbol,
+        Math.max(1, Math.round(nextRcd.rcdRatedCurrent)),
+        Math.max(1, Math.round(nextRcd.rcdResidualCurrent)),
+        nextRcd.rcdType.trim().toUpperCase() || "A",
+      );
     }
 
     if (symbol.rcdSymbolId) {
@@ -39,12 +68,12 @@ export function applyRcdManagerUpdates(
         return symbol;
       }
 
-      return createDefaultSymbolItem({
-        ...symbol,
-        rcdRatedCurrent: Math.max(1, Math.round(parentRcd.rcdRatedCurrent)),
-        rcdResidualCurrent: Math.max(1, Math.round(parentRcd.rcdResidualCurrent)),
-        rcdType: parentRcd.rcdType.trim().toUpperCase() || "A",
-      });
+      return buildRcdUpdate(
+        symbol,
+        Math.max(1, Math.round(parentRcd.rcdRatedCurrent)),
+        Math.max(1, Math.round(parentRcd.rcdResidualCurrent)),
+        parentRcd.rcdType.trim().toUpperCase() || "A",
+      );
     }
 
     return symbol;
