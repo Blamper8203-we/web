@@ -253,7 +253,16 @@
 .din-rail-dialog-backdrop {
   position: absolute;
   inset: 0;
-  z-index: 40;
+  /* WHY: BottomNav/FAB mają z-index 1000/999. Poprzedni z-index 40
+     powodowal ze wszystkie 8 dialogow (Generator DIN, SVG Import,
+     About, Help, RCD Manager, Imported Modules, Unsaved Changes,
+     Palette Removal Confirm) byly WIDOCZNE POD dolnym paskiem na
+     telefonie — Generuj/Anuluj przyciski zasloniete przez BottomNav
+     lub nieaktywne (z-index nizszy = tapniecie przechwytywane przez
+     BottomNav). User raportowal "nie moge wygenerowac szyny din" i
+     ogolnie "wszystko zle na telefonie" — to jest glowne zrodlo.
+     2000 jak mobile-side-drawer-overlay. */
+  z-index: 2000;
   display: grid;
   place-items: center;
   background: rgba(0, 0, 0, 0.28);
@@ -354,8 +363,12 @@
   justify-content: center;
   gap: 4px;
   width: 100%;
-  min-height: 32px;
-  font-size: 11px;
+  /* WHY: 32px min-height na dotyku jest za male (Apple HIG = 44px,
+     Material = 48px). User raportuje "nie moge wygenerowac szyny DIN" —
+     tap na Generuj mogl trafic w pustke obok buttona. 44px + 14px font
+     daje czytelny cel na ekranie dotykowym. */
+  min-height: 44px;
+  font-size: 14px;
 }
 
 .din-rail-dialog-actions > button:not(.accent-btn) {

@@ -15,7 +15,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: safe center;
+  /* FIX (2026-06-28): Poprzednio było tu 'justify-content: center', co
+     przy dokumentach wyższych niż ekran ucinało górę A4 (np. tytuł) bez
+     możliwości przeskrolowania. 'flex-start' rozwiązuje problem pionowy.
+     Poziome centrowanie pozostaje wymuszone przez 'align-items: center'. */
+  justify-content: flex-start;
   padding: 16px;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   scrollbar-width: thin;
@@ -30,7 +34,12 @@
   width: 210mm;
   height: 297mm;
   background-color: #FAF9F6;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  /* WHY: poprzedni `0 10px 25px` dawal wyrazny cien z gory, ktory na
+     ciemnym tle canvas-area (#0b0d10) wygladal jak "obcieta krawedz"
+     strony A4 - user raportowal "wszystkie sa uciete od gory". Mniejszy,
+     bardziej rozmyty cien bez offsetu Y wyglada jak naturalny drop shadow
+     i nie sugeruje uciecia. */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   padding: 15mm 15mm 15mm 15mm;
   box-sizing: border-box;
   position: relative;

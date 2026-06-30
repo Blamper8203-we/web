@@ -44,7 +44,10 @@
 
 @media (max-width: 768px) {
   .main-content {
-    padding-bottom: calc(60px + env(safe-area-inset-bottom));
+    /* WHY: na telefonie desktop default (padding-left: 64px dla sidebara)
+       przesuwa cala zawartosc 64px w prawo. Usuwamy - mobile nie ma sidebara.
+       padding-bottom 60px na BottomNav zostaje. */
+    padding: 8px 8px calc(60px + env(safe-area-inset-bottom)) 8px;
   }
 
   .main-content.is-right-panel-hidden {

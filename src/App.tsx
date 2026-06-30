@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Outlet, useNavigate, useOutletContext } from "react-router-dom";
+import { Outlet, useNavigate, useOutletContext, useRouteError } from "react-router-dom";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { Analytics } from "@vercel/analytics/react";
 import { Helmet } from "react-helmet-async";
@@ -140,10 +140,40 @@ function AppRoute() {
   );
 }
 
+function RootRouteErrorFallback() {
+  const error = useRouteError();
+  const errorMessage = error instanceof Error ? error.message : String(error);
+
+  return (
+    <main className="app-error-boundary" role="alert">
+      <section className="app-error-boundary__panel">
+        <div className="app-error-boundary__mark">!</div>
+        <div className="app-error-boundary__copy">
+          <span className="app-error-boundary__eyebrow">DINBoard Web</span>
+          <h1>Aplikacja wymaga odświeżenia</h1>
+          <p>
+            Struktura plików została zaktualizowana i obecna wersja w przeglądarce 
+            straciła z nią synchronizację (częsty objaw np. podczas ładowania modułów tła).
+          </p>
+          <p className="app-error-boundary__hint">
+            Oryginalny błąd: {errorMessage}
+          </p>
+        </div>
+        <div className="app-error-boundary__actions">
+          <button type="button" className="accent-btn" onClick={() => window.location.reload()}>
+            Odśwież nową wersję
+          </button>
+        </div>
+      </section>
+    </main>
+  );
+}
+
 export const routes = [
   {
     path: "/",
     element: <AppLayout />,
+    errorElement: <RootRouteErrorFallback />,
     children: [
       { index: true, element: <LandingRoute /> },
       { path: "app", element: <AppRoute /> },
