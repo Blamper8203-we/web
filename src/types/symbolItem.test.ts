@@ -109,4 +109,50 @@ describe("isTerminalOrConnectorSymbol and isDistributionBlockSymbol", () => {
     expect(isTerminalOrConnectorSymbol(mcb)).toBe(false);
     expect(isDistributionBlockSymbol(mcb)).toBe(false);
   });
+
+  it("M-1 fix: nie matchuje 'rozlacznik' (false positive w poprzedniej wersji)", () => {
+    // WHY: poprzedni kod matchowal 'rozdzielcz' jako substring, ale
+    // "rozłącznik" to switch disconnector, nie distribution block.
+    const rozlacznik = createDefaultSymbolItem({
+      type: "Rozłącznik izolacyjny",
+      label: "Rozłącznik 63A",
+    });
+    expect(isDistributionBlockSymbol(rozlacznik)).toBe(false);
+  });
+
+  it("M-1 fix: nie matchuje 'szyna rozdzielcza' (false positive w poprzedniej wersji)", () => {
+    // WHY: poprzedni kod matchowal 'rozdzielcz' substringiem, ale to
+    // busbar, nie distribution block.
+    const busbar = createDefaultSymbolItem({
+      type: "Szyna rozdzielcza",
+      label: "Szyna rozdzielcza 100A",
+    });
+    expect(isDistributionBlockSymbol(busbar)).toBe(false);
+  });
+
+  it("M-1 fix: nie matchuje 'obwod dystrybucyjny' (false positive w poprzedniej wersji)", () => {
+    // WHY: poprzedni kod matchowal 'distribution' substringiem.
+    const obwod = createDefaultSymbolItem({
+      type: "Obwód dystrybucyjny",
+      label: "Obwód dystrybucyjny główny",
+    });
+    expect(isDistributionBlockSymbol(obwod)).toBe(false);
+  });
+
+  it("M-1 fix: matchuje 'blok rozgalezien' (blok rozgałęźny - inna wariacja)", () => {
+    // WHY: blok rozgałęźny to też distribution block, inna nazwa.
+    const blokRozg = createDefaultSymbolItem({
+      type: "Blok rozgałęźny",
+      label: "Blok rozgałęźny 2x6",
+    });
+    expect(isDistributionBlockSymbol(blokRozg)).toBe(true);
+  });
+
+  it("M-1 fix: matchuje 'distribution block' (angielska wersja)", () => {
+    const distBlockEN = createDefaultSymbolItem({
+      type: "Distribution block",
+      label: "Distribution block 4-pole",
+    });
+    expect(isDistributionBlockSymbol(distBlockEN)).toBe(true);
+  });
 });

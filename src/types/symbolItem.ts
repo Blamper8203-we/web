@@ -320,11 +320,20 @@ export function isDistributionBlockSymbol(symbol: Partial<SymbolBase>): boolean 
     symbol.moduleRef,
   );
 
+  // WHY: M-1 audit fix. Poprzednie substringi ("blok", "block", "rozdzielcz",
+  // "distribution") byly zbyt ogolne - matchowaly "blokada", "obwod
+  // dystrybucyjny", "szyna rozdzielcza" itp. Zawężone do konkretnych fraz
+  // dla distribution block. Wykluczenie "rozlacznik" na wstepie bo
+  // "rozlac" + "roz" moglo wchodzic w podobne frazy (defensywa, chociaz
+  // poza "rozlacznik" brak w value - in case normalize dodaje cos z
+  // visualPath/moduleRef).
+  if (value.includes("rozlacznik")) {
+    return false;
+  }
   return (
-    value.includes("blok") ||
-    value.includes("block") ||
-    value.includes("rozdzielcz") ||
-    value.includes("distribution")
+    value.includes("blok rozdzielczy") ||
+    value.includes("blok rozgalezny") ||
+    value.includes("distribution block")
   );
 }
 
