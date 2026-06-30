@@ -1,10 +1,13 @@
 import { detectExplicitPoleCount } from "../modules/importedModuleCatalog";
 import { getPaletteTemplateDimensions, type PaletteTemplate } from "../modules/moduleCatalog";
-import { createDefaultSymbolItem, type PhaseAssignment, type SymbolItem } from "../../types/symbolItem";
+import { createDefaultSymbolItem, type SymbolItem } from "../../types/symbolItem";
 import { AppIconName } from "../../components/AppIcon";
+import {
+  isSinglePhaseAssignment,
+  normalizeSinglePhaseAssignment,
+} from "./phaseNormalization";
 
 const MANUAL_PHASE_KEY = "ManualPhase";
-const SINGLE_PHASES: PhaseAssignment[] = ["L1", "L2", "L3"];
 
 export function buildPaletteTemplateMap(
   paletteGroups: Array<{ items: PaletteTemplate[] }>,
@@ -38,23 +41,6 @@ function isFixedThreePhaseTemplate(template: PaletteTemplate): boolean {
 
 function isSinglePhaseRcdTemplate(template: PaletteTemplate): boolean {
   return template.deviceKind === "rcd" && !isFixedThreePhaseRcdTemplate(template);
-}
-
-function isSinglePhaseAssignment(phase: string | null | undefined): phase is PhaseAssignment {
-  return SINGLE_PHASES.includes((phase || "").toUpperCase() as PhaseAssignment);
-}
-
-function normalizeSinglePhaseAssignment(
-  phase: string | null | undefined,
-  fallback: string | null | undefined = "L1",
-): PhaseAssignment {
-  const normalizedPhase = (phase || "").toUpperCase();
-  if (isSinglePhaseAssignment(normalizedPhase)) {
-    return normalizedPhase;
-  }
-
-  const normalizedFallback = (fallback || "").toUpperCase();
-  return isSinglePhaseAssignment(normalizedFallback) ? normalizedFallback : "L1";
 }
 
 export function normalizePaletteAssetDimensions(

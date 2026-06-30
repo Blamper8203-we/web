@@ -5,9 +5,12 @@ import {
   type PhaseAssignment,
   type SymbolItem,
 } from "../../types/symbolItem";
+import {
+  normalizeSinglePhaseAssignment,
+  SINGLE_PHASES,
+} from "./phaseNormalization";
 
 const MANUAL_PHASE_KEY = "ManualPhase";
-const SINGLE_PHASES: PhaseAssignment[] = ["L1", "L2", "L3"];
 
 export function isGroupHeadSymbol(symbol: SymbolItem): boolean {
   return symbol.deviceKind === "rcd";
@@ -125,23 +128,6 @@ function isFixedThreePhaseRcdSymbol(symbol: SymbolItem): boolean {
   }
 
   return identity.includes("4P") || identity.includes("3P") || symbol.phase === "L1+L2+L3";
-}
-
-function isSinglePhaseAssignment(phase: string | null | undefined): phase is PhaseAssignment {
-  return SINGLE_PHASES.includes((phase || "").toUpperCase() as PhaseAssignment);
-}
-
-function normalizeSinglePhaseAssignment(
-  phase: string | null | undefined,
-  fallback: string | null | undefined = "L1",
-): PhaseAssignment {
-  const normalizedPhase = (phase || "").toUpperCase();
-  if (isSinglePhaseAssignment(normalizedPhase)) {
-    return normalizedPhase;
-  }
-
-  const normalizedFallback = (fallback || "").toUpperCase();
-  return isSinglePhaseAssignment(normalizedFallback) ? normalizedFallback : "L1";
 }
 
 function getNextPhase(current: string): PhaseAssignment {
