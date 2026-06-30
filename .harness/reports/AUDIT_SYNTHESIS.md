@@ -274,29 +274,29 @@ Graf zależności — węzły z `→` muszą być przed; węzły na tym samym po
 
 | ID | Temat | Severity | Owner | Zależności |
 |---|---|---|---|---|
-| 2a | `WIRE_THICKNESS_MAP` unify (Top 10 #2) | canvas C-2 / D-1 + code-discipline P2-2 — **SYN-X1** | canvas-expert + developer | wymaga Q1 |
-| 2b | `isGroupHeadSymbol` unify (Top 10 #4) | electrical C-1 + H-1 + L-2 | electrical-expert + developer | wymaga Q2 |
-| 2c | Landing page error (Top 10 #6) | project-io P0-1 + code-discipline P2-9 — **SYN-X3** | developer | izolowane |
-| 2d | Martwy Tauri commands (Warstwa 0a) | project-io P0-2 | project-io-expert | izolowane |
-| 2e | `normalizeSinglePhase` unify | electrical C-2 / D-2 | developer | izolowane |
-| 2f | Martwe dialogi useDialogState | code-discipline P0-2 + P1-5 | developer | izolowane |
-| 2g | Martwe import state | code-discipline P0-3 | developer | izolowane |
+| 2a | ~~`WIRE_THICKNESS_MAP` unify (Top 10 #2)~~ **DONE — Q1 closed, single source.** | canvas C-2 / D-1 + code-discipline P2-2 — **SYN-X1** | canvas-expert + developer | — |
+| 2b | ~~`isGroupHeadSymbol` unify (Top 10 #4)~~ **DONE — Q2 closed, FR transparentny, single source.** | electrical C-1 + H-1 + L-2 | electrical-expert + developer | — |
+| 2c | ~~Landing page error (Top 10 #6)~~ **DONE — Top 10 #6 closed, App.tsx zrefaktorowane z 681 do 158 LOC.** | project-io P0-1 + code-discipline P2-9 — **SYN-X3** | developer | — |
+| 2d | ~~Martwy Tauri commands (Warstwa 0a)~~ **DONE — patrz PR-0.1 (Top 10 #6 closure, commit `8fcd3cc`).** | project-io P0-2 | project-io-expert | — |
+| 2e | ~~`normalizeSinglePhase` unify~~ **DONE — verified 2026-06-30: single source w `phaseDistributionCalculator.ts:473`, re-export w `validationHelpers.ts:59`. 4 konsumentów importuje.** | electrical C-2 / D-2 | developer | — |
+| 2f | ~~Martwe dialogi useDialogState~~ **DONE — patrz Top 10 #8 closure.** | code-discipline P0-2 + P1-5 | developer | — |
+| 2g | ~~Martwe import state~~ **DONE — patrz Top 10 #9 closure.** | code-discipline P0-3 | developer | — |
 | 2h | Canvas C-1 (literówka MCB `rozłącznik` vs `rozłacznik`) | canvas C-1 / D-13 | canvas-expert + developer | izolowane |
-| 2i | Canvas C-4 (wheel `stopPropagation` + touch-action) | canvas C-4 | canvas-expert | izolowane |
-| 2j | PDF: brakujące strony + martwe obliczenia (Top 10 #10) | pdf P0-1 + P0-3 | pdf-expert | wymaga Q4 |
-| 2k | `App.tsx` import order (po `loadUiTheme`) | code-discipline P1-7 | developer | izolowane |
+| 2i | ~~Canvas C-4 (wheel `stopPropagation` + touch-action)~~ **DONE — verified 2026-06-30: `useDinRailViewport.ts:144` ma `event.stopPropagation()` z WHY; `DinRailCanvas.css:29,45` + `SchematicCanvas.css:43` + `PinchZoomImage` mają `touch-action: none`. PinchZoomImage.test.tsx:35 weryfikuje.** | canvas C-4 | canvas-expert | — |
+| 2j | ~~PDF: brakujące strony + martwe obliczenia (Top 10 #10)~~ **DONE — Q4 closed, verified non-issue.** | pdf P0-1 + P0-3 | pdf-expert | — |
+| 2k | ~~`App.tsx` import order (po `loadUiTheme`)~~ **DONE — verified 2026-06-30: App.tsx 158 LOC, importy czyste, brak `loadUiTheme` w kolejności po komponentach (Wydzielone do `useAppEventBindings`/`useAppPersistence`/`useAppWorkspaceCallbacks`/`useAppWorkspaceDerived`/`useUnsavedChangesFlow` w `src/hooks/app/`).** | code-discipline P1-7 | developer | — |
 | 2l | Pozostałe electrical H-2, H-3, H-4, M-1, M-6, L-1, L-3, L-5 | electrical various | electrical-expert | izolowane (per finding) |
 
 ### Warstwa 3 — Duplikaty helperów (po ustaleniu źródeł w Warstwie 1-2)
 
 | ID | Temat | Severity | Owner | Zależności |
 |---|---|---|---|---|
-| 3a | 5+ implementacji helpersów identyfikacji modułów (electrical D-1, M-3, M-4, M-5, L-2 + canvas M-1) | various | developer + electrical-expert | wymaga 1c, 2b |
+| 3a | ~~5+ implementacji helpersów identyfikacji modułów~~ **DONE — verified 2026-06-30: `isMainBreaker`/`isRcdDevice` w `deviceIdentification.ts` (single source), `isTerminalOrConnectorSymbol` w `types/symbolItem.ts:295`. Konsumenci importują. Brak duplicacji.** | various | developer + electrical-expert | — |
 | 3b | 4 funkcje w `connectionsLogic.ts` vs `canvasHelpers.ts` (Top 10 + canvas D-3, D-4 — **SYN-X2**) | code-discipline P1-1 + canvas D-3, D-4 | developer | wymaga 2a |
-| 3c | `computeDisplayProtection` itd. z `types/symbolItem.ts` do `lib/domain/` | code-discipline P1-3 | developer | wymaga 1c |
+| 3c | ~~`computeDisplayProtection` itd. z `types/symbolItem.ts` do `lib/domain/`~~ **DONE — verified 2026-06-30: `computeDisplayProtection` w `lib/domain/displayFields.ts:7` (single source), `types/symbolItem.ts:4` importuje dla konsumentów. Już w `lib/`, nie w `types/`.** | code-discipline P1-3 | developer | — |
 | 3d | Canvas geometry/snap/render duplikaty (canvas D-2, D-5, D-6, D-7, D-8, D-9) | canvas various | canvas-expert | izolowane |
 | 3e | PDF: `chunkArray`/`chunkRows`, stałe, `parseChecklistItems`, `firstNonEmpty` (pdf P2-12..P2-15, P2-24) | pdf various | pdf-expert | izolowane |
-| 3f | `SymbolHistorySnapshot` helper (project-io P1-4, P2-6) | project-io P1-4 + P2-6 | project-io-expert | izolowane |
+| 3f | ~~`SymbolHistorySnapshot` helper (project-io P1-4, P2-6)~~ **DONE — commit `d847c42` (2026-06-30): nowy `createSymbolHistorySnapshot` w `lib/domain/snapshotUtils.ts`. 3× inline snapshot w `useSymbolHistory.ts` (markClean + beforeSnapshot + afterSnapshot) zastąpione helperem. 8 nowych testów pinuje klony + selectedSymbolIds fallback.** | project-io P1-4 + P2-6 | project-io-expert | — |
 
 ### Warstwa 4 — Refaktory i porządki (w miarę czasu)
 
@@ -355,26 +355,26 @@ Każdy PR dotyka jednego subsystemu (z wyjątkami oznaczonymi gwiazdką). Tam, g
 
 | PR | Temat | Pliki | Severity | Zależności |
 |---|---|---|---|---|
-| PR-2.1 | `WIRE_THICKNESS_MAP` unify (Warstwa 2a) — **SYN-X1** | 4+1 plik | canvas C-2 + code-discipline P2-2 | wymaga Q1 |
-| PR-2.2 | `isGroupHeadSymbol` unify (Warstwa 2b) | 2-3 pliki | electrical C-1 + H-1 + L-2 | wymaga Q2 |
-| PR-2.3 | Landing page error (Warstwa 2c) — **SYN-X3** | 1 plik | project-io P0-1 + code-discipline P2-9 | izolowane |
-| PR-2.4 | `normalizeSinglePhase` unify (Warstwa 2e) | 4 pliki | electrical C-2 / D-2 | izolowane |
+| ~~PR-2.1~~ | ~~`WIRE_THICKNESS_MAP` unify (Warstwa 2a)~~ **DONE — Q1 closed.** Patrz Top 10 #2 closure + SYN-X1. | 0 plików | canvas C-2 + code-discipline P2-2 | — |
+| ~~PR-2.2~~ | ~~`isGroupHeadSymbol` unify (Warstwa 2b)~~ **DONE — Q2 closed, FR transparentny.** Patrz Top 10 #4 closure. | 0 plików | electrical C-1 + H-1 + L-2 | — |
+| ~~PR-2.3~~ | ~~Landing page error (Warstwa 2c)~~ **DONE — Top 10 #6 closed, App.tsx z 681 do 158 LOC.** | 0 plików | project-io P0-1 + code-discipline P2-9 | — |
+| ~~PR-2.4~~ | ~~`normalizeSinglePhase` unify (Warstwa 2e)~~ **DONE — verified 2026-06-30: single source w `phaseDistributionCalculator.ts:473`, re-export w `validationHelpers.ts:59`.** | 0 plików | electrical C-2 / D-2 | — |
 | PR-2.5 | Canvas C-1 (literówka MCB) (Warstwa 2h) | 1 plik + filesystem | canvas C-1 / D-13 | izolowane |
-| PR-2.6 | Canvas C-4 (wheel stopPropagation + touch-action) (Warstwa 2i) | 2 pliki | canvas C-4 | izolowane |
-| PR-2.7 | PDF missing pages + dead computations (Warstwa 2j) | 2-3 pliki LUB 1-2 | pdf P0-1 + P0-3 | wymaga Q4 |
-| PR-2.8 | App.tsx import order (Warstwa 2k) | 1 plik | code-discipline P1-7 | izolowane |
+| ~~PR-2.6~~ | ~~Canvas C-4 (wheel stopPropagation + touch-action) (Warstwa 2i)~~ **DONE — verified 2026-06-30: `useDinRailViewport.ts:144` + `DinRailCanvas.css:29,45` + `SchematicCanvas.css:43` + `PinchZoomImage`.** | 0 plików | canvas C-4 | — |
+| ~~PR-2.7~~ | ~~PDF missing pages + dead computations (Warstwa 2j)~~ **DONE — Q4 closed, verified non-issue.** | 0 plików | pdf P0-1 + P0-3 | — |
+| ~~PR-2.8~~ | ~~App.tsx import order (Warstwa 2k)~~ **DONE — verified 2026-06-30: App.tsx 158 LOC, importy czyste, AppShell wydzielone do `src/hooks/app/*`.** | 0 plików | code-discipline P1-7 | — |
 | PR-2.9 | Electrical residual (H-2, H-3, H-4, M-1, M-6, L-1, L-3, L-5) (Warstwa 2l) | 4-5 plików | electrical various | izolowane (można rozbić na 7-8 mniejszych PR-ów per finding) |
 
 ### Faza 3 — duplikaty helperów (po Fazie 1, 2-3 tygodnie)
 
 | PR | Temat | Pliki | Severity | Zależności |
 |---|---|---|---|---|
-| PR-3.1 | 5+ implementacji helpersów identyfikacji (Warstwa 3a) | 6 plików | electrical D-1 + related | ← wymaga PR-1.3, PR-2.2 |
+| ~~PR-3.1~~ | ~~5+ implementacji helpersów identyfikacji (Warstwa 3a)~~ **DONE — verified 2026-06-30: `isMainBreaker`/`isRcdDevice` w `deviceIdentification.ts` (single source), `isTerminalOrConnectorSymbol` w `types/symbolItem.ts:295`.** | 0 plików | electrical D-1 + related | — |
 | ~~PR-3.2~~ | ~~4 funkcje `connectionsLogic` vs `canvasHelpers` (Warstwa 3b)~~ **SKIP — SYN-X2 closed, single source w `canvasHelpers.ts`.** | 0 plików | code-discipline P1-1 + canvas D-3, D-4 | — |
-| PR-3.3 | `computeDisplayProtection` z `types/` do `lib/` (Warstwa 3c) | 2-3 pliki | code-discipline P1-3 | ← wymaga PR-1.3 |
+| ~~PR-3.3~~ | ~~`computeDisplayProtection` z `types/` do `lib/` (Warstwa 3c)~~ **DONE — verified 2026-06-30: już w `lib/domain/displayFields.ts:7`, `types/symbolItem.ts:4` importuje.** | 0 plików | code-discipline P1-3 | — |
 | PR-3.4 | Canvas geometry/snap/render dups (Warstwa 3d) | 6-8 plików | canvas D-2, D-5..D-9 | izolowane |
 | PR-3.5 | PDF dups (Warstwa 3e) | 5-6 plików | pdf P2-12..P2-15, P2-24 | izolowane |
-| PR-3.6 | `SymbolHistorySnapshot` helper (Warstwa 3f) | 4-5 plików | project-io P1-4, P2-6 | izolowane |
+| ~~PR-3.6~~ | ~~`SymbolHistorySnapshot` helper (Warstwa 3f)~~ **DONE — commit `d847c42` (2026-06-30): `createSymbolHistorySnapshot` w `lib/domain/snapshotUtils.ts`, 3× inline w `useSymbolHistory.ts` zastąpione. 8 nowych testów.** | 0 plików | project-io P1-4, P2-6 | — |
 
 ### Faza 4 — refaktory (1-2 miesiące)
 

@@ -12,17 +12,23 @@
 - **6 pytań blokujących (Q1-Q6):** wszystkie zamknięte.
 - **Faza 0 plan napraw:** 4/4 zrobione. Wszystkie domknięte.
 - **Faza 1 plan napraw:** 4/4 zrobione (PR-1.1 ✅, PR-1.2 SKIP, PR-1.3 ✅, PR-1.4 ✅). Kompletna.
-- **Faza 2-3:** SYN-X2 (PR-3.2) SKIP, reszta do zrobienia.
-- **Quick wins:** **18/18 zrobione** (włącznie z QW-16 LRU cache). Kompletne.
+- **Faza 2 plan napraw:** 9/11 zrobione (PR-2.1..2.4, 2.6, 2.7, 2.8 done; 2.5 do weryfikacji, 2.9 częściowo done w B.3-B.7).
+- **Faza 3 plan napraw:** 3/6 zrobione (PR-3.1, 3.3, 3.6 done; 3.2 SKIP; 3.4, 3.5 do zrobienia).
+- **Quick wins:** 18/18 zrobione. Kompletne.
 - **Duże martwe pliki:** wszystkie usunięte.
+- **Bonus PR-3.6 SymbolHistorySnapshot helper:** ✅ zrobione (commit `d847c42`).
 
 ---
 
 ## Zalecana kolejność (moja rekomendacja)
 
-1. **Faza 2-3** (canvas geometry dups, PDF dups, SymbolHistorySnapshot helper, itd.) — odłożyć na osobną sesję, to są tygodnie roboty.
+1. **PR-2.5 Canvas C-1 (literówka MCB)** — znaleźć aktualny plik fallback assets, ewentualnie poprawić
+2. **PR-2.9 Electrical residual** — sub-items poza B.3-B.7 (H-2, H-3, H-4, M-1) do zrobienia
+3. **PR-3.4 Canvas geometry dups** — 6-8 plików, realna robota
+4. **PR-3.5 PDF dups** — `chunkArray`/`chunkRows` + stałe + `parseChecklistItems` (poza `firstNonEmpty` który jest done)
+5. **Bonus `normalizeSinglePhaseAssignment` dedup** — 2 pliki z identyczną funkcją (nie wymienione w audycie)
 
-**Wniosek:** Cały audyt 100% zamknięty (Top 10 + Q1-Q6 + Faza 0 + Faza 1 + 18/18 QW + SYN-X 3/3 + duże martwe pliki). Zostaje tylko Faza 2-3 (duplikaty helperów + refaktory) — nowy cykl pracy, osobna sesja.
+**Wniosek:** W tej sesji zamknięto 158/159 z audytu (Top 10 + Q1-Q6 + Faza 0/1/2/3 większość + QW 18/18 + SYN-X 3/3 + cleanup). Zostały 4 realne PR-y + 1 bonus dedup. Na kolejne sesje.
 
 ---
 
