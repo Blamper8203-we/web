@@ -10,9 +10,9 @@
 
 - **Top 10 z audytu:** 10/10 zrobione lub Q-closed. Wszystko zamknięte.
 - **6 pytań blokujących (Q1-Q6):** wszystkie zamknięte.
-- **Faza 0 plan napraw:** 4/4 zrobione (0a, 0b, 0c, 0d). Wszystkie domknięte.
-- **Faza 1 plan napraw:** PR-1.1 done, PR-1.2 (Avalonia) nie dotyczy, PR-1.3 + PR-1.4 do zrobienia.
-- **Faza 2-3:** część domknięta (SYN-X2 = single source w canvasHelpers), reszta do zrobienia.
+- **Faza 0 plan napraw:** 4/4 zrobione. Wszystkie domknięte.
+- **Faza 1 plan napraw:** 3/4 zrobione (PR-1.1 ✅, PR-1.2 SKIP, PR-1.4 ✅, PR-1.3 do zrobienia).
+- **Faza 2-3:** SYN-X2 (PR-3.2) SKIP, reszta do zrobienia.
 - **Quick wins:** 9/18 zrobione. Zostało **9 drobiazgów** (sekcja B).
 - **Duże martwe pliki:** wszystkie usunięte.
 
@@ -20,9 +20,9 @@
 
 ## Zalecana kolejność (moja rekomendacja)
 
-1. **A.2 PR-1.4 Connection parser defaults** — mały, izolowany, 1-2 godziny roboty, widoczny efekt. Najlepszy remaining ROI.
-2. **A.3 PR-1.3 DeviceKind unify** — 2-3 pliki, izolowany.
-3. **Sekcja B** (9 quick wins) — dorobić przy okazji jak będziesz dotykał tych plików z innego powodu. Nie osobna sesja.
+1. **A.3 PR-1.3 DeviceKind unify** — 2-3 pliki + typy, izolowany, pół dnia. Jedyne co zostało z Fazy 1.
+2. **Sekcja B** (9 quick wins) — dorobić przy okazji jak będziesz dotykał tych plików z innego powodu. Nie osobna sesja.
+3. **Faza 2-3** (canvas geometry dups, PDF dups, SymbolHistorySnapshot helper, itd.) — odłożyć na osobną sesję, to są tygodnie roboty.
 
 ---
 
@@ -37,13 +37,14 @@
 - **Czas:** 1-2 tygodnie
 - **Status:** Zrobione — commity `8fcd3cc`..`1ceb06f` + `d4078e6`. Registry w `src/lib/projectMigrations.ts` (237 LOC) z `Migration` interface, `MIGRATIONS[]`, `registerMigration()`, `runMigrations()` (skip-if-applied, universal vs version-scoped), `migrateProjectData()`. Zarejestrowana produkcyjna migracja `v1-to-v2:legacyReferenceDesignations`. Testy `projectMigrations.test.ts` (248 LOC). `projectFile.ts` integruje. Zamknięte 2026-06-30 w tej sesji (closure commit do `AUDIT_SYNTHESIS.md`).
 
-### A.2 [ ] PR-1.4 Connection parser defaults
+### A.2 [x] PR-1.4 Connection parser defaults ✅ DONE
 - **Pliki:** `src/lib/projectFile.ts:416-434` + `src/types/connectionItem.ts:31-45` (1-2 pliki, ~40 LOC)
-- **Problem:** Parser defaults: `routingMode: "manhattan"`. `createDefaultConnection`: `routingMode: "orthogonal"`. Brak defaultu `ferruleColor` w parserze. Pliki zapisane przed dodaniem pola dostaną inny default niż świeże.
+- **Problem:** Parser defaults: `routingMode: "manhattan"`. `createDefaultConnection`: `routingMode: "orthogonal"`. Brak defaultu `ferruleColor` w parserze. Pliki zapisane przed dodaniem pola `ferruleColor` dostaną inny default niż świeże.
 - **Fix:** Parser per item: `createDefaultConnection({...rawItem})` zamiast ręcznych defaultów.
 - **Severity:** project-io P0-5 + P2-3
 - **Owner:** project-io-expert
 - **Czas:** 1-2 godziny
+- **Status:** Zamknięte 2026-06-30. Commity `ee1d8bf` (refactor: scentralizowany `filterConnectionOverrides`) + `92cd04f` (fix: filter zachowuje `fromDirection`/`toDirection`/`customRadius`). Parser `projectFile.ts:247` używa `createDefaultConnection(filterConnectionOverrides(conn))`. Testy `connectionItem.test.ts` (273 LOC) pinują wszystkie defaults + round-trip. Symbol path też naprawiony. Top 10 #5 closure + PR-1.4 oznaczony DONE.
 
 ### A.3 [ ] PR-1.3 DeviceKind / CircuitDeviceKind unify
 - **Pliki:** `src/types/symbolItem.ts:1-9` vs `src/types/circuitRow.ts:1-9` (2-3 pliki + typy)
@@ -145,8 +146,8 @@
 ### Faza 1 (1/4 done):
 - ✅ PR-1.1: Migration registry (patrz A.1)
 - ⏭️ PR-1.2: Avalonia disambiguation — SKIP (user: brak plików Avalonia, gałąź usunięta w `d4078e6`)
-- 🔲 PR-1.3: DeviceKind / CircuitDeviceKind unify (patrz A.3)
-- 🔲 PR-1.4: Connection parser defaults (patrz A.2)
+- 🔲 PR-1.3: DeviceKind / CircuitDeviceKind unify (patrz A.3) — jedyne co zostało z Fazy 1
+- ✅ PR-1.4: Connection parser defaults (patrz A.2) — commity `ee1d8bf` + `92cd04f`
 
 ### Faza 2-3 (1/15 done):
 - ⏭️ PR-3.2: SYN-X2 dedup (canvasHelpers single source) — patrz C.1

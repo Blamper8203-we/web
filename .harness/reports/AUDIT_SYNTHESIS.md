@@ -168,6 +168,10 @@ Lista uszeregowana od najbardziej pilnych (cicha utrata danych / security / dome
 
 **Minimalny fix:** Parser per item: `createDefaultConnection({...rawItem})` zamiast ręcznych defaultów. Analogicznie dla `SymbolItem` (P2-3).
 
+~~**ZAMKNIĘTE 2026-06-30: verified.** Refactor wykonany w commitach `ee1d8bf` (scentralizowany `filterConnectionOverrides`) + `92cd04f` (fix: filter zachowuje `fromDirection`/`toDirection`/`customRadius`). Parser w `projectFile.ts:247` używa `createDefaultConnection(filterConnectionOverrides(conn))` — single source. `createDefaultConnection` ma `routingMode: "orthogonal"`, `ferruleColor: "white"` (linie 49-50 `connectionItem.ts`). `filterConnectionOverrides` (linie 73-119) ma type guard dla każdego pola ConnectionItem łącznie z `ferruleColor` (linia 91), `routingMode` (92), `customRadius` (97), `fromDirection` (100-101), `toDirection` (103-104), `points` (106-116). Krytyczny invariant udokumentowany w `connectionItem.ts:55-72` z listą kroków dla nowych pól. Testy `connectionItem.test.ts` (273 LOC) pinują: `routingMode: "orthogonal"` default (linia 19), `ferruleColor: "white"` default (linie 18, 34, 126), filter type guards (linie 47-104), `normalizeConnectionItems` round-trip dla `customRadius`/`fromDirection`/`toDirection` (linie 201-272 z WHY komentarzem). Testy `projectFile.test.ts:8-48` pinują round-trip preserve dla wszystkich pól. Symbol path też naprawiony: parser w `projectFile.ts:166-180` używa `normalizeSymbolItems`. Brak implementacji — closure historyczne.
+
+**FYI (poza scope, nierobione):** `createDefaultConnection.routingMode: "orthogonal"` vs `DEFAULT_WIRE_SETTINGS.routingMode: "manhattan"` (`loadInitialState.ts:39`) + runtime UI defaults w `DinRailConnectionsCanvas.tsx:102`, `AppWorkspaceCanvas.tsx:158` — to NIE jest bug, to dwa różne konteksty (file load vs UI). Pliki zapisane z "manhattan" są preserve'owane. Stare pliki bez `routingMode` dostaną "orthogonal" z parsera. Decyzja produktowa: czy chcesz zunifikować na jeden default. Nieruszałem bo to dotyka file format contract.~~
+
 ---
 
 ### 6. `App.tsx:670-681` — ciche połykanie błędów parsowania pliku z landing page (project-io P0-1 + code-discipline P2-9) — **SYN-X3**
@@ -345,7 +349,7 @@ Każdy PR dotyka jednego subsystemu (z wyjątkami oznaczonymi gwiazdką). Tam, g
 | ~~PR-1.1~~ | ~~Migration registry (Warstwa 1a)~~ **DONE poza planem (commity `8fcd3cc`..`1ceb06f` + `d4078e6`).** Patrz closure przy Top 10 #1. | ~~5-6 plików~~ 2 pliki | project-io P0-3 + P1-2 + P2-9 | — |
 | PR-1.2 | Avalonia disambiguation (Warstwa 1b) | 1-2 pliki | project-io P0-4 + P1-3 | ← wymaga PR-1.1 |
 | PR-1.3 | `DeviceKind` / `CircuitDeviceKind` unify (Warstwa 1c) | 2-3 pliki + typy | electrical C-3 + M-2 | izolowane |
-| PR-1.4 | Connection parser defaults (Warstwa 1d) | 1-2 pliki | project-io P0-5 + P2-3 | izolowane |
+| ~~PR-1.4~~ | ~~Connection parser defaults (Warstwa 1d)~~ **DONE poza planem (commity `ee1d8bf` + `92cd04f`).** Patrz closure przy Top 10 #5. | 0 plików | project-io P0-5 + P2-3 | — |
 
 ### Faza 2 — izolowane poprawki (równolegle, 2-3 tygodnie)
 
