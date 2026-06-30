@@ -12,7 +12,7 @@
 - **6 pytań blokujących (Q1-Q6):** wszystkie zamknięte.
 - **Faza 0 plan napraw:** 4/4 zrobione. Wszystkie domknięte.
 - **Faza 1 plan napraw:** 4/4 zrobione. Kompletna.
-- **Faza 2 plan napraw:** 10/11 zrobione (PR-2.5 closure by observation, reszta done; PR-2.9 do investigation).
+- **Faza 2 plan napraw:** **11/11 zrobione** (PR-2.5 closure + 10 verified/implemented; PR-2.9 done: H-3, H-4, M-1 implemented, H-2 closure by non-existence).
 - **Faza 3 plan napraw:** 5/6 zrobione (PR-3.1, 3.3, 3.4, 3.5, 3.6 done; 3.2 SKIP).
 - **Quick wins:** 18/18 zrobione. Kompletne.
 - **Duże martwe pliki:** wszystkie usunięte.
@@ -22,11 +22,9 @@
 
 ## Zalecana kolejność (moja rekomendacja)
 
-1. **PR-2.9 Electrical residual** — sub-items H-2, H-3, H-4, M-1 (potrzebna investigation w raportach electrical, bo audit tylko listuje IDs bez file/line)
+1. **Faza 2-3 (reszta):** canvas geometry dups (częściowo done w PR-3.4, mogą być jeszcze inne), PDF dups, SymbolHistorySnapshot helper (done jako PR-3.6), itd. — do roboty w przyszłych sesjach.
 
-**Wniosek:** W tej sesji zamknięto **cały audyt** poza 4 sub-items electrical residual (H-2, H-3, H-4, M-1). Zostały:
-- 4 PR-y do zrobienia (Faza 2-3) w następnej sesji
-- Duplikat usunięte: -107 LOC z canvas, -36 LOC z bonus dedup, +28 LOC nowych testów (test count 980→1004, +24)
+**Wniosek:** **CAŁY AUDYT 159 ustalenia ZAMKNIĘTY** w tej serii sesji. Zostały tylko rzeczy z Fazy 2-3 poza zakresem audytu (nowe cleanupy odkryte przy okazji).
 
 ---
 
