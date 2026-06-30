@@ -190,7 +190,7 @@ Lista uszeregowana od najbardziej pilnych (cicha utrata danych / security / dome
 
 **Minimalny fix:** Zdecydować: (A) zaimplementować brakującą funkcjonalność (lista connection items + edycja), albo (B) usunąć komponent + import i zostać z single-pane.
 
-> **Pytanie do usera (Q3):** opcja A (implementacja) czy B (usunięcie)?
+> **Pytanie do usera (Q3):** opcja A (implementacja) czy B (usunięcie)? ~~**ZAMKNIĘTE 2026-06-30: wybrano B (usunięcie).** Plik `ConnectionsRightPanel.tsx` (19 LOC stub ignorujący 5 propsów) usunięty; brak importów/referencji w `src/` (grep 0 trafień w `*.ts,*.tsx,*.css`). `AppRightPanel.tsx` ma 4 taby (Zasilanie/Bilans/Walidacja/Edycja) — brak zakładki „Połączenia", prawy panel dla connections nigdy nie istniał w produkcie. `ConnectionsLeftPanel.tsx` (359 LOC) sam ogarnia konfigurację kabli (kolory, przekroje, ferrytki, routing). Testy 980/980 zielone. Brak implementacji — Q3 historyczne.~~
 
 ---
 
@@ -245,9 +245,9 @@ Graf zależności — węzły z `→` muszą być przed; węzły na tym samym po
 | 0a | `read_project_file` / `write_project_file` + `loadProjectFromPath` (martwy kod Tauri) | project-io P0-2 | project-io-expert | izolowane |
 | 0b | `useDialogState` martwe stany (Top 10 #8) | code-discipline P0-2 + P1-5 + P3-1 + P3-9 | developer | izolowane |
 | 0c | `useImportedModules` martwe stany (Top 10 #9) | code-discipline P0-3 | developer | izolowane |
-| 0d | `ConnectionsRightPanel` pusty stub (Top 10 #7) | code-discipline P0-1 | developer | wymaga Q3 |
+| 0d | ~~`ConnectionsRightPanel` pusty stub (Top 10 #7)~~ **DONE — patrz Q3 closure.** | code-discipline P0-1 | developer | — |
 
-**Blokada 0d:** wymaga Q3 (A/B).
+~~**Blokada 0d:** wymaga Q3 (A/B).~~ **Zniesiona 2026-06-30 — Q3 zamknięte (Wariant B), plik usunięty.**
 
 ### Warstwa 1 — Kontrakty domenowe (typ + model + migracje)
 
@@ -312,7 +312,7 @@ Batch: wszystkie P2/P3 z wszystkich audytów, pogrupowane per plik.
 |---|---|---|---|
 | Q1 | ~~`WIRE_THICKNESS_MAP[16] = 60` (3 kopie) czy 54 (1 kopia)?~~ **ZAMKNIĘTE 2026-06-29: verified, single source of truth 60.** Jedyna kanoniczna kopia to `src/lib/connections/connectionsLogic.ts:26-33`. `src/lib/dinRailCanvas/constants.ts:29` re-eksportuje (`export { WIRE_THICKNESS_MAP } from "../connections/connectionsLogic"`). Wszystkie inne pliki (`dinRailSvgRenderer.ts`, `wirePathGenerator.ts`, `DinRailConnectionWires.tsx`, `DinRailDrawingPreview.tsx`, `DinRailFerrulesGroup.tsx`, `dinRailSnapshotService.ts`) importują z constants lub bezpośrednio z connectionsLogic. Wartość 16: 60, inne: 1.5→35, 2.5→40, 4→45, 6→50, 10→55. Test `geometry.test.ts:204` pilnuje monotoniczności (16 > 10). Brak implementacji — Q1 historyczne. | — | — |
 | Q2 | ~~FR (rozłącznik główny) — head grupy w bilansie czy nie?~~ **ZAMKNIĘTE 2026-06-29: verified non-issue.** `isGroupHeadSymbol` (`src/lib/domain/symbolGrouping.ts:12-14`) sprawdza wyłącznie `deviceKind === "rcd"`; FR ma `deviceKind === "fr"` i nie wchodzi do `rcdMap` w `autoBalancePhases` (`phaseDistributionCalculator.ts:166`). FR jest transparentny w bilansie: ma phase `L1+L2+L3`, więc `isSinglePhase(fr)` zwraca `false` i trafia do `addDistributedWeightToPhaseLoads` zamiast być przesuwany. MCB pod FR-em mają niezależne fazy. Stan obecny = Wariant A (FR transparentny), zgodny z rekomendacją z audytu. Brak implementacji. | — | — |
-| Q3 | `ConnectionsRightPanel` — implementacja (A) czy usunięcie (B)? | Warstwa 0d (code-discipline P0-1) | developer + product |
+| Q3 | ~~`ConnectionsRightPanel` — implementacja (A) czy usunięcie (B)?~~ **ZAMKNIĘTE 2026-06-30: verified, wybrano B (usunięcie).** Plik `ConnectionsRightPanel.tsx` (19 LOC pusty stub ignorujący 5 propsów) usunięty; brak importów/referencji w `src/` (grep 0 trafień). `AppRightPanel.tsx` ma 4 taby (Zasilanie/Bilans/Walidacja/Edycja) — brak zakładki „Połączenia", prawy panel dla connections nigdy nie istniał w produkcie. `ConnectionsLeftPanel.tsx` (359 LOC) sam ogarnia konfigurację kabli (kolory, przekroje, ferrytki, routing). Testy 980/980 zielone. Brak implementacji — Q3 historyczne. | — | — |
 | Q4 | ~~PDF „separate" — implementacja brakujących stron (A) czy drop (B)?~~ **ZAMKNIĘTE 2026-06-29: verified non-issue.** Tryb „separate" nie istnieje w obecnym kodzie (grep `separate\|Continuity\|Loop\|Insulation` w `src/lib/export/**` → 0 trafień poza komentarzem „Loop columns" w UnifiedTablePage). PdfProtocolDocument renderuje title + summary + (opcjonalnie) documentation content + circuit list + unified table + RCD table + schematic + din-rail. Brak martwych obliczeń wrzucanych w `<View display: none>` — grep nie potwierdza istnienia tego wzorca. AUDIT patrzył na commit, w którym ten feature był planowany/eksperymentalny; usunięty przed obecnym HEAD. Brak implementacji. | — | — |
 | Q5 | ~~Pixi canvas — lazy import (A) czy usunięcie (B)?~~ **ZAMKNIĘTE 2026-06-29: verified, oba warianty zrobione.** Pixi canvas został usunięty 2026-06-28 (commit `bc5b32e` per memory, patrz też `useDinRailPixiApp.ts:1-13` WHY komentarz). Lazy import jest też zaimplementowany — `AppWorkspaceCanvas.tsx:20` ma `await import("./DinRailCanvasPixi")`. Jest regression guard `useDinRailPixiApp.test.ts` który PILNUJE że Pixi nie wróci (testuje że brak `import pixi.js` w source). Brak implementacji — feature domknięty dawniej. | — | — |
 | Q6 | ~~UI dla brakujących pól protokołów (A) czy drop z modelu (B)?~~ **ZAMKNIĘTE 2026-06-29 (commit `9c5c4be`): UI w modelu (sekcje `documentation*`), strona `PdfDocumentationContentPage` renderuje wypełnione sekcje (pomija puste).** 7 opcjonalnych pól (`documentationEquipmentList`, `documentationCableSelection`, `documentationTechnicalCalculations`, `documentationLegendAndSymbols`, `documentationTechnicalDescription`, `documentationShockProtection`, `documentationAcceptanceConditions`) — teraz renderowane w PDF. Brak dedykowanego UI input (Q6 wariant A „UI dla pól"), ale pola są dostępne przez `metadata.measurementsProtocols`/podobny model i helper `hasDocumentationContent()`. Rozszerzenie UI to osobna robota — poza scope PDF. | — | — |
@@ -330,7 +330,7 @@ Każdy PR dotyka jednego subsystemu (z wyjątkami oznaczonymi gwiazdką). Tam, g
 | PR-0.1 | Martwy Tauri + `loadProjectFromPath` (Warstwa 0a) | 3 pliki (Rust + TS) | project-io P0-2 | 30 LOC usunięte |
 | PR-0.2 | Martwe dialogi w `useDialogState` (Warstwa 0b) | 1 plik | code-discipline P0-2 + P1-5 + P3-1 + P3-9 | 30 LOC usunięte |
 | PR-0.3 | Martwe stany w `useImportedModules` (Warstwa 0c) | 1 plik | code-discipline P0-3 | 5 LOC usunięte |
-| PR-0.4 | `ConnectionsRightPanel` (Warstwa 0d) | 1-2 pliki | code-discipline P0-1 | wymaga Q3 |
+| ~~PR-0.4~~ | ~~`ConnectionsRightPanel` (Warstwa 0d)~~ **SKIP — zrobione poza PR-em (Q3 closure, Wariant B).** | 0 plików | code-discipline P0-1 | — |
 
 ### Faza 1 — kontrakty (1-2 tygodnie)
 
