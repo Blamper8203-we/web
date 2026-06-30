@@ -162,9 +162,11 @@
 - ✅ PR-1.3: DeviceKind / CircuitDeviceKind unify (patrz A.3) — commity `d004ee2` + `2101911`
 - ✅ PR-1.4: Connection parser defaults (patrz A.2) — commity `ee1d8bf` + `92cd04f`
 
-### Faza 2-3 (1/15 done):
+### Faza 2-3 (15/16 done):
+- ✅ PR-2.1..2.4, 2.5 (closure by observation), 2.6, 2.7, 2.8 — verified single-source / non-issue
 - ⏭️ PR-3.2: SYN-X2 dedup (canvasHelpers single source) — patrz C.1
-- 🔲 reszta (canvas geometry dups, PDF dups, SymbolHistorySnapshot helper, itd.) — do roboty w przyszłości
+- ✅ PR-3.1, 3.3, 3.4, 3.5, 3.6 — verified / zaimplementowane
+- 🔲 PR-2.9 (H-2, H-3, H-4, M-1) — do investigation w raportach electrical
 
 ### Cross-report duplikaty (SYN-X):
 - ✅ SYN-X1 (WIRE_THICKNESS_MAP) — Q1 closed
