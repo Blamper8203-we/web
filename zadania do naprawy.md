@@ -13,17 +13,16 @@
 - **Faza 0 plan napraw:** 4/4 zrobione. Wszystkie domknięte.
 - **Faza 1 plan napraw:** 4/4 zrobione (PR-1.1 ✅, PR-1.2 SKIP, PR-1.3 ✅, PR-1.4 ✅). Kompletna.
 - **Faza 2-3:** SYN-X2 (PR-3.2) SKIP, reszta do zrobienia.
-- **Quick wins:** **17/18 zrobione** (tylko QW-16 LRU cache zostało).
+- **Quick wins:** **18/18 zrobione** (włącznie z QW-16 LRU cache). Kompletne.
 - **Duże martwe pliki:** wszystkie usunięte.
 
 ---
 
 ## Zalecana kolejność (moja rekomendacja)
 
-1. **B.8 QW-16 LRU cache w ModuleAssetPreview** — jedyne realnie pozostałe zadanie z całego audytu, ~20 LOC, izolowane w 1 pliku.
-2. **Faza 2-3** (canvas geometry dups, PDF dups, SymbolHistorySnapshot helper, itd.) — odłożyć na osobną sesję, to są tygodnie roboty.
+1. **Faza 2-3** (canvas geometry dups, PDF dups, SymbolHistorySnapshot helper, itd.) — odłożyć na osobną sesję, to są tygodnie roboty.
 
-**Wniosek:** Po B.8 cały audyt 100% zamknięty. Zostaje tylko Faza 2-3 (duplikaty helperów + refaktory) na osobną sesję.
+**Wniosek:** Cały audyt 100% zamknięty (Top 10 + Q1-Q6 + Faza 0 + Faza 1 + 18/18 QW + SYN-X 3/3 + duże martwe pliki). Zostaje tylko Faza 2-3 (duplikaty helperów + refaktory) — nowy cykl pracy, osobna sesja.
 
 ---
 
@@ -101,11 +100,11 @@
 - **Czas:** 15 min
 - **Status:** Zamknięte 2026-06-30. Dwa testy: linia 216 "returns zeros for negative power regardless of phase" + linia 223 "returns zeros for zero power regardless of phase". WHY comment w linii 212 ("no power in, no power out — negative or zero power must short-circuit").
 
-### B.8 [ ] QW-16 — LRU cache w `ModuleAssetPreview.tsx` (3 globalne `Map`)
+### B.8 [x] QW-16 — LRU cache w `ModuleAssetPreview.tsx` (3 globalne `Map`) ✅ DONE
 - **Plik:** `src/components/ModuleAssetPreview.tsx:21-24`
 - **Severity:** canvas L-2
 - **Czas:** 30 min
-- **Status:** Jedyne realne zadanie z całego audytu. 3 globalne Map (`svgCache`, `rasterCanvasCache`, `svgImageCache`) bez LRU eviction → unbounded growth. Trzeba dodać MAX_CACHE_SIZE + LRU eviction.
+- **Status:** Zamknięte 2026-06-30 (commit `4f43afb`). Nowy `src/lib/lruCache.ts` z `setWithLruEviction` + `touchLruEntry`. `ModuleAssetPreview.tsx` używa `MAX_PREVIEW_CACHE_SIZE = 100`. 3× `.set()` → `setWithLruEviction`, 3× `.get()` → `touchLruEntry` (true LRU). 8 testów w `lruCache.test.ts`. Bonus: implementacja złapała bug — `Map.set` na existing key NIE przesuwa go na koniec insertion order (per spec: value updated, position unchanged). Fix: delete+set w `setWithLruEviction`. Lekcja zapisana w pamięci agenta.
 
 ---
 
@@ -168,7 +167,7 @@
 - ✅ SYN-X2 (4 funkcje canvasHelpers) — patrz C.1
 - ✅ SYN-X3 (App.tsx landing page error) — Top 10 #6 closed (App.tsx zrefaktorowane)
 
-### Quick wins (17/18):
+### Quick wins (18/18):
 - ✅ QW-1: legacy `moduleEntries` usunięte (197 LOC)
 - ✅ QW-2: `"Blok rozdzielczy": 88` w `moduleHeuristics.ts:10`
 - ✅ QW-3: integrity test w `moduleCatalog.test.ts:82-98` (patrz B.1)
@@ -184,7 +183,7 @@
 - ✅ QW-13: WHY o hasAnyToken (patrz B.5)
 - ✅ QW-14: WHY o L1+L3 vs L3+L1 (patrz B.6)
 - ✅ QW-15: negative/zero power test (patrz B.7)
-- ❌ QW-16: LRU cache w `ModuleAssetPreview.tsx` (patrz B.8) — **JEDYNE REALNE ZADANIE Z AUDYTU**
+- ✅ QW-16: LRU cache w `ModuleAssetPreview.tsx` (patrz B.8) — commit `4f43afb`, +1 nowy plik (`lruCache.ts`) + 1 nowy test (8 testów)
 - ✅ QW-17: `getProjectFileName` helper w `appHelpers.ts:98`
 - ✅ QW-18: App.tsx zrefaktorowane (158 LOC, brak `console.error` w catch)
 

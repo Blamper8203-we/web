@@ -425,7 +425,7 @@ Te ustalenia można wykonać od razu, niezależnie od głównego planu. Każde z
 | QW-13 | `// WHY:` w `rcdTypeRecommendation` (hasAnyToken) | `src/lib/validation/...` | electrical M-4 | 1 komentarz |
 | QW-14 | `// WHY:` w `distributePower` (L1+L3 vs L3+L1) | `src/lib/phaseDistribution/phaseDistributionCalculator.ts:34-35` | electrical L-1 | 1-2 linijki |
 | QW-15 | Test „returns zero for negative power" w `distributePower` | `src/lib/phaseDistribution/phaseDistributionCalculator.test.ts` | electrical L-3 | 1 nowy test |
-| QW-16 | LRU cache w `ModuleAssetPreview.tsx` (3 globalne Map) | `src/components/ModuleAssetPreview.tsx:21-24` | canvas L-2 | ~20 LOC |
+| ~~QW-16~~ | ~~LRU cache w `ModuleAssetPreview.tsx` (3 globalne Map)~~ **DONE 2026-06-30 (commit `4f43afb`).** Nowy `src/lib/lruCache.ts` z `setWithLruEviction` + `touchLruEntry`. `ModuleAssetPreview.tsx`: `MAX_PREVIEW_CACHE_SIZE = 100`, 3× `.set()` → `setWithLruEviction`, 3× `.get()` → `touchLruEntry`. 8 testów w `lruCache.test.ts`. Test count 980→988. Bonus bug fix złapany przez test: `Map.set` na existing key NIE przesuwa na koniec insertion order (per spec: value updated, position unchanged). Fix = delete+set w `setWithLruEviction`. | `src/components/ModuleAssetPreview.tsx:21-24` | canvas L-2 | ~20 LOC |
 | QW-17 | Wyciągnąć `getProjectFileName` helper (App.tsx:377, 465) | `src/lib/appHelpers.ts` + 2 importy | code-discipline P1-6 | ~10 LOC |
 | QW-18 | Zmienić `console.error` → `reportRuntimeError` w `App.tsx:679` | `src/App.tsx:679` | code-discipline P2-9 | 1 linia (część PR-2.3) |
 
