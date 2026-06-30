@@ -11,7 +11,7 @@
 - **Top 10 z audytu:** 10/10 zrobione lub Q-closed. Wszystko zamknięte.
 - **6 pytań blokujących (Q1-Q6):** wszystkie zamknięte.
 - **Faza 0 plan napraw:** 4/4 zrobione. Wszystkie domknięte.
-- **Faza 1 plan napraw:** 3/4 zrobione (PR-1.1 ✅, PR-1.2 SKIP, PR-1.4 ✅, PR-1.3 do zrobienia).
+- **Faza 1 plan napraw:** 4/4 zrobione (PR-1.1 ✅, PR-1.2 SKIP, PR-1.3 ✅, PR-1.4 ✅). Kompletna.
 - **Faza 2-3:** SYN-X2 (PR-3.2) SKIP, reszta do zrobienia.
 - **Quick wins:** 9/18 zrobione. Zostało **9 drobiazgów** (sekcja B).
 - **Duże martwe pliki:** wszystkie usunięte.
@@ -20,9 +20,10 @@
 
 ## Zalecana kolejność (moja rekomendacja)
 
-1. **A.3 PR-1.3 DeviceKind unify** — 2-3 pliki + typy, izolowany, pół dnia. Jedyne co zostało z Fazy 1.
-2. **Sekcja B** (9 quick wins) — dorobić przy okazji jak będziesz dotykał tych plików z innego powodu. Nie osobna sesja.
-3. **Faza 2-3** (canvas geometry dups, PDF dups, SymbolHistorySnapshot helper, itd.) — odłożyć na osobną sesję, to są tygodnie roboty.
+1. **Sekcja B** (8 quick wins) — dorobić przy okazji jak będziesz dotykał tych plików z innego powodu. Albo zbatchowane w jeden "maintenance" commit.
+2. **Faza 2-3** (canvas geometry dups, PDF dups, SymbolHistorySnapshot helper, itd.) — odłożyć na osobną sesję, to są tygodnie roboty.
+
+**Wniosek:** Faza 1 (4 PR-y z planu napraw) i Faza 0 (4 quick wins / security) zrobione w 100%. Zostały tylko drobiazgi z sekcji B i duże rzeczy z Fazy 2-3.
 
 ---
 
@@ -46,12 +47,13 @@
 - **Czas:** 1-2 godziny
 - **Status:** Zamknięte 2026-06-30. Commity `ee1d8bf` (refactor: scentralizowany `filterConnectionOverrides`) + `92cd04f` (fix: filter zachowuje `fromDirection`/`toDirection`/`customRadius`). Parser `projectFile.ts:247` używa `createDefaultConnection(filterConnectionOverrides(conn))`. Testy `connectionItem.test.ts` (273 LOC) pinują wszystkie defaults + round-trip. Symbol path też naprawiony. Top 10 #5 closure + PR-1.4 oznaczony DONE.
 
-### A.3 [ ] PR-1.3 DeviceKind / CircuitDeviceKind unify
+### A.3 [x] PR-1.3 DeviceKind / CircuitDeviceKind unify ✅ DONE
 - **Pliki:** `src/types/symbolItem.ts:1-9` vs `src/types/circuitRow.ts:1-9` (2-3 pliki + typy)
 - **Problem:** Camelcase vs kebab-case w dwóch typach — potencjalne ciche błędy przy serializacji/deserializacji.
 - **Severity:** electrical C-3 + M-2
 - **Owner:** electrical-expert + developer
 - **Czas:** pół dnia
+- **Status:** Zamknięte 2026-06-30. Commity `d004ee2` (consolidate phase distribution, validation, circuit row types) + `2101911` (usuniecie bezwartosciowego aliasu CircuitDeviceKind). `circuitRow.ts` ma 24 LOC, `deviceKind: DeviceKind` importowane z `symbolItem.ts` (linie 1, 6). `toCircuitDeviceKind` (circuitRows.ts:28) i `isKnownCircuitDeviceKind` (symbolItem.ts:265) to funkcje, nie type aliases. Grep `CircuitDeviceKind`: 4 trafienia, wszystkie funkcje. Warstwa 1c + PR-1.3 oznaczone DONE.
 
 ---
 
@@ -143,10 +145,10 @@
 - ✅ PR-0.3: `useImportedModules` martwe stany (patrz C.3)
 - ✅ PR-0.4: SKIP (Q3 closed, Wariant B)
 
-### Faza 1 (1/4 done):
+### Faza 1 (4/4 done):
 - ✅ PR-1.1: Migration registry (patrz A.1)
 - ⏭️ PR-1.2: Avalonia disambiguation — SKIP (user: brak plików Avalonia, gałąź usunięta w `d4078e6`)
-- 🔲 PR-1.3: DeviceKind / CircuitDeviceKind unify (patrz A.3) — jedyne co zostało z Fazy 1
+- ✅ PR-1.3: DeviceKind / CircuitDeviceKind unify (patrz A.3) — commity `d004ee2` + `2101911`
 - ✅ PR-1.4: Connection parser defaults (patrz A.2) — commity `ee1d8bf` + `92cd04f`
 
 ### Faza 2-3 (1/15 done):

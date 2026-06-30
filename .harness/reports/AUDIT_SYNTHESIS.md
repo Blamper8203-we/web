@@ -87,7 +87,7 @@ To NIE są duplikaty — raczej grupy powiązanych tematów:
 | Helpersy identyfikacyjne modułów | 5+ plików z różnymi implementacjami | electrical D-1 + canvas M-1 + related |
 | `normalizeSinglePhase` | ~~3 pliki (phaseBalanceSuggestions, phaseImbalanceInsights, validationHelpers)~~ **ZAMKNIĘTE 2026-06-29: verified re-export, not duplication.** Jedyna implementacja: `phaseDistributionCalculator.ts:450`. Re-eksport (bez kopiowania ciała): `validationHelpers.ts:59`. Pozostałe 2 pliki importują z różnych ścieżek (`phaseDistributionCalculator` bezpośrednio lub `validationHelpers` przez re-eksport) — to jest convenience import, nie duplikacja logiki. Brak implementacji. | — | — |
 | `isGroupHeadSymbol` | `domain/symbolGrouping.ts` (czysta) + `phaseDistributionCalculator.ts:416-427` (string-match) | electrical C-1, H-1, L-2 |
-| `DeviceKind` / `CircuitDeviceKind` (camelCase vs kebab-case) | `symbolItem.ts:1-9` vs `circuitRow.ts:1-9` | electrical C-3, M-2 |
+| ~~`DeviceKind` / `CircuitDeviceKind` (camelCase vs kebab-case)~~ **DONE 2026-06-30: verified, single source.** | `symbolItem.ts:1-9` vs `circuitRow.ts:1-9` | electrical C-3, M-2 |
 | `SymbolHistorySnapshot` inline | 6 call sites (App.tsx, useProjectActions) | project-io P1-4, P2-6 |
 | `buildCircuitRowsFromSymbols(symbols)` | 3 miejsca | pdf P1-6, P1-8, P2-19 |
 | `chunkArray` / `chunkRows` (różna empty-handling) | `pdfHelpers.ts` + `measurementProtocolHelpers.ts` | pdf P2-12, P2-24 |
@@ -265,7 +265,7 @@ Graf zależności — węzły z `→` muszą być przed; węzły na tym samym po
 |---|---|---|---|---|
 | 1a | Migration registry (Top 10 #1) | project-io P0-3 + P1-2 + P2-9 | project-io-expert | izolowane |
 | 1b | Avalonia disambiguation (Top 10 #3) | project-io P0-4 + P1-3 | project-io-expert | wymaga 1a |
-| 1c | `DeviceKind` / `CircuitDeviceKind` unifikacja (electrical C-3 + M-2) | electrical C-3 + M-2 | electrical-expert + developer | izolowane (ale blokuje related) |
+| 1c | ~~`DeviceKind` / `CircuitDeviceKind` unifikacja (electrical C-3 + M-2)~~ **DONE — patrz cross-cutting pattern row + PR-1.3 closure.** | electrical C-3 + M-2 | electrical-expert + developer | — |
 | 1d | Connection parser defaults (Top 10 #5) | project-io P0-5 + P2-3 | project-io-expert | izolowane |
 
 **Warstwa 1 musi być PRZED wszystkimi fixami dotykającymi tych samych plików.**
@@ -348,7 +348,7 @@ Każdy PR dotyka jednego subsystemu (z wyjątkami oznaczonymi gwiazdką). Tam, g
 |---|---|---|---|---|
 | ~~PR-1.1~~ | ~~Migration registry (Warstwa 1a)~~ **DONE poza planem (commity `8fcd3cc`..`1ceb06f` + `d4078e6`).** Patrz closure przy Top 10 #1. | ~~5-6 plików~~ 2 pliki | project-io P0-3 + P1-2 + P2-9 | — |
 | PR-1.2 | Avalonia disambiguation (Warstwa 1b) | 1-2 pliki | project-io P0-4 + P1-3 | ← wymaga PR-1.1 |
-| PR-1.3 | `DeviceKind` / `CircuitDeviceKind` unify (Warstwa 1c) | 2-3 pliki + typy | electrical C-3 + M-2 | izolowane |
+| ~~PR-1.3~~ | ~~`DeviceKind` / `CircuitDeviceKind` unify (Warstwa 1c)~~ **DONE poza planem (commity `d004ee2` consolidate + `2101911` usunięcie aliasu).** `circuitRow.ts:1, 6` importuje `DeviceKind` z `symbolItem.ts`. `toCircuitDeviceKind` w `circuitRows.ts:28` to funkcja zwracająca `CircuitRow["deviceKind"]` (czyli `DeviceKind`), nie osobny typ. `isKnownCircuitDeviceKind` w `symbolItem.ts:265` to też funkcja (predicate). Grep `CircuitDeviceKind` w `src/`: 4 trafienia, wszystkie to funkcje (nie type alias). Brak implementacji — closure historyczne. | 0 plików | electrical C-3 + M-2 | — |
 | ~~PR-1.4~~ | ~~Connection parser defaults (Warstwa 1d)~~ **DONE poza planem (commity `ee1d8bf` + `92cd04f`).** Patrz closure przy Top 10 #5. | 0 plików | project-io P0-5 + P2-3 | — |
 
 ### Faza 2 — izolowane poprawki (równolegle, 2-3 tygodnie)
