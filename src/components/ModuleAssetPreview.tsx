@@ -6,6 +6,7 @@ import {
   shouldUseProgressiveDownsample,
 } from "../lib/modules/rasterPreview";
 import { loadPreparedSvgDataUri, shouldRenderRawModuleAsset } from "../lib/modules/svgAsset";
+import { setWithLruEviction, touchLruEntry } from "../lib/lruCache";
 
 interface ModuleAssetPreviewProps {
   alt: string;
@@ -18,6 +19,14 @@ interface ModuleAssetPreviewProps {
   src: string;
 }
 
+// WHY: Poprzednio te 3 globalne Map rosly bez limitu. Przy dlugiej sesji z
+// wieloma unikalnymi modułami/previewami to mogło zjeść RAM nieograniczenie
+// (set + get, nigdy delete). LRU eviction: `setWithLruEviction` wyrzuca
+// najstarszy wpis po przekroczeniu MAX_PREVIEW_CACHE_SIZE; `touchLruEntry`
+// przy get przesuwa wpis na koniec insertion order, dając true LRU
+// (zachowuje ostatnio oglądane previews). MAX=100 to ok. ~25 MB worst case
+// (100 SVG data URI × ~20 KB + 100 raster canvas × ~200 KB + 100 image refs).
+const MAX_PREVIEW_CACHE_SIZE = 100;
 const svgCache = new Map<string, string>();
 const rasterCanvasCache = new Map<string, HTMLCanvasElement>();
 const svgImageCache = new Map<string, Promise<HTMLImageElement>>();
@@ -33,7 +42,7 @@ function buildCacheKey(src: string, parameters: Record<string, string>): string 
 }
 
 function getSvgImage(dataUri: string): Promise<HTMLImageElement> {
-  const cached = svgImageCache.get(dataUri);
+  const cached = touchLruEntry(svgImageCache, dataUri);
   if (cached) {
     return cached;
   }
@@ -46,7 +55,7 @@ function getSvgImage(dataUri: string): Promise<HTMLImageElement> {
     image.src = dataUri;
   });
 
-  svgImageCache.set(dataUri, promise);
+  setWithLruEviction(svgImageCache, dataUri, promise, MAX_PREVIEW_CACHE_SIZE);
   return promise;
 }
 
@@ -64,7 +73,7 @@ export function ModuleAssetPreview({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const renderRawAsset = shouldRenderRawModuleAsset(src);
   const cacheKey = buildCacheKey(src, parameters);
-  const [preparedSvgUri, setPreparedSvgUri] = useState<string | null>(() => svgCache.get(cacheKey) ?? null);
+  const [preparedSvgUri, setPreparedSvgUri] = useState<string | null>(() => touchLruEntry(svgCache, cacheKey) ?? null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
@@ -82,7 +91,7 @@ export function ModuleAssetPreview({
           return;
         }
 
-        svgCache.set(cacheKey, dataUri);
+        setWithLruEviction(svgCache, cacheKey, dataUri, MAX_PREVIEW_CACHE_SIZE);
         setPreparedSvgUri(dataUri);
         setFailed(false);
       })
@@ -144,7 +153,7 @@ export function ModuleAssetPreview({
       context.drawImage(sourceCanvas, 0, 0, visiblePixelWidth, visiblePixelHeight);
     };
 
-    const cachedRaster = rasterCanvasCache.get(rasterKey);
+    const cachedRaster = touchLruEntry(rasterCanvasCache, rasterKey);
     if (cachedRaster) {
       paintToVisibleCanvas(cachedRaster);
       return;
@@ -182,7 +191,7 @@ export function ModuleAssetPreview({
             ? downsampleCanvas(offscreenCanvas, visiblePixelWidth, visiblePixelHeight)
             : offscreenCanvas;
 
-        rasterCanvasCache.set(rasterKey, normalizedCanvas);
+        setWithLruEviction(rasterCanvasCache, rasterKey, normalizedCanvas, MAX_PREVIEW_CACHE_SIZE);
         paintToVisibleCanvas(normalizedCanvas);
       })
       .catch(() => {
