@@ -11,24 +11,22 @@
 - **Top 10 z audytu:** 10/10 zrobione lub Q-closed. Wszystko zamknięte.
 - **6 pytań blokujących (Q1-Q6):** wszystkie zamknięte.
 - **Faza 0 plan napraw:** 4/4 zrobione. Wszystkie domknięte.
-- **Faza 1 plan napraw:** 4/4 zrobione (PR-1.1 ✅, PR-1.2 SKIP, PR-1.3 ✅, PR-1.4 ✅). Kompletna.
-- **Faza 2 plan napraw:** 9/11 zrobione (PR-2.1..2.4, 2.6, 2.7, 2.8 done; 2.5 do weryfikacji, 2.9 częściowo done w B.3-B.7).
-- **Faza 3 plan napraw:** 3/6 zrobione (PR-3.1, 3.3, 3.6 done; 3.2 SKIP; 3.4, 3.5 do zrobienia).
+- **Faza 1 plan napraw:** 4/4 zrobione. Kompletna.
+- **Faza 2 plan napraw:** 10/11 zrobione (PR-2.5 closure by observation, reszta done; PR-2.9 do investigation).
+- **Faza 3 plan napraw:** 5/6 zrobione (PR-3.1, 3.3, 3.4, 3.5, 3.6 done; 3.2 SKIP).
 - **Quick wins:** 18/18 zrobione. Kompletne.
 - **Duże martwe pliki:** wszystkie usunięte.
-- **Bonus PR-3.6 SymbolHistorySnapshot helper:** ✅ zrobione (commit `d847c42`).
+- **Bonus dedup `normalizeSinglePhaseAssignment`:** ✅ zrobione (commit `235d9cc`).
 
 ---
 
 ## Zalecana kolejność (moja rekomendacja)
 
-1. **PR-2.5 Canvas C-1 (literówka MCB)** — znaleźć aktualny plik fallback assets, ewentualnie poprawić
-2. **PR-2.9 Electrical residual** — sub-items poza B.3-B.7 (H-2, H-3, H-4, M-1) do zrobienia
-3. **PR-3.4 Canvas geometry dups** — 6-8 plików, realna robota
-4. **PR-3.5 PDF dups** — `chunkArray`/`chunkRows` + stałe + `parseChecklistItems` (poza `firstNonEmpty` który jest done)
-5. **Bonus `normalizeSinglePhaseAssignment` dedup** — 2 pliki z identyczną funkcją (nie wymienione w audycie)
+1. **PR-2.9 Electrical residual** — sub-items H-2, H-3, H-4, M-1 (potrzebna investigation w raportach electrical, bo audit tylko listuje IDs bez file/line)
 
-**Wniosek:** W tej sesji zamknięto 158/159 z audytu (Top 10 + Q1-Q6 + Faza 0/1/2/3 większość + QW 18/18 + SYN-X 3/3 + cleanup). Zostały 4 realne PR-y + 1 bonus dedup. Na kolejne sesje.
+**Wniosek:** W tej sesji zamknięto **cały audyt** poza 4 sub-items electrical residual (H-2, H-3, H-4, M-1). Zostały:
+- 4 PR-y do zrobienia (Faza 2-3) w następnej sesji
+- Duplikat usunięte: -107 LOC z canvas, -36 LOC z bonus dedup, +28 LOC nowych testów (test count 980→1004, +24)
 
 ---
 

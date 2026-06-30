@@ -295,7 +295,7 @@ Graf zależności — węzły z `→` muszą być przed; węzły na tym samym po
 | 3b | 4 funkcje w `connectionsLogic.ts` vs `canvasHelpers.ts` (Top 10 + canvas D-3, D-4 — **SYN-X2**) | code-discipline P1-1 + canvas D-3, D-4 | developer | wymaga 2a |
 | 3c | ~~`computeDisplayProtection` itd. z `types/symbolItem.ts` do `lib/domain/`~~ **DONE — verified 2026-06-30: `computeDisplayProtection` w `lib/domain/displayFields.ts:7` (single source), `types/symbolItem.ts:4` importuje dla konsumentów. Już w `lib/`, nie w `types/`.** | code-discipline P1-3 | developer | — |
 | 3d | Canvas geometry/snap/render duplikaty (canvas D-2, D-5, D-6, D-7, D-8, D-9) | canvas various | canvas-expert | izolowane |
-| 3e | PDF: `chunkArray`/`chunkRows`, stałe, `parseChecklistItems`, `firstNonEmpty` (pdf P2-12..P2-15, P2-24) | pdf various | pdf-expert | izolowane |
+| 3e | ~~PDF: `chunkArray`/`chunkRows`, stałe, `parseChecklistItems`, `firstNonEmpty` (pdf P2-12..P2-15, P2-24)~~ **DONE — verified 2026-06-30, wszystkie wzorce single-sourced (patrz PR-3.5 closure).** | pdf various | pdf-expert | — |
 | 3f | ~~`SymbolHistorySnapshot` helper (project-io P1-4, P2-6)~~ **DONE — commit `d847c42` (2026-06-30): nowy `createSymbolHistorySnapshot` w `lib/domain/snapshotUtils.ts`. 3× inline snapshot w `useSymbolHistory.ts` (markClean + beforeSnapshot + afterSnapshot) zastąpione helperem. 8 nowych testów pinuje klony + selectedSymbolIds fallback.** | project-io P1-4 + P2-6 | project-io-expert | — |
 
 ### Warstwa 4 — Refaktory i porządki (w miarę czasu)
@@ -359,7 +359,7 @@ Każdy PR dotyka jednego subsystemu (z wyjątkami oznaczonymi gwiazdką). Tam, g
 | ~~PR-2.2~~ | ~~`isGroupHeadSymbol` unify (Warstwa 2b)~~ **DONE — Q2 closed, FR transparentny.** Patrz Top 10 #4 closure. | 0 plików | electrical C-1 + H-1 + L-2 | — |
 | ~~PR-2.3~~ | ~~Landing page error (Warstwa 2c)~~ **DONE — Top 10 #6 closed, App.tsx z 681 do 158 LOC.** | 0 plików | project-io P0-1 + code-discipline P2-9 | — |
 | ~~PR-2.4~~ | ~~`normalizeSinglePhase` unify (Warstwa 2e)~~ **DONE — verified 2026-06-30: single source w `phaseDistributionCalculator.ts:473`, re-export w `validationHelpers.ts:59`.** | 0 plików | electrical C-2 / D-2 | — |
-| PR-2.5 | Canvas C-1 (literówka MCB) (Warstwa 2h) | 1 plik + filesystem | canvas C-1 / D-13 | izolowane |
+| ~~PR-2.5~~ | ~~Canvas C-1 (literówka MCB) (Warstwa 2h)~~ **CLOSURE BY OBSERVATION 2026-06-30: typo jest w plikach SVG na dysku (`public/assets/modules/MCB/rozłacznik nadprądowy MCB 1P.svg` itd.), nie w kodzie. FALLBACK_MODULE_ASSETS w `moduleAssetDiscovery.ts:68-79` POPRAWNIE odzwierciedla nazwy plików (3× fileName + 3× moduleRef = 6 stringów wszystkie z "rozłacznik" bez ć). Audit sugerował fix w kodzie ale fix musiałby być w filesystem (rename 3 plików + update wszystkich referencji + migracja projectFile dla backward compat). To nie jest bug — system działa. Decyzja produktowa, nie refactor.** | 0 plików | canvas C-1 / D-13 | — |
 | ~~PR-2.6~~ | ~~Canvas C-4 (wheel stopPropagation + touch-action) (Warstwa 2i)~~ **DONE — verified 2026-06-30: `useDinRailViewport.ts:144` + `DinRailCanvas.css:29,45` + `SchematicCanvas.css:43` + `PinchZoomImage`.** | 0 plików | canvas C-4 | — |
 | ~~PR-2.7~~ | ~~PDF missing pages + dead computations (Warstwa 2j)~~ **DONE — Q4 closed, verified non-issue.** | 0 plików | pdf P0-1 + P0-3 | — |
 | ~~PR-2.8~~ | ~~App.tsx import order (Warstwa 2k)~~ **DONE — verified 2026-06-30: App.tsx 158 LOC, importy czyste, AppShell wydzielone do `src/hooks/app/*`.** | 0 plików | code-discipline P1-7 | — |
@@ -373,7 +373,7 @@ Każdy PR dotyka jednego subsystemu (z wyjątkami oznaczonymi gwiazdką). Tam, g
 | ~~PR-3.2~~ | ~~4 funkcje `connectionsLogic` vs `canvasHelpers` (Warstwa 3b)~~ **SKIP — SYN-X2 closed, single source w `canvasHelpers.ts`.** | 0 plików | code-discipline P1-1 + canvas D-3, D-4 | — |
 | ~~PR-3.3~~ | ~~`computeDisplayProtection` z `types/` do `lib/` (Warstwa 3c)~~ **DONE — verified 2026-06-30: już w `lib/domain/displayFields.ts:7`, `types/symbolItem.ts:4` importuje.** | 0 plików | code-discipline P1-3 | — |
 | PR-3.4 | Canvas geometry/snap/render dups (Warstwa 3d) | 6-8 plików | canvas D-2, D-5..D-9 | izolowane |
-| PR-3.5 | PDF dups (Warstwa 3e) | 5-6 plików | pdf P2-12..P2-15, P2-24 | izolowane |
+| ~~PR-3.5~~ | ~~PDF dups (Warstwa 3e)~~ **DONE verified 2026-06-30: wszystkie 4 wzorce single-sourced.** `chunkRows` w `src/lib/measurementProtocolHelpers.ts:18`, 5 konsumentów (`pdfHelpers.ts:4`, `PdfProtocolDocument.tsx:12`, `MeasurementProtocolsWorkspacePage.tsx:8`, `PdfTitlePage.tsx:5`, `TitlePageTab.tsx:5`). `UNIFIED_ROWS_PER_PAGE` w `src/lib/export/pdfPages/pdfHelpers.ts:6`, 3 konsumentów. `parseChecklistItems` w `src/lib/pdfDocumentation.ts:55`, używany w `PdfDocumentationPage.tsx:5, 411`. `serializeChecklistItems` w `PdfDocumentationPage.tsx:89` (prywatna, brak duplikacji). `firstNonEmpty` w `src/lib/stringHelpers.ts:1` (QW-9). Audit wspominał `chunkArray` ale ten helper nie istnieje — nazwa się zmieniła na `chunkRows`. Brak implementacji. | 0 plików | pdf P2-12..P2-15, P2-24 | — |
 | ~~PR-3.6~~ | ~~`SymbolHistorySnapshot` helper (Warstwa 3f)~~ **DONE — commit `d847c42` (2026-06-30): `createSymbolHistorySnapshot` w `lib/domain/snapshotUtils.ts`, 3× inline w `useSymbolHistory.ts` zastąpione. 8 nowych testów.** | 0 plików | project-io P1-4, P2-6 | — |
 
 ### Faza 4 — refaktory (1-2 miesiące)
