@@ -112,6 +112,8 @@ Lista uszeregowana od najbardziej pilnych (cicha utrata danych / security / dome
 
 **Minimalny fix:** Nowy `src/lib/migrations/registry.ts` z `MIGRATIONS: Array<{from, to, run}>`. Parser iteruje po rejestrze. Marker `appliedMigrations: string[]` w pliku.
 
+~~**ZAMKNIĘTE 2026-06-30: verified.** Registry zaimplementowany w `src/lib/projectMigrations.ts` (237 LOC) — commity `8fcd3cc` (szkielet + usunięcie martwego `loadProjectFromPath`), `7aa2e7f` (off-by-one fix + konwencja klucza), `140eead` + `c583c9d` (generyk w `migrateProjectData`), `1ceb06f` (feature: registry + `appliedMigrations` marker), `d4078e6` (po nim: usunięcie gałęzi Avalonia). Exports: `Migration` interface, `MIGRATIONS[]`, `registerMigration()`, `runMigrations()` (skip-if-applied, universal vs version-scoped), `migrateProjectData()` (łańcuch wersji). Zarejestrowana produkcyjna migracja `v1-to-v2:legacyReferenceDesignations` (universal: true). Testy w `projectMigrations.test.ts` (248 LOC): idempotentność, wieloetapowy łańcuch, niegubienie danych, beforeAll/afterEach cleanup rejestru. `projectFile.ts` używa obu funkcji (linie 218 i 235), `appliedMigrations` w `ProjectFileData` type, czytane przy otwarciu, zapisywane przy zapisie. Brak implementacji — closure historyczne.~~
+
 ---
 
 ### 2. `WIRE_THICKNESS_MAP` 4 kopie z rozbieżnymi wartościami (canvas C-2 / D-1 + code-discipline P2-2) — **SYN-X1**
@@ -336,7 +338,7 @@ Każdy PR dotyka jednego subsystemu (z wyjątkami oznaczonymi gwiazdką). Tam, g
 
 | PR | Temat | Pliki | Severity | Zależności |
 |---|---|---|---|---|
-| PR-1.1 | Migration registry (Warstwa 1a) | 5-6 plików | project-io P0-3 + P1-2 + P2-9 | izolowane |
+| ~~PR-1.1~~ | ~~Migration registry (Warstwa 1a)~~ **DONE poza planem (commity `8fcd3cc`..`1ceb06f` + `d4078e6`).** Patrz closure przy Top 10 #1. | ~~5-6 plików~~ 2 pliki | project-io P0-3 + P1-2 + P2-9 | — |
 | PR-1.2 | Avalonia disambiguation (Warstwa 1b) | 1-2 pliki | project-io P0-4 + P1-3 | ← wymaga PR-1.1 |
 | PR-1.3 | `DeviceKind` / `CircuitDeviceKind` unify (Warstwa 1c) | 2-3 pliki + typy | electrical C-3 + M-2 | izolowane |
 | PR-1.4 | Connection parser defaults (Warstwa 1d) | 1-2 pliki | project-io P0-5 + P2-3 | izolowane |
