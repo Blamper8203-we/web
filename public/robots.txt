@@ -4,7 +4,6 @@
 User-agent: *
 Allow: /
 Disallow: /app
-Disallow: /assets/
 
 # Wskaż Google gdzie jest mapa strony
 Sitemap: https://dinboard.pl/sitemap.xml
