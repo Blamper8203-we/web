@@ -41,7 +41,11 @@ describe("validateNoRcdProtection", () => {
     expect(result.warnings.some((w) => w.code === "VAL-006")).toBe(false);
   });
 
-  it("warns when the MCB points to a non-existent RCD id", () => {
+  it("pomija MCB z dangling reference (rcdSymbolId wskazuje na nieistniejacy RCD) - H-4 audit fix", () => {
+    // WHY: dangling reference ma wlasny kanal walidacji (SEM-007 w
+    // projectFileSemantics.ts). VAL-006 dotyczy tylko "MCB bez RCD",
+    // nie "MCB wskazujacy na nieistniejacy RCD". Wcześniej testowalismy
+    // zle zachowanie - warning emitowany dla dangling reference.
     const mcb = createDefaultSymbolItem({
       deviceKind: "mcb",
       type: "MCB 1P",
@@ -50,6 +54,6 @@ describe("validateNoRcdProtection", () => {
     const result = emptyResult();
     validateNoRcdProtection([mcb], result);
 
-    expect(result.warnings.some((w) => w.code === "VAL-006")).toBe(true);
+    expect(result.warnings.some((w) => w.code === "VAL-006")).toBe(false);
   });
 });

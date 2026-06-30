@@ -6,6 +6,12 @@
  * we emit a Warning for every MCB that doesn't point to a known RCD.
  * The user can ignore it for circuits that are intentionally downstream
  * of the main switch.
+ *
+ * Dangling reference (rcdSymbolId ustawione, ale RCD o tym id nie istnieje
+ * w projekcie) jest pomijany — to osobny kanał walidacji (SEM-007 w
+ * projectFileSemantics.ts). Wcześniej VAL-006 emitowało "bez ochrony RCD"
+ * dla dangling reference, co bylo mylące (prawdziwy problem to
+ * "wskazuje na nieistniejacy RCD", nie "nie ma RCD").
  */
 import type { SymbolItem } from "../../../types/symbolItem";
 import type { ValidationResult } from "../electricalValidationService";
@@ -14,11 +20,14 @@ export function validateNoRcdProtection(
   symbols: SymbolItem[],
   result: ValidationResult,
 ): void {
-  const rcdIds = new Set(symbols.filter((s) => s.deviceKind === "rcd").map((s) => s.id));
-
   for (const symbol of symbols) {
     if (symbol.deviceKind !== "mcb") continue;
-    if (symbol.rcdSymbolId && rcdIds.has(symbol.rcdSymbolId)) continue;
+    if (symbol.rcdSymbolId) {
+      // rcdSymbolId ustawione — pomijamy niezaleznie od tego czy RCD istnieje:
+      // - dangling reference: SEM-007 z osobna walidacja
+      // - valid reference: MCB jest chroniony
+      continue;
+    }
 
     result.warnings.push({
       code: "VAL-006",
