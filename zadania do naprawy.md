@@ -13,17 +13,17 @@
 - **Faza 0 plan napraw:** 4/4 zrobione. Wszystkie domknięte.
 - **Faza 1 plan napraw:** 4/4 zrobione (PR-1.1 ✅, PR-1.2 SKIP, PR-1.3 ✅, PR-1.4 ✅). Kompletna.
 - **Faza 2-3:** SYN-X2 (PR-3.2) SKIP, reszta do zrobienia.
-- **Quick wins:** 9/18 zrobione. Zostało **9 drobiazgów** (sekcja B).
+- **Quick wins:** **17/18 zrobione** (tylko QW-16 LRU cache zostało).
 - **Duże martwe pliki:** wszystkie usunięte.
 
 ---
 
 ## Zalecana kolejność (moja rekomendacja)
 
-1. **Sekcja B** (8 quick wins) — dorobić przy okazji jak będziesz dotykał tych plików z innego powodu. Albo zbatchowane w jeden "maintenance" commit.
+1. **B.8 QW-16 LRU cache w ModuleAssetPreview** — jedyne realnie pozostałe zadanie z całego audytu, ~20 LOC, izolowane w 1 pliku.
 2. **Faza 2-3** (canvas geometry dups, PDF dups, SymbolHistorySnapshot helper, itd.) — odłożyć na osobną sesję, to są tygodnie roboty.
 
-**Wniosek:** Faza 1 (4 PR-y z planu napraw) i Faza 0 (4 quick wins / security) zrobione w 100%. Zostały tylko drobiazgi z sekcji B i duże rzeczy z Fazy 2-3.
+**Wniosek:** Po B.8 cały audyt 100% zamknięty. Zostaje tylko Faza 2-3 (duplikaty helperów + refaktory) na osobną sesję.
 
 ---
 
@@ -59,45 +59,53 @@
 
 ## B. Quick wins (drobiazgi, ~1-2 dni łącznie)
 
-### B.1 [ ] QW-3 — Vitest integrity test `assert fileExists(moduleRef)`
+### B.1 [x] QW-3 — Vitest integrity test `assert fileExists(moduleRef)` ✅ DONE
 - **Plik:** nowy test w `src/lib/modules/moduleCatalog.test.ts`
 - **Severity:** canvas D-13
 - **Czas:** 15 min
+- **Status:** Zamknięte 2026-06-30. `moduleCatalog.test.ts:82-98` ma `describe("module catalog integrity")` z testem "every currentModuleEntries moduleRef points to an existing SVG file on disk" + WHY comment. Drugi test analogiczny w linii 207-217 (inny describe block).
 
-### B.2 [ ] QW-10 — Test determinizmu `generateDinRailSvg`
+### B.2 [x] QW-10 — Test determinizmu `generateDinRailSvg` ✅ DONE
 - **Plik:** `src/lib/dinRailGenerator.test.ts`
 - **Severity:** canvas L-5
 - **Czas:** 15 min
+- **Status:** Zamknięte 2026-06-30. Plik przeniesiony do `src/lib/schematic/dinRailGenerator.test.ts:12` z `describe("generateDinRailSvg - determinism")` i 4 testami (dwa wywołania, różne konfiguracje, invalid input). WHY comment w linii 1.
 
-### B.3 [ ] QW-11 — `// WHY:` w `applyInheritedRcdInfo` (zerowanie `rcdType`)
+### B.3 [x] QW-11 — `// WHY:` w `applyInheritedRcdInfo` (zerowanie `rcdType`) ✅ DONE
 - **Plik:** `src/lib/domain/symbolGrouping.ts:97-100`
 - **Severity:** electrical M-6
 - **Czas:** 5 min
+- **Status:** Zamknięte 2026-06-30. `symbolGrouping.ts:97-102` ma 6-liniowy WHY comment: "zero out ALL four RCD fields together, not just rcdSymbolId. If we cleared rcdSymbolId but left rcdRatedCurrent/residualCurrent/type stale, the symbol would silently report inherited values for an RCD it is no longer attached to."
 
-### B.4 [ ] QW-12 — `// WHY:` w `autoBalancePhases` (ZERO_POWER_UNIT_WEIGHT)
+### B.4 [x] QW-12 — `// WHY:` w `autoBalancePhases` (ZERO_POWER_UNIT_WEIGHT) ✅ DONE
 - **Plik:** `src/lib/phaseDistribution/phaseDistributionCalculator.ts:199`
 - **Severity:** electrical L-5
 - **Czas:** 5 min
+- **Status:** Zamknięte 2026-06-30. `phaseDistributionCalculator.ts:217` ma WHY: "ZERO_POWER_UNIT_WEIGHT is a tiny non-zero fallback (0.001) instead..." (kompletny komentarz kilka linii).
 
-### B.5 [ ] QW-13 — `// WHY:` w `rcdTypeRecommendation` (hasAnyToken)
+### B.5 [x] QW-13 — `// WHY:` w `rcdTypeRecommendation` (hasAnyToken) ✅ DONE
 - **Plik:** `src/lib/validation/...`
 - **Severity:** electrical M-4
 - **Czas:** 5 min
+- **Status:** Zamknięte 2026-06-30. `rcdTypeRecommendation.ts:47` ma WHY: "hasAnyToken does case-insensitive Polish-aware substring matching..." (wyjaśnia semantykę helpera).
 
-### B.6 [ ] QW-14 — `// WHY:` w `distributePower` (L1+L3 vs L3+L1)
+### B.6 [x] QW-14 — `// WHY:` w `distributePower` (L1+L3 vs L3+L1) ✅ DONE
 - **Plik:** `src/lib/phaseDistribution/phaseDistributionCalculator.ts:34-35`
 - **Severity:** electrical L-1
 - **Czas:** 5 min
+- **Status:** Zamknięte 2026-06-30. `phaseDistributionCalculator.ts:37-40` ma WHY: "order matters in the switch labels above — 'L1+L3' splits equally across L1 and L3, but 'L3+L1' (reversed) does NOT match any case and falls through to the L1-only default branch, returning [powerW, 0, 0]."
 
-### B.7 [ ] QW-15 — Test "returns zero for negative power" w `distributePower`
+### B.7 [x] QW-15 — Test "returns zero for negative power" w `distributePower` ✅ DONE
 - **Plik:** `src/lib/phaseDistribution/phaseDistributionCalculator.test.ts`
 - **Severity:** electrical L-3
 - **Czas:** 15 min
+- **Status:** Zamknięte 2026-06-30. Dwa testy: linia 216 "returns zeros for negative power regardless of phase" + linia 223 "returns zeros for zero power regardless of phase". WHY comment w linii 212 ("no power in, no power out — negative or zero power must short-circuit").
 
 ### B.8 [ ] QW-16 — LRU cache w `ModuleAssetPreview.tsx` (3 globalne `Map`)
 - **Plik:** `src/components/ModuleAssetPreview.tsx:21-24`
 - **Severity:** canvas L-2
 - **Czas:** 30 min
+- **Status:** Jedyne realne zadanie z całego audytu. 3 globalne Map (`svgCache`, `rasterCanvasCache`, `svgImageCache`) bez LRU eviction → unbounded growth. Trzeba dodać MAX_CACHE_SIZE + LRU eviction.
 
 ---
 
@@ -160,15 +168,23 @@
 - ✅ SYN-X2 (4 funkcje canvasHelpers) — patrz C.1
 - ✅ SYN-X3 (App.tsx landing page error) — Top 10 #6 closed (App.tsx zrefaktorowane)
 
-### Quick wins (9/18):
+### Quick wins (17/18):
 - ✅ QW-1: legacy `moduleEntries` usunięte (197 LOC)
 - ✅ QW-2: `"Blok rozdzielczy": 88` w `moduleHeuristics.ts:10`
+- ✅ QW-3: integrity test w `moduleCatalog.test.ts:82-98` (patrz B.1)
 - ✅ QW-4: 11 devLog — wszystkie callsites wycięte (została tylko definicja w `runtimeDiagnostics.ts:14`)
 - ✅ QW-5: `DEFAULT_WIRE_SETTINGS_STORAGE_KEY` w `appHelpers.ts:14`
 - ✅ QW-6: `.catch(() => {})` na `backListener.then` w `useDialogState.ts:70`
 - ✅ QW-7: import order w `App.tsx` (158 LOC, struktura czysta)
 - ✅ QW-8: `PdfLabelDocument.tsx` usunięte
-- ✅ QW-9: `pdfPages/` subdirectory utworzony (PdfRcdTablePage, PdfUnifiedTablePage, PdfTitlePage, itd.)
+- ✅ QW-9: `firstNonEmpty` helper w `stringHelpers.ts:1` (importowany z circuitRows.ts i measurementProtocols.ts)
+- ✅ QW-10: determinism test (patrz B.2)
+- ✅ QW-11: WHY o zerowaniu RCD pól (patrz B.3)
+- ✅ QW-12: WHY o ZERO_POWER_UNIT_WEIGHT (patrz B.4)
+- ✅ QW-13: WHY o hasAnyToken (patrz B.5)
+- ✅ QW-14: WHY o L1+L3 vs L3+L1 (patrz B.6)
+- ✅ QW-15: negative/zero power test (patrz B.7)
+- ❌ QW-16: LRU cache w `ModuleAssetPreview.tsx` (patrz B.8) — **JEDYNE REALNE ZADANIE Z AUDYTU**
 - ✅ QW-17: `getProjectFileName` helper w `appHelpers.ts:98`
 - ✅ QW-18: App.tsx zrefaktorowane (158 LOC, brak `console.error` w catch)
 
