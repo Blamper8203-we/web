@@ -9,7 +9,7 @@ import {
   Y_ROW_DESIGNATION,
   Y_TABLE_END,
 } from "../schematicLayout";
-import { COLORS, strokeLine, text, y } from "./schematicRenderUtils";
+import { COLORS, strokeLine, text, truncateToWidth, wrapText, y } from "./schematicRenderUtils";
 
 const Y_ROW_CIRCUIT = Y_ROW_DESIGNATION + ROW_HEIGHT;
 const Y_ROW_LOCATION = Y_ROW_DESIGNATION + ROW_HEIGHT * 2;
@@ -257,14 +257,17 @@ function tableCell(
   ctx.textBaseline = "alphabetic";
 
   const textX = centerX !== undefined ? centerX : x + width / 2;
-  // inline wrapText logic to avoid dependency cycles if needed, or import from schematicRenderUtils
-  const wrappedLines = inlineWrapText(ctx, value, width - 4);
+  // WHY: wrapText i truncateToWidth w schematicRenderUtils (linia 151+).
+  // Wczesniej tu byly inline kopie (inlineWrapText/inlineTruncateToWidth) —
+  // identyczne cialo, 2 martwe funkcje usuniete w PR-3.4. Brak cyklu
+  // importow: schematicRenderUtils jest leafem (nie importuje z table/page).
+  const wrappedLines = wrapText(ctx, value, width - 4);
   const lineGap = 1;
   const size = wrappedLines.length > 2 ? 7.4 : wrappedLines.length > 1 ? 8.8 : baseSize;
   const maxLines = Math.max(1, Math.floor((ROW_HEIGHT - 4 + lineGap) / (size + lineGap)));
   const lines = wrappedLines.slice(0, maxLines);
   if (wrappedLines.length > maxLines) {
-    lines[lines.length - 1] = inlineTruncateToWidth(ctx, `${lines[lines.length - 1]}...`, width - 4);
+    lines[lines.length - 1] = truncateToWidth(ctx, `${lines[lines.length - 1]}...`, width - 4);
   }
 
   ctx.font = `${bold ? "700 " : ""}${size}px Segoe UI, sans-serif`;
@@ -289,40 +292,3 @@ function cableDesignationColor(node: SchematicNode): string {
   }
 }
 
-function inlineWrapText(ctx: CanvasRenderingContext2D, value: string, maxWidth: number): string[] {
-  const lines: string[] = [];
-  const manualLines = value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-
-  for (const manualLine of manualLines) {
-    const words = manualLine.split(/\s+/).filter(Boolean);
-    if (words.length === 0) {
-      continue;
-    }
-
-    let current = words[0];
-    for (const word of words.slice(1)) {
-      const test = `${current} ${word}`;
-      if (ctx.measureText(test).width <= maxWidth) {
-        current = test;
-      } else {
-        lines.push(current);
-        current = word;
-      }
-    }
-    lines.push(current);
-  }
-
-  return lines.map((line) => inlineTruncateToWidth(ctx, line, maxWidth));
-}
-
-function inlineTruncateToWidth(ctx: CanvasRenderingContext2D, value: string, maxWidth: number): string {
-  if (ctx.measureText(value).width <= maxWidth) {
-    return value;
-  }
-
-  let next = value;
-  while (next.length > 2 && ctx.measureText(`${next}...`).width > maxWidth) {
-    next = next.slice(0, -1);
-  }
-  return `${next}...`;
-}
