@@ -32,7 +32,7 @@ Prawdziwe duplikaty (ten sam problem opisany w dwóch lub więcej raportach) to:
 | Cross-ref | Temat | Raporty |
 |---|---|---|
 | SYN-X1 | `WIRE_THICKNESS_MAP` / `WIRE_COLORS_MAP` zduplikowane w 4 plikach (2 pliki kanoniczne + 2 inline kopie) | canvas C-2 / D-1 + code-discipline P2-2 |
-| SYN-X2 | Cztery funkcje (`findConnectedComponent`, `getHotspotPhase`, `checkConnectionWarning`, `getSymbolAssetUrl`) zduplikowane między `connectionsLogic.ts` a `canvasHelpers.ts` z różnymi implementacjami | code-discipline P1-1 + canvas D-3 + canvas D-4 |
+| SYN-X2 | ~~Cztery funkcje (`findConnectedComponent`, `getHotspotPhase`, `checkConnectionWarning`, `getSymbolAssetUrl`) zduplikowane między `connectionsLogic.ts` a `canvasHelpers.ts` z różnymi implementacjami~~ **ZAMKNIĘTE 2026-06-30: verified, single source w `canvasHelpers.ts`.** Grep `export function (findConnectedComponent|getHotspotPhase|checkConnectionWarning|getSymbolAssetUrl)` w `connectionsLogic.ts` → 0 trafień, w `canvasHelpers.ts` → 4 trafienia (linie 27, 79, 107, 156). Wszyscy konsumenci importują z `canvasHelpers`: `DinRailConnectionsCanvas.tsx:64-65`, `useDinRailForegroundSvgs.ts:3`, `DinRailRenderedSymbols.tsx:3`. Brak implementacji — duplikacja usunięta przed obecnym HEAD. | code-discipline P1-1 + canvas D-3 + canvas D-4 |
 | SYN-X3 | `App.tsx:670-681` cicho połyka błędy parsowania pliku (landing page) — ta sama linia kodu opisana z perspektywy UX (project-io) i error-handling convention (code-discipline) | project-io P0-1 + code-discipline P2-9 |
 
 **3 prawdziwe cross-report duplikaty.** Reszta nakładających się ustaleń to raczej „ten sam subsystem" (np. canvas M-1 o useSvgTerminalsPreloader + electrical D-1 o 5+ implementacjach helpersów identyfikacyjnych) niż ten sam problem — traktuję je jako **related** (patrz sekcja 1.4).
@@ -83,7 +83,7 @@ To NIE są duplikaty — raczej grupy powiązanych tematów:
 | Wzorzec | Pliki | Cross-ref |
 |---|---|---|
 | `WIRE_THICKNESS_MAP` / `WIRE_COLORS_MAP` | 4 pliki (3 inline kopie + 1 kanoniczna) | **SYN-X1** |
-| `findConnectedComponent` / `getHotspotPhase` / `checkConnectionWarning` / `getSymbolAssetUrl` | `connectionsLogic.ts` vs `canvasHelpers.ts` | **SYN-X2** |
+| ~~`findConnectedComponent` / `getHotspotPhase` / `checkConnectionWarning` / `getSymbolAssetUrl`~~ **SYN-X2 closed (2026-06-30) — single source w `canvasHelpers.ts`.** | `connectionsLogic.ts` vs `canvasHelpers.ts` | **SYN-X2 closed** |
 | Helpersy identyfikacyjne modułów | 5+ plików z różnymi implementacjami | electrical D-1 + canvas M-1 + related |
 | `normalizeSinglePhase` | ~~3 pliki (phaseBalanceSuggestions, phaseImbalanceInsights, validationHelpers)~~ **ZAMKNIĘTE 2026-06-29: verified re-export, not duplication.** Jedyna implementacja: `phaseDistributionCalculator.ts:450`. Re-eksport (bez kopiowania ciała): `validationHelpers.ts:59`. Pozostałe 2 pliki importują z różnych ścieżek (`phaseDistributionCalculator` bezpośrednio lub `validationHelpers` przez re-eksport) — to jest convenience import, nie duplikacja logiki. Brak implementacji. | — | — |
 | `isGroupHeadSymbol` | `domain/symbolGrouping.ts` (czysta) + `phaseDistributionCalculator.ts:416-427` (string-match) | electrical C-1, H-1, L-2 |
@@ -206,6 +206,8 @@ Lista uszeregowana od najbardziej pilnych (cicha utrata danych / security / dome
 
 **Minimalny fix:** Usunąć martwe stany, `closeAllDialogs`, dodać `if (!Capacitor.isNativePlatform()) return;` w useEffect, dodać `.catch(() => {})` na `backListener.then`. Testy dla `useDialogState` (P2-8 code-discipline).
 
+~~**ZAMKNIĘTE 2026-06-30: verified.** Plik ma 98 LOC, 5 aktywnych stanów (`isRcdManagerOpen`, `isHelpOpen`, `svgImportDialogOpen`, `importedModulesManagerOpen`, `unsavedChangesActionType`), żadnych `paletteContextMenu` / `pendingPaletteRemoval` / `closeAllDialogs`. Wszystkie 5 są w `return` (linie 77-88), w `stateRef` dla backButton handlera (linie 26-32), w deps arrays (linie 42-48, 90-96). `paletteContextMenu` i `pendingPaletteRemoval` żyją wyłącznie w `usePaletteActions.ts:68, 75` (single source). Guard `if (!Capacitor.isNativePlatform()) return;` w useEffect (linia 52). `.catch(() => {})` na `backListener.then` (linia 70). Brak implementacji — closure historyczne.~~
+
 ---
 
 ### 9. `useImportedModules` martwe stany duplikujące `useDialogState` (code-discipline P0-3)
@@ -217,6 +219,8 @@ Lista uszeregowana od najbardziej pilnych (cicha utrata danych / security / dome
 **Wpływ:** `svgImportDialogOpen` i `importedModulesManagerOpen` zdefiniowane lokalnie, ale App.tsx używa wersji z `useDialogState`. Wywołanie `setSvgImportDialogOpen(false)` w `handleSvgImportCommit:144` wygląda jak bug fix — nic nie robi w UI.
 
 **Minimalny fix:** Usunąć stany + setter w `handleSvgImportCommit`. Logika zamykania dialogu już jest w App.tsx po stronie konsumenta.
+
+~~**ZAMKNIĘTE 2026-06-30: verified.** Plik ma 178 LOC, 5 aktywnych stanów hooka (`importedModules`, `discoveredModules`, `hiddenPaletteTemplateIds`, `hasSyncedCatalogStorage`, `activePaletteGroupTitle`), żadnych `svgImportDialogOpen` / `importedModulesManagerOpen` lokalnie. `handleSvgImportCommit` (linie 134-149) nie ma już `setSvgImportDialogOpen` — bug fix przez usunięcie setterra. Otwieranie/zamykanie dialogów idzie przez `useDialogState` konsumowane w `AppWorkspace.tsx:307-308, 457-460`. Brak implementacji — closure historyczne.~~
 
 ---
 
@@ -245,8 +249,8 @@ Graf zależności — węzły z `→` muszą być przed; węzły na tym samym po
 | ID | Temat | Severity | Owner | Zależności |
 |---|---|---|---|---|
 | 0a | `read_project_file` / `write_project_file` + `loadProjectFromPath` (martwy kod Tauri) | project-io P0-2 | project-io-expert | izolowane |
-| 0b | `useDialogState` martwe stany (Top 10 #8) | code-discipline P0-2 + P1-5 + P3-1 + P3-9 | developer | izolowane |
-| 0c | `useImportedModules` martwe stany (Top 10 #9) | code-discipline P0-3 | developer | izolowane |
+| 0b | ~~`useDialogState` martwe stany (Top 10 #8)~~ **DONE — patrz Top 10 #8 closure.** | code-discipline P0-2 + P1-5 + P3-1 + P3-9 | developer | — |
+| 0c | ~~`useImportedModules` martwe stany (Top 10 #9)~~ **DONE — patrz Top 10 #9 closure.** | code-discipline P0-3 | developer | — |
 | 0d | ~~`ConnectionsRightPanel` pusty stub (Top 10 #7)~~ **DONE — patrz Q3 closure.** | code-discipline P0-1 | developer | — |
 
 ~~**Blokada 0d:** wymaga Q3 (A/B).~~ **Zniesiona 2026-06-30 — Q3 zamknięte (Wariant B), plik usunięty.**
@@ -330,8 +334,8 @@ Każdy PR dotyka jednego subsystemu (z wyjątkami oznaczonymi gwiazdką). Tam, g
 | PR | Temat | Pliki | Severity | Scope |
 |---|---|---|---|---|
 | PR-0.1 | Martwy Tauri + `loadProjectFromPath` (Warstwa 0a) | 3 pliki (Rust + TS) | project-io P0-2 | 30 LOC usunięte |
-| PR-0.2 | Martwe dialogi w `useDialogState` (Warstwa 0b) | 1 plik | code-discipline P0-2 + P1-5 + P3-1 + P3-9 | 30 LOC usunięte |
-| PR-0.3 | Martwe stany w `useImportedModules` (Warstwa 0c) | 1 plik | code-discipline P0-3 | 5 LOC usunięte |
+| ~~PR-0.2~~ | ~~Martwe dialogi w `useDialogState` (Warstwa 0b)~~ **DONE poza PR-em (Top 10 #8 closure).** | 0 plików | code-discipline P0-2 + P1-5 + P3-1 + P3-9 | — |
+| ~~PR-0.3~~ | ~~Martwe stany w `useImportedModules` (Warstwa 0c)~~ **DONE poza PR-em (Top 10 #9 closure).** | 0 plików | code-discipline P0-3 | — |
 | ~~PR-0.4~~ | ~~`ConnectionsRightPanel` (Warstwa 0d)~~ **SKIP — zrobione poza PR-em (Q3 closure, Wariant B).** | 0 plików | code-discipline P0-1 | — |
 
 ### Faza 1 — kontrakty (1-2 tygodnie)
@@ -362,7 +366,7 @@ Każdy PR dotyka jednego subsystemu (z wyjątkami oznaczonymi gwiazdką). Tam, g
 | PR | Temat | Pliki | Severity | Zależności |
 |---|---|---|---|---|
 | PR-3.1 | 5+ implementacji helpersów identyfikacji (Warstwa 3a) | 6 plików | electrical D-1 + related | ← wymaga PR-1.3, PR-2.2 |
-| PR-3.2 | 4 funkcje `connectionsLogic` vs `canvasHelpers` (Warstwa 3b) — **SYN-X2** | 2 pliki | code-discipline P1-1 + canvas D-3, D-4 | ← wymaga PR-2.1 |
+| ~~PR-3.2~~ | ~~4 funkcje `connectionsLogic` vs `canvasHelpers` (Warstwa 3b)~~ **SKIP — SYN-X2 closed, single source w `canvasHelpers.ts`.** | 0 plików | code-discipline P1-1 + canvas D-3, D-4 | — |
 | PR-3.3 | `computeDisplayProtection` z `types/` do `lib/` (Warstwa 3c) | 2-3 pliki | code-discipline P1-3 | ← wymaga PR-1.3 |
 | PR-3.4 | Canvas geometry/snap/render dups (Warstwa 3d) | 6-8 plików | canvas D-2, D-5..D-9 | izolowane |
 | PR-3.5 | PDF dups (Warstwa 3e) | 5-6 plików | pdf P2-12..P2-15, P2-24 | izolowane |

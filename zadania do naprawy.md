@@ -10,18 +10,19 @@
 
 - **Top 10 z audytu:** 10/10 zrobione lub Q-closed. Wszystko zamknięte.
 - **6 pytań blokujących (Q1-Q6):** wszystkie zamknięte.
-- **Faza 1 plan napraw:** PR-1.1 done, PR-1.2 (Avalonia) nie dotyczy (user nie ma plików Avalonia), PR-1.3 + PR-1.4 do zrobienia.
-- **Quick wins:** 9/18 zrobione. Zostało **9 drobiazgów**.
-- **Duże martwe pliki:** wszystkie usunięte (useDinRailInteraction, demoData, PdfLabelDocument, legacy moduleEntries, ConnectionsRightPanel).
+- **Faza 0 plan napraw:** 4/4 zrobione (0a, 0b, 0c, 0d). Wszystkie domknięte.
+- **Faza 1 plan napraw:** PR-1.1 done, PR-1.2 (Avalonia) nie dotyczy, PR-1.3 + PR-1.4 do zrobienia.
+- **Faza 2-3:** część domknięta (SYN-X2 = single source w canvasHelpers), reszta do zrobienia.
+- **Quick wins:** 9/18 zrobione. Zostało **9 drobiazgów** (sekcja B).
+- **Duże martwe pliki:** wszystkie usunięte.
 
 ---
 
 ## Zalecana kolejność (moja rekomendacja)
 
-1. **Sekcja C** (weryfikacja SYN-X2, useDialogState, useImportedModules) — 30 min, może zamknąć kolejne 2-3 PR-y z Fazy 0.
-2. **PR-1.4 Connection parser defaults** — mały, izolowany, 1-2 godziny roboty, widoczny efekt.
-3. **PR-1.3 DeviceKind unify** — 2-3 pliki, izolowany.
-4. **Sekcja B** (9 quick wins) — dorobić przy okazji jak będziesz dotykał tych plików z innego powodu. Nie osobna sesja.
+1. **A.2 PR-1.4 Connection parser defaults** — mały, izolowany, 1-2 godziny roboty, widoczny efekt. Najlepszy remaining ROI.
+2. **A.3 PR-1.3 DeviceKind unify** — 2-3 pliki, izolowany.
+3. **Sekcja B** (9 quick wins) — dorobić przy okazji jak będziesz dotykał tych plików z innego powodu. Nie osobna sesja.
 
 ---
 
@@ -101,20 +102,23 @@
 
 > Te trzy rzeczy mogą być już zrobione — trzeba sprawdzić. Jeśli tak, przenieść do "Już zrobione" z krótkim uzasadnieniem.
 
-### C.1 [ ] SYN-X2 — czy `findConnectedComponent` / `getHotspotPhase` / `checkConnectionWarning` / `getSymbolAssetUrl` są w jednym czy dwóch plikach
+### C.1 [x] SYN-X2 — czy `findConnectedComponent` / `getHotspotPhase` / `checkConnectionWarning` / `getSymbolAssetUrl` są w jednym czy dwóch plikach ✅ DONE
 - **Pliki:** `src/lib/connections/connectionsLogic.ts` vs `src/lib/connections/canvasHelpers.ts`
 - **Co sprawdzić:** czy są dwie implementacje czy jedna. Widzę aktywne użycie w obu plikach (50+ grep matches).
 - **Severity:** code-discipline P1-1 + canvas D-3, D-4 — SYN-X2
+- **Status:** Zamknięte 2026-06-30. `connectionsLogic.ts` → 0 trafień dla 4 funkcji, `canvasHelpers.ts` → 4 trafienia (linie 27, 79, 107, 156). Single source. Konsumenci importują z `canvasHelpers`: `DinRailConnectionsCanvas.tsx:64-65`, `useDinRailForegroundSvgs.ts:3`, `DinRailRenderedSymbols.tsx:3`. PR-3.2 oznaczony SKIP.
 
-### C.2 [ ] PR-0.2 — `useDialogState` martwe stany
+### C.2 [x] PR-0.2 — `useDialogState` martwe stany ✅ DONE
 - **Plik:** `src/hooks/useDialogState.ts:22-23, 33-34, 45-46, 53-54, 71-74, 88-89, 100-101, 110-111, 79`
 - **Co sprawdzić:** `paletteContextMenu` i `pendingPaletteRemoval` w `useDialogState` — czy są nadal martwe, czy zostały przeniesione do `usePaletteActions`. Wczoraj widziałem że `usePaletteActions.ts:68` je ma — więc prawdopodobnie rozwiązane. Trzeba potwierdzić.
 - **Severity:** code-discipline P0-2 + P1-5 + P3-1 + P3-9
+- **Status:** Zamknięte 2026-06-30. `useDialogState.ts` ma 98 LOC, 5 aktywnych stanów, żadnych martwych. `paletteContextMenu` / `pendingPaletteRemoval` żyją w `usePaletteActions.ts:68, 75` (single source). Guard `isNativePlatform()` dodany, `.catch(() => {})` na `backListener.then`. Top 10 #8 closure + PR-0.2 oznaczony DONE.
 
-### C.3 [ ] PR-0.3 — `useImportedModules` martwe stany
+### C.3 [x] PR-0.3 — `useImportedModules` martwe stany ✅ DONE
 - **Plik:** `src/hooks/useImportedModules.ts:41-42, 144, 175-177`
 - **Co sprawdzić:** czy `svgImportDialogOpen` i `importedModulesManagerOpen` są nadal lokalnie zdefiniowane (martwe), czy zostały usunięte na rzecz wersji z `useDialogState`.
 - **Severity:** code-discipline P0-3
+- **Status:** Zamknięte 2026-06-30. Plik ma 178 LOC, 5 aktywnych stanów, brak lokalnych `svgImportDialogOpen` / `importedModulesManagerOpen`. `handleSvgImportCommit` nie ma już `setSvgImportDialogOpen` setter call. Dialogi otwierane/zamykane przez `useDialogState` w `AppWorkspace.tsx`. Top 10 #9 closure + PR-0.3 oznaczony DONE.
 
 ---
 
@@ -128,9 +132,30 @@
 - ✅ #5 Connection parser defaults (częściowo) — patrz A.2, zostały jeszcze realne rozjazdy
 - ✅ #6 Landing page error (App.tsx zrefaktorowane z 681 do 158 LOC, catch w useAppPersistence)
 - ✅ #7 `ConnectionsRightPanel` (Q3 closed, usunięte)
-- ✅ #8 `useDialogState` martwe stany (częściowo) — `paletteContextMenu` w usePaletteActions
-- ✅ #9 `useImportedModules` martwe stany (częściowo) — patrz C.3
+- ✅ #8 `useDialogState` martwe stany (98 LOC, 5 aktywnych stanów, single source w usePaletteActions, .catch() dodany)
+- ✅ #9 `useImportedModules` martwe stany (178 LOC, 5 aktywnych stanów, setSvgImportDialogOpen usunięte z handleSvgImportCommit)
 - ✅ #10 PDF missing pages (Q4 closed, verified non-issue)
+
+### Faza 0 plan napraw (4/4 done):
+- ✅ PR-0.1: Martwy Tauri + `loadProjectFromPath` (`src-tauri/src/lib.rs` nie ma `read_project_file`/`write_project_file`, `loadProjectFromPath` usunięte w `8fcd3cc`)
+- ✅ PR-0.2: `useDialogState` martwe stany (patrz C.2)
+- ✅ PR-0.3: `useImportedModules` martwe stany (patrz C.3)
+- ✅ PR-0.4: SKIP (Q3 closed, Wariant B)
+
+### Faza 1 (1/4 done):
+- ✅ PR-1.1: Migration registry (patrz A.1)
+- ⏭️ PR-1.2: Avalonia disambiguation — SKIP (user: brak plików Avalonia, gałąź usunięta w `d4078e6`)
+- 🔲 PR-1.3: DeviceKind / CircuitDeviceKind unify (patrz A.3)
+- 🔲 PR-1.4: Connection parser defaults (patrz A.2)
+
+### Faza 2-3 (1/15 done):
+- ⏭️ PR-3.2: SYN-X2 dedup (canvasHelpers single source) — patrz C.1
+- 🔲 reszta (canvas geometry dups, PDF dups, SymbolHistorySnapshot helper, itd.) — do roboty w przyszłości
+
+### Cross-report duplikaty (SYN-X):
+- ✅ SYN-X1 (WIRE_THICKNESS_MAP) — Q1 closed
+- ✅ SYN-X2 (4 funkcje canvasHelpers) — patrz C.1
+- ✅ SYN-X3 (App.tsx landing page error) — Top 10 #6 closed (App.tsx zrefaktorowane)
 
 ### Quick wins (9/18):
 - ✅ QW-1: legacy `moduleEntries` usunięte (197 LOC)
