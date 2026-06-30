@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   areSymbolSnapshotsEqual,
   cloneSymbolsSnapshot,
+  createSymbolHistorySnapshot,
 } from "./snapshotUtils";
 import { createDefaultSymbolItem } from "../../types/symbolItem";
+import { createDefaultConnection } from "../../types/connectionItem";
 
 describe("snapshotUtils - cloneSymbolsSnapshot", () => {
   it("returns a new array (not the same reference)", () => {
@@ -114,5 +116,81 @@ describe("snapshotUtils - areSymbolSnapshotsEqual", () => {
     const a = [createDefaultSymbolItem({ id: "r1", deviceKind: "rcd", rcdResidualCurrent: 30 })];
     const b = [createDefaultSymbolItem({ id: "r1", deviceKind: "rcd", rcdResidualCurrent: 300 })];
     expect(areSymbolSnapshotsEqual(a, b)).toBe(false);
+  });
+});
+
+describe("snapshotUtils - createSymbolHistorySnapshot", () => {
+  const sampleState = {
+    symbols: [createDefaultSymbolItem({ id: "s1", x: 10, y: 20 })],
+    selectedSymbolId: "s1",
+  };
+  const sampleConnections = [
+    createDefaultConnection({ id: "c1", fromSymbolId: "s1" }),
+  ];
+
+  it("zwraca snapshot z klonami symbols (nie wspoldzielona referencja)", () => {
+    const snap = createSymbolHistorySnapshot(sampleState, sampleConnections);
+    expect(snap.symbols).not.toBe(sampleState.symbols);
+    expect(snap.symbols[0]).not.toBe(sampleState.symbols[0]);
+  });
+
+  it("zwraca snapshot z klonami connections (nie wspoldzielona referencja)", () => {
+    const snap = createSymbolHistorySnapshot(sampleState, sampleConnections);
+    expect(snap.connections).not.toBe(sampleConnections);
+    expect(snap.connections![0]).not.toBe(sampleConnections[0]);
+  });
+
+  it("selectedSymbolIds fallback: gdy brak array, uzywa [selectedSymbolId]", () => {
+    const snap = createSymbolHistorySnapshot(
+      { symbols: [], selectedSymbolId: "s1" },
+      [],
+    );
+    expect(snap.selectedSymbolIds).toEqual(["s1"]);
+  });
+
+  it("selectedSymbolIds fallback: gdy selectedSymbolId rowniez null, daje []", () => {
+    const snap = createSymbolHistorySnapshot(
+      { symbols: [], selectedSymbolId: null },
+      [],
+    );
+    expect(snap.selectedSymbolIds).toEqual([]);
+  });
+
+  it("selectedSymbolIds: gdy array podany, uzywa go (nie fallback)", () => {
+    const snap = createSymbolHistorySnapshot(
+      { symbols: [], selectedSymbolId: "s1", selectedSymbolIds: ["s1", "s2"] },
+      [],
+    );
+    expect(snap.selectedSymbolIds).toEqual(["s1", "s2"]);
+  });
+
+  it("mutacja oryginalu symbols nie wplywa na snapshot", () => {
+    const state = {
+      symbols: [createDefaultSymbolItem({ id: "s1", x: 10 })],
+      selectedSymbolId: "s1",
+    };
+    const snap = createSymbolHistorySnapshot(state, []);
+    state.symbols[0].x = 999;
+    expect(snap.symbols[0].x).toBe(10);
+  });
+
+  it("mutacja oryginalu connections nie wplywa na snapshot", () => {
+    const conns = [createDefaultConnection({ id: "c1", fromSymbolId: "s1" })];
+    const snap = createSymbolHistorySnapshot(sampleState, conns);
+    conns[0].fromSymbolId = "MUTATED";
+    expect(snap.connections![0].fromSymbolId).toBe("s1");
+  });
+
+  it("selectedSymbolId jest przepisywany jak jest", () => {
+    const snap = createSymbolHistorySnapshot(
+      { symbols: [], selectedSymbolId: "abc" },
+      [],
+    );
+    expect(snap.selectedSymbolId).toBe("abc");
+  });
+
+  it("puste connections -> snapshot.connections = [] (nie undefined)", () => {
+    const snap = createSymbolHistorySnapshot(sampleState, []);
+    expect(snap.connections).toEqual([]);
   });
 });

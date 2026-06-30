@@ -6,6 +6,7 @@ import {
   isEditableShortcutTarget,
   type SymbolHistorySnapshot,
 } from '../lib/appHelpers';
+import { createSymbolHistorySnapshot } from '../lib/domain/snapshotUtils';
 import type { SymbolItem } from '../types/symbolItem';
 import type { ConnectionItem } from '../types/connectionItem';
 
@@ -152,16 +153,10 @@ export function useSymbolHistory({
   // setting `setHasUnsavedChanges(false)`.
   const markClean = useCallback(
     (snapshot: SymbolHistorySnapshot) => {
-      cleanSnapshotRef.current = {
-        symbols: cloneSymbolsSnapshot(snapshot.symbols),
-        connections: snapshot.connections
-          ? snapshot.connections.map((c) => ({ ...c }))
-          : [],
-        selectedSymbolId: snapshot.selectedSymbolId,
-        selectedSymbolIds:
-          snapshot.selectedSymbolIds ??
-          (snapshot.selectedSymbolId ? [snapshot.selectedSymbolId] : []),
-      };
+      cleanSnapshotRef.current = createSymbolHistorySnapshot(
+        snapshot,
+        snapshot.connections ?? [],
+      );
       setHasUnsavedChanges(false);
     },
     [setHasUnsavedChanges],
@@ -185,22 +180,14 @@ export function useSymbolHistory({
         return false;
       }
 
-      const beforeSnapshot: SymbolHistorySnapshot = {
-        symbols: cloneSymbolsSnapshot(before.symbols),
-        connections: effectiveBeforeConnections.map((c) => ({ ...c })),
-        selectedSymbolId: before.selectedSymbolId,
-        selectedSymbolIds:
-          before.selectedSymbolIds ??
-          (before.selectedSymbolId ? [before.selectedSymbolId] : []),
-      };
-      const afterSnapshot: SymbolHistorySnapshot = {
-        symbols: cloneSymbolsSnapshot(after.symbols),
-        connections: effectiveAfterConnections.map((c) => ({ ...c })),
-        selectedSymbolId: after.selectedSymbolId,
-        selectedSymbolIds:
-          after.selectedSymbolIds ??
-          (after.selectedSymbolId ? [after.selectedSymbolId] : []),
-      };
+      const beforeSnapshot: SymbolHistorySnapshot = createSymbolHistorySnapshot(
+        before,
+        effectiveBeforeConnections,
+      );
+      const afterSnapshot: SymbolHistorySnapshot = createSymbolHistorySnapshot(
+        after,
+        effectiveAfterConnections,
+      );
 
       undoRedoServiceRef.current.execute(
         createActionCommand(

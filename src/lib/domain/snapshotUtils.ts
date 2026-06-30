@@ -12,6 +12,38 @@ export function cloneSymbolsSnapshot(symbols: SymbolItem[]): SymbolItem[] {
   return symbols.map((symbol) => ({ ...symbol, parameters: { ...symbol.parameters } }));
 }
 
+/**
+ * Tworzy pelny SymbolHistorySnapshot z podanego stanu + connections.
+ *
+ * WHY: W useSymbolHistory.ts inline konstrukcja snapshota pojawia sie 3 razy
+ * (markClean + beforeSnapshot + afterSnapshot w executeSymbolsCommand) z
+ * identyczna struktura. Wyciagniecie helpera eliminuje 3 miejsca do
+ * synchronizacji (w szczegolnosci selectedSymbolIds fallback na
+ * [selectedSymbolId]). Connections przekazywane jako osobny parametr
+ * (required) — caller rozwiązuje ewentualny `undefined` z
+ * `state.connections ?? fallback` na miejscu wywolania, bo logika
+ * rozwijania jest rozna (np. markClean uzywa [], executeSymbolsCommand
+ * uzywa biezacych connections z ref). Zwraca nowy obiekt z klonami
+ * symbols i connections, wiec undo/redo nie dzieli referencji z live state.
+ */
+export function createSymbolHistorySnapshot(
+  state: {
+    symbols: SymbolItem[];
+    selectedSymbolId: string | null;
+    selectedSymbolIds?: string[] | null;
+  },
+  connections: ConnectionItem[],
+): SymbolHistorySnapshot {
+  return {
+    symbols: cloneSymbolsSnapshot(state.symbols),
+    connections: connections.map((c) => ({ ...c })),
+    selectedSymbolId: state.selectedSymbolId,
+    selectedSymbolIds:
+      state.selectedSymbolIds ??
+      (state.selectedSymbolId ? [state.selectedSymbolId] : []),
+  };
+}
+
 export function areSymbolSnapshotsEqual(first: SymbolItem[], second: SymbolItem[]): boolean {
   if (first.length !== second.length) return false;
 
