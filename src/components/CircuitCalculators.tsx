@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { AppIcon } from "./AppIcon";
 import { calculateCurrent } from "../lib/phaseDistribution/phaseDistributionCalculator";
 import "./CircuitCalculators.css";
@@ -11,6 +12,7 @@ interface CircuitCalculatorsProps {
 const RHO_COPPER = 0.0175; // Rezystywność miedzi [Ω·mm²/m]
 
 export function CircuitCalculators({ values, moduleType }: CircuitCalculatorsProps) {
+  const { t } = useTranslation();
   const results = useMemo(() => {
     // Puste obliczenia jeśli typ modułu nie jest obsługiwany — early return
     // jest w środku useMemo, bo hook musi być wywołany zawsze w tej samej
@@ -80,19 +82,19 @@ export function CircuitCalculators({ values, moduleType }: CircuitCalculatorsPro
   return (
     <div className="circuit-calculators">
       <div className="circuit-calculators-title">
-        <AppIcon name="cog" size={14} /> Parametry obliczeniowe
+        <AppIcon name="cog" size={14} /> {t("app.circuitCalculators.title", "Parametry obliczeniowe")}
       </div>
       <div className="circuit-calculators-grid">
         {results.currentA > 0 && (
           <div className="calc-item">
-            <span className="calc-label">Prąd obciążenia (Ib)</span>
+            <span className="calc-label">{t("app.circuitCalculators.currentIb", "Prąd obciążenia (Ib)")}</span>
             <span className="calc-value">{results.currentA.toFixed(1)} A</span>
           </div>
         )}
         
         {results.voltageDropPercent > 0 && (
           <div className="calc-item">
-            <span className="calc-label">Spadek napięcia (dU)</span>
+            <span className="calc-label">{t("app.circuitCalculators.voltageDrop", "Spadek napięcia (dU)")}</span>
             <span className={`calc-value ${results.voltageDropPercent > 3 ? "text-danger" : ""}`}>
               {results.voltageDropPercent.toFixed(2)} %
             </span>
@@ -102,12 +104,12 @@ export function CircuitCalculators({ values, moduleType }: CircuitCalculatorsPro
         {results.maxZs > 0 && (
           <>
             <div className="calc-item">
-              <span className="calc-label">Wymagane Zs (max)</span>
+              <span className="calc-label">{t("app.circuitCalculators.requiredZs", "Wymagane Zs (max)")}</span>
               <span className="calc-value">{results.maxZs.toFixed(2)} Ω</span>
             </div>
             {results.cableZ > 0 && (
-              <div className="calc-item" title="Impedancja samego przewodu dla tego obwodu">
-                <span className="calc-label">Impedancja kabla</span>
+              <div className="calc-item" title={t("app.circuitCalculators.cableZTooltip", "Impedancja samego przewodu dla tego obwodu")}>
+                <span className="calc-label">{t("app.circuitCalculators.cableZLabel", "Impedancja kabla")}</span>
                 <span className={`calc-value ${results.cableZ > results.maxZs * 0.8 ? "text-warning" : ""}`}>
                   {results.cableZ.toFixed(2)} Ω
                 </span>

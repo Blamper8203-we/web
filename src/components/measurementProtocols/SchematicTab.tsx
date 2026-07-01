@@ -1,4 +1,5 @@
 import { PinchZoomImage } from "./PinchZoomImage";
+import { useTranslation } from "react-i18next";
 
 interface SchematicTabProps {
   /**
@@ -28,6 +29,7 @@ export function SchematicTab({
   onRetry,
   isLoading,
 }: SchematicTabProps) {
+  const { t } = useTranslation();
   const hasImages = schematicImages.length > 0;
 
   return (
@@ -51,7 +53,7 @@ export function SchematicTab({
           >
             <PinchZoomImage
               src={src}
-              alt={`Schemat obwodów — arkusz ${index + 1}`}
+              alt={t("app.pdf.schematic.alt", "Schemat obwodów — arkusz {{page}}", { page: index + 1 })}
               className="mp-zoom-preview"
             />
           </div>
@@ -61,16 +63,16 @@ export function SchematicTab({
           <div className="mp-schematic-preview-empty">
             <strong>
               {schematicError
-                ? "Nie udało się odświeżyć schematu."
+                ? t("app.pdf.schematic.errorTitle", "Nie udało się odświeżyć schematu.")
                 : isLoading
-                  ? "Przygotowywanie schematu..."
-                  : "Brak schematu do pokazania."}
+                  ? t("app.pdf.schematic.loadingTitle", "Przygotowywanie schematu...")
+                  : t("app.pdf.schematic.emptyTitle", "Brak schematu do pokazania.")}
             </strong>
             <span>
               {schematicError ??
                 (isLoading
-                  ? "Schemat generowany jest z dodanych obwodów, faz i zabezpieczeń."
-                  : "Dodaj obwody, fazy i zabezpieczenia, aby zobaczyć schemat.")}
+                  ? t("app.pdf.schematic.loadingDesc", "Schemat generowany jest z dodanych obwodów, faz i zabezpieczeń.")
+                  : t("app.pdf.schematic.emptyDesc", "Dodaj obwody, fazy i zabezpieczenia, aby zobaczyć schemat."))}
             </span>
             {schematicError && onRetry ? (
               <button
@@ -79,7 +81,7 @@ export function SchematicTab({
                 onClick={onRetry}
                 style={{ marginTop: "var(--space-3, 12px)" }}
               >
-                Spróbuj ponownie
+                {t("app.pdf.shared.retry", "Spróbuj ponownie")}
               </button>
             ) : null}
           </div>

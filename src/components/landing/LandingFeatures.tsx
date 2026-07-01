@@ -1,14 +1,18 @@
+import { useTranslation } from "react-i18next";
+
 export function LandingFeatures() {
+  const { t } = useTranslation();
+
   return (
     <section id="funkcje" className="landing-features-section">
       <div className="landing-container">
         <div className="landing-section-header">
           <span className="landing-section-badge">
-            DLACZEGO DINBOARD?
+            {t("landing.features.badge")}
           </span>
-          <h2 className="landing-section-title">Stworzony, by oszczędzać czas instalatorów</h2>
+          <h2 className="landing-section-title">{t("landing.features.title")}</h2>
           <p className="landing-section-desc">
-            Przejdź od pomysłu do gotowej szafy i protokołu w kilka minut. Bez skomplikowanego, drogiego oprogramowania typu CAD.
+            {t("landing.features.desc")}
           </p>
         </div>
 
@@ -17,9 +21,9 @@ export function LandingFeatures() {
             <div className="landing-feature-icon-wrapper color-blue">
               <i data-lucide="layers" className="landing-feature-icon"></i>
             </div>
-            <h3 className="landing-feature-title">Rysowanie szyny DIN</h3>
+            <h3 className="landing-feature-title">{t("landing.features.f1.title")}</h3>
             <p className="landing-feature-desc">
-              Proste i szybkie układanie aparatów zabezpieczających i modułowych metodą przeciągnij i upuść. Błyskawicznie zaprojektujesz czytelny wygląd frontu rozdzielnicy.
+              {t("landing.features.f1.desc")}
             </p>
           </div>
 
@@ -27,9 +31,9 @@ export function LandingFeatures() {
             <div className="landing-feature-icon-wrapper color-amber">
               <i data-lucide="git-merge" className="landing-feature-icon"></i>
             </div>
-            <h3 className="landing-feature-title">Schemat Jednokreskowy</h3>
+            <h3 className="landing-feature-title">{t("landing.features.f2.title")}</h3>
             <p className="landing-feature-desc">
-              Aplikacja automatycznie buduje schemat elektryczny na podstawie ułożonych na szynie aparatów. Koniec z mozolnym, ręcznym rysowaniem linii obwodowych.
+              {t("landing.features.f2.desc")}
             </p>
           </div>
 
@@ -37,9 +41,9 @@ export function LandingFeatures() {
             <div className="landing-feature-icon-wrapper color-emerald">
               <i data-lucide="file-text" className="landing-feature-icon"></i>
             </div>
-            <h3 className="landing-feature-title">Dokumentacja PDF</h3>
+            <h3 className="landing-feature-title">{t("landing.features.f3.title")}</h3>
             <p className="landing-feature-desc">
-              Generuj przejrzyste rysunki montażowe oraz dokumentację odbiorczą powykonawczą gotową do wydruku w kilka sekund, z zachowaniem Twojego logotypu.
+              {t("landing.features.f3.desc")}
             </p>
           </div>
 
@@ -47,9 +51,9 @@ export function LandingFeatures() {
             <div className="landing-feature-icon-wrapper color-indigo">
               <i data-lucide="shield-check" className="landing-feature-icon"></i>
             </div>
-            <h3 className="landing-feature-title">Prywatność i bezpieczeństwo</h3>
+            <h3 className="landing-feature-title">{t("landing.features.f4.title")}</h3>
             <p className="landing-feature-desc">
-              Twoje projekty są w 100% poufne. Aplikacja przetwarza dane w Twojej przeglądarce, a pliki projektów (.dinboard) zapisujesz bezpiecznie na własnym dysku.
+              {t("landing.features.f4.desc")}
             </p>
           </div>
 
@@ -57,9 +61,9 @@ export function LandingFeatures() {
             <div className="landing-feature-icon-wrapper color-rose">
               <i data-lucide="cpu" className="landing-feature-icon"></i>
             </div>
-            <h3 className="landing-feature-title">Inteligentna weryfikacja</h3>
+            <h3 className="landing-feature-title">{t("landing.features.f5.title")}</h3>
             <p className="landing-feature-desc">
-              Wbudowane algorytmy walidacji na bieżąco sprawdzają poprawność połączeń, pilnują rozkładu obciążenia fazowego i chronią Cię przed krytycznymi błędami.
+              {t("landing.features.f5.desc")}
             </p>
           </div>
 
@@ -67,9 +71,9 @@ export function LandingFeatures() {
             <div className="landing-feature-icon-wrapper color-yellow">
               <i data-lucide="database" className="landing-feature-icon"></i>
             </div>
-            <h3 className="landing-feature-title">Baza własnych aparatów</h3>
+            <h3 className="landing-feature-title">{t("landing.features.f6.title")}</h3>
             <p className="landing-feature-desc">
-              Swobodnie importuj pliki wektorowe SVG aparatów zaprojektowanych w zewnętrznych programach graficznych i z łatwością twórz własną bazę unikalnych komponentów.
+              {t("landing.features.f6.desc")}
             </p>
           </div>
         </div>

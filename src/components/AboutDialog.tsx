@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { AppIcon } from "./AppIcon";
 import "./HelpDialog.css";
 import "./AboutDialog.css";
@@ -21,6 +22,8 @@ const RECENT_CHANGES: ReadonlyArray<string> = [
 ];
 
 export function AboutDialog({ onClose }: AboutDialogProps) {
+  const { t } = useTranslation();
+  
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -37,12 +40,12 @@ export function AboutDialog({ onClose }: AboutDialogProps) {
         className="help-dialog about-dialog"
         role="dialog"
         aria-modal="true"
-        aria-label="O aplikacji"
+        aria-label={t("app.aboutDialog.title", "O aplikacji")}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="din-rail-dialog-title">
           <AppIcon name="help" size={18} />
-          <strong>O aplikacji</strong>
+          <strong>{t("app.aboutDialog.title", "O aplikacji")}</strong>
         </div>
 
         <div className="help-dialog__content">
@@ -52,16 +55,15 @@ export function AboutDialog({ onClose }: AboutDialogProps) {
               <span className="about-dialog__badge">v{APP_VERSION}</span>
             </div>
             <p>
-              Narzędzie dla elektryków do projektowania rozdzielnic, bilansu faz,
-              walidacji obwodów i generowania dokumentacji PDF.
+              {t("app.aboutDialog.desc", "Narzędzie dla elektryków do projektowania rozdzielnic, bilansu faz, walidacji obwodów i generowania dokumentacji PDF.")}
             </p>
           </section>
 
           <section className="help-dialog__section">
-            <h3>Co nowego</h3>
+            <h3>{t("app.aboutDialog.whatsNew", "Co nowego")}</h3>
             <ul>
-              {RECENT_CHANGES.map((change) => (
-                <li key={change}>{change}</li>
+              {RECENT_CHANGES.map((change, idx) => (
+                <li key={change}>{t(`app.aboutDialog.change${idx}`, change)}</li>
               ))}
             </ul>
           </section>
@@ -69,7 +71,7 @@ export function AboutDialog({ onClose }: AboutDialogProps) {
 
         <div className="din-rail-dialog-actions">
           <button type="button" className="accent-btn" onClick={onClose}>
-            Zamknij
+            {t("app.aboutDialog.closeBtn", "Zamknij")}
           </button>
         </div>
       </div>

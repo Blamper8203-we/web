@@ -7,12 +7,10 @@ import type {
   MeasurementUnifiedProtocolRow,
   ProjectMetadata,
 } from "../types/projectMetadata";
+import { t } from "i18next";
 
 export const LOOP_ROW_COUNT = 15;
 export const RCD_ROW_COUNT = 6;
-const RCD_GROUND_DEFAULT_SUBTITLE = "Test wyłączników RCD i rezystancja uziemienia";
-const DEFAULT_GROUND_CONCLUSION =
-  "Instalacja w zakresie ochrony przeciwporażeniowej, stanu izolacji oraz skuteczności uziemienia odpowiada wymogom normy PN-HD 60364 i nadaje się do eksploatacji.";
 
 type CircuitSeed = {
   sourceCircuitId: string;
@@ -352,13 +350,13 @@ export function createDefaultMeasurementProtocols(
   return {
     rcdGroundHeader: createDefaultProtocolHeader(
       4,
-      RCD_GROUND_DEFAULT_SUBTITLE,
+      t("pdf.measurementProtocols.rcdGroundSubtitle"),
       measurementDate,
       objectName,
     ),
     unifiedHeader: createDefaultProtocolHeader(
       1,
-      "Tabela zbiorcza wyników pomiarów",
+      t("pdf.measurementProtocols.unifiedSubtitle"),
       measurementDate,
       objectName,
     ),
@@ -374,11 +372,11 @@ export function createDefaultMeasurementProtocols(
     insulationMeterSerialNumber: "",
     rcdGroundMeterName: "",
     rcdGroundMeterSerialNumber: "",
-    groundMeasurementMethod: "Trójbiegunowa / impedancja pętli",
-    groundElectrodeType: "Fundamentowy / otokowy",
+    groundMeasurementMethod: t("pdf.measurementProtocols.method"),
+    groundElectrodeType: t("pdf.measurementProtocols.electrodeType"),
     groundMeasuredResistance: "",
     groundRequiredResistance: "< 10 Ohm",
-    groundConclusionText: DEFAULT_GROUND_CONCLUSION,
+    groundConclusionText: t("pdf.measurementProtocols.groundConclusion"),
     recommendationsText: "",
     rcdRows: normalizeRcdRows(undefined),
     unifiedRows: normalizeUnifiedRows(undefined),

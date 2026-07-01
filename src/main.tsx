@@ -14,6 +14,7 @@ runtimeGlobals.Buffer = Buffer;
 runtimeGlobals.process ??= { env: {} };
 
 
+import "./lib/i18n/config";
 import { ViteReactSSG } from "vite-react-ssg";
 import { routes } from "./App";
 import { registerGlobalRuntimeDiagnostics, reportRuntimeError } from "./lib/runtimeDiagnostics";

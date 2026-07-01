@@ -1,4 +1,5 @@
 import { useMemo, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import type { RightTab } from "../lib/appHelpers";
 import { normalizePowerFactor, normalizeSimultaneityFactor } from "../lib/projectMetadata";
 import type { ValidationResult } from "../lib/validation/electricalValidationService";
@@ -148,6 +149,8 @@ export function AppRightPanel({
   handleOpenRcdManager,
   onScrollToSchematicPage,
 }: AppRightPanelProps) {
+  const { t } = useTranslation();
+
   if (!showRightPanel) {
     return null;
   }
@@ -158,19 +161,19 @@ export function AppRightPanel({
           <div className="right-tabs">
             <button className={`right-tab-btn ${activeRightTab === "config" ? "active" : ""}`} type="button" onClick={() => setActiveRightTab("config")}>
               <AppIcon name="power" size={14} />
-              <span>Zasilanie</span>
+              <span>{t("app.rightPanel.tabs.power", "Zasilanie")}</span>
             </button>
             <button className={`right-tab-btn ${activeRightTab === "balance" ? "active" : ""}`} type="button" onClick={() => setActiveRightTab("balance")}>
               <AppIcon name="balance" size={14} />
-              <span>Bilans</span>
+              <span>{t("app.rightPanel.tabs.balance", "Bilans")}</span>
             </button>
             <button className={`right-tab-btn ${activeRightTab === "validation" ? "active" : ""}`} type="button" onClick={() => setActiveRightTab("validation")}>
               <AppIcon name="validation" size={14} />
-              <span>Walidacja</span>
+              <span>{t("app.rightPanel.tabs.validation", "Walidacja")}</span>
             </button>
             <button className={`right-tab-btn ${activeRightTab === "circuitEdit" ? "active" : ""}`} type="button" onClick={() => setActiveRightTab("circuitEdit")}>
               <AppIcon name="pencil" size={14} />
-              <span>Edycja</span>
+              <span>{t("app.rightPanel.tabs.edit", "Edycja")}</span>
             </button>
           </div>
         <div className="right-panel-content" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: activeSheet === "sheet2" ? 0 : undefined, overflowY: activeSheet === "sheet2" ? "hidden" : "auto" }}>
@@ -207,10 +210,10 @@ export function AppRightPanel({
           {activeRightTab === "config" && (
             <div className="power-config-panel">
               <section className="power-config-section">
-                <div className="section-header">KONFIGURACJA ZASILANIA</div>
+                <div className="section-header">{t("app.rightPanel.powerConfig.header", "KONFIGURACJA ZASILANIA")}</div>
                 <div className="card power-config-card">
                   <label className="power-config-field">
-                    <span><AppIcon className="accent-primary" name="validation" size={12} />Napięcie</span>
+                    <span><AppIcon className="accent-primary" name="validation" size={12} />{t("app.rightPanel.powerConfig.voltage", "Napięcie")}</span>
                     <select
                       value={metadata.supplyVoltageV}
                       onChange={(e) => handleMetadataChange({ ...metadata, supplyVoltageV: Number(e.target.value) as 230 | 400 })}
@@ -220,7 +223,7 @@ export function AppRightPanel({
                     </select>
                   </label>
                   <label className="power-config-field">
-                    <span><AppIcon className="accent-primary" name="busbar" size={12} />Liczba faz</span>
+                    <span><AppIcon className="accent-primary" name="busbar" size={12} />{t("app.rightPanel.powerConfig.phases", "Liczba faz")}</span>
                     <select
                       value={metadata.supplyPhases}
                       onChange={(e) => handleMetadataChange({ ...metadata, supplyPhases: Number(e.target.value) as 1 | 3 })}
@@ -230,7 +233,7 @@ export function AppRightPanel({
                     </select>
                   </label>
                   <label className="power-config-field">
-                    <span><AppIcon className="accent-primary" name="delete" size={12} />Zabezpieczenie główne</span>
+                    <span><AppIcon className="accent-primary" name="delete" size={12} />{t("app.rightPanel.powerConfig.mainBreaker", "Zabezpieczenie główne")}</span>
                     <select
                       value={metadata.mainBreakerA}
                       onChange={(e) => {
@@ -251,7 +254,7 @@ export function AppRightPanel({
                     </select>
                   </label>
                   <label className="power-config-field">
-                    <span><AppIcon className="accent-primary" name="balance" size={12} />Moc przyłączeniowa</span>
+                    <span><AppIcon className="accent-primary" name="balance" size={12} />{t("app.rightPanel.powerConfig.power", "Moc przyłączeniowa")}</span>
                     <div className="unit-input">
                       <input
                         value={metadata.contractedPowerKw}
@@ -264,7 +267,7 @@ export function AppRightPanel({
                     </div>
                   </label>
                   <label className="power-config-field">
-                    <span><AppIcon className="accent-green" name="balance" size={12} />Współczynnik jednoczesności</span>
+                    <span><AppIcon className="accent-green" name="balance" size={12} />{t("app.rightPanel.powerConfig.simultaneity", "Współczynnik jednoczesności")}</span>
                     <input
                       value={metadata.simultaneityFactor}
                       inputMode="decimal"
@@ -284,7 +287,7 @@ export function AppRightPanel({
                     />
                   </label>
                   <label className="power-config-field">
-                    <span><AppIcon className="accent-green" name="validation" size={12} />Współczynnik mocy (cosφ)</span>
+                    <span><AppIcon className="accent-green" name="validation" size={12} />{t("app.rightPanel.powerConfig.powerFactor", "Współczynnik mocy (cosφ)")}</span>
                     <input
                       value={metadata.powerFactor}
                       inputMode="decimal"
@@ -306,13 +309,13 @@ export function AppRightPanel({
                 </div>
               </section>
               <section className="power-config-section">
-                <div className="section-header">USTAWIENIA RCD</div>
+                <div className="section-header">{t("app.rightPanel.rcdSettings.header", "USTAWIENIA RCD")}</div>
                 <button
                   className="accent-btn power-config-action"
                   type="button"
                   onClick={handleOpenRcdManager}
                 >
-                  <AppIcon name="cog" size={14} /><span>Zarządzaj RCD</span>
+                  <AppIcon name="cog" size={14} /><span>{t("app.rightPanel.rcdSettings.manage", "Zarządzaj RCD")}</span>
                 </button>
               </section>
             </div>

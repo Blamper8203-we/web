@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { AppIcon } from "./AppIcon";
 import "./HelpDialog.css";
 
@@ -7,6 +8,8 @@ interface HelpDialogProps {
 }
 
 export function HelpDialog({ onClose }: HelpDialogProps) {
+  const { t } = useTranslation();
+  
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -24,60 +27,60 @@ export function HelpDialog({ onClose }: HelpDialogProps) {
         className="help-dialog"
         role="dialog"
         aria-modal="true"
-        aria-label="Pomoc"
+        aria-label={t("app.helpDialog.title", "Pomoc")}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="din-rail-dialog-title">
           <AppIcon name="help" size={18} />
-          <strong>Pomoc</strong>
+          <strong>{t("app.helpDialog.title", "Pomoc")}</strong>
         </div>
 
         <div className="help-dialog__content">
           <section className="help-dialog__section">
-            <h3>Skróty klawiaturowe</h3>
+            <h3>{t("app.helpDialog.shortcuts", "Skróty klawiaturowe")}</h3>
             <ul>
-              <li><kbd>Ctrl</kbd> + <kbd>N</kbd> - nowe zlecenie</li>
-              <li><kbd>Ctrl</kbd> + <kbd>O</kbd> - otwórz zlecenie</li>
-              <li><kbd>Ctrl</kbd> + <kbd>S</kbd> - zapisz zlecenie</li>
-              <li><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd> - zapisz jako</li>
-              <li><kbd>Ctrl</kbd> + <kbd>P</kbd> - drukuj</li>
-              <li><kbd>Ctrl</kbd> + <kbd>Z</kbd> - cofnij</li>
-              <li><kbd>Ctrl</kbd> + <kbd>Y</kbd> lub <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> - ponów</li>
-              <li><kbd>Delete</kbd> - usuń zaznaczone</li>
-              <li><kbd>Ctrl</kbd> + <kbd>D</kbd> - duplikuj zaznaczone</li>
-              <li><kbd>F1</kbd> - otwórz pomoc</li>
+              <li><kbd>Ctrl</kbd> + <kbd>N</kbd> - {t("app.helpDialog.shortcutNew", "nowe zlecenie")}</li>
+              <li><kbd>Ctrl</kbd> + <kbd>O</kbd> - {t("app.helpDialog.shortcutOpen", "otwórz zlecenie")}</li>
+              <li><kbd>Ctrl</kbd> + <kbd>S</kbd> - {t("app.helpDialog.shortcutSave", "zapisz zlecenie")}</li>
+              <li><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd> - {t("app.helpDialog.shortcutSaveAs", "zapisz jako")}</li>
+              <li><kbd>Ctrl</kbd> + <kbd>P</kbd> - {t("app.helpDialog.shortcutPrint", "drukuj")}</li>
+              <li><kbd>Ctrl</kbd> + <kbd>Z</kbd> - {t("app.helpDialog.shortcutUndo", "cofnij")}</li>
+              <li><kbd>Ctrl</kbd> + <kbd>Y</kbd> {t("app.helpDialog.or", "lub")} <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> - {t("app.helpDialog.shortcutRedo", "ponów")}</li>
+              <li><kbd>Delete</kbd> - {t("app.helpDialog.shortcutDel", "usuń zaznaczone")}</li>
+              <li><kbd>Ctrl</kbd> + <kbd>D</kbd> - {t("app.helpDialog.shortcutDuplicate", "duplikuj zaznaczone")}</li>
+              <li><kbd>F1</kbd> - {t("app.helpDialog.shortcutHelp", "otwórz pomoc")}</li>
             </ul>
           </section>
 
           <section className="help-dialog__section">
-            <h3>Zapis zlecenia</h3>
+            <h3>{t("app.helpDialog.saving", "Zapis zlecenia")}</h3>
             <ul>
-              <li>Przeglądarka trzyma roboczą kopię lokalnie; pełny zapis wykonaj przez <strong>Plik → Zapisz</strong> do pliku <code>.dinboard</code>.</li>
-              <li>Przed zamknięciem karty lub odświeżeniem strony zapisz zlecenie, jeśli widzisz status niezapisanych zmian.</li>
+              <li>{t("app.helpDialog.savingDesc1", "Przeglądarka trzyma roboczą kopię lokalnie; pełny zapis wykonaj przez")} <strong>{t("app.helpDialog.savingDesc1b", "Plik → Zapisz")}</strong> {t("app.helpDialog.savingDesc1c", "do pliku")} <code>.dinboard</code>.</li>
+              <li>{t("app.helpDialog.savingDesc2", "Przed zamknięciem karty lub odświeżeniem strony zapisz zlecenie, jeśli widzisz status niezapisanych zmian.")}</li>
             </ul>
           </section>
 
           <section className="help-dialog__section">
-            <h3>Wskazówki</h3>
+            <h3>{t("app.helpDialog.tips", "Wskazówki")}</h3>
             <ul>
-              <li>W widoku szyny DIN dodawaj moduły metodą przeciągnij i upuść z lewego panelu.</li>
-              <li>W widoku PDF możesz przełączać zakładki dokumentów w prawym panelu.</li>
-              <li>Przy zmianach RCD użyj przycisku „Zarządzaj RCD” w panelu konfiguracji.</li>
+              <li>{t("app.helpDialog.tip1", "W widoku szyny DIN dodawaj moduły metodą przeciągnij i upuść z lewego panelu.")}</li>
+              <li>{t("app.helpDialog.tip2", "W widoku PDF możesz przełączać zakładki dokumentów w prawym panelu.")}</li>
+              <li>{t("app.helpDialog.tip3", "Przy zmianach RCD użyj przycisku „Zarządzaj RCD” w panelu konfiguracji.")}</li>
             </ul>
           </section>
 
           <section className="help-dialog__section">
-            <h3>Zakres Web v1</h3>
+            <h3>{t("app.helpDialog.scope", "Zakres Web v1")}</h3>
             <ul>
-              <li>Brak eksportu LaTeX, generatora szyny prądowej i kalkulatora indukcji.</li>
-              <li>Walidacje i obliczenia wspierają wykonanie oraz odbiór instalacji — dokumentację sprawdź przed przekazaniem inwestorowi.</li>
+              <li>{t("app.helpDialog.scope1", "Brak eksportu LaTeX, generatora szyny prądowej i kalkulatora indukcji.")}</li>
+              <li>{t("app.helpDialog.scope2", "Walidacje i obliczenia wspierają wykonanie oraz odbiór instalacji — dokumentację sprawdź przed przekazaniem inwestorowi.")}</li>
             </ul>
           </section>
         </div>
 
         <div className="din-rail-dialog-actions">
           <button type="button" className="accent-btn" onClick={onClose}>
-            Zamknij
+            {t("app.helpDialog.btnClose", "Zamknij")}
           </button>
         </div>
       </div>

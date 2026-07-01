@@ -6,6 +6,8 @@ import {
   type PdfDocumentationPreviewTab,
   updateSelectedProtocolHeader,
 } from "../lib/pdfDocumentation";
+import type { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
 import type { MeasurementProtocolHeaderSettings, ProjectMetadata, TitlePageChecklistItem } from "../types/projectMetadata";
 import { AppIcon } from "./AppIcon";
 import { exportToPdf } from "../lib/export/pdfExportService";
@@ -37,52 +39,46 @@ function Field({ label, value, placeholder, onChange }: FieldProps) {
   );
 }
 
-function pickProtocolHeading(selectedPreviewTab: PdfDocumentationPreviewTab) {
+function pickProtocolHeading(selectedPreviewTab: PdfDocumentationPreviewTab, t: TFunction) {
   if (selectedPreviewTab === "title-page") {
     return {
-      title: "Pierwsza strona dokumentacji",
-      description:
-        "Po lewej edytujesz stronę tytułową. Szablony pomiarowe uzupełniasz z poziomu odpowiednich zakładek dokumentacji.",
+      title: t("app.pdfDocumentationPage.heading.titlePage.title"),
+      description: t("app.pdfDocumentationPage.heading.titlePage.description"),
     };
   }
 
   if (selectedPreviewTab === "circuit-list") {
     return {
-      title: "Lista obwodów",
-      description:
-        "Ta zakładka pokazuje obwody bezpośrednio z aktualnej rozdzielnicy. Edycja nazw, faz, zabezpieczeń i przewodów odbywa się w danych obwodu.",
+      title: t("app.pdfDocumentationPage.heading.circuitList.title"),
+      description: t("app.pdfDocumentationPage.heading.circuitList.description"),
     };
   }
 
   if (selectedPreviewTab === "din-rail") {
     return {
-      title: "Rozdzielnica elektryczna",
-      description:
-        "Ta zakładka pokazuje widok rozdzielnicy z aktualnej szyny DIN i synchronizuje się po zmianach w modułach.",
+      title: t("app.pdfDocumentationPage.heading.dinRail.title"),
+      description: t("app.pdfDocumentationPage.heading.dinRail.description"),
     };
   }
 
   if (selectedPreviewTab === "din-rail-connections") {
     return {
-      title: "Połączenia",
-      description:
-        "Ta zakładka pokazuje widok rozdzielnicy razem z połączeniami — przewody i tulejki naniesione na podstawie aktualnego projektu.",
+      title: t("app.pdfDocumentationPage.heading.dinRailConnections.title"),
+      description: t("app.pdfDocumentationPage.heading.dinRailConnections.description"),
     };
   }
 
   if (selectedPreviewTab === "schematic") {
     return {
-      title: "Schemat obwodów",
-      description:
-        "Ta zakładka pokazuje schemat wygenerowany z dodanych obwodów. Schemat odświeża się po modyfikacjach parametrów modułów.",
+      title: t("app.pdfDocumentationPage.heading.schematic.title"),
+      description: t("app.pdfDocumentationPage.heading.schematic.description"),
     };
   }
 
   const protocolLabel = getProtocolLabel(selectedPreviewTab);
   return {
-    title: `Nagłówek protokołu: ${protocolLabel}`,
-    description:
-      "Każda zakładka pomiarowa ma własny nagłówek. Zmiany z tego panelu trafiają tylko do aktualnie wybranego protokołu.",
+    title: t("app.pdfDocumentationPage.heading.protocol.title", { label: protocolLabel }),
+    description: t("app.pdfDocumentationPage.heading.protocol.description"),
   };
 }
 
@@ -95,6 +91,7 @@ function serializeChecklistItems(items: TitlePageChecklistItem[]) {
 
 
 export function PdfDocumentationPage() {
+  const { t } = useTranslation();
   const {
     metadata,
     symbols,
@@ -109,7 +106,7 @@ export function PdfDocumentationPage() {
   const logoInputRef = useRef<HTMLInputElement | null>(null);
 
   const selectedHeader = getSelectedProtocolHeader(metadata, selectedPreviewTab);
-  const heading = pickProtocolHeading(selectedPreviewTab);
+  const heading = pickProtocolHeading(selectedPreviewTab, t);
   const workScopeText = useMemo(
     () => serializeChecklistItems(metadata.titlePageWorkScopeItems),
     [metadata.titlePageWorkScopeItems],
@@ -148,14 +145,14 @@ export function PdfDocumentationPage() {
 
     const supportedTypes = ["image/png", "image/jpeg", "image/bmp"];
     if (!supportedTypes.includes(file.type)) {
-      setExportError("Nie udało się wczytać logo. Użyj pliku PNG, JPG, JPEG lub BMP.");
+      setExportError(t("app.pdfDocumentationPage.error.unsupportedLogo", "Nie udało się wczytać logo. Użyj pliku PNG, JPG, JPEG lub BMP."));
       return;
     }
 
     const dataUrl = await new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
-      reader.onerror = () => reject(new Error("Nie udało się odczytać pliku logo."));
+      reader.onerror = () => reject(new Error(t("app.pdfDocumentationPage.error.readLogo", "Nie udało się odczytać pliku logo.")));
       reader.readAsDataURL(file);
     }).catch((error: Error) => {
       setExportError(error.message);
@@ -186,7 +183,7 @@ export function PdfDocumentationPage() {
       await exportToPdf(metadata, symbols, rail, connections);
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Nie udało się przygotować eksportu PDF.";
+        error instanceof Error ? error.message : t("app.pdfDocumentationPage.error.exportFailed", "Nie udało się przygotować eksportu PDF.");
       setExportError(message);
     } finally {
       setIsExportingPdf(false);
@@ -209,23 +206,23 @@ export function PdfDocumentationPage() {
             <div className="pd-editor-body">
               <article className="pd-card">
                 <div className="pd-card__body">
-                  <h3 className="pd-card-title">Nagłówek dokumentu</h3>
+                  <h3 className="pd-card-title">{t("app.pdfDocumentationPage.editor.titlePage.headerDoc")}</h3>
                   <div className="pd-stack">
 
                     <Field
-                      label="Nr protokołu"
+                      label={t("app.pdfDocumentationPage.editor.titlePage.protocolNr")}
                       value={metadata.projectNumber ?? ""}
-                      placeholder="12"
+                      placeholder={t("app.pdfDocumentationPage.editor.titlePage.protocolNrPlaceholder")}
                       onChange={(value) => updateMetadata({ projectNumber: value })}
                     />
                     <Field
-                      label="Data dokumentacji"
+                      label={t("app.pdfDocumentationPage.editor.titlePage.docDate")}
                       value={metadata.drawingDate ?? ""}
                       placeholder="2026-03-31"
                       onChange={(value) => updateMetadata({ drawingDate: value })}
                     />
                     <Field
-                      label="Data oświadczenia"
+                      label={t("app.pdfDocumentationPage.editor.titlePage.statementDate")}
                       value={metadata.statementDate ?? ""}
                       placeholder="2026-03-31"
                       onChange={(value) => updateMetadata({ statementDate: value })}
@@ -236,28 +233,28 @@ export function PdfDocumentationPage() {
 
               <article className="pd-card">
                 <div className="pd-card__body">
-                  <h3 className="pd-card-title">Informacje o obiekcie</h3>
+                  <h3 className="pd-card-title">{t("app.pdfDocumentationPage.editor.titlePage.objectInfo")}</h3>
                   <div className="pd-stack">
                     <Field
-                      label="Rodzaj obiektu"
+                      label={t("app.pdfDocumentationPage.editor.titlePage.objectType")}
                       value={metadata.titlePageObjectType ?? ""}
-                      placeholder="Budynek jednorodzinny / Lokal mieszkalny"
+                      placeholder={t("app.pdfDocumentationPage.editor.titlePage.objectTypePlaceholder")}
                       onChange={(value) => updateMetadata({ titlePageObjectType: value })}
                     />
                     <Field
-                      label="Adres"
+                      label={t("app.pdfDocumentationPage.editor.titlePage.address")}
                       value={metadata.address ?? ""}
                       placeholder="ul. Budowlana 12, 59-300 Lubin"
                       onChange={(value) => updateMetadata({ address: value })}
                     />
                     <Field
-                      label="Inwestor"
+                      label={t("app.pdfDocumentationPage.editor.titlePage.investor")}
                       value={metadata.investor ?? ""}
                       placeholder="Jan Kowalski"
                       onChange={(value) => updateMetadata({ investor: value })}
                     />
                     <Field
-                      label="Adres inwestora"
+                      label={t("app.pdfDocumentationPage.editor.titlePage.investorAddress")}
                       value={metadata.investorAddress ?? ""}
                       placeholder="(opcjonalnie, jeśli inny niż adres obiektu)"
                       onChange={(value) => updateMetadata({ investorAddress: value })}
@@ -268,22 +265,22 @@ export function PdfDocumentationPage() {
 
               <article className="pd-card">
                 <div className="pd-card__body">
-                  <h3 className="pd-card-title">Wykonawca i uprawnienia</h3>
+                  <h3 className="pd-card-title">{t("app.pdfDocumentationPage.editor.titlePage.contractorLicense")}</h3>
                   <div className="pd-stack">
                     <Field
-                      label="Wykonawca / firma"
+                      label={t("app.pdfDocumentationPage.editor.titlePage.contractor")}
                       value={metadata.contractor ?? ""}
                       placeholder="Usługi Elektryczne PRO-EL"
                       onChange={(value) => updateMetadata({ contractor: value })}
                     />
                     <Field
-                      label="Instalator / elektryk"
+                      label={t("app.pdfDocumentationPage.editor.titlePage.electrician")}
                       value={metadata.author ?? ""}
                       placeholder="Jan Kowalski"
                       onChange={(value) => updateMetadata({ author: value })}
                     />
                     <Field
-                      label="Uprawnienie SEP — Eksploatacja (E)"
+                      label={t("app.pdfDocumentationPage.editor.titlePage.sepE")}
                       value={metadata.designerId ?? ""}
                       placeholder="E / 123/2026"
                       onChange={(value) =>
@@ -291,7 +288,7 @@ export function PdfDocumentationPage() {
                       }
                     />
                     <Field
-                      label="Uprawnienie SEP — Dozór (D)"
+                      label={t("app.pdfDocumentationPage.editor.titlePage.sepD")}
                       value={metadata.authorLicense ?? ""}
                       placeholder="D / 456/2026"
                       onChange={(value) =>
@@ -299,7 +296,7 @@ export function PdfDocumentationPage() {
                       }
                     />
                     <Field
-                      label="Ważne do"
+                      label={t("app.pdfDocumentationPage.editor.titlePage.validUntil")}
                       value={metadata.titlePageSepValidUntil ?? ""}
                       placeholder="31.12.2026"
                       onChange={(value) => updateMetadata({ titlePageSepValidUntil: value })}
@@ -310,31 +307,31 @@ export function PdfDocumentationPage() {
 
               <article className="pd-card">
                 <div className="pd-card__body">
-                  <h3 className="pd-card-title">Dane identyfikacyjne firmy</h3>
+                  <h3 className="pd-card-title">{t("app.pdfDocumentationPage.editor.titlePage.companyData")}</h3>
                   <p className="pd-help-text">
-                    Pola opcjonalne — wypełnij je, jeśli chcesz umieścić pełne dane firmy wykonawcy na stronie tytułowej PDF.
+                    {t("app.pdfDocumentationPage.editor.titlePage.companyDataHelp")}
                   </p>
                   <div className="pd-stack">
                     <Field
-                      label="NIP"
+                      label={t("app.pdfDocumentationPage.editor.titlePage.nip")}
                       value={metadata.contractorNip ?? ""}
                       placeholder="1234567890"
                       onChange={(value) => updateMetadata({ contractorNip: value })}
                     />
                     <Field
-                      label="REGON"
+                      label={t("app.pdfDocumentationPage.editor.titlePage.regon")}
                       value={metadata.contractorRegon ?? ""}
                       placeholder="012345678"
                       onChange={(value) => updateMetadata({ contractorRegon: value })}
                     />
                     <Field
-                      label="Telefon kontaktowy"
+                      label={t("app.pdfDocumentationPage.editor.titlePage.phone")}
                       value={metadata.contractorPhone ?? ""}
                       placeholder="+48 600 100 200"
                       onChange={(value) => updateMetadata({ contractorPhone: value })}
                     />
                     <Field
-                      label="E-mail"
+                      label={t("app.pdfDocumentationPage.editor.titlePage.email")}
                       value={metadata.contractorEmail ?? ""}
                       placeholder="biuro@firma.pl"
                       onChange={(value) => updateMetadata({ contractorEmail: value })}
@@ -345,14 +342,14 @@ export function PdfDocumentationPage() {
 
               <article className="pd-card">
                 <div className="pd-card__body">
-                  <h3 className="pd-card-title">Logo firmy elektrycznej</h3>
+                  <h3 className="pd-card-title">{t("app.pdfDocumentationPage.editor.titlePage.logo")}</h3>
                   <p className="pd-help-text">
-                    Dodane logo zostanie zapisane w zleceniu i pokazane na pierwszej stronie dokumentacji PDF.
+                    {t("app.pdfDocumentationPage.editor.titlePage.logoHelp1")}
                   </p>
                   <p className="pd-logo-info">
                     {metadata.titlePageCompanyLogoFileName
-                      ? `Wybrane logo: ${metadata.titlePageCompanyLogoFileName}`
-                      : "Brak wybranego logo."}
+                      ? t("app.pdfDocumentationPage.editor.titlePage.logoInfoSelected", { name: metadata.titlePageCompanyLogoFileName })
+                      : t("app.pdfDocumentationPage.editor.titlePage.logoInfoNone")}
                   </p>
                   <div className="pd-logo-actions">
                     <input
@@ -367,7 +364,7 @@ export function PdfDocumentationPage() {
                       className="pd-secondary-action"
                       onClick={() => logoInputRef.current?.click()}
                     >
-                      Wybierz logo
+                      {t("app.pdfDocumentationPage.editor.titlePage.btnSelectLogo")}
                     </button>
                     <button
                       type="button"
@@ -379,18 +376,18 @@ export function PdfDocumentationPage() {
                         })
                       }
                     >
-                      Usuń logo
+                      {t("app.pdfDocumentationPage.editor.titlePage.btnRemoveLogo")}
                     </button>
                   </div>
-                  <p className="pd-help-text">Obsługiwane formaty: PNG, JPG, JPEG, BMP.</p>
+                  <p className="pd-help-text">{t("app.pdfDocumentationPage.editor.titlePage.logoHelp2")}</p>
                 </div>
               </article>
 
               <article className="pd-card">
                 <div className="pd-card__body">
-                  <h3 className="pd-card-title">Zakres prac</h3>
+                  <h3 className="pd-card-title">{t("app.pdfDocumentationPage.editor.titlePage.workScope")}</h3>
                   <p className="pd-help-text">
-                    Każdą pozycję wpisz w osobnej linii. W PDF możesz zostawić puste pola do ręcznego odhaczania albo użyć cyfrowych zaznaczeń.
+                    {t("app.pdfDocumentationPage.editor.titlePage.workScopeHelp")}
                   </p>
                   <label className="pd-checkbox">
                     <input
@@ -400,7 +397,7 @@ export function PdfDocumentationPage() {
                         updateMetadata({ titlePageUseManualWorkScopeCheckboxes: event.currentTarget.checked })
                       }
                     />
-                    <span>Puste pola do ręcznego odhaczania na wydruku</span>
+                    <span>{t("app.pdfDocumentationPage.editor.titlePage.manualCheckboxes")}</span>
                   </label>
                   <textarea
                     className="pd-textarea pd-textarea--large"
@@ -417,8 +414,8 @@ export function PdfDocumentationPage() {
 
               <article className="pd-card">
                 <div className="pd-card__body">
-                  <h3 className="pd-card-title">Załączniki</h3>
-                  <p className="pd-help-text">Ta sekcja zawiera z góry zdefiniowane, stałe załączniki.</p>
+                  <h3 className="pd-card-title">{t("app.pdfDocumentationPage.editor.titlePage.attachments")}</h3>
+                  <p className="pd-help-text">{t("app.pdfDocumentationPage.editor.titlePage.attachmentsHelp")}</p>
                   <textarea
                     className="pd-textarea pd-textarea--large opacity-60 cursor-not-allowed"
                     value={DEFAULT_ATTACHMENT_ITEMS.join("\n")}
@@ -430,22 +427,22 @@ export function PdfDocumentationPage() {
 
               <article className="pd-card">
                 <div className="pd-card__body">
-                  <h3 className="pd-card-title">Podpisy</h3>
+                  <h3 className="pd-card-title">{t("app.pdfDocumentationPage.editor.titlePage.signatures")}</h3>
                   <div className="pd-stack">
                     <Field
-                      label="Podpis inwestora"
+                      label={t("app.pdfDocumentationPage.editor.titlePage.signInvestor")}
                       value={metadata.investorSignature ?? ""}
                       placeholder="........................"
                       onChange={(value) => updateMetadata({ investorSignature: value })}
                     />
                     <Field
-                      label="Podpis elektryka"
+                      label={t("app.pdfDocumentationPage.editor.titlePage.signElectrician")}
                       value={metadata.designerSignature ?? ""}
                       placeholder="........................"
                       onChange={(value) => updateMetadata({ designerSignature: value })}
                     />
                     <Field
-                      label="Pieczątka / podpis wykonawcy"
+                      label={t("app.pdfDocumentationPage.editor.titlePage.signContractor")}
                       value={metadata.contractorSignature ?? ""}
                       placeholder="PIECZĄTKA WYKONAWCY"
                       onChange={(value) => updateMetadata({ contractorSignature: value })}
@@ -458,12 +455,12 @@ export function PdfDocumentationPage() {
             <div className="pd-editor-body">
               <article className="pd-card">
                 <div className="pd-card__body">
-                  <h3 className="pd-card-title">Źródło danych listy</h3>
+                  <h3 className="pd-card-title">{t("app.pdfDocumentationPage.editor.circuitList.title")}</h3>
                   <p className="pd-help-text">
-                    Lista obwodów jest generowana z aktualnych symboli rozdzielnicy i synchronizuje się po zmianach w modułach.
+                    {t("app.pdfDocumentationPage.editor.circuitList.desc1")}
                   </p>
                   <p className="pd-help-text">
-                    RCD, kontrolki faz, listwy, złącza i bloki rozdzielcze nie są pokazywane jako osobne obwody.
+                    {t("app.pdfDocumentationPage.editor.circuitList.desc2")}
                   </p>
                 </div>
               </article>
@@ -472,12 +469,12 @@ export function PdfDocumentationPage() {
             <div className="pd-editor-body">
               <article className="pd-card">
                 <div className="pd-card__body">
-                  <h3 className="pd-card-title">Źródło widoku rozdzielnicy</h3>
+                  <h3 className="pd-card-title">{t("app.pdfDocumentationPage.editor.dinRail.title")}</h3>
                   <p className="pd-help-text">
-                    Widok jest generowany z aktualnej szyny DIN, modułów i oznaczeń widocznych w projekcie.
+                    {t("app.pdfDocumentationPage.editor.dinRail.desc1")}
                   </p>
                   <p className="pd-help-text">
-                    Po dodaniu, usunięciu albo przesunięciu modułu podgląd odświeża się z tych samych danych, które trafiają do eksportu PDF.
+                    {t("app.pdfDocumentationPage.editor.dinRail.desc2")}
                   </p>
                 </div>
               </article>
@@ -486,12 +483,12 @@ export function PdfDocumentationPage() {
             <div className="pd-editor-body">
               <article className="pd-card">
                 <div className="pd-card__body">
-                  <h3 className="pd-card-title">Źródło widoku rozdzielnicy z połączeniami</h3>
+                  <h3 className="pd-card-title">{t("app.pdfDocumentationPage.editor.dinRailConnections.title")}</h3>
                   <p className="pd-help-text">
-                    Warstwa przewodów i tulejek nanoszona jest z aktualnych połączeń projektu. Podgląd odświeża się po każdej zmianie połączenia.
+                    {t("app.pdfDocumentationPage.editor.dinRailConnections.desc1")}
                   </p>
                   <p className="pd-help-text">
-                    Eksport PDF zawiera obie strony: czystą rozdzielnicę i rozdzielnicę z połączeniami.
+                    {t("app.pdfDocumentationPage.editor.dinRailConnections.desc2")}
                   </p>
                 </div>
               </article>
@@ -500,9 +497,9 @@ export function PdfDocumentationPage() {
             <div className="pd-editor-body">
               <article className="pd-card">
                 <div className="pd-card__body">
-                  <h3 className="pd-card-title">Źródło schematu</h3>
+                  <h3 className="pd-card-title">{t("app.pdfDocumentationPage.editor.schematic.title")}</h3>
                   <p className="pd-help-text">
-                    Schemat jest generowany automatycznie na podstawie dodanych obwodów, faz i wartości zabezpieczeń.
+                    {t("app.pdfDocumentationPage.editor.schematic.desc1")}
                   </p>
                 </div>
               </article>
@@ -511,17 +508,17 @@ export function PdfDocumentationPage() {
             <div className="pd-editor-body">
               <article className="pd-card">
                 <div className="pd-card__body">
-                  <h3 className="pd-card-title">Nagłówek protokołu</h3>
-                  <p className="pd-help-text">Ten panel edytuje nagłówek aktywnej zakładki pomiarowej.</p>
+                  <h3 className="pd-card-title">{t("app.pdfDocumentationPage.editor.protocol.title")}</h3>
+                  <p className="pd-help-text">{t("app.pdfDocumentationPage.editor.protocol.desc")}</p>
                   <div className="pd-stack">
                     <Field
-                      label="Tytuł główny"
+                      label={t("app.pdfDocumentationPage.editor.protocol.mainTitle")}
                       value={selectedHeader?.headerTitle ?? ""}
                       placeholder="Protokół Nr 02 / 2026"
                       onChange={(value) => updateHeader("headerTitle", value)}
                     />
                     <Field
-                      label="Podtytuł"
+                      label={t("app.pdfDocumentationPage.editor.protocol.subtitle")}
                       value={selectedHeader?.headerSubtitle ?? ""}
                       placeholder="Badanie skuteczności ochrony przeciwporażeniowej"
                       onChange={(value) => updateHeader("headerSubtitle", value)}
@@ -532,16 +529,16 @@ export function PdfDocumentationPage() {
 
               <article className="pd-card">
                 <div className="pd-card__body">
-                  <h3 className="pd-card-title">Dane po prawej stronie nagłówka</h3>
+                  <h3 className="pd-card-title">{t("app.pdfDocumentationPage.editor.protocol.rightData")}</h3>
                   <div className="pd-stack">
                     <Field
-                      label="Data pomiarów"
+                      label={t("app.pdfDocumentationPage.editor.protocol.measureDate")}
                       value={selectedHeader?.measurementDate ?? ""}
                       placeholder="2026-03-22"
                       onChange={(value) => updateHeader("measurementDate", value)}
                     />
                     <Field
-                      label="Obiekt"
+                      label={t("app.pdfDocumentationPage.editor.protocol.objectName")}
                       value={selectedHeader?.objectName ?? ""}
                       placeholder="Nowe zlecenie"
                       onChange={(value) => updateHeader("objectName", value)}
@@ -564,7 +561,7 @@ export function PdfDocumentationPage() {
           disabled={isExportingPdf}
         >
           <AppIcon name="pdf" size={18} />
-          <span>{isExportingPdf ? "Przygotowanie..." : "Eksportuj PDF"}</span>
+          <span>{isExportingPdf ? t("app.pdfDocumentationPage.footer.exportBtnLoading") : t("app.pdfDocumentationPage.footer.exportBtn")}</span>
         </button>
       </footer>
       {exportError ? (
@@ -584,7 +581,7 @@ export function PdfDocumentationPage() {
               font: "inherit",
             }}
           >
-            Spróbuj ponownie
+            {t("app.pdfDocumentationPage.footer.errorRetry")}
           </button>
         </p>
       ) : null}

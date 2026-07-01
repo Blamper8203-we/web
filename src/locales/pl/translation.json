@@ -1,0 +1,421 @@
+{
+  "landing": {
+    "title": "Projektowanie schematu",
+    "subtitle": "DINBoard wspiera elektryka przy wykonaniu rozdzielnicy, tworzeniu czytelnego schematu instalacji, sprawdzeniu obwodów oraz przygotowaniu profesjonalnej dokumentacji odbiorczej PDF. Wszystko w Twojej przeglądarce.",
+    "buttonNew": "Utwórz nowy projekt",
+    "buttonOpen": "Otwórz projekt z dysku",
+    "preview": {
+      "badge": "PODGLĄD APLIKACJI",
+      "title": "Przejrzysty i intuicyjny interfejs roboczy",
+      "desc": "Zobacz, jak zaprojektowałem przestrzeń roboczą programu DinBoard pod kątem szybkiej i wygodnej pracy instalatora."
+    },
+    "features": {
+      "badge": "DLACZEGO DINBOARD?",
+      "title": "Stworzony, by oszczędzać czas instalatorów",
+      "desc": "Przejdź od pomysłu do gotowej szafy i protokołu w kilka minut. Bez skomplikowanego, drogiego oprogramowania typu CAD.",
+      "f1": { "title": "Rysowanie szyny DIN", "desc": "Proste i szybkie układanie aparatów zabezpieczających i modułowych metodą przeciągnij i upuść. Błyskawicznie zaprojektujesz czytelny wygląd frontu rozdzielnicy." },
+      "f2": { "title": "Schemat Jednokreskowy", "desc": "Aplikacja automatycznie buduje schemat elektryczny na podstawie ułożonych na szynie aparatów. Koniec z mozolnym, ręcznym rysowaniem linii obwodowych." },
+      "f3": { "title": "Dokumentacja PDF", "desc": "Generuj przejrzyste rysunki montażowe oraz dokumentację odbiorczą powykonawczą gotową do wydruku w kilka sekund, z zachowaniem Twojego logotypu." },
+      "f4": { "title": "Prywatność i bezpieczeństwo", "desc": "Twoje projekty są w 100% poufne. Aplikacja przetwarza dane w Twojej przeglądarce, a pliki projektów (.dinboard) zapisujesz bezpiecznie na własnym dysku." },
+      "f5": { "title": "Inteligentna weryfikacja", "desc": "Wbudowane algorytmy walidacji na bieżąco sprawdzają poprawność połączeń, pilnują rozkładu obciążenia fazowego i chronią Cię przed krytycznymi błędami." },
+      "f6": { "title": "Baza własnych aparatów", "desc": "Swobodnie importuj pliki wektorowe SVG aparatów zaprojektowanych w zewnętrznych programach graficznych i z łatwością twórz własną bazę unikalnych komponentów." }
+    },
+    "kb": {
+      "badge": "KOMPENDIUM WIEDZY",
+      "header": "Baza wiedzy:",
+      "1": {
+        "title": "Projektowanie schematu instalacji elektrycznej krok po kroku",
+        "desc": "Kompletny przewodnik dla instalatora od pustej szyny po finalny wydruk protokołu odbiorczego.",
+        "p1": "Montaż rozdzielnic mieszkaniowych wymaga precyzji i dokładnych wyliczeń prądowych. Tradycyjne narzędzia CAD wymagają godzin spędzonych na ręcznym kreśleniu każdej linii obwodowej i tabeli rozdzielczej. DinBoard automatyzuje ten proces, ułatwiając generowanie czytelnych rysunków dla inwestora.",
+        "p2": "Intuicyjny panel boczny pozwala w ciągu ułamków sekund przenosić wyłączniki nadprądowe, co bezpośrednio modyfikuje główny bilans jednokreskowy, a tym samym tworzy fundamenty doskonałej instalacji domowej.",
+        "quote": "\"Dobrze sporządzony schemat jednokreskowy i precyzyjne rozplanowanie szyn DIN to wizytówka profesjonalnego elektroinstalatora.\""
+      },
+      "2": {
+        "title": "Jak obliczyć bilans mocy w domu jednorodzinnym",
+        "desc": "Dowiedz się, jak uniknąć kosztownych przerw zasilania dzięki wczesnemu wykrywaniu asymetrii rzędów i właściwemu rozdziałowi L1-L3.",
+        "p1": "Kluczowym elementem bezpiecznej instalacji jest zachowanie minimalnej asymetrii obciążenia fazowego w systemach trójfazowych (3F TN-S / TN-C). Nasze algorytmy dbają o to, aby odbiorniki jednofazowe o dużym poborze mocy (jak płyty indukcyjne, pralki czy przepływowe podgrzewacze wody) były rozkładane w sposób optymalny na fazy L1, L2 oraz L3.",
+        "p2": "Brak równowagi doprowadzi nie tylko do obciążenia i wybijania zabezpieczenia głównego, ale również potęguje problem upalenia przewodu neutralnego PEN w przypadku przeciążeń. DinBoard liczy te asymetrie i zwraca ewentualne komunikaty błędu już na etapie planowania projektu, a nie przy tablicy w realnym świecie."
+      }
+    },
+    "faq": {
+      "badge": "Baza Wiedzy",
+      "title": "Najczęściej zadawane pytania (FAQ)",
+      "q1": {
+        "title": "Czy DinBoard wymaga instalacji na komputerze?",
+        "desc": "Nie! DinBoard to nowoczesna aplikacja webowa. Działa bezpośrednio w przeglądarce internetowej na komputerach PC, Mac, tabletach, a nawet telefonach. Brak konieczności uciążliwej instalacji i konfiguracji."
+      },
+      "q2": {
+        "title": "W jakim formacie mogę zapisać pliki i dokumentację?",
+        "desc": "Dokumentację rzutów szaf oraz listę obwodów możesz pobrać jako pliki PDF (gotowe do wydruku dla klienta). Aplikacja oferuje również eksport zestawienia BOM (materiałów) do pliku CSV oraz bezstratne zrzuty wysokiej jakości szafy i schematów w formacie PNG."
+      },
+      "q3": {
+        "title": "Czy program wspiera bilansowanie obciążeń trójfazowych?",
+        "desc": "Tak! Zintegrowany algorytm analizuje moce przypisane do poszczególnych aparatów zabezpieczających i przyporządkowuje obwody jednofazowe do faz L1, L2, L3 tak, aby zminimalizować asymetrię prądową w instalacji odbiorczej."
+      }
+    },
+    "footer": {
+      "subtitle": "Narzędzie dla nowoczesnych elektryków.",
+      "privacy": "Polityka Prywatności",
+      "terms": "Warunki korzystania",
+      "contact": "Zgłoś błąd / Kontakt",
+      "copyright": "© 2026 DinBoard.pl. Wszelkie prawa zastrzeżone."
+    }
+  },
+  "app": {
+    "header": {
+      "file": "Plik",
+      "view": "Widok",
+      "tools": "Narzędzia",
+      "help": "Pomoc",
+      "about": "O aplikacji",
+      "feedback": "Zgłoś pomysł",
+      "donate": "Postaw kawę"
+    },
+    "fileMenu": {
+      "section": "Zlecenie",
+      "new": "Nowe zlecenie",
+      "open": "Otwórz",
+      "save": "Zapisz",
+      "saveAs": "Zapisz jako",
+      "exportSection": "Eksport",
+      "print": "Drukuj",
+      "exportPdf": "Eksport PDF",
+      "exportPng": "Eksport PNG (czysty)",
+      "exportPngAnnotations": "Eksport PNG (z oznaczeniami)",
+      "exportPngHq": "Eksport PNG HQ (rozdzielnica: opis bez klamr)",
+      "exportBom": "Eksport BOM (CSV)",
+      "exit": "Wyjdź",
+      "exitMsg": "Zamykanie aplikacji webowej nie jest dostępne w przeglądarce"
+    },
+    "viewMenu": {
+      "section": "Wyświetlanie",
+      "rightPanel": "Panel prawy",
+      "hideGroups": "Ukryj grupy",
+      "showGroups": "Pokaż grupy",
+      "sheets": "Arkusze",
+      "sheet1": "Szyna DIN",
+      "sheet2": "Schemat jednokreskowy",
+      "sheet3": "Lista obwodów",
+      "sheet4": "Dokumentacja PDF"
+    },
+    "toolsMenu": {
+      "section": "Narzędzia",
+      "dinRail": "Szyna DIN",
+      "importSvg": "Import SVG",
+      "manageImport": "Zarządzaj importem SVG"
+    },
+    "settingsMenu": {
+      "appearance": "Wygląd",
+      "theme": "Motyw aplikacji",
+      "dark": "Ciemny",
+      "style": "Styl UI",
+      "shadows": "Z cieniami",
+      "classic": "Klasyczny",
+      "interface": "Interfejs",
+      "iconSize": "Rozmiar ikon",
+      "propertyPanel": "Panel właściwości",
+      "visible": "Widoczny",
+      "hidden": "Ukryty"
+    },
+    "circuitEdit": {
+      "emptyBadge": "Edycja",
+      "emptyTitle": "Brak zaznaczonego modułu",
+      "emptyDesc": "Wybierz element na schemacie albo dodaj moduł z palety, aby edytować parametry.",
+      "close": "Zamknij",
+      "headers": {
+        "networkSwitch": {
+          "title": "Przełącznik sieci",
+          "subtitle": "Przełącznik zasilania (I-0-II)"
+        },
+        "switch": {
+          "title": "Rozłącznik główny",
+          "subtitle": "Rozłącznik główny (FR)"
+        },
+        "phaseIndicator": {
+          "title": "Kontrolki faz",
+          "subtitle": "Kontrolki faz"
+        },
+        "rcd": {
+          "title": "RCD",
+          "subtitle": "Wyłącznik różnicowoprądowy"
+        },
+        "spd": {
+          "title": "SPD",
+          "subtitle": "Ogranicznik przepięć (SPD)"
+        },
+        "terminalBlock": {
+          "title": "Listwa zaciskowa",
+          "subtitle": "Listwa zaciskowa / terminal"
+        },
+        "distributionBlock": {
+          "title": "Blok rozdzielczy",
+          "subtitle": "Blok rozdzielczy / złącze"
+        },
+        "obwod": {
+          "title": "Obwód",
+          "subtitle": "Wyłącznik nadprądowy / odbiór"
+        }
+      },
+      "fields": {
+        "designation": "Oznaczenie",
+        "label": "Etykieta",
+        "removeCover": "Zdejmij osłonę",
+        "frType": "Typ FR",
+        "ratedCurrent": "Prąd znamionowy",
+        "phase": "Faza",
+        "model": "Model",
+        "fuse": "Bezpiecznik",
+        "rcdType": "Typ RCD",
+        "spdType": "Typ SPD",
+        "circuitName": "Nazwa obwodu",
+        "location": "Lokalizacja",
+        "circuitType": "Typ obwodu",
+        "protectionType": "Zabezpieczenie",
+        "powerW": "Moc (W)",
+        "phaseLocked": "Zablokuj fazę",
+        "cableDesig": "Oznaczenie kabla",
+        "cableType": "Typ kabla",
+        "cableLength": "Długość kabla (m)",
+        "cableCrossSection": "Przekrój (mm2)",
+        "placeholder": {
+          "circuitName": "np. Gniazdo serwisowe",
+          "location": "np. Rozdzielnica",
+          "powerW": "np. 2000",
+          "cableLength": "np. 15",
+          "cableCrossSection": "np. 2.5"
+        }
+      }
+    },
+    "pdfDocumentationPage": {
+      "heading": {
+        "titlePage": {
+          "title": "Pierwsza strona dokumentacji",
+          "description": "Po lewej edytujesz stronę tytułową. Szablony pomiarowe uzupełniasz z poziomu odpowiednich zakładek dokumentacji."
+        },
+        "circuitList": {
+          "title": "Lista obwodów",
+          "description": "Ta zakładka pokazuje obwody bezpośrednio z aktualnej rozdzielnicy. Edycja nazw, faz, zabezpieczeń i przewodów odbywa się w danych obwodu."
+        },
+        "dinRail": {
+          "title": "Rozdzielnica elektryczna",
+          "description": "Ta zakładka pokazuje widok rozdzielnicy z aktualnej szyny DIN i synchronizuje się po zmianach w modułach."
+        },
+        "dinRailConnections": {
+          "title": "Połączenia",
+          "description": "Ta zakładka pokazuje widok rozdzielnicy razem z połączeniami — przewody i tulejki naniesione na podstawie aktualnego projektu."
+        },
+        "schematic": {
+          "title": "Schemat obwodów",
+          "description": "Ta zakładka pokazuje schemat wygenerowany z dodanych obwodów. Schemat odświeża się po modyfikacjach parametrów modułów."
+        },
+        "protocol": {
+          "title": "Nagłówek protokołu: {{label}}",
+          "description": "Każda zakładka pomiarowa ma własny nagłówek. Zmiany z tego panelu trafiają tylko do aktualnie wybranego protokołu."
+        }
+      },
+      "editor": {
+        "titlePage": {
+          "headerDoc": "Nagłówek dokumentu",
+          "protocolNr": "Nr protokołu",
+          "protocolNrPlaceholder": "12",
+          "docDate": "Data dokumentacji",
+          "statementDate": "Data oświadczenia",
+          "objectInfo": "Informacje o obiekcie",
+          "objectType": "Rodzaj obiektu",
+          "objectTypePlaceholder": "Budynek jednorodzinny / Lokal mieszkalny",
+          "address": "Adres",
+          "investor": "Inwestor",
+          "investorAddress": "Adres inwestora",
+          "contractorLicense": "Wykonawca i uprawnienia",
+          "contractor": "Wykonawca / firma",
+          "electrician": "Instalator / elektryk",
+          "sepE": "Uprawnienie SEP — Eksploatacja (E)",
+          "sepD": "Uprawnienie SEP — Dozór (D)",
+          "validUntil": "Ważne do",
+          "companyData": "Dane identyfikacyjne firmy",
+          "companyDataHelp": "Pola opcjonalne — wypełnij je, jeśli chcesz umieścić pełne dane firmy wykonawcy na stronie tytułowej PDF.",
+          "nip": "NIP",
+          "regon": "REGON",
+          "phone": "Telefon kontaktowy",
+          "email": "E-mail",
+          "logo": "Logo firmy elektrycznej",
+          "logoHelp1": "Dodane logo zostanie zapisane w zleceniu i pokazane na pierwszej stronie dokumentacji PDF.",
+          "logoInfoSelected": "Wybrane logo: {{name}}",
+          "logoInfoNone": "Brak wybranego logo.",
+          "btnSelectLogo": "Wybierz logo",
+          "btnRemoveLogo": "Usuń logo",
+          "logoHelp2": "Obsługiwane formaty: PNG, JPG, JPEG, BMP.",
+          "logoError": "Nie udało się wczytać logo. Użyj pliku PNG, JPG, JPEG lub BMP.",
+          "workScope": "Zakres prac",
+          "workScopeHelp": "Każdą pozycję wpisz w osobnej linii. W PDF możesz zostawić puste pola do ręcznego odhaczania albo użyć cyfrowych zaznaczeń.",
+          "manualCheckboxes": "Puste pola do ręcznego odhaczania na wydruku",
+          "attachments": "Załączniki",
+          "attachmentsHelp": "Ta sekcja zawiera z góry zdefiniowane, stałe załączniki.",
+          "signatures": "Podpisy",
+          "signInvestor": "Podpis inwestora",
+          "signElectrician": "Podpis elektryka",
+          "signContractor": "Pieczątka / podpis wykonawcy"
+        },
+        "circuitList": {
+          "title": "Źródło danych listy",
+          "desc1": "Lista obwodów jest generowana z aktualnych symboli rozdzielnicy i synchronizuje się po zmianach w modułach.",
+          "desc2": "RCD, kontrolki faz, listwy, złącza i bloki rozdzielcze nie są pokazywane jako osobne obwody."
+        },
+        "dinRail": {
+          "title": "Źródło widoku rozdzielnicy",
+          "desc1": "Widok jest generowany z aktualnej szyny DIN, modułów i oznaczeń widocznych w projekcie.",
+          "desc2": "Po dodaniu, usunięciu albo przesunięciu modułu podgląd odświeża się z tych samych danych, które trafiają do eksportu PDF."
+        },
+        "dinRailConnections": {
+          "title": "Źródło widoku rozdzielnicy z połączeniami",
+          "desc1": "Warstwa przewodów i tulejek nanoszona jest z aktualnych połączeń projektu. Podgląd odświeża się po każdej zmianie połączenia.",
+          "desc2": "Eksport PDF zawiera obie strony: czystą rozdzielnicę i rozdzielnicę z połączeniami."
+        },
+        "schematic": {
+          "title": "Źródło schematu",
+          "desc1": "Schemat jest generowany automatycznie na podstawie dodanych obwodów, faz i wartości zabezpieczeń."
+        },
+        "protocol": {
+          "title": "Nagłówek protokołu",
+          "desc": "Ten panel edytuje nagłówek aktywnej zakładki pomiarowej.",
+          "mainTitle": "Tytuł główny",
+          "subtitle": "Podtytuł",
+          "rightData": "Dane po prawej stronie nagłówka",
+          "measureDate": "Data pomiarów",
+          "objectName": "Obiekt"
+        }
+      },
+      "footer": {
+        "exportBtn": "Eksportuj PDF",
+        "exportBtnLoading": "Przygotowanie...",
+        "errorRetry": "Spróbuj ponownie"
+      }
+    },
+    "pdf": {
+      "measurementProtocols": {
+        "rcdGroundSubtitle": "Test wyłączników RCD i rezystancja uziemienia",
+        "groundConclusion": "Instalacja w zakresie ochrony przeciwporażeniowej, stanu izolacji oraz skuteczności uziemienia odpowiada wymogom normy PN-HD 60364 i nadaje się do eksploatacji.",
+        "unifiedSubtitle": "Tabela zbiorcza wyników pomiarów",
+        "method": "Trójbiegunowa / impedancja pętli",
+        "electrodeType": "Fundamentowy / otokowy"
+      },
+      "titlePage": {
+        "mainHeader": "DOKUMENTACJA ODBIORCZA POWYKONAWCZA",
+        "electricalInstallation": "INSTALACJI ELEKTRYCZNEJ",
+        "subDocument": "Protokół pomiarów ochronnych, schemat i spis obwodów",
+        "object": "Obiekt",
+        "address": "Adres",
+        "investor": "Inwestor",
+        "investorAddress": "Adres Inwestora",
+        "contractor": "Wykonawca",
+        "nip": "NIP:",
+        "regon": "REGON:",
+        "tel": "tel:",
+        "email": "e-mail:",
+        "author": "Sporządził / Pomiary",
+        "sepE": "Uprawnienia E:",
+        "sepD": "Uprawnienia D:",
+        "date": "Data",
+        "scope": "Zakres wykonanych prac",
+        "attachments": "Załączniki do dokumentacji",
+        "statement": "Oświadczenie Wykonawcy",
+        "statementBody": "Oświadczam, że instalacja elektryczna w wyżej wymienionym obiekcie została wykonana zgodnie z obowiązującymi przepisami, zasadami wiedzy technicznej oraz normą PN-HD 60364.",
+        "signatures": "Podpisy",
+        "signInvestor": "Inwestor",
+        "signAuthor": "Osoba sporządzająca / wykonawca"
+      },
+      "summaryPage": {
+        "tableOfContents": "Spis treści",
+        "toc1": "Strona tytułowa, oświadczenie i zakres prac",
+        "toc2": "Podsumowanie parametrów projektu",
+        "toc3": "Rozdzielnica - rysunek elewacji i lista aparatów",
+        "toc4": "Lista obwodów elektrycznych",
+        "toc5": "Schemat jednokreskowy rozdzielnicy",
+        "toc6": "Protokoły pomiarów ochronnych",
+        "params": "Projektowane parametry rozdzielnicy",
+        "voltage": "Napięcie znamionowe (Un):",
+        "network": "Układ sieci:",
+        "protection": "Zabezpieczenie przedlicznikowe:",
+        "power": "Moc przyłączeniowa:"
+      },
+      "circuitList": {
+        "title": "Lista obwodów elektrycznych",
+        "colId": "Id.",
+        "colDesc": "Opis obwodu",
+        "colLocation": "Lokalizacja",
+        "colProt": "Zabezpieczenie",
+        "colRcd": "RCD",
+        "colCrossSection": "Przekrój",
+        "colCable": "Kabel/Przew."
+      },
+      "rcdTable": {
+        "badge": "RCD i uziemienie",
+        "title": "Test wyłączników różnicowoprądowych RCD i pomiar rezystancji uziemienia",
+        "date": "Data pomiarów:",
+        "object": "Obiekt:",
+        "section1": "1. Dane techniczne i narzędzia pomiarowe",
+        "meter": "Miernik:",
+        "serialNo": "Nr fabryczny:",
+        "section2": "2. Tabela pomiarów (Wyłączniki różnicowoprądowe)",
+        "colIndex": "Lp.",
+        "colType": "Typ RCD",
+        "colIdn": "IΔn [mA]",
+        "colTripCurrent": "Prąd wyzw. [mA]",
+        "colTripTime": "Czas wyzw. [ms]",
+        "colTest": "Przycisk TEST",
+        "colResult": "Ocena",
+        "section3": "3. Pomiar rezystancji uziemienia (GSU)",
+        "method": "Metoda pomiaru:",
+        "electrodeType": "Rodzaj uziomu:",
+        "measuredRu": "Zmierzona wartość Ru:",
+        "requiredVal": "Wartość wymagana:",
+        "conclusion": "Orzeczenie techniczne:"
+      },
+      "unifiedTable": {
+        "badge": "Tabela zbiorcza",
+        "title": "Tabela zbiorcza wyników pomiarów",
+        "section1": "1. Narzędzia pomiarowe i parametry instalacji",
+        "insulationTester": "Miernik izolacji:",
+        "loopTester": "Miernik pętli zwarcia:",
+        "testVolt": "Napięcie pomiarcze izolacji:",
+        "netVolt": "Napięcie znamionowe sieci:",
+        "netSystem": "Układ sieci:",
+        "section2": "2. Tabela pomiarów (Rezystancja izolacji i pętla zwarcia)",
+        "colCircuit": "Obwód",
+        "colProt": "Zabezp.",
+        "colInsulation": "Izolacja",
+        "colLoop": "Pętla zwarcia",
+        "colId": "Id.",
+        "colName": "Nazwa obwodu",
+        "colType": "Typ",
+        "colIn": "In [A]",
+        "colLN": "L-N [MΩ]",
+        "colLPE": "L-PE [MΩ]",
+        "colNPE": "N-PE [MΩ]",
+        "colZs": "Zs [Ω]",
+        "colZa": "Za [Ω]"
+      },
+      "footer": {
+        "signatureSlot": "miejsce na pieczęć / podpis",
+        "checkedBy": "Sprawdził (Wykonawca/Elektryk)",
+        "sepSignature": "Podpis osoby z uprawnieniami SEP",
+        "pageInfo": "Strona {{pageNumber}} z {{totalPages}} • Dokument wygenerowany cyfrowo • Zgodny z normą PN-HD 60364"
+      },
+      "docContentPage": {
+        "title": "Dokumentacja projektu",
+        "subtitle": "Opis techniczny, dobór, obliczenia i warunki odbioru",
+        "date": "Data:",
+        "emptyMessage": "Brak wypełnionych sekcji opisu. Uzupełnij pola „Opis techniczny\", „Dobór kabli\", „Obliczenia\" i pokrewne w Ustawieniach projektu, aby dołączyć je do dokumentacji PDF.",
+        "sections": {
+          "equipmentList": "Spis urządzeń i osprzętu",
+          "cableSelection": "Dobór kabli i zabezpieczeń",
+          "techCalculations": "Obliczenia techniczne",
+          "legendAndSymbols": "Legenda i symbole",
+          "techDescription": "Opis techniczny instalacji",
+          "shockProtection": "Ochrona przeciwporażeniowa",
+          "acceptanceConditions": "Warunki odbioru i uwagi"
+        }
+      }
+    }
+  }
+}

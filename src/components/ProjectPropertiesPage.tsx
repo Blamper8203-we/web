@@ -1,6 +1,7 @@
 import type { ChangeEvent } from "react";
 import type { ProjectMetadata } from "../types/projectMetadata";
 import { formatDateForField, parseStandards, standardsToText } from "../lib/projectMetadata";
+import { useTranslation } from "react-i18next";
 import { AppIcon } from "./AppIcon";
 import "./ProjectPropertiesPage.css";
 
@@ -48,6 +49,8 @@ export function ProjectPropertiesPage({
   onChange,
   onExportPdf,
 }: ProjectPropertiesPageProps) {
+  const { t } = useTranslation();
+
   const updateField = <K extends keyof ProjectMetadata>(field: K, value: ProjectMetadata[K]) => {
     onChange({
       ...metadata,
@@ -73,10 +76,10 @@ export function ProjectPropertiesPage({
       <header className="pp-hero">
         <AppIcon className="pp-hero-icon" name="fileEdit" size={18} />
         <div>
-          <span className="pp-eyebrow">Powykonawcza</span>
-          <h2>Dokumentacja wykonania instalacji</h2>
+          <span className="pp-eyebrow">{t("app.projectProps.heroEyebrow", "Powykonawcza")}</span>
+          <h2>{t("app.projectProps.heroTitle", "Dokumentacja wykonania instalacji")}</h2>
           <p>
-            Dane obiektu, wykonawcy, elektryka i dokumentacji odbiorczej dla mieszkania lub domu.
+            {t("app.projectProps.heroDesc", "Dane obiektu, wykonawcy, elektryka i dokumentacji odbiorczej dla mieszkania lub domu.")}
           </p>
         </div>
       </header>
@@ -86,8 +89,8 @@ export function ProjectPropertiesPage({
           <article className="pp-card">
             <div className="pp-card__header">
               <div>
-                <span className="pp-eyebrow">Obiekt</span>
-                <h3>Dane obiektu i zlecenia</h3>
+                <span className="pp-eyebrow">{t("app.projectProps.objectEyebrow", "Obiekt")}</span>
+                <h3>{t("app.projectProps.objectTitle", "Dane obiektu i zlecenia")}</h3>
               </div>
             </div>
 
@@ -95,7 +98,7 @@ export function ProjectPropertiesPage({
               <label className="pp-toggle">
                 <span className="pp-field-label">
                   <AppIcon className="pp-field-icon" name="check" size={12} />
-                  Dokumentacja z podpisami i pieczątką
+                  {t("app.projectProps.formalMode", "Dokumentacja z podpisami i pieczątką")}
                 </span>
                 <input
                   type="checkbox"
@@ -106,56 +109,56 @@ export function ProjectPropertiesPage({
 
               <div className="pp-fields">
                 <Field
-                  label="Zakres / nazwa dokumentacji"
-                  placeholder="Dokumentacja powykonawcza instalacji elektrycznej"
+                  label={t("app.projectProps.fieldCompany", "Zakres / nazwa dokumentacji")}
+                  placeholder={t("app.projectProps.fieldCompanyPlaceholder", "Dokumentacja powykonawcza instalacji elektrycznej")}
                   value={metadata.company}
                   onChange={handleTextField("company")}
                 />
                 <Field
-                  label="Inwestor"
-                  placeholder="Jan Kowalski"
+                  label={t("app.projectProps.fieldInvestor", "Inwestor")}
+                  placeholder={t("app.projectProps.fieldInvestorPlaceholder", "Jan Kowalski")}
                   value={metadata.investor}
                   onChange={handleTextField("investor")}
                 />
                 <Field
-                  label="Adres inwestora (opcjonalnie)"
-                  placeholder="(jeśli inny niż adres obiektu)"
+                  label={t("app.projectProps.fieldInvestorAddress", "Adres inwestora (opcjonalnie)")}
+                  placeholder={t("app.projectProps.fieldInvestorAddressPlaceholder", "(jeśli inny niż adres obiektu)")}
                   value={metadata.investorAddress}
                   onChange={handleTextField("investorAddress")}
                 />
                 <Field
-                  label="Adres obiektu"
-                  placeholder="ul. Budowlana 12"
+                  label={t("app.projectProps.fieldAddress", "Adres obiektu")}
+                  placeholder={t("app.projectProps.fieldAddressPlaceholder", "ul. Budowlana 12")}
                   value={metadata.address}
                   onChange={handleTextField("address")}
                 />
                 <Field
-                  label="Wykonawca"
-                  placeholder="FHU Elektro Jan Kowalski"
+                  label={t("app.projectProps.fieldContractor", "Wykonawca")}
+                  placeholder={t("app.projectProps.fieldContractorPlaceholder", "FHU Elektro Jan Kowalski")}
                   value={metadata.contractor}
                   onChange={handleTextField("contractor")}
                 />
                 <Field
-                  label="NIP firmy wykonawcy"
-                  placeholder="1234567890"
+                  label={t("app.projectProps.fieldContractorNip", "NIP firmy wykonawcy")}
+                  placeholder={t("app.projectProps.fieldContractorNipPlaceholder", "1234567890")}
                   value={metadata.contractorNip}
                   onChange={handleTextField("contractorNip")}
                 />
                 <Field
-                  label="REGON firmy wykonawcy"
-                  placeholder="012345678"
+                  label={t("app.projectProps.fieldContractorRegon", "REGON firmy wykonawcy")}
+                  placeholder={t("app.projectProps.fieldContractorRegonPlaceholder", "012345678")}
                   value={metadata.contractorRegon}
                   onChange={handleTextField("contractorRegon")}
                 />
                 <Field
-                  label="Telefon kontaktowy"
-                  placeholder="+48 600 100 200"
+                  label={t("app.projectProps.fieldContractorPhone", "Telefon kontaktowy")}
+                  placeholder={t("app.projectProps.fieldContractorPhonePlaceholder", "+48 600 100 200")}
                   value={metadata.contractorPhone}
                   onChange={handleTextField("contractorPhone")}
                 />
                 <Field
-                  label="E-mail firmy"
-                  placeholder="biuro@firma.pl"
+                  label={t("app.projectProps.fieldContractorEmail", "E-mail firmy")}
+                  placeholder={t("app.projectProps.fieldContractorEmailPlaceholder", "biuro@firma.pl")}
                   value={metadata.contractorEmail}
                   onChange={handleTextField("contractorEmail")}
                 />
@@ -166,8 +169,8 @@ export function ProjectPropertiesPage({
           <article className="pp-card">
             <div className="pp-card__header">
               <div>
-                <span className="pp-eyebrow">Dokument</span>
-                <h3>Dane protokołu i schematu</h3>
+                <span className="pp-eyebrow">{t("app.projectProps.docEyebrow", "Dokument")}</span>
+                <h3>{t("app.projectProps.docTitle", "Dane protokołu i schematu")}</h3>
               </div>
             </div>
 
@@ -176,16 +179,16 @@ export function ProjectPropertiesPage({
                 {metadata.isFormalDocumentationMode && (
                   <>
                     <Field
-                      label="Elektryk / osoba wykonująca"
-                      placeholder="Jan Kowalski"
+                      label={t("app.projectProps.fieldAuthor", "Elektryk / osoba wykonująca")}
+                      placeholder={t("app.projectProps.fieldAuthorPlaceholder", "Jan Kowalski")}
                       value={metadata.author}
                       onChange={(value) => {
                         updateField("author", value);
                       }}
                     />
                     <Field
-                      label="Uprawnienia SEP"
-                      placeholder="E + D / 123/2026"
+                      label={t("app.projectProps.fieldDesignerId", "Uprawnienia SEP")}
+                      placeholder={t("app.projectProps.fieldDesignerIdPlaceholder", "E + D / 123/2026")}
                       value={metadata.designerId}
                       onChange={(value) => {
                         onChange({
@@ -200,31 +203,31 @@ export function ProjectPropertiesPage({
                 )}
 
                 <Field
-                  label="Nr dokumentacji / protokołu"
-                  placeholder="PW-01/2026"
+                  label={t("app.projectProps.fieldProjectNumber", "Nr dokumentacji / protokołu")}
+                  placeholder={t("app.projectProps.fieldProjectNumberPlaceholder", "PW-01/2026")}
                   value={metadata.projectNumber}
                   onChange={handleTextField("projectNumber")}
                 />
                 <Field
-                  label="Skala"
-                  placeholder="bez skali"
+                  label={t("app.projectProps.fieldScale", "Skala")}
+                  placeholder={t("app.projectProps.fieldScalePlaceholder", "bez skali")}
                   value={metadata.drawingScale}
                   onChange={handleTextField("drawingScale")}
                 />
                 <Field
-                  label="Data wykonania / odbioru"
+                  label={t("app.projectProps.fieldDate", "Data wykonania / odbioru")}
                   placeholder="2026-03-29"
                   value={formatDateForField(metadata.drawingDate)}
                   onChange={handleTextField("drawingDate")}
                 />
                 <Field
-                  label="Rewizja / zmiana"
-                  placeholder="Rev. 0 - wydanie pierwotne"
+                  label={t("app.projectProps.fieldRevision", "Rewizja / zmiana")}
+                  placeholder={t("app.projectProps.fieldRevisionPlaceholder", "Rev. 0 - wydanie pierwotne")}
                   value={metadata.revision}
                   onChange={handleTextField("revision")}
                 />
                 <Field
-                  label="Normy"
+                  label={t("app.projectProps.fieldStandards", "Normy")}
                   placeholder="PN-HD 60364; PN-EN 60617"
                   value={standardsText}
                   multiline
@@ -245,13 +248,13 @@ export function ProjectPropertiesPage({
               <article className="pp-card">
                 <div className="pp-card__header">
                   <div>
-                    <span className="pp-eyebrow">Podpisy</span>
-                    <h3>Podpis elektryka</h3>
+                    <span className="pp-eyebrow">{t("app.projectProps.signaturesEyebrow", "Podpisy")}</span>
+                    <h3>{t("app.projectProps.signDesigner", "Podpis elektryka")}</h3>
                   </div>
                 </div>
                 <div className="pp-card__body">
                   <Field
-                    label="Podpis elektryka"
+                    label={t("app.projectProps.signDesigner", "Podpis elektryka")}
                     placeholder="........................."
                     value={metadata.designerSignature}
                     onChange={handleTextField("designerSignature")}
@@ -262,13 +265,13 @@ export function ProjectPropertiesPage({
               <article className="pp-card">
                 <div className="pp-card__header">
                   <div>
-                    <span className="pp-eyebrow">Podpisy</span>
-                    <h3>Podpis wykonawcy</h3>
+                    <span className="pp-eyebrow">{t("app.projectProps.signaturesEyebrow", "Podpisy")}</span>
+                    <h3>{t("app.projectProps.signContractor", "Podpis wykonawcy")}</h3>
                   </div>
                 </div>
                 <div className="pp-card__body">
                   <Field
-                    label="Podpis wykonawcy"
+                    label={t("app.projectProps.signContractor", "Podpis wykonawcy")}
                     placeholder="........................."
                     value={metadata.contractorSignature}
                     onChange={handleTextField("contractorSignature")}
@@ -283,29 +286,29 @@ export function ProjectPropertiesPage({
           <article className="pp-card">
             <div className="pp-card__header">
               <div>
-                <span className="pp-eyebrow">Status</span>
-                <h3>Status dokumentacji</h3>
+                <span className="pp-eyebrow">{t("app.projectProps.statusEyebrow", "Status")}</span>
+                <h3>{t("app.projectProps.statusTitle", "Status dokumentacji")}</h3>
               </div>
             </div>
 
             <div className="pp-card__body">
               <dl className="pp-summary">
                 <div>
-                  <dt>Tryb</dt>
+                  <dt>{t("app.projectProps.statusMode", "Tryb")}</dt>
                   <dd>
-                    {metadata.isFormalDocumentationMode ? "Powykonawcza z podpisami" : "Robocza / uproszczona"}
+                    {metadata.isFormalDocumentationMode ? t("app.projectProps.modeFormal", "Powykonawcza z podpisami") : t("app.projectProps.modeDraft", "Robocza / uproszczona")}
                   </dd>
                 </div>
                 <div>
-                  <dt>Elektryk</dt>
-                  <dd>{metadata.author || "Brak danych"}</dd>
+                  <dt>{t("app.projectProps.statusDesigner", "Elektryk")}</dt>
+                  <dd>{metadata.author || t("app.projectProps.noData", "Brak danych")}</dd>
                 </div>
                 <div>
-                  <dt>Nr dokumentacji</dt>
-                  <dd>{metadata.projectNumber || "Brak danych"}</dd>
+                  <dt>{t("app.projectProps.statusProjectNumber", "Nr dokumentacji")}</dt>
+                  <dd>{metadata.projectNumber || t("app.projectProps.noData", "Brak danych")}</dd>
                 </div>
                 <div>
-                  <dt>Ostatnia modyfikacja</dt>
+                  <dt>{t("app.projectProps.statusLastModified", "Ostatnia modyfikacja")}</dt>
                   <dd>{formatDateForField(metadata.dateModified)}</dd>
                 </div>
               </dl>
@@ -314,66 +317,66 @@ export function ProjectPropertiesPage({
 
           <article className="pp-preview-sheet">
             <div className="pp-preview-sheet__header">
-              <span className="pp-eyebrow">Podgląd A4</span>
-              <strong>Fragment danych tytułowych</strong>
+              <span className="pp-eyebrow">{t("app.projectProps.previewEyebrow", "Podgląd A4")}</span>
+              <strong>{t("app.projectProps.previewTitle", "Fragment danych tytułowych")}</strong>
             </div>
 
             <div className="pp-sheet">
-              <div className="pp-sheet__title">{metadata.company || "Dokumentacja powykonawcza"}</div>
+              <div className="pp-sheet__title">{metadata.company || t("app.projectProps.defaultCompany", "Dokumentacja powykonawcza")}</div>
               <div className="pp-sheet__divider" />
               <div className="pp-sheet__row">
-                <span>Inwestor</span>
+                <span>{t("app.projectProps.sheetInvestor", "Inwestor")}</span>
                 <strong>{metadata.investor || "................................"}</strong>
               </div>
               <div className="pp-sheet__row">
-                <span>Adres</span>
+                <span>{t("app.projectProps.sheetAddress", "Adres")}</span>
                 <strong>{metadata.address || "................................"}</strong>
               </div>
               <div className="pp-sheet__row">
-                <span>Wykonawca</span>
+                <span>{t("app.projectProps.sheetContractor", "Wykonawca")}</span>
                 <strong>{metadata.contractor || "................................"}</strong>
               </div>
               {metadata.isFormalDocumentationMode && (
                 <>
                   <div className="pp-sheet__row">
-                    <span>Elektryk</span>
+                    <span>{t("app.projectProps.sheetDesigner", "Elektryk")}</span>
                     <strong>{metadata.author || "................................"}</strong>
                   </div>
                   <div className="pp-sheet__row">
-                    <span>Uprawnienia SEP</span>
+                    <span>{t("app.projectProps.sheetDesignerId", "Uprawnienia SEP")}</span>
                     <strong>{metadata.designerId || "................................"}</strong>
                   </div>
                 </>
               )}
               <div className="pp-sheet__row">
-                <span>Nr dokumentacji</span>
+                <span>{t("app.projectProps.sheetProjectNumber", "Nr dokumentacji")}</span>
                 <strong>{metadata.projectNumber || "PW-01/2026"}</strong>
               </div>
               <div className="pp-sheet__row">
-                <span>Data</span>
+                <span>{t("app.projectProps.sheetDate", "Data")}</span>
                 <strong>{formatDateForField(metadata.drawingDate)}</strong>
               </div>
               <div className="pp-sheet__row">
-                <span>Skala</span>
-                <strong>{metadata.drawingScale || "bez skali"}</strong>
+                <span>{t("app.projectProps.sheetScale", "Skala")}</span>
+                <strong>{metadata.drawingScale || t("app.projectProps.sheetScaleNone", "bez skali")}</strong>
               </div>
               <div className="pp-sheet__row">
-                <span>Rewizja</span>
+                <span>{t("app.projectProps.sheetRevision", "Rewizja")}</span>
                 <strong>{metadata.revision || "1.0"}</strong>
               </div>
               <div className="pp-sheet__standards">
-                <span>Normy</span>
+                <span>{t("app.projectProps.sheetStandards", "Normy")}</span>
                 <strong>{standardsText}</strong>
               </div>
 
               {metadata.isFormalDocumentationMode && (
                 <div className="pp-sheet__signatures">
                   <div>
-                    <span>Podpis elektryka</span>
+                    <span>{t("app.projectProps.signDesigner", "Podpis elektryka")}</span>
                     <strong>{metadata.designerSignature || "................................"}</strong>
                   </div>
                   <div>
-                    <span>Podpis wykonawcy</span>
+                    <span>{t("app.projectProps.signContractor", "Podpis wykonawcy")}</span>
                     <strong>{metadata.contractorSignature || "................................"}</strong>
                   </div>
                 </div>
@@ -386,7 +389,7 @@ export function ProjectPropertiesPage({
       <footer className="pp-footer">
         <button type="button" className="accent-btn pp-export-action" onClick={onExportPdf}>
           <AppIcon name="pdf" size={18} />
-          <span>Eksportuj PDF</span>
+          <span>{t("app.projectProps.exportPdf", "Eksportuj PDF")}</span>
         </button>
       </footer>
     </section>

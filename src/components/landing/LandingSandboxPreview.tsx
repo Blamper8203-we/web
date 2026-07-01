@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { SLIDER_IMAGES } from "./landingData";
 
 export function LandingSandboxPreview() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -16,13 +18,13 @@ export function LandingSandboxPreview() {
       <div className="landing-container">
         <div className="landing-preview-header">
           <span className="landing-preview-badge">
-            PODGLĄD APLIKACJI
+            {t("landing.preview.badge")}
           </span>
           <h2 className="landing-preview-title">
-            Przejrzysty i intuicyjny interfejs roboczy
+            {t("landing.preview.title")}
           </h2>
           <p className="landing-preview-desc">
-            Zobacz, jak zaprojektowałem przestrzeń roboczą programu DinBoard pod kątem szybkiej i wygodnej pracy instalatora.
+            {t("landing.preview.desc")}
           </p>
         </div>
 
@@ -36,7 +38,7 @@ export function LandingSandboxPreview() {
             >
               <img
                 src={src}
-                alt={`Zrzut ekranu aplikacji DinBoard ${index + 1}`}
+                alt={`DinBoard ${index + 1}`}
                 draggable={false}
                 className="landing-preview-image"
               />
@@ -50,7 +52,7 @@ export function LandingSandboxPreview() {
                 className={`landing-preview-dot ${
                   index === currentSlide ? "is-active" : "is-inactive"
                 }`}
-                aria-label={`Przejdź do slajdu ${index + 1}`}
+                aria-label={`Slide ${index + 1}`}
               />
             ))}
           </div>

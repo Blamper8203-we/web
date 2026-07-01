@@ -4,6 +4,7 @@ import { DEFAULT_WORK_SCOPE_ITEMS, mergeDefaultAttachmentItems } from "../../lib
 import { TITLE_WORK_SCOPE_COLUMN_SIZE, TITLE_WORK_SCOPE_MAX_ITEMS } from "../../lib/export/pdfPages/pdfHelpers";
 import { chunkRows } from "../../lib/measurementProtocolHelpers";
 import { PageFooter } from "./ProtocolShared";
+import { useTranslation } from "react-i18next";
 
 interface TitlePageTabProps {
   metadata: ProjectMetadata;
@@ -24,6 +25,7 @@ export function TitlePageTab({
   titlePageIndex,
   totalUiPages,
 }: TitlePageTabProps) {
+  const { t } = useTranslation();
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,7 +35,7 @@ export function TitlePageTab({
     const dataUrl = await new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
-      reader.onerror = () => reject(new Error("Nie udało się odczytać pliku logo."));
+      reader.onerror = () => reject(new Error(t("app.ui.logoError", "Nie udało się odczytać pliku logo.")));
       reader.readAsDataURL(file);
     }).catch(() => "");
 
@@ -79,51 +81,51 @@ export function TitlePageTab({
                 <>
                   <img src={metadata.titlePageCompanyLogoDataUrl} alt="Logo firmy" className="w-full h-full object-contain p-1.5" />
                   <div className="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center text-[9px] font-bold text-white tracking-widest uppercase text-center leading-tight">
-                    Zmień<br/>logo
+                    {t("app.ui.changeLogo", "Zmień logo")}
                   </div>
                 </>
               ) : (
-                <span className="text-[10px] text-gray-900 font-bold tracking-wide uppercase group-hover:scale-105 transition-transform text-center leading-tight">DODAJ<br/>LOGO</span>
+                <span className="text-[10px] text-gray-900 font-bold tracking-wide uppercase group-hover:scale-105 transition-transform text-center leading-tight">{t("app.ui.addLogo", "DODAJ LOGO")}</span>
               )}
             </div>
             <div>
-              <h1 className="text-sm font-bold text-gray-900 tracking-wider uppercase">Dokumentacja Powykonawcza</h1>
-              <p className="text-[9px] text-gray-500 font-medium">ZGODNOŚĆ Z NORMĄ PN-HD 60364 (ARKUSZ 6)</p>
+              <h1 className="text-sm font-bold text-gray-900 tracking-wider uppercase">{t("app.pdf.titlePage.mainHeader", "Dokumentacja Powykonawcza")}</h1>
+              <p className="text-[9px] text-gray-500 font-medium">{t("app.pdf.titlePage.electricalInstallation", "ZGODNOŚĆ Z NORMĄ PN-HD 60364 (ARKUSZ 6)")}</p>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-[9px] font-semibold text-gray-500 uppercase">Protokół nr</div>
+            <div className="text-[9px] font-semibold text-gray-500 uppercase">{t("app.pdfDocumentationPage.editor.titlePage.protocolNr", "Protokół nr")}</div>
             <div className="text-xs font-bold text-white bg-brand px-2.5 py-0.5 rounded mt-0.5 inline-block">{protocolNumber}</div>
-            <div className="text-[9px] text-gray-400 mt-2">Data dokumentacji: <span className="font-medium text-gray-700">{displayDate}</span></div>
+            <div className="text-[9px] text-gray-400 mt-2">{t("app.pdfDocumentationPage.editor.titlePage.docDate", "Data dokumentacji:")} <span className="font-medium text-gray-700">{displayDate}</span></div>
             {metadata.statementDate?.trim() && metadata.statementDate !== metadata.drawingDate && (
-              <div className="text-[9px] text-gray-400 mt-1">Data oświadczenia: <span className="font-medium text-gray-700">{metadata.statementDate}</span></div>
+              <div className="text-[9px] text-gray-400 mt-1">{t("app.pdfDocumentationPage.editor.titlePage.statementDate", "Data oświadczenia:")} <span className="font-medium text-gray-700">{metadata.statementDate}</span></div>
             )}
           </div>
         </div>
 
         <div className="text-center my-6">
-          <h2 className="text-2xl font-black text-brand tracking-tight uppercase">Oświadczenie Wykonawcy</h2>
-          <p className="text-[10px] text-gray-700 italic font-medium mt-0.5">instalacji elektrycznej wykonanej zgodnie z przepisami i normami</p>
+          <h2 className="text-2xl font-black text-brand tracking-tight uppercase">{t("app.pdf.titlePage.statement", "Oświadczenie Wykonawcy")}</h2>
+          <p className="text-[10px] text-gray-700 italic font-medium mt-0.5">{t("app.pdf.titlePage.statementSubtitle", "instalacji elektrycznej wykonanej zgodnie z przepisami i normami")}</p>
         </div>
 
         <div className="bg-gray-50 rounded-xl border border-gray-200/80 p-3 mb-3">
-          <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-3 pb-2 border-b border-gray-100">Informacje o obiekcie</h3>
+          <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-3 pb-2 border-b border-gray-100">{t("app.pdfDocumentationPage.editor.titlePage.objectInfo", "Informacje o obiekcie")}</h3>
           <div className="flex flex-col gap-2 text-xs">
             <div className="flex items-baseline">
-              <span className="font-bold text-gray-700 w-24 shrink-0">Rodzaj obiektu:</span>
-              <input className="mp-editable flex-grow text-gray-900 font-semibold" value={metadata.titlePageObjectType || ""} placeholder="Budynek jednorodzinny / Lokal mieszkalny" onChange={(e) => onChange({ ...metadata, titlePageObjectType: e.target.value })} />
+              <span className="font-bold text-gray-700 w-24 shrink-0">{t("app.pdfDocumentationPage.editor.titlePage.objectType", "Rodzaj obiektu:")}</span>
+              <input className="mp-editable flex-grow text-gray-900 font-semibold" value={metadata.titlePageObjectType || ""} placeholder={t("app.pdfDocumentationPage.editor.titlePage.objectTypePlaceholder", "Budynek jednorodzinny / Lokal mieszkalny")} onChange={(e) => onChange({ ...metadata, titlePageObjectType: e.target.value })} />
             </div>
             <div className="flex items-baseline">
-              <span className="font-bold text-gray-700 w-24 shrink-0">Adres:</span>
+              <span className="font-bold text-gray-700 w-24 shrink-0">{t("app.pdfDocumentationPage.editor.titlePage.address", "Adres:")}</span>
               <input className="mp-editable flex-grow text-gray-900 font-semibold" value={metadata.address || ""} placeholder="................................................................" onChange={(e) => onChange({ ...metadata, address: e.target.value })} />
             </div>
             <div className="flex items-baseline">
-              <span className="font-bold text-gray-700 w-24 shrink-0">Inwestor:</span>
+              <span className="font-bold text-gray-700 w-24 shrink-0">{t("app.pdfDocumentationPage.editor.titlePage.investor", "Inwestor:")}</span>
               <input className="mp-editable flex-grow text-gray-900 font-semibold" value={metadata.investor || ""} placeholder="................................................................" onChange={(e) => onChange({ ...metadata, investor: e.target.value })} />
             </div>
             <div className="flex items-baseline">
-              <span className="font-bold text-gray-700 w-24 shrink-0">Adres inw.:</span>
-              <input className="mp-editable flex-grow text-gray-900 font-semibold" value={metadata.investorAddress || ""} placeholder="(opcjonalnie, jeśli inny niż adres obiektu)" onChange={(e) => onChange({ ...metadata, investorAddress: e.target.value })} />
+              <span className="font-bold text-gray-700 w-24 shrink-0">{t("app.pdfDocumentationPage.editor.titlePage.investorAddress", "Adres inw.:")}</span>
+              <input className="mp-editable flex-grow text-gray-900 font-semibold" value={metadata.investorAddress || ""} placeholder={t("app.pdfDocumentationPage.editor.titlePage.investorAddressPlaceholder", "(opcjonalnie)")} onChange={(e) => onChange({ ...metadata, investorAddress: e.target.value })} />
             </div>
           </div>
         </div>
@@ -138,11 +140,11 @@ export function TitlePageTab({
                 checked={metadata.titlePageUseManualWorkScopeCheckboxes || false}
                 onChange={(e) => onChange({ ...metadata, titlePageUseManualWorkScopeCheckboxes: e.target.checked })}
               />
-              <label htmlFor="manual-checkbox-toggle" className="text-[8px] text-gray-600 uppercase cursor-pointer select-none">Puste do druku</label>
+              <label htmlFor="manual-checkbox-toggle" className="text-[8px] text-gray-600 uppercase cursor-pointer select-none">{t("app.pdfDocumentationPage.editor.titlePage.manualCheckboxes", "Puste do druku")}</label>
             </div>
             <div className="flex flex-col h-full">
               <div className="px-4 pt-4 pb-2 mb-3 shrink-0">
-                <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest m-0">Zakres prac</h3>
+                <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest m-0">{t("app.pdf.titlePage.scope", "Zakres prac")}</h3>
               </div>
               <div className="px-4 pb-4 flex-grow flex flex-col">
                 <div className={titleWorkScopeColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-3" : "flex flex-col gap-3"}>
@@ -203,7 +205,7 @@ export function TitlePageTab({
                     onChange({ ...metadata, titlePageWorkScopeItems: [...workScopeItems, { text: "", isChecked: true }] });
                   }}
                 >
-                  + Dodaj kolejny punkt
+                  + {t("app.ui.addScopePoint", "Dodaj kolejny punkt")}
                 </button>
               )}
               </div>
@@ -213,7 +215,7 @@ export function TitlePageTab({
           <div className="border border-gray-200 rounded-xl flex flex-col justify-between overflow-hidden">
             <div className="flex flex-col h-full">
               <div className="px-4 pt-4 pb-2 mb-3 shrink-0">
-                <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest m-0">Załączniki do protokołu</h3>
+                <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest m-0">{t("app.pdf.titlePage.attachments", "Załączniki do protokołu")}</h3>
               </div>
               <div className="px-4 pb-4 flex-grow flex flex-col">
                 <div className={titleAttachmentColumns.length > 1 ? "grid grid-cols-2 gap-x-4 gap-y-3" : "flex flex-col gap-3"}>
@@ -240,9 +242,9 @@ export function TitlePageTab({
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="border border-gray-200 rounded-xl p-4 flex flex-col justify-center">
             <div>
-              <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-2 pb-2 border-b border-gray-100">Wykonawca / Instalator</h3>
+              <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-2 pb-2 border-b border-gray-100">{t("app.pdfDocumentationPage.editor.titlePage.contractor", "Wykonawca / Instalator")}</h3>
               <input className="mp-editable text-xs font-bold text-gray-950 mt-2" value={metadata.contractor || ""} placeholder="................................" onChange={(e) => onChange({ ...metadata, contractor: e.target.value })} />
-              <p className="text-[9px] text-gray-400 mt-1.5">Podmiot odpowiedzialny za montaż instalacji</p>
+              <p className="text-[9px] text-gray-400 mt-1.5">{t("app.pdf.titlePage.contractorSubtitle", "Podmiot odpowiedzialny za montaż instalacji")}</p>
               <div className="grid grid-cols-2 gap-x-3 gap-y-2 mt-3 pt-3 border-t border-gray-100">
                 <div className="flex items-baseline gap-1.5">
                   <span className="text-[9px] font-bold text-gray-700 shrink-0">NIP:</span>
@@ -266,18 +268,18 @@ export function TitlePageTab({
 
           <div className="border border-gray-200 rounded-xl p-4 flex flex-col justify-center">
             <div>
-              <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-2 pb-2 border-b border-gray-100">Uprawnienia SEP (Kwalifikacyjne)</h3>
+              <h3 className="text-[10px] font-bold text-brand uppercase tracking-widest mb-2 pb-2 border-b border-gray-100">{t("app.pdfDocumentationPage.editor.titlePage.sepLicenses", "Uprawnienia SEP (Kwalifikacyjne)")}</h3>
               <div className="text-xs flex flex-col gap-2 mt-2">
                 <div className="flex items-baseline">
-                  <span className="font-semibold text-gray-700 w-[110px]">Eksploatacja (E):</span>
+                  <span className="font-semibold text-gray-700 w-[110px]">{t("app.pdfDocumentationPage.editor.titlePage.sepE", "Eksploatacja (E):")}</span>
                   <input className="mp-editable text-gray-950 font-bold ml-1 flex-grow" value={metadata.designerId || ""} placeholder="................................" onChange={(e) => onChange({ ...metadata, designerId: e.target.value })} />
                 </div>
                 <div className="flex items-baseline">
-                  <span className="font-semibold text-gray-700 w-[110px]">Dozór (D):</span>
+                  <span className="font-semibold text-gray-700 w-[110px]">{t("app.pdfDocumentationPage.editor.titlePage.sepD", "Dozór (D):")}</span>
                   <input className="mp-editable text-gray-950 font-bold ml-1 flex-grow" value={metadata.authorLicense || ""} placeholder="................................" onChange={(e) => onChange({ ...metadata, authorLicense: e.target.value })} />
                 </div>
                 <div className="flex items-baseline mt-1">
-                  <span className="font-semibold text-gray-700 w-[110px]">Ważne do:</span>
+                  <span className="font-semibold text-gray-700 w-[110px]">{t("app.pdfDocumentationPage.editor.titlePage.sepValidUntil", "Ważne do:")}</span>
                   <input className="mp-editable text-gray-950 font-bold ml-1 flex-grow" value={metadata.titlePageSepValidUntil || ""} placeholder="........................" onChange={(e) => onChange({ ...metadata, titlePageSepValidUntil: e.target.value })} />
                 </div>
               </div>
@@ -286,9 +288,8 @@ export function TitlePageTab({
         </div>
 
         <div className="bg-white border border-brand text-gray-800 rounded-xl p-4 mb-6 text-center shadow-sm">
-          <p className="text-[10px] uppercase font-bold text-brand tracking-widest mb-2">Pełna treść oświadczenia wykonawcy</p>
-          <p className="text-[10px] leading-relaxed font-normal text-gray-800">
-            Oświadczam, że instalacja elektryczna w wyżej wymienionym obiekcie została wykonana zgodnie z przepisami ustawy Prawo Budowlane, obowiązującymi normami technicznymi (w tym <span className="font-bold text-gray-950">PN-HD 60364-6</span>) oraz sztuką budowlaną. Przeprowadzone pomiary odbiorcze wykazały skuteczność zastosowanych środków ochrony przeciwporażeniowej.
+          <p className="text-[10px] uppercase font-bold text-brand tracking-widest mb-2">{t("app.pdfDocumentationPage.editor.titlePage.statementFull", "Pełna treść oświadczenia wykonawcy")}</p>
+          <p className="text-[10px] leading-relaxed font-normal text-gray-800" dangerouslySetInnerHTML={{ __html: t("app.pdf.titlePage.statementText", "Oświadczam, że instalacja elektryczna w wyżej wymienionym obiekcie została wykonana zgodnie z przepisami ustawy Prawo Budowlane, obowiązującymi normami technicznymi (w tym <span className=\"font-bold text-gray-950\">PN-HD 60364-6</span>) oraz sztuką budowlaną. Przeprowadzone pomiary odbiorcze wykazały skuteczność zastosowanych środków ochrony przeciwporażeniowej.") }}>
           </p>
         </div>
       </div>
@@ -297,22 +298,22 @@ export function TitlePageTab({
         <div className="flex justify-between items-end pt-4 border-t border-gray-100">
           <div className="text-center w-48">
             <div className="h-20 border border-dashed border-gray-300 rounded-lg flex items-center justify-center p-2 mb-1 bg-gray-50/30 mx-auto w-full">
-              <span className="text-[9px] text-gray-400 uppercase tracking-wider font-semibold">{stampText}</span>
+              <span className="text-[9px] text-gray-400 uppercase tracking-wider font-semibold">{stampText || t("app.pdf.titlePage.contractorStamp", "Pieczęć wykonawcy")}</span>
             </div>
-            <p className="text-[10px] text-gray-500 mt-1">Pieczęć wykonawcy</p>
+            <p className="text-[10px] text-gray-500 mt-1">{t("app.pdf.titlePage.contractorStamp", "Pieczęć wykonawcy")}</p>
           </div>
           <div className="text-center w-48">
             <div className="h-16 flex items-center justify-center mb-1">
               <input
                 className="mp-editable text-center w-full text-[13px] font-semibold text-gray-700 placeholder:text-gray-300 placeholder:italic placeholder:font-normal bg-transparent"
                 value={metadata.designerSignature || ""}
-                placeholder="miejsce na podpis"
+                placeholder={t("app.pdfDocumentationPage.editor.titlePage.signaturePlaceholder", "miejsce na podpis")}
                 onChange={(e) => onChange({ ...metadata, designerSignature: e.target.value })}
               />
             </div>
             <div className="border-t border-gray-300 pt-1.5">
-              <p className="text-[10px] font-bold text-gray-700 uppercase">Podpis Elektryka</p>
-              <p className="text-[8px] text-gray-400 mt-0.5">Osoba uprawniona (pomiarowiec)</p>
+              <p className="text-[10px] font-bold text-gray-700 uppercase">{t("app.pdf.titlePage.electricianSignature", "Podpis Elektryka")}</p>
+              <p className="text-[8px] text-gray-400 mt-0.5">{t("app.pdf.titlePage.electricianSubtitle", "Osoba uprawniona (pomiarowiec)")}</p>
             </div>
           </div>
           <div className="text-center w-48">
@@ -320,13 +321,13 @@ export function TitlePageTab({
               <input
                 className="mp-editable text-center w-full text-[13px] font-semibold text-gray-700 placeholder:text-gray-300 placeholder:italic placeholder:font-normal bg-transparent"
                 value={metadata.investorSignature || ""}
-                placeholder="miejsce na podpis"
+                placeholder={t("app.pdfDocumentationPage.editor.titlePage.signaturePlaceholder", "miejsce na podpis")}
                 onChange={(e) => onChange({ ...metadata, investorSignature: e.target.value })}
               />
             </div>
             <div className="border-t border-gray-300 pt-1.5">
-              <p className="text-[10px] font-bold text-gray-700 uppercase">Podpis Inwestora</p>
-              <p className="text-[8px] text-gray-400 mt-0.5">Właściciel / zarządca obiektu</p>
+              <p className="text-[10px] font-bold text-gray-700 uppercase">{t("app.pdf.titlePage.investorSignature", "Podpis Inwestora")}</p>
+              <p className="text-[8px] text-gray-400 mt-0.5">{t("app.pdf.titlePage.investorSubtitle", "Właściciel / zarządca obiektu")}</p>
             </div>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { createDefaultSymbolItem, type PhaseAssignment, type SymbolItem, MANUAL_REFERENCE_DESIGNATION_KEY } from "../../types/symbolItem";
 import { detectPoleCount as getPoleCount } from "../../lib/poleCount";
+import type { TFunction } from "i18next";
 
 export type CircuitEditFieldKind = "text" | "number" | "combo" | "checkbox";
 
@@ -117,7 +118,7 @@ function checkboxField(
   return { key, label, kind: "checkbox", value };
 }
 
-export function getCircuitEditFields(symbol: SymbolItem, symbols?: SymbolItem[]): CircuitEditFieldDefinition[] {
+export function getCircuitEditFields(symbol: SymbolItem, t: TFunction, symbols?: SymbolItem[]): CircuitEditFieldDefinition[] {
   const moduleType = getModuleType(symbol);
   
   const locationOptions = symbols
@@ -126,27 +127,27 @@ export function getCircuitEditFields(symbol: SymbolItem, symbols?: SymbolItem[])
 
   switch (moduleType) {
     case "switch":
-      return createFrFields(symbol);
+      return createFrFields(symbol, t);
     case "networkSwitch":
-      return createNetworkSwitchFields(symbol);
+      return createNetworkSwitchFields(symbol, t);
     case "phaseIndicator":
-      return createPhaseIndicatorFields(symbol);
+      return createPhaseIndicatorFields(symbol, t);
     case "rcd":
-      return createRcdFields(symbol);
+      return createRcdFields(symbol, t);
     case "spd":
-      return createSpdFields(symbol);
+      return createSpdFields(symbol, t);
     case "terminalBlock":
-      return createTerminalBlockFields(symbol);
+      return createTerminalBlockFields(symbol, t);
     case "distributionBlock":
-      return createDistributionBlockFields(symbol);
+      return createDistributionBlockFields(symbol, t);
     case "socket":
-      return createSocketFields(symbol, getPoleCount(symbol), locationOptions);
+      return createSocketFields(symbol, getPoleCount(symbol), locationOptions, t);
     default:
-      return createMcbFields(symbol, getPoleCount(symbol), locationOptions);
+      return createMcbFields(symbol, getPoleCount(symbol), locationOptions, t);
   }
 }
 
-export function getCircuitEditHeader(symbol: SymbolItem): {
+export function getCircuitEditHeader(symbol: SymbolItem, t: TFunction): {
   title: string;
   subtitle: string;
   tone: "blue" | "green" | "orange" | "red";
@@ -157,59 +158,59 @@ export function getCircuitEditHeader(symbol: SymbolItem): {
     case "networkSwitch":
       return {
         title: symbol.referenceDesignation
-          ? `${symbol.referenceDesignation} - ${symbol.label || "Przełącznik sieci"}`
-          : symbol.label || "Przełącznik sieci",
-        subtitle: "Przełącznik zasilania (I-0-II)",
+          ? `${symbol.referenceDesignation} - ${symbol.label || t("app.circuitEdit.headers.networkSwitch.title")}`
+          : symbol.label || t("app.circuitEdit.headers.networkSwitch.title"),
+        subtitle: t("app.circuitEdit.headers.networkSwitch.subtitle"),
         tone: "blue",
       };
     case "switch":
       return {
-        title: symbol.label || "Rozłącznik główny",
-        subtitle: "Rozłącznik główny (FR)",
+        title: symbol.label || t("app.circuitEdit.headers.switch.title"),
+        subtitle: t("app.circuitEdit.headers.switch.subtitle"),
         tone: "red",
       };
     case "phaseIndicator":
       return {
-        title: symbol.label || "Kontrolki faz",
-        subtitle: "Kontrolki faz",
+        title: symbol.label || t("app.circuitEdit.headers.phaseIndicator.title"),
+        subtitle: t("app.circuitEdit.headers.phaseIndicator.subtitle"),
         tone: "orange",
       };
     case "rcd":
       return {
-        title: symbol.circuitName || symbol.label || "RCD",
-        subtitle: "Wyłącznik różnicowoprądowy",
+        title: symbol.circuitName || symbol.label || t("app.circuitEdit.headers.rcd.title"),
+        subtitle: t("app.circuitEdit.headers.rcd.subtitle"),
         tone: "green",
       };
     case "spd":
       return {
         title: symbol.referenceDesignation
-          ? `${symbol.referenceDesignation} - ${symbol.label || "SPD"}`
-          : symbol.label || "SPD",
-        subtitle: "Ogranicznik przepiec (SPD)",
+          ? `${symbol.referenceDesignation} - ${symbol.label || t("app.circuitEdit.headers.spd.title")}`
+          : symbol.label || t("app.circuitEdit.headers.spd.title"),
+        subtitle: t("app.circuitEdit.headers.spd.subtitle"),
         tone: "orange",
       };
     case "terminalBlock":
       return {
         title: symbol.referenceDesignation
-          ? `${symbol.referenceDesignation} - ${symbol.label || "Listwa zaciskowa"}`
-          : symbol.label || "Listwa zaciskowa",
-        subtitle: "Listwa zaciskowa / terminal",
+          ? `${symbol.referenceDesignation} - ${symbol.label || t("app.circuitEdit.headers.terminalBlock.title")}`
+          : symbol.label || t("app.circuitEdit.headers.terminalBlock.title"),
+        subtitle: t("app.circuitEdit.headers.terminalBlock.subtitle"),
         tone: "blue",
       };
     case "distributionBlock":
       return {
         title: symbol.referenceDesignation
-          ? `${symbol.referenceDesignation} - ${symbol.label || "Blok rozdzielczy"}`
-          : symbol.label || "Blok rozdzielczy",
-        subtitle: "Blok rozdzielczy / złącze",
+          ? `${symbol.referenceDesignation} - ${symbol.label || t("app.circuitEdit.headers.distributionBlock.title")}`
+          : symbol.label || t("app.circuitEdit.headers.distributionBlock.title"),
+        subtitle: t("app.circuitEdit.headers.distributionBlock.subtitle"),
         tone: "blue",
       };
     default:
       return {
         title: symbol.referenceDesignation
-          ? `${symbol.referenceDesignation} - ${symbol.circuitName || symbol.label || "Obwód"}`
-          : symbol.circuitName || symbol.label || "Obwód",
-        subtitle: "Wyłącznik nadprądowy / odbiór",
+          ? `${symbol.referenceDesignation} - ${symbol.circuitName || symbol.label || t("app.circuitEdit.headers.obwod.title")}`
+          : symbol.circuitName || symbol.label || t("app.circuitEdit.headers.obwod.title"),
+        subtitle: t("app.circuitEdit.headers.obwod.subtitle"),
         tone: "blue",
       };
   }
@@ -318,77 +319,77 @@ export function applyCircuitEditValues(
   );
 }
 
-function createTerminalBlockFields(symbol: SymbolItem): CircuitEditFieldDefinition[] {
+function createTerminalBlockFields(symbol: SymbolItem, t: TFunction): CircuitEditFieldDefinition[] {
   return [
-    textField("ReferenceDesignation", "Oznaczenie", getManualReferenceDesignation(symbol)),
-    textField("Label", "Etykieta", symbol.label),
+    textField("ReferenceDesignation", t("app.circuitEdit.fields.designation"), getManualReferenceDesignation(symbol)),
+    textField("Label", t("app.circuitEdit.fields.label"), symbol.label),
   ];
 }
 
-function createDistributionBlockFields(symbol: SymbolItem): CircuitEditFieldDefinition[] {
+function createDistributionBlockFields(symbol: SymbolItem, t: TFunction): CircuitEditFieldDefinition[] {
   return [
-    textField("ReferenceDesignation", "Oznaczenie", getManualReferenceDesignation(symbol)),
-    textField("Label", "Etykieta", symbol.label),
-    checkboxField("RemoveCover", "Zdejmij osłonę", symbol.parameters?.BLUE_COVER_VISIBILITY === "hidden" || symbol.parameters?.BLUE_COVER_VISIBILITY === "none"),
+    textField("ReferenceDesignation", t("app.circuitEdit.fields.designation"), getManualReferenceDesignation(symbol)),
+    textField("Label", t("app.circuitEdit.fields.label"), symbol.label),
+    checkboxField("RemoveCover", t("app.circuitEdit.fields.removeCover"), symbol.parameters?.BLUE_COVER_VISIBILITY === "hidden" || symbol.parameters?.BLUE_COVER_VISIBILITY === "none"),
   ];
 }
 
-function createFrFields(symbol: SymbolItem): CircuitEditFieldDefinition[] {
+function createFrFields(symbol: SymbolItem, t: TFunction): CircuitEditFieldDefinition[] {
   return [
-    textField("ReferenceDesignation", "Oznaczenie", getManualReferenceDesignation(symbol)),
-    textField("Label", "Etykieta", symbol.label),
-    comboField("FrType", "Typ FR", symbol.frType || "63", FR_PRESETS),
-    comboField("FrRatedCurrent", "Prąd znamionowy", symbol.frRatedCurrent || "63A", FR_PRESETS.map((p) => `${p}A`)),
-    comboField("Phase", "Faza", getDisplayPhase(symbol.phase), getPhaseOptions(getPoleCount(symbol))),
+    textField("ReferenceDesignation", t("app.circuitEdit.fields.designation"), getManualReferenceDesignation(symbol)),
+    textField("Label", t("app.circuitEdit.fields.label"), symbol.label),
+    comboField("FrType", t("app.circuitEdit.fields.frType"), symbol.frType || "63", FR_PRESETS),
+    comboField("FrRatedCurrent", t("app.circuitEdit.fields.ratedCurrent"), symbol.frRatedCurrent || "63A", FR_PRESETS.map((p) => `${p}A`)),
+    comboField("Phase", t("app.circuitEdit.fields.phase"), getDisplayPhase(symbol.phase), getPhaseOptions(getPoleCount(symbol))),
   ];
 }
 
-function createNetworkSwitchFields(symbol: SymbolItem): CircuitEditFieldDefinition[] {
+function createNetworkSwitchFields(symbol: SymbolItem, t: TFunction): CircuitEditFieldDefinition[] {
   return [
-    textField("ReferenceDesignation", "Oznaczenie", getManualReferenceDesignation(symbol)),
-    textField("Label", "Etykieta", symbol.label),
-    comboField("FrRatedCurrent", "Prąd znamionowy", symbol.frRatedCurrent || "40A", NETWORK_SWITCH_PRESETS),
-    comboField("Phase", "Faza", getDisplayPhase(symbol.phase), getPhaseOptions(getPoleCount(symbol))),
+    textField("ReferenceDesignation", t("app.circuitEdit.fields.designation"), getManualReferenceDesignation(symbol)),
+    textField("Label", t("app.circuitEdit.fields.label"), symbol.label),
+    comboField("FrRatedCurrent", t("app.circuitEdit.fields.ratedCurrent"), symbol.frRatedCurrent || "40A", NETWORK_SWITCH_PRESETS),
+    comboField("Phase", t("app.circuitEdit.fields.phase"), getDisplayPhase(symbol.phase), getPhaseOptions(getPoleCount(symbol))),
   ];
 }
 
-function createPhaseIndicatorFields(symbol: SymbolItem): CircuitEditFieldDefinition[] {
+function createPhaseIndicatorFields(symbol: SymbolItem, t: TFunction): CircuitEditFieldDefinition[] {
   return [
-    textField("ReferenceDesignation", "Oznaczenie", getManualReferenceDesignation(symbol)),
-    textField("Label", "Etykieta", symbol.label),
+    textField("ReferenceDesignation", t("app.circuitEdit.fields.designation"), getManualReferenceDesignation(symbol)),
+    textField("Label", t("app.circuitEdit.fields.label"), symbol.label),
     comboField(
       "PhaseIndicatorModel",
-      "Model",
+      t("app.circuitEdit.fields.model"),
       symbol.phaseIndicatorModel || "3 lampki z bezpiecznikiem",
       PHASE_INDICATOR_MODEL_PRESETS,
     ),
     comboField(
       "PhaseIndicatorFuseRating",
-      "Bezpiecznik",
+      t("app.circuitEdit.fields.fuse"),
       symbol.phaseIndicatorFuseRating || "2A gG",
       PHASE_INDICATOR_FUSE_PRESETS,
     ),
   ];
 }
 
-function createRcdFields(symbol: SymbolItem): CircuitEditFieldDefinition[] {
+function createRcdFields(symbol: SymbolItem, t: TFunction): CircuitEditFieldDefinition[] {
   return [
-    textField("ReferenceDesignation", "Oznaczenie", getManualReferenceDesignation(symbol)),
+    textField("ReferenceDesignation", t("app.circuitEdit.fields.designation"), getManualReferenceDesignation(symbol)),
     comboField(
       "RcdPreset",
-      "Typ RCD",
+      t("app.circuitEdit.fields.rcdType"),
       `${symbol.rcdRatedCurrent}A/${symbol.rcdResidualCurrent}mA Typ ${symbol.rcdType}`,
       RCD_PRESETS,
     ),
   ];
 }
 
-function createSpdFields(symbol: SymbolItem): CircuitEditFieldDefinition[] {
+function createSpdFields(symbol: SymbolItem, t: TFunction): CircuitEditFieldDefinition[] {
   return [
-    textField("ReferenceDesignation", "Oznaczenie", getManualReferenceDesignation(symbol)),
+    textField("ReferenceDesignation", t("app.circuitEdit.fields.designation"), getManualReferenceDesignation(symbol)),
     comboField(
       "SpdPreset",
-      "Typ SPD",
+      t("app.circuitEdit.fields.spdType"),
       `${symbol.spdType} ${symbol.spdVoltage}V ${symbol.spdDischargeCurrent}kA`,
       SPD_PRESETS,
     ),
@@ -399,30 +400,31 @@ function createSocketFields(
   symbol: SymbolItem,
   poleCount: ModulePoleCount,
   locationOptions: string[],
+  t: TFunction,
 ): CircuitEditFieldDefinition[] {
   return [
-    textField("ReferenceDesignation", "Oznaczenie", getManualReferenceDesignation(symbol)),
-    textField("CircuitName", "Nazwa obwodu", symbol.circuitName, "np. Gniazdo serwisowe"),
-    textField("Location", "Lokalizacja", symbol.location, "np. Rozdzielnica", locationOptions),
-    comboField("Phase", "Faza", getDisplayPhase(symbol.phase), getPhaseOptions(poleCount)),
-    numberField("CableCrossSection", "Przekrój (mm2)", symbol.cableCrossSection, "np. 2.5"),
+    textField("ReferenceDesignation", t("app.circuitEdit.fields.designation"), getManualReferenceDesignation(symbol)),
+    textField("CircuitName", t("app.circuitEdit.fields.circuitName"), symbol.circuitName, t("app.circuitEdit.fields.placeholder.circuitName")),
+    textField("Location", t("app.circuitEdit.fields.location"), symbol.location, t("app.circuitEdit.fields.placeholder.location"), locationOptions),
+    comboField("Phase", t("app.circuitEdit.fields.phase"), getDisplayPhase(symbol.phase), getPhaseOptions(poleCount)),
+    numberField("CableCrossSection", t("app.circuitEdit.fields.cableCrossSection"), symbol.cableCrossSection, t("app.circuitEdit.fields.placeholder.cableCrossSection")),
   ];
 }
 
-function createMcbFields(symbol: SymbolItem, poleCount: ModulePoleCount, locationOptions: string[]): CircuitEditFieldDefinition[] {
+function createMcbFields(symbol: SymbolItem, poleCount: ModulePoleCount, locationOptions: string[], t: TFunction): CircuitEditFieldDefinition[] {
   return [
-    textField("ReferenceDesignation", "Oznaczenie", getManualReferenceDesignation(symbol)),
-    textField("CircuitName", "Nazwa obwodu", symbol.circuitName, "np. Oświetlenie salon"),
-    textField("Location", "Lokalizacja", symbol.location, "np. Piętro 1, Kuchnia", locationOptions),
-    comboField("CircuitType", "Typ obwodu", symbol.circuitType || "Gniazdo", CIRCUIT_TYPE_PRESETS),
-    comboField("ProtectionType", "Zabezpieczenie", symbol.protectionType || "B16", PROTECTION_PRESETS),
-    numberField("PowerW", "Moc (W)", symbol.powerW, "np. 2000"),
-    comboField("Phase", "Faza", getDisplayPhase(symbol.phase), getPhaseOptions(poleCount)),
-    checkboxField("IsPhaseLocked", "Zablokuj fazę", symbol.isPhaseLocked),
-    textField("CableDesig", "Oznaczenie kabla", symbol.parameters.CableDesig ?? ""),
-    textField("CableType", "Typ kabla", symbol.parameters.CableType ?? ""),
-    numberField("CableLength", "Długość kabla (m)", symbol.cableLength, "np. 15"),
-    numberField("CableCrossSection", "Przekrój (mm2)", symbol.cableCrossSection, "np. 2.5"),
+    textField("ReferenceDesignation", t("app.circuitEdit.fields.designation"), getManualReferenceDesignation(symbol)),
+    textField("CircuitName", t("app.circuitEdit.fields.circuitName"), symbol.circuitName, t("app.circuitEdit.fields.placeholder.circuitName")),
+    textField("Location", t("app.circuitEdit.fields.location"), symbol.location, t("app.circuitEdit.fields.placeholder.location"), locationOptions),
+    comboField("CircuitType", t("app.circuitEdit.fields.circuitType"), symbol.circuitType || "Gniazdo", CIRCUIT_TYPE_PRESETS),
+    comboField("ProtectionType", t("app.circuitEdit.fields.protectionType"), symbol.protectionType || "B16", PROTECTION_PRESETS),
+    numberField("PowerW", t("app.circuitEdit.fields.powerW"), symbol.powerW, t("app.circuitEdit.fields.placeholder.powerW")),
+    comboField("Phase", t("app.circuitEdit.fields.phase"), getDisplayPhase(symbol.phase), getPhaseOptions(poleCount)),
+    checkboxField("IsPhaseLocked", t("app.circuitEdit.fields.phaseLocked"), symbol.isPhaseLocked),
+    textField("CableDesig", t("app.circuitEdit.fields.cableDesig"), symbol.parameters.CableDesig ?? ""),
+    textField("CableType", t("app.circuitEdit.fields.cableType"), symbol.parameters.CableType ?? ""),
+    numberField("CableLength", t("app.circuitEdit.fields.cableLength"), symbol.cableLength, t("app.circuitEdit.fields.placeholder.cableLength")),
+    numberField("CableCrossSection", t("app.circuitEdit.fields.cableCrossSection"), symbol.cableCrossSection, t("app.circuitEdit.fields.placeholder.cableCrossSection")),
   ];
 }
 

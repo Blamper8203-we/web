@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { AppIcon } from "./AppIcon";
 import "./RcdManagementDialog.css";
 
@@ -33,6 +34,7 @@ function normalizeRcdType(value: string): string {
 }
 
 export function RcdManagementDialog({ entries, onClose, onSave }: RcdManagementDialogProps) {
+  const { t } = useTranslation();
   const [draftRows, setDraftRows] = useState<RcdManagerEntry[]>(() =>
     entries.map((entry) => ({ ...entry })),
   );
@@ -40,8 +42,8 @@ export function RcdManagementDialog({ entries, onClose, onSave }: RcdManagementD
   const hasRows = draftRows.length > 0;
 
   const summary = useMemo(
-    () => `${draftRows.length} szt. RCD`,
-    [draftRows.length],
+    () => t("app.rcdManagement.summary", "{{count}} szt. RCD", { count: draftRows.length }),
+    [draftRows.length, t],
   );
 
   const handleRowChange = (
@@ -59,19 +61,19 @@ export function RcdManagementDialog({ entries, onClose, onSave }: RcdManagementD
         className="rcd-dialog"
         role="dialog"
         aria-modal="true"
-        aria-label="Zarządzanie RCD"
+        aria-label={t("app.rcdManagement.title", "Zarządzanie RCD")}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="din-rail-dialog-title">
           <AppIcon name="cog" size={18} />
-          <strong>Zarządzanie RCD</strong>
+          <strong>{t("app.rcdManagement.title", "Zarządzanie RCD")}</strong>
           <span className="rcd-dialog__summary">{summary}</span>
         </div>
 
         {!hasRows ? (
           <div className="rcd-dialog__empty">
-            <strong>Brak modułów RCD w zleceniu.</strong>
-            <span>Dodaj przynajmniej jeden moduł RCD na szynę DIN.</span>
+            <strong>{t("app.rcdManagement.emptyTitle", "Brak modułów RCD w zleceniu.")}</strong>
+            <span>{t("app.rcdManagement.emptyDesc", "Dodaj przynajmniej jeden moduł RCD na szynę DIN.")}</span>
           </div>
         ) : (
           <div className="rcd-dialog__table-wrap">
@@ -79,10 +81,10 @@ export function RcdManagementDialog({ entries, onClose, onSave }: RcdManagementD
               <thead>
                 <tr>
                   <th>RCD</th>
-                  <th>Grupa</th>
+                  <th>{t("app.rcdManagement.colGroup", "Grupa")}</th>
                   <th>In [A]</th>
                   <th>IΔn [mA]</th>
-                  <th>Typ</th>
+                  <th>{t("app.rcdManagement.colType", "Typ")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -139,14 +141,14 @@ export function RcdManagementDialog({ entries, onClose, onSave }: RcdManagementD
         )}
 
         <div className="din-rail-dialog-actions">
-          <button type="button" onClick={onClose}>Anuluj</button>
+          <button type="button" onClick={onClose}>{t("app.rcdManagement.btnCancel", "Anuluj")}</button>
           <button
             type="button"
             className="accent-btn"
             onClick={() => onSave(draftRows)}
             disabled={!hasRows}
           >
-            Zapisz RCD
+            {t("app.rcdManagement.btnSave", "Zapisz RCD")}
           </button>
         </div>
       </div>

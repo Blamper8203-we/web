@@ -6,6 +6,16 @@ import {
   getCircuitEditFields,
   getCircuitEditHeader,
 } from "./circuitEditFieldDefinitions";
+import type { TFunction } from "i18next";
+
+const mockT = ((k: string) => {
+  if (k.includes("rcd.subtitle")) return "Wyłącznik różnicowoprądowy";
+  if (k.includes("spd.subtitle")) return "Ogranicznik przepięć (SPD)";
+  if (k.includes("switch.subtitle")) return "Rozłącznik główny (FR)";
+  if (k.includes("terminalBlock.subtitle")) return "Listwa zaciskowa / terminal";
+  if (k.includes("distributionBlock.subtitle")) return "Blok rozdzielczy / złącze";
+  return k;
+}) as unknown as TFunction;
 
 describe("applyCircuitEditValue", () => {
   it("syncs MCB protection edits to visible SVG parameters", () => {
@@ -302,7 +312,7 @@ describe("getCircuitEditHeader", () => {
       circuitName: "RCD główny",
     });
 
-    const header = getCircuitEditHeader(symbol);
+    const header = getCircuitEditHeader(symbol, mockT);
 
     expect(header.tone).toBe("green");
     expect(header.subtitle).toContain("różnicowoprądowy");
@@ -314,7 +324,7 @@ describe("getCircuitEditHeader", () => {
       type: "SPD",
     });
 
-    const header = getCircuitEditHeader(symbol);
+    const header = getCircuitEditHeader(symbol, mockT);
 
     expect(header.tone).toBe("orange");
     expect(header.subtitle).toContain("SPD");
@@ -326,7 +336,7 @@ describe("getCircuitEditHeader", () => {
       type: "FR",
     });
 
-    const header = getCircuitEditHeader(symbol);
+    const header = getCircuitEditHeader(symbol, mockT);
 
     expect(header.tone).toBe("red");
     expect(header.subtitle).toContain("Rozłącznik");
@@ -339,7 +349,7 @@ describe("getCircuitEditHeader", () => {
       isTerminalBlock: true,
     });
 
-    const header = getCircuitEditHeader(symbol);
+    const header = getCircuitEditHeader(symbol, mockT);
 
     expect(header.tone).toBe("blue");
     expect(header.subtitle).toContain("Listwa");
@@ -353,7 +363,7 @@ describe("getCircuitEditHeader", () => {
       isTerminalBlock: true,
     });
 
-    const header = getCircuitEditHeader(symbol);
+    const header = getCircuitEditHeader(symbol, mockT);
 
     expect(header.subtitle).toContain("Blok rozdzielczy");
   });
@@ -369,7 +379,7 @@ describe("getCircuitEditFields", () => {
       rcdType: "A",
     });
 
-    const fields = getCircuitEditFields(symbol);
+    const fields = getCircuitEditFields(symbol, mockT);
     const keys = fields.map((f) => f.key);
 
     expect(keys).toContain("RcdPreset");
@@ -384,7 +394,7 @@ describe("getCircuitEditFields", () => {
       type: "SPD",
     });
 
-    const fields = getCircuitEditFields(symbol);
+    const fields = getCircuitEditFields(symbol, mockT);
     const keys = fields.map((f) => f.key);
 
     expect(keys).toContain("SpdPreset");
@@ -397,7 +407,7 @@ describe("getCircuitEditFields", () => {
       type: "MCB 1P",
     });
 
-    const fields = getCircuitEditFields(symbol);
+    const fields = getCircuitEditFields(symbol, mockT);
     const keys = fields.map((f) => f.key);
 
     expect(keys).toContain("ProtectionType");
@@ -415,7 +425,7 @@ describe("getCircuitEditFields", () => {
       isTerminalBlock: true,
     });
 
-    const fields = getCircuitEditFields(symbol);
+    const fields = getCircuitEditFields(symbol, mockT);
     const keys = fields.map((f) => f.key);
 
     expect(keys).toContain("RemoveCover");
@@ -429,7 +439,7 @@ describe("getCircuitEditFields", () => {
       isTerminalBlock: true,
     });
 
-    const fields = getCircuitEditFields(symbol);
+    const fields = getCircuitEditFields(symbol, mockT);
     const keys = fields.map((f) => f.key);
 
     expect(keys).not.toContain("RemoveCover");
@@ -442,7 +452,7 @@ describe("getCircuitEditFields", () => {
       label: "Gniazdo",
     });
 
-    const fields = getCircuitEditFields(symbol);
+    const fields = getCircuitEditFields(symbol, mockT);
     const keys = fields.map((f) => f.key);
 
     expect(keys).toContain("CircuitName");

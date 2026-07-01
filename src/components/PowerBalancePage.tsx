@@ -1,5 +1,6 @@
 import "./PowerBalancePage.css";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { ProjectMetadata } from "../types/projectMetadata";
 import type { SymbolItem } from "../types/symbolItem";
 import { buildPhaseBalanceRows, type PhaseBalanceRow } from "../lib/phaseDistribution/phaseBalanceRows";
@@ -35,6 +36,7 @@ interface PowerBalancePageProps {
 }
 
 export function PowerBalancePage({ symbols, onApplyBalance, onApplyPhaseMove, metadata }: PowerBalancePageProps) {
+  const { t } = useTranslation();
   const distribution = calculateTotalDistribution(symbols, metadata.powerFactor);
   const totalPower = distribution.l1PowerW + distribution.l2PowerW + distribution.l3PowerW;
   // WHY: phase-card fill bar must be scaled against the HEAVIEST phase, not
@@ -62,13 +64,13 @@ export function PowerBalancePage({ symbols, onApplyBalance, onApplyPhaseMove, me
 
   return (
     <div className="power-balance-page">
-      <div className="section-header">BILANS MOCY</div>
+      <div className="section-header">{t("app.powerBalance.title", "BILANS MOCY")}</div>
 
       <div className="card pb-summary-card">
         <div className="pb-summary-row">
           <span>
             <AppIcon className="accent-primary" name="validation" size={14} />
-            Moc zainstalowana
+            {t("app.powerBalance.installedPower", "Moc zainstalowana")}
           </span>
           <strong>{(totalPower / 1000).toFixed(2)} kW</strong>
         </div>
@@ -76,7 +78,7 @@ export function PowerBalancePage({ symbols, onApplyBalance, onApplyPhaseMove, me
         <div className="pb-summary-row">
           <span>
             <AppIcon className="accent-green" name="balance" size={14} />
-            Moc obliczeniowa
+            {t("app.powerBalance.calculatedPower", "Moc obliczeniowa")}
           </span>
           <strong>{(calculatedPower / 1000).toFixed(2)} kW</strong>
         </div>
@@ -84,27 +86,27 @@ export function PowerBalancePage({ symbols, onApplyBalance, onApplyPhaseMove, me
         <div className="pb-summary-row">
           <span>
             <AppIcon className="accent-primary" name="balance" size={14} />
-            Współczynnik jednoczesności
+            {t("app.powerBalance.simultaneityFactor", "Współczynnik jednoczesności")}
           </span>
           <strong>{simultaneityFactor.toFixed(2)}</strong>
         </div>
       </div>
 
       <div className="card pb-connection-card">
-        <div className="section-header">MOC PRZYŁĄCZENIOWA VS BILANS</div>
-        <PowerMetric label="Moc przyłączeniowa" value={`${(connectionPower / 1000).toFixed(2)} kW`} />
-        <PowerMetric label="Moc obliczeniowa" value={`${(calculatedPower / 1000).toFixed(2)} kW`} />
-        <PowerMetric label="Wykorzystanie mocy" value={`${connectionUsage.toFixed(1)}%`} />
-        <PowerMetric label="Rezerwa mocy" value={`${(reservePower / 1000).toFixed(2)} kW`} />
+        <div className="section-header">{t("app.powerBalance.connectionTitle", "MOC PRZYŁĄCZENIOWA VS BILANS")}</div>
+        <PowerMetric label={t("app.powerBalance.connectionPower", "Moc przyłączeniowa")} value={`${(connectionPower / 1000).toFixed(2)} kW`} />
+        <PowerMetric label={t("app.powerBalance.calculatedPower", "Moc obliczeniowa")} value={`${(calculatedPower / 1000).toFixed(2)} kW`} />
+        <PowerMetric label={t("app.powerBalance.powerUsage", "Wykorzystanie mocy")} value={`${connectionUsage.toFixed(1)}%`} />
+        <PowerMetric label={t("app.powerBalance.powerReserve", "Rezerwa mocy")} value={`${(reservePower / 1000).toFixed(2)} kW`} />
         <div className={`pb-status ${reservePower >= 0 ? "ok" : "critical"}`}>
           <AppIcon name={reservePower >= 0 ? "check" : "validation"} size={14} />
-          <span>{reservePower >= 0 ? "Bilans mieści się w mocy przyłączeniowej" : "Przekroczono moc przyłączeniową"}</span>
+          <span>{reservePower >= 0 ? t("app.powerBalance.statusOk", "Bilans mieści się w mocy przyłączeniowej") : t("app.powerBalance.statusCritical", "Przekroczono moc przyłączeniową")}</span>
         </div>
       </div>
 
       <div className="section-header">
-          BILANS FAZ
-          <span className="pb-phase-cosphi" title="Współczynnik mocy użyty do przeliczenia prądu z mocy zainstalowanej">
+          {t("app.powerBalance.phaseBalanceTitle", "BILANS FAZ")}
+          <span className="pb-phase-cosphi" title={t("app.powerBalance.cosPhiTooltip", "Współczynnik mocy użyty do przeliczenia prądu z mocy zainstalowanej")}>
             {" "}(cosφ = {metadata.powerFactor.toFixed(2)})
           </span>
         </div>
@@ -133,7 +135,7 @@ export function PowerBalancePage({ symbols, onApplyBalance, onApplyPhaseMove, me
       </div>
 
       <div className={`card pb-imbalance ${imbalanceClass}`}>
-        <span>Asymetria faz</span>
+        <span>{t("app.powerBalance.phaseImbalance", "Asymetria faz")}</span>
         <strong>{imbalance.toFixed(1)}%</strong>
       </div>
 
@@ -185,22 +187,24 @@ function PhaseCard({
 }
 
 function PhaseBalanceTable({ rows }: { rows: PhaseBalanceRow[] }) {
+  const { t } = useTranslation();
+
   return (
     <section className="card pb-circuit-table-card">
-      <div className="section-header">OBCIĄŻENIA OBWODÓW</div>
+      <div className="section-header">{t("app.powerBalance.circuitTableTitle", "OBCIĄŻENIA OBWODÓW")}</div>
       {rows.length === 0 ? (
-        <p className="pb-circuit-empty">Brak obwodów MCB/RCBO do bilansu.</p>
+        <p className="pb-circuit-empty">{t("app.powerBalance.circuitTableEmpty", "Brak obwodów MCB/RCBO do bilansu.")}</p>
       ) : (
         <div className="pb-circuit-table-wrap">
           <table className="pb-circuit-table">
             <thead>
               <tr>
-                <th>Ozn.</th>
-                <th>Obwód</th>
-                <th>Faza</th>
-                <th>Moc</th>
-                <th>Prąd</th>
-                <th>Blok.</th>
+                <th>{t("app.powerBalance.circuitTableRef", "Ozn.")}</th>
+                <th>{t("app.powerBalance.circuitTableName", "Obwód")}</th>
+                <th>{t("app.powerBalance.circuitTablePhase", "Faza")}</th>
+                <th>{t("app.powerBalance.circuitTablePower", "Moc")}</th>
+                <th>{t("app.powerBalance.circuitTableCurrent", "Prąd")}</th>
+                <th>{t("app.powerBalance.circuitTableLocked", "Blok.")}</th>
               </tr>
             </thead>
             <tbody>
@@ -218,7 +222,7 @@ function PhaseBalanceTable({ rows }: { rows: PhaseBalanceRow[] }) {
                   </td>
                   <td>{formatPower(row.powerW)}</td>
                   <td>{row.currentA.toFixed(1)} A</td>
-                  <td>{row.isPhaseLocked ? "Tak" : "-"}</td>
+                  <td>{row.isPhaseLocked ? t("app.common.yes", "Tak") : "-"}</td>
                 </tr>
               ))}
             </tbody>
@@ -268,28 +272,30 @@ function ImbalanceInsightsCard({
 }: {
   insights: ReturnType<typeof buildPhaseImbalanceInsights>;
 }) {
+  const { t } = useTranslation();
+
   if (!insights.heaviestPhase || insights.spreadW <= 0) {
     return (
       <section className="card pb-insights-card">
-        <div className="section-header">ANALIZA ASYMETRII</div>
-        <p className="pb-circuit-empty">Brak dominującej fazy w obwodach jednofazowych.</p>
+        <div className="section-header">{t("app.powerBalance.insightsTitle", "ANALIZA ASYMETRII")}</div>
+        <p className="pb-circuit-empty">{t("app.powerBalance.insightsEmpty", "Brak dominującej fazy w obwodach jednofazowych.")}</p>
       </section>
     );
   }
 
   return (
     <section className="card pb-insights-card">
-      <div className="section-header">ANALIZA ASYMETRII</div>
+      <div className="section-header">{t("app.powerBalance.insightsTitle", "ANALIZA ASYMETRII")}</div>
       <div className="pb-insight-summary">
-        <span>Najbardziej obciążona faza</span>
+        <span>{t("app.powerBalance.heaviestPhase", "Najbardziej obciążona faza")}</span>
         <strong>{insights.heaviestPhase}</strong>
       </div>
       <div className="pb-insight-summary">
-        <span>Najmniej obciążona faza</span>
+        <span>{t("app.powerBalance.lightestPhase", "Najmniej obciążona faza")}</span>
         <strong>{insights.lightestPhase ?? "-"}</strong>
       </div>
       <div className="pb-insight-summary">
-        <span>Różnica obciążenia</span>
+        <span>{t("app.powerBalance.spreadPower", "Różnica obciążenia")}</span>
         <strong>{formatPower(insights.spreadW)}</strong>
       </div>
       {insights.contributors.length > 0 ? (
@@ -316,11 +322,13 @@ function PhaseMoveSuggestionsCard({
   suggestions: PhaseMoveSuggestion[];
   onApplyPhaseMove: PhaseMoveApplyHandler;
 }) {
+  const { t } = useTranslation();
+
   return (
     <section className="card pb-suggestions-card">
-      <div className="section-header">SUGESTIE PRZENIESIENIA</div>
+      <div className="section-header">{t("app.powerBalance.suggestionsTitle", "SUGESTIE PRZENIESIENIA")}</div>
       {suggestions.length === 0 ? (
-        <p className="pb-circuit-empty">Brak prostych przeniesień, które poprawiają asymetrię.</p>
+        <p className="pb-circuit-empty">{t("app.powerBalance.suggestionsEmpty", "Brak prostych przeniesień, które poprawiają asymetrię.")}</p>
       ) : (
         <div className="pb-suggestion-list">
           {suggestions.map((suggestion) => (
@@ -345,7 +353,7 @@ function PhaseMoveSuggestionsCard({
                 type="button"
                 onClick={() => onApplyPhaseMove(suggestion.row.id, suggestion.toPhase)}
               >
-                Zastosuj
+                {t("app.powerBalance.suggestionApply", "Zastosuj")}
               </button>
             </div>
           ))}
@@ -362,6 +370,7 @@ function AutoBalanceSection({
   symbols: SymbolItem[];
   onApplyBalance: BalanceApplyHandler;
 }) {
+  const { t } = useTranslation();
   const [mode, setMode] = useState<BalanceMode>("Current");
   const [scope, setScope] = useState<BalanceScope>("OnlyUnlocked");
   const [balanceMessage, setBalanceMessage] = useState("");
@@ -384,28 +393,28 @@ function AutoBalanceSection({
 
   return (
     <div className="pb-autobalance">
-      <h3>Automatyczne bilansowanie</h3>
+      <h3>{t("app.powerBalance.autoBalanceTitle", "Automatyczne bilansowanie")}</h3>
       <div className="pb-autobalance-controls">
         <label>
-          Tryb:
+          {t("app.powerBalance.autoBalanceMode", "Tryb:")}
           <select value={mode} onChange={(e) => setMode(e.target.value as BalanceMode)}>
-            <option value="Current">Według prądu (A)</option>
-            <option value="Power">Według mocy (W)</option>
+            <option value="Current">{t("app.powerBalance.modeCurrent", "Według prądu (A)")}</option>
+            <option value="Power">{t("app.powerBalance.modePower", "Według mocy (W)")}</option>
           </select>
         </label>
         <label>
-          Zakres:
+          {t("app.powerBalance.autoBalanceScope", "Zakres:")}
           <select value={scope} onChange={(e) => setScope(e.target.value as BalanceScope)}>
-            <option value="OnlyUnlocked">Tylko niezablokowane</option>
-            <option value="AllSinglePhase">Wszystkie 1F</option>
+            <option value="OnlyUnlocked">{t("app.powerBalance.scopeUnlocked", "Tylko niezablokowane")}</option>
+            <option value="AllSinglePhase">{t("app.powerBalance.scopeAll1F", "Wszystkie 1F")}</option>
           </select>
         </label>
         <div className="pb-autobalance-actions">
           <button type="button" onClick={handlePreview} disabled={symbols.length === 0}>
-            Podgląd planu
+            {t("app.powerBalance.btnPreview", "Podgląd planu")}
           </button>
           <button type="button" onClick={handleApply} disabled={symbols.length === 0} className="accent-btn">
-            Zastosuj bilans
+            {t("app.powerBalance.btnApply", "Zastosuj bilans")}
           </button>
         </div>
       </div>

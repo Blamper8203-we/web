@@ -2,6 +2,7 @@ import { Page, Text, View } from "@react-pdf/renderer";
 import type { CircuitListTableRow } from "../../circuitRows";
 import { pdfStyles as styles } from "./pdfStyles";
 import { EMPTY_FIELD_PLACEHOLDER } from "./pdfHelpers";
+import { t } from "i18next";
 
 interface PdfCircuitListPageProps {
   chunk: CircuitListTableRow[];
@@ -23,41 +24,41 @@ export function PdfCircuitListPage({
       <View style={[styles.flexRow, styles.justifyBetween, styles.borderB2Dark, styles.pb3]}>
         <View style={[styles.flexRow, styles.itemsCenter, { width: "72%" }]}>
           <View style={[styles.bgBrand, styles.px3, styles.py1, styles.rounded, styles.mr3]}>
-            <Text style={[styles.textWhite, styles.fontBold, styles.textXs, styles.uppercase]}>Lista obwodów</Text>
+            <Text style={[styles.textWhite, styles.fontBold, styles.textXs, styles.uppercase]}>{t("pdf.circuitList.badge", "Lista obwodów")}</Text>
           </View>
           <View>
             <Text style={[styles.textLg, styles.fontExtraBold, styles.textGray900, styles.uppercase]}>
-              Zestawienie obwodów instalacji elektrycznej
+              {t("pdf.circuitList.title", "Lista obwodów elektrycznych")}
             </Text>
             <Text style={[styles.textXs, styles.textGray500, styles.fontMedium, styles.mt1]}>
-              Arkusz {chunkIdx + 1} z {totalChunks}
+              {t("pdf.circuitList.sheet", { current: chunkIdx + 1, total: totalChunks, defaultValue: `Arkusz ${chunkIdx + 1} z ${totalChunks}` })}
             </Text>
           </View>
         </View>
         <View style={[styles.textRight, { width: "26%" }]}>
-          <Text style={[styles.textXs, styles.textGray400]}>Data: <Text style={[styles.fontMedium, styles.textGray700]}>{displayDate}</Text></Text>
-          <Text style={[styles.textXs, styles.textGray500, styles.mt1]}>Obiekt: <Text style={[styles.fontSemiBold, styles.textGray900]}>{fallbackObjectName}</Text></Text>
+          <Text style={[styles.textXs, styles.textGray400]}>{t("pdf.circuitList.date", "Data:")} <Text style={[styles.fontMedium, styles.textGray700]}>{displayDate}</Text></Text>
+          <Text style={[styles.textXs, styles.textGray500, styles.mt1]}>{t("pdf.circuitList.object", "Obiekt:")} <Text style={[styles.fontSemiBold, styles.textGray900]}>{fallbackObjectName}</Text></Text>
         </View>
       </View>
 
       <View style={styles.mt4}>
         <View style={[styles.bgGray100, styles.px3, styles.py2, styles.rounded, styles.border, { borderBottomWidth: 0, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }]}>
           <Text style={[styles.textXs, styles.fontBold, styles.textGray800]}>
-            {chunkIdx === 0 ? "1. Lista obwodów" : `1. Lista obwodów (ciąg dalszy ${chunkIdx + 1})`}
+            {t("pdf.circuitList.section1", { current: chunkIdx + 1, defaultValue: chunkIdx === 0 ? "1. Lista obwodów" : `1. Lista obwodów (ciąg dalszy ${chunkIdx + 1})` })}
           </Text>
         </View>
         <View style={[styles.border, { borderTopWidth: 0, borderBottomWidth: 0 }]}>
           <View style={[styles.flexRow, styles.bgGray50, styles.borderB]}>
-            <View style={[styles.tableCellHeader, { width: "4%", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>Lp.</Text></View>
-            <View style={[styles.tableCellHeader, { width: "8%", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>Ozn.</Text></View>
-            <View style={[styles.tableCellHeader, { width: "20%" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>Nazwa obwodu</Text></View>
-            <View style={[styles.tableCellHeader, { width: "13%" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>Lokalizacja</Text></View>
-            <View style={[styles.tableCellHeader, { width: "7%", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>Faza</Text></View>
-            <View style={[styles.tableCellHeader, { width: "12%", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>Zabezp.</Text></View>
-            <View style={[styles.tableCellHeader, { width: "14%" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>RCD</Text></View>
-            <View style={[styles.tableCellHeader, { width: "8%", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>Przewód</Text></View>
-            <View style={[styles.tableCellHeader, { width: "7%", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>Dł. [m]</Text></View>
-            <View style={[styles.tableCellHeader, { width: "7%", borderRightWidth: 0, alignItems: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>Moc</Text></View>
+            <View style={[styles.tableCellHeader, { width: "4%", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>{t("pdf.circuitList.colIndex", "Lp.")}</Text></View>
+            <View style={[styles.tableCellHeader, { width: "8%", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>{t("pdf.circuitList.colId", "Ozn.")}</Text></View>
+            <View style={[styles.tableCellHeader, { width: "20%" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>{t("pdf.circuitList.colDesc", "Nazwa obwodu")}</Text></View>
+            <View style={[styles.tableCellHeader, { width: "13%" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>{t("pdf.circuitList.colLocation", "Lokalizacja")}</Text></View>
+            <View style={[styles.tableCellHeader, { width: "7%", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>{t("pdf.circuitList.colPhase", "Faza")}</Text></View>
+            <View style={[styles.tableCellHeader, { width: "12%", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>{t("pdf.circuitList.colProt", "Zabezp.")}</Text></View>
+            <View style={[styles.tableCellHeader, { width: "14%" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>{t("pdf.circuitList.colRcd", "RCD")}</Text></View>
+            <View style={[styles.tableCellHeader, { width: "8%", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>{t("pdf.circuitList.colCable", "Przewód")}</Text></View>
+            <View style={[styles.tableCellHeader, { width: "7%", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>{t("pdf.circuitList.colLength", "Dł. [m]")}</Text></View>
+            <View style={[styles.tableCellHeader, { width: "7%", borderRightWidth: 0, alignItems: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>{t("pdf.circuitList.colPower", "Moc")}</Text></View>
           </View>
 
           {chunk.map(({ index, location, rcdLabel, rcdProtection, row }) => (
@@ -80,7 +81,7 @@ export function PdfCircuitListPage({
 
           {chunk.length === 0 && (
             <View style={[styles.tableCell, { borderRightWidth: 0, alignItems: "center" }]}>
-              <Text style={[styles.textXs, styles.textGray500]}>Brak obwodów do pokazania.</Text>
+              <Text style={[styles.textXs, styles.textGray500]}>{t("pdf.circuitList.empty", "Brak obwodów do pokazania.")}</Text>
             </View>
           )}
         </View>
@@ -89,7 +90,7 @@ export function PdfCircuitListPage({
       <View style={[styles.mtAuto, styles.textCenter, styles.borderT, styles.pt4]} fixed>
         <Text
           style={[styles.textXs, styles.textGray400, styles.uppercase]}
-          render={({ pageNumber, totalPages }) => `Strona ${pageNumber} z ${totalPages} • Dokument wygenerowany cyfrowo • Zgodny z normą PN-HD 60364`}
+          render={({ pageNumber, totalPages }) => t("pdf.footer.pageInfo", { pageNumber, totalPages, defaultValue: `Strona ${pageNumber} z ${totalPages} • Dokument wygenerowany cyfrowo • Zgodny z normą PN-HD 60364` })}
         />
       </View>
     </Page>

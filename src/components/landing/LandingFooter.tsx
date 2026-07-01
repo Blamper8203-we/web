@@ -1,8 +1,12 @@
+import { useTranslation } from "react-i18next";
+
 interface LandingFooterProps {
   onOpenFeedback: () => void;
 }
 
 export function LandingFooter({ onOpenFeedback }: LandingFooterProps) {
+  const { t } = useTranslation();
+
   return (
     <footer className="landing-footer">
       <div className="landing-footer-container">
@@ -12,23 +16,23 @@ export function LandingFooter({ onOpenFeedback }: LandingFooterProps) {
           </div>
           <div>
             <span className="landing-footer-title">DinBoard</span>
-            <span className="landing-footer-subtitle">Narzędzie dla nowoczesnych elektryków.</span>
+            <span className="landing-footer-subtitle">{t("landing.footer.subtitle")}</span>
           </div>
         </div>
 
         <div className="landing-footer-links">
           <a href="/polityka-prywatnosci" className="landing-footer-link">
-            Polityka Prywatności
+            {t("landing.footer.privacy")}
           </a>
           <a href="/regulamin" className="landing-footer-link">
-            Warunki korzystania
+            {t("landing.footer.terms")}
           </a>
-          <a onClick={onOpenFeedback} className="landing-footer-link">
-            Zgłoś błąd / Kontakt
+          <a onClick={onOpenFeedback} className="landing-footer-link" style={{ cursor: "pointer" }}>
+            {t("landing.footer.contact")}
           </a>
         </div>
 
-        <span className="landing-footer-copyright">© 2026 DinBoard.pl. Wszelkie prawa zastrzeżone.</span>
+        <span className="landing-footer-copyright">{t("landing.footer.copyright")}</span>
       </div>
     </footer>
   );

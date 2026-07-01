@@ -53,10 +53,10 @@ describe("PdfTitlePage - UI/PDF consistency for isFormalDocumentationMode", () =
 
     const text = renderTitle(metadata);
 
-    expect(text).toContain("Uprawnienia SEP (Kwalifikacyjne)");
-    expect(text).toContain("Pełna treść oświadczenia wykonawcy");
-    expect(text).toContain("Podpis Elektryka");
-    expect(text).toContain("Podpis Inwestora");
+    expect(text).toContain("Uprawnienie SEP — Eksploatacja (E)");
+    expect(text).toContain("Oświadczam, że instalacja elektryczna");
+    expect(text).toContain("Osoba sporządzająca / wykonawca");
+    expect(text).toContain("Inwestor");
     expect(text).toContain("Pieczęć wykonawcy");
   });
 
@@ -87,8 +87,8 @@ describe("PdfTitlePage - UI/PDF consistency for isFormalDocumentationMode", () =
 
     const text = renderTitle(metadata);
 
-    expect(text).toContain("Uprawnienia SEP (Kwalifikacyjne)");
-    expect(text).toContain("Pełna treść oświadczenia wykonawcy");
+    expect(text).toContain("Uprawnienie SEP — Eksploatacja (E)");
+    expect(text).toContain("Oświadczam, że instalacja elektryczna");
   });
 
   it("still renders the contractor / installation panel and stamp placeholder when formal mode is false", () => {
@@ -102,7 +102,7 @@ describe("PdfTitlePage - UI/PDF consistency for isFormalDocumentationMode", () =
 
     const text = renderTitle(metadata);
 
-    expect(text).toContain("Wykonawca / Instalator");
+    expect(text).toContain("Wykonawca");
     expect(text).toContain("FHU Elektro Jan Kowalski");
   });
 });

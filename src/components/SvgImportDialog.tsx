@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type {
   ImportedModuleDefinition,
   PendingSvgImportItem,
@@ -35,6 +36,7 @@ export function SvgImportDialog({
   onClose,
   onImport,
 }: SvgImportDialogProps) {
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [items, setItems] = useState<PendingSvgImportItem[]>([]);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
@@ -61,7 +63,7 @@ export function SvgImportDialog({
 
     const imported = await prepareSvgImportFiles(Array.from(fileList), existingModules);
     if (imported.length === 0) {
-      setStatus("Nie znaleziono poprawnych plików SVG.");
+      setStatus(t("app.svgImport.statusNoValidSvg", "Nie znaleziono poprawnych plików SVG."));
       return;
     }
 
@@ -74,10 +76,9 @@ export function SvgImportDialog({
     });
     const skippedCount = fileList.length - imported.length;
     setStatus(
-      `Dodano ${imported.length} plik${imported.length === 1 ? "" : "i"} do importu.`
-        + (skippedCount > 0 ? ` Pominięto: ${skippedCount}.` : ""),
+      t("app.svgImport.statusAdded", "Dodano {{added}} plik(i) do importu. Pominięto: {{skipped}}.", { added: imported.length, skipped: skippedCount })
     );
-  }, [existingModules, selectedItemId]);
+  }, [existingModules, selectedItemId, t]);
 
   const updateItem = useCallback((itemId: string, updater: (item: PendingSvgImportItem) => PendingSvgImportItem) => {
     setItems((prev) =>
@@ -92,24 +93,24 @@ export function SvgImportDialog({
     const picker = (window as WindowWithDirectoryPicker).showDirectoryPicker;
 
     if (!picker) {
-      setStatus("Twoja przeglądarka nie obsługuje wyboru folderu zapisu.");
+      setStatus(t("app.svgImport.statusNoPicker", "Twoja przeglądarka nie obsługuje wyboru folderu zapisu."));
       return;
     }
 
     try {
       const handle = await picker();
       setTargetDirectoryHandle(handle);
-      setTargetFolderName(handle.name ?? "Wybrany folder");
+      setTargetFolderName(handle.name ?? t("app.svgImport.defaultFolderName", "Wybrany folder"));
       setIsSavingToFolder(true);
-      setStatus("Wybrano folder zapisu dla importowanych SVG.");
+      setStatus(t("app.svgImport.statusFolderSelected", "Wybrano folder zapisu dla importowanych SVG."));
     } catch {
-      setStatus("Anulowano wybór folderu.");
+      setStatus(t("app.svgImport.statusFolderCancelled", "Anulowano wybór folderu."));
     }
-  }, []);
+  }, [t]);
 
   const handleImport = useCallback(async () => {
     if (selectedCount === 0) {
-      setStatus("Zaznacz co najmniej jeden moduł do importu.");
+      setStatus(t("app.svgImport.statusSelectOne", "Zaznacz co najmniej jeden moduł do importu."));
       return;
     }
 
@@ -128,15 +129,15 @@ export function SvgImportDialog({
 
       onImport(importedModules, preferredCategory);
     } catch (error) {
-      setStatus(`Błąd importu: ${error instanceof Error ? error.message : "Nieznany"}`);
+      setStatus(t("app.svgImport.statusImportError", "Błąd importu: {{error}}", { error: error instanceof Error ? error.message : "Nieznany" }));
       setIsImporting(false);
     }
-  }, [categoryOptions, isSavingToFolder, items, onImport, selectedCount, selectedItem?.category, targetDirectoryHandle]);
+  }, [categoryOptions, isSavingToFolder, items, onImport, selectedCount, selectedItem?.category, targetDirectoryHandle, t]);
 
   return (
     <div className="din-rail-dialog-backdrop" onMouseDown={onClose}>
       <div
-        aria-label="Import SVG"
+        aria-label={t("app.svgImport.ariaLabel", "Import SVG")}
         aria-modal="true"
         className="svg-import-dialog"
         onMouseDown={(event) => event.stopPropagation()}
@@ -158,33 +159,33 @@ export function SvgImportDialog({
           <div className="svg-import-dialog__heading">
             <div className="din-rail-dialog-title">
               <AppIcon name="import" size={18} />
-              <strong>Import modułów SVG</strong>
+              <strong>{t("app.svgImport.title", "Import modułów SVG")}</strong>
             </div>
             <span className="svg-import-dialog__subtitle">
-              Podgląd, kategoria, wymiary i zapis w jednym miejscu.
+              {t("app.svgImport.subtitle", "Podgląd, kategoria, wymiary i zapis w jednym miejscu.")}
             </span>
           </div>
-          <button aria-label="Zamknij" className="toolbar-icon-btn" type="button" onClick={onClose}>
+          <button aria-label={t("app.svgImport.closeAria", "Zamknij")} className="toolbar-icon-btn" type="button" onClick={onClose}>
             <AppIcon name="delete" size={14} />
           </button>
         </div>
 
         <div className="svg-import-dialog__topbar">
           <div className="svg-import-dialog__source">
-            <span className="svg-import-dialog__label">Pliki źródłowe</span>
+            <span className="svg-import-dialog__label">{t("app.svgImport.sourceFiles", "Pliki źródłowe")}</span>
             <div className="svg-import-dialog__controls">
               <button type="button" onClick={() => fileInputRef.current?.click()}>
                 <AppIcon name="folderOpen" size={14} />
-                <span>Wybierz pliki</span>
+                <span>{t("app.svgImport.selectFiles", "Wybierz pliki")}</span>
               </button>
               <span className="svg-import-dialog__hint">
-                {items.length > 0 ? `W kolejce: ${items.length}` : "Dodaj SVG przez przycisk"}
+                {items.length > 0 ? t("app.svgImport.queued", "W kolejce: {{count}}", { count: items.length }) : t("app.svgImport.addViaBtn", "Dodaj SVG przez przycisk")}
               </span>
             </div>
           </div>
 
           <div className="svg-import-dialog__source">
-            <span className="svg-import-dialog__label">Miejsce zapisu</span>
+            <span className="svg-import-dialog__label">{t("app.svgImport.saveLocation", "Miejsce zapisu")}</span>
             <div className="svg-import-dialog__controls">
               <label className="svg-import-dialog__checkbox">
                 <input
@@ -200,11 +201,11 @@ export function SvgImportDialog({
                     }
                   }}
                 />
-                <span>Zapisz też do folderu</span>
+                <span>{t("app.svgImport.saveToFolder", "Zapisz też do folderu")}</span>
               </label>
               <button type="button" onClick={() => void handlePickFolder()}>
                 <AppIcon name="folderOpen" size={14} />
-                <span>{targetFolderName || "Wybierz folder"}</span>
+                <span>{targetFolderName || t("app.svgImport.selectFolder", "Wybierz folder")}</span>
               </button>
             </div>
           </div>
@@ -214,17 +215,17 @@ export function SvgImportDialog({
           <div className="svg-import-dialog__list">
             <div className="svg-import-dialog__list-actions">
               <button type="button" onClick={() => replaceItems(items.map((item) => ({ ...item, selected: true })))}>
-                Zaznacz wszystko
+                {t("app.svgImport.selectAll", "Zaznacz wszystko")}
               </button>
               <button type="button" onClick={() => replaceItems(items.map((item) => ({ ...item, selected: false })))}>
-                Odznacz wszystko
+                {t("app.svgImport.deselectAll", "Odznacz wszystko")}
               </button>
             </div>
 
             {items.length === 0 ? (
               <div className="svg-import-dialog__empty">
-                <strong>Brak plików do importu</strong>
-                <span>Tutaj pojawi się lista SVG wraz z podglądem i ustawieniami rozmiaru.</span>
+                <strong>{t("app.svgImport.emptyList", "Brak plików do importu")}</strong>
+                <span>{t("app.svgImport.emptyListDesc", "Tutaj pojawi się lista SVG wraz z podglądem i ustawieniami rozmiaru.")}</span>
               </div>
             ) : (
               items.map((item) => (
@@ -265,7 +266,7 @@ export function SvgImportDialog({
                   <span className="svg-import-dialog__row-copy">
                     <strong>{item.label}</strong>
                     <span>{item.category} - {item.widthMm.toFixed(1)} x {item.heightMm.toFixed(1)} mm</span>
-                    {item.isDuplicate && <em>Duplikat w tej kategorii</em>}
+                    {item.isDuplicate && <em>{t("app.svgImport.duplicateWarning", "Duplikat w tej kategorii")}</em>}
                   </span>
                 </button>
               ))
@@ -298,7 +299,7 @@ export function SvgImportDialog({
 
                 <div className="svg-import-dialog__form">
                   <label>
-                    <span>Kod / nazwa</span>
+                    <span>{t("app.svgImport.labelCode", "Kod / nazwa")}</span>
                     <input
                       type="text"
                       value={selectedItem.code}
@@ -311,7 +312,7 @@ export function SvgImportDialog({
                   </label>
 
                   <label>
-                    <span>Kategoria</span>
+                    <span>{t("app.svgImport.labelCategory", "Kategoria")}</span>
                     <select
                       value={selectedItem.category}
                       onChange={(event) => updateItem(selectedItem.id, (item) => {
@@ -337,7 +338,7 @@ export function SvgImportDialog({
 
                   <div className="svg-import-dialog__dimensions">
                     <label>
-                      <span>Szerokość mm</span>
+                      <span>{t("app.svgImport.labelWidth", "Szerokość mm")}</span>
                       <input
                         max={300}
                         min={5}
@@ -356,7 +357,7 @@ export function SvgImportDialog({
                     </label>
 
                     <label>
-                      <span>Moduły DIN</span>
+                      <span>{t("app.svgImport.labelModules", "Moduły DIN")}</span>
                       <input
                         max={12}
                         min={1}
@@ -371,7 +372,7 @@ export function SvgImportDialog({
                     </label>
 
                     <label>
-                      <span>Wysokość mm</span>
+                      <span>{t("app.svgImport.labelHeight", "Wysokość mm")}</span>
                       <input
                         max={140}
                         min={10}
@@ -387,26 +388,26 @@ export function SvgImportDialog({
                   </div>
 
                   <div className="svg-import-dialog__meta">
-                    <div><strong>Plik:</strong> {selectedItem.fileName}</div>
-                    <div><strong>Wykryto:</strong> {selectedItem.detectedCategory}</div>
+                    <div><strong>{t("app.svgImport.metaFile", "Plik:")}</strong> {selectedItem.fileName}</div>
+                    <div><strong>{t("app.svgImport.metaDetected", "Wykryto:")}</strong> {selectedItem.detectedCategory}</div>
                     <div>
-                      <strong>Rozmiar SVG:</strong>{" "}
+                      <strong>{t("app.svgImport.metaSize", "Rozmiar SVG:")}</strong>{" "}
                       {selectedItem.sizeDetection === "svg-units"
-                        ? "automatycznie z jednostek pliku"
+                        ? t("app.svgImport.sizeUnits", "automatycznie z jednostek pliku")
                         : selectedItem.sizeDetection === "svg-300dpi"
-                          ? "automatycznie z viewBox jako eksport 300 DPI"
+                          ? t("app.svgImport.size300dpi", "automatycznie z viewBox jako eksport 300 DPI")
                         : selectedItem.sizeDetection === "svg-ratio"
-                          ? "automatycznie z jednostki i proporcji SVG"
-                          : "fallback z kategorii / liczby modułów"}
+                          ? t("app.svgImport.sizeRatio", "automatycznie z jednostki i proporcji SVG")
+                          : t("app.svgImport.sizeFallback", "fallback z kategorii / liczby modułów")}
                     </div>
-                    <div><strong>Stan:</strong> {selectedItem.isDuplicate ? "Duplikat" : "Nowy"}</div>
+                    <div><strong>{t("app.svgImport.metaState", "Stan:")}</strong> {selectedItem.isDuplicate ? t("app.svgImport.stateDuplicate", "Duplikat") : t("app.svgImport.stateNew", "Nowy")}</div>
                   </div>
                 </div>
               </>
             ) : (
               <div className="svg-import-dialog__empty">
-                <strong>Brak zaznaczenia</strong>
-                <span>Wybierz plik z listy po lewej, żeby ustawić kategorię i wymiary.</span>
+                <strong>{t("app.svgImport.emptySelection", "Brak zaznaczenia")}</strong>
+                <span>{t("app.svgImport.emptySelectionDesc", "Wybierz plik z listy po lewej, żeby ustawić kategorię i wymiary.")}</span>
               </div>
             )}
           </div>
@@ -415,14 +416,14 @@ export function SvgImportDialog({
         <div className="svg-import-dialog__footer">
           <span className="svg-import-dialog__status">{status}</span>
           <div className="din-rail-dialog-actions">
-            <button type="button" onClick={onClose}>Anuluj</button>
+            <button type="button" onClick={onClose}>{t("app.svgImport.btnCancel", "Anuluj")}</button>
             <button
               className="accent-btn"
               disabled={selectedCount === 0 || isImporting}
               type="button"
               onClick={() => void handleImport()}
             >
-              Importuj ({selectedCount})
+              {t("app.svgImport.btnImport", "Importuj ({{count}})", { count: selectedCount })}
             </button>
           </div>
         </div>

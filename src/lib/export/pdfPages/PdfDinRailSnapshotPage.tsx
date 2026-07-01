@@ -1,5 +1,6 @@
 import { Page, Text, View } from "@react-pdf/renderer";
 import { Image as PdfImage } from "@react-pdf/renderer";
+import { t } from "i18next";
 import { pdfStyles as styles } from "./pdfStyles";
 
 interface PdfDinRailSnapshotPageProps {
@@ -27,7 +28,7 @@ export function PdfDinRailSnapshotPage({ imageDataUrl }: PdfDinRailSnapshotPageP
       <View style={[styles.textCenter, styles.mt4]} fixed>
         <Text
           style={[styles.textXs, styles.textGray400, styles.uppercase]}
-          render={({ pageNumber, totalPages }) => `Strona ${pageNumber} z ${totalPages} \u2022 Dokument wygenerowany cyfrowo \u2022 Zgodny z norm\u0105 PN-HD 60364`}
+          render={({ pageNumber, totalPages }) => t("pdf.footer.pageInfo", { pageNumber, totalPages })}
         />
       </View>
     </Page>

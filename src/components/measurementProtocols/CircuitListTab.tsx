@@ -1,6 +1,6 @@
-
 import { EMPTY_FIELD_PLACEHOLDER } from "../../lib/export/pdfPages/pdfHelpers";
 import { PageFooter } from "./ProtocolShared";
+import { useTranslation } from "react-i18next";
 
 interface CircuitListTabProps {
   circuitListPages: any[][];
@@ -19,6 +19,7 @@ export function CircuitListTab({
   circuitListStartPage,
   totalUiPages,
 }: CircuitListTabProps) {
+  const { t } = useTranslation();
   return (
     <>
       {circuitListPages.map((rowsPage, pageIndex) => (
@@ -27,42 +28,42 @@ export function CircuitListTab({
             <div className="flex justify-between items-start border-b-2 border-gray-800 pb-3 gap-4">
               <div className="flex items-center gap-3 flex-grow" style={{ minWidth: 0 }}>
                 <div className="px-3 py-1 bg-brand text-white font-bold rounded text-xs uppercase tracking-wider">
-                  Lista obwodów
+                  {t("app.pdf.circuits.title", "Lista obwodów")}
                 </div>
                 <div style={{ minWidth: 0 }}>
                   <h2 className="text-sm font-extrabold text-gray-900 tracking-wider uppercase">
-                    Zestawienie obwodów instalacji elektrycznej
+                    {t("app.pdf.circuits.mainHeader", "Zestawienie obwodów instalacji elektrycznej")}
                   </h2>
                   <p className="text-[9px] text-gray-500 font-medium">
-                    Arkusz {pageIndex + 1} z {circuitListPages.length} • dane z aktualnej rozdzielnicy
+                    {t("app.pdf.circuits.subtitle", "Arkusz {{page}} z {{total}} • dane z aktualnej rozdzielnicy", { page: pageIndex + 1, total: circuitListPages.length })}
                   </p>
                 </div>
               </div>
               <div className="text-right shrink-0">
-                <div className="text-[9px] text-gray-400">Data: <span className="font-medium text-gray-700">{displayDate}</span></div>
-                <div className="text-[9px] text-gray-500 mt-0.5">Obiekt: <span className="font-semibold text-gray-900">{objectType}</span></div>
+                <div className="text-[9px] text-gray-400">{t("app.pdf.shared.date", "Data:")} <span className="font-medium text-gray-700">{displayDate}</span></div>
+                <div className="text-[9px] text-gray-500 mt-0.5">{t("app.pdf.shared.object", "Obiekt:")} <span className="font-semibold text-gray-900">{objectType}</span></div>
               </div>
             </div>
 
             <div className="mt-4">
               <div className="bg-gray-100 text-gray-800 text-[10px] font-bold px-3 py-1.5 rounded-t-lg border border-gray-300 flex justify-between items-center">
-                <span>{pageIndex === 0 ? "1. Lista obwodów" : `1. Lista obwodów (ciąg dalszy ${pageIndex + 1})`}</span>
-                <span className="text-gray-500 font-medium">{circuitListRowsCount} pozycji</span>
+                <span>{pageIndex === 0 ? t("app.pdf.circuits.tableHeader", "1. Lista obwodów") : t("app.pdf.circuits.tableHeaderContinued", "1. Lista obwodów (ciąg dalszy {{page}})", { page: pageIndex + 1 })}</span>
+                <span className="text-gray-500 font-medium">{circuitListRowsCount} {t("app.pdf.circuits.itemsCount", "pozycji")}</span>
               </div>
               <div className="overflow-x-auto border-x border-b border-gray-300 rounded-b-lg">
                 <table className="w-full text-left border-collapse" style={{ fontSize: "9px" }}>
                   <thead>
                     <tr className="bg-gray-100 text-gray-800 font-bold border-b border-gray-300">
-                      <th className="p-2 border-r border-gray-300 text-center w-8">Lp.</th>
-                      <th className="p-2 border-r border-gray-300 text-center w-16">Ozn.</th>
-                      <th className="p-2 border-r border-gray-300 w-36">Nazwa obwodu</th>
-                      <th className="p-2 border-r border-gray-300 w-28">Lokalizacja</th>
-                      <th className="p-2 border-r border-gray-300 text-center w-12">Faza</th>
-                      <th className="p-2 border-r border-gray-300 text-center w-20">Zabezp.</th>
-                      <th className="p-2 border-r border-gray-300 text-center w-24">RCD</th>
-                      <th className="p-2 border-r border-gray-300 text-center w-16">Przewód</th>
-                      <th className="p-2 border-r border-gray-300 text-center w-16">Dł. [m]</th>
-                      <th className="p-2 text-center w-16">Moc [W]</th>
+                      <th className="p-2 border-r border-gray-300 text-center w-8">{t("app.pdf.circuits.columns.no", "Lp.")}</th>
+                      <th className="p-2 border-r border-gray-300 text-center w-16">{t("app.pdf.circuits.columns.designation", "Ozn.")}</th>
+                      <th className="p-2 border-r border-gray-300 w-36">{t("app.pdf.circuits.columns.circuitName", "Nazwa obwodu")}</th>
+                      <th className="p-2 border-r border-gray-300 w-28">{t("app.pdf.circuits.columns.location", "Lokalizacja")}</th>
+                      <th className="p-2 border-r border-gray-300 text-center w-12">{t("app.pdf.circuits.columns.phase", "Faza")}</th>
+                      <th className="p-2 border-r border-gray-300 text-center w-20">{t("app.pdf.circuits.columns.protection", "Zabezp.")}</th>
+                      <th className="p-2 border-r border-gray-300 text-center w-24">{t("app.pdf.circuits.columns.rcd", "RCD")}</th>
+                      <th className="p-2 border-r border-gray-300 text-center w-16">{t("app.pdf.circuits.columns.cable", "Przewód")}</th>
+                      <th className="p-2 border-r border-gray-300 text-center w-16">{t("app.pdf.circuits.columns.length", "Dł. [m]")}</th>
+                      <th className="p-2 text-center w-16">{t("app.pdf.circuits.columns.power", "Moc [W]")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -85,7 +86,7 @@ export function CircuitListTab({
                     ))}
                     {circuitListRowsCount === 0 && (
                       <tr>
-                        <td className="p-3 text-center text-gray-500" colSpan={10}>Brak obwodów do pokazania.</td>
+                        <td className="p-3 text-center text-gray-500" colSpan={10}>{t("app.pdf.circuits.empty", "Brak obwodów do pokazania.")}</td>
                       </tr>
                     )}
                   </tbody>

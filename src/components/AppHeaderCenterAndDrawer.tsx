@@ -1,4 +1,5 @@
 import { AppIcon } from "./AppIcon";
+import { useTranslation } from "react-i18next";
 
 interface AppHeaderCenterToolbarProps {
   canUndo: boolean;
@@ -34,13 +35,14 @@ export function AppHeaderCenterToolbar({
   onOpenDinRailGenerator,
   onOpenSvgImport,
 }: AppHeaderCenterToolbarProps) {
+  const { t } = useTranslation();
   return (
     <div className="toolbar-center">
       <button
         type="button"
         className="toolbar-icon-btn"
-        aria-label="Cofnij"
-        title={undoLabel ? `Cofnij: ${undoLabel}` : "Cofnij"}
+        aria-label={t("app.appHeader.undo", "Cofnij")}
+        title={undoLabel ? `${t("app.appHeader.undoPrefix", "Cofnij:")} ${undoLabel}` : t("app.appHeader.undo", "Cofnij")}
         onClick={onUndo}
         disabled={!canUndo}
       >
@@ -49,8 +51,8 @@ export function AppHeaderCenterToolbar({
       <button
         type="button"
         className="toolbar-icon-btn"
-        aria-label="Ponów"
-        title={redoLabel ? `Ponów: ${redoLabel}` : "Ponów"}
+        aria-label={t("app.appHeader.redo", "Ponów")}
+        title={redoLabel ? `${t("app.appHeader.redoPrefix", "Ponów:")} ${redoLabel}` : t("app.appHeader.redo", "Ponów")}
         onClick={onRedo}
         disabled={!canRedo}
       >
@@ -60,8 +62,8 @@ export function AppHeaderCenterToolbar({
       <button
         type="button"
         className="toolbar-icon-btn"
-        aria-label="Usuń zaznaczone"
-        title="Usuń zaznaczone"
+        aria-label={t("app.appHeader.deleteSelected", "Usuń zaznaczone")}
+        title={t("app.appHeader.deleteSelected", "Usuń zaznaczone")}
         disabled={!hasSelectedSymbol}
         onClick={onDeleteSelected}
       >
@@ -70,8 +72,8 @@ export function AppHeaderCenterToolbar({
       <button
         type="button"
         className="toolbar-icon-btn"
-        aria-label="Szyna DIN"
-        title="Szyna DIN"
+        aria-label={t("app.appHeader.dinRail", "Szyna DIN")}
+        title={t("app.appHeader.dinRail", "Szyna DIN")}
         onClick={onOpenDinRailGenerator}
       >
         <AppIcon className="accent-blue" name="module" size={14} />
@@ -79,8 +81,8 @@ export function AppHeaderCenterToolbar({
       <button
         type="button"
         className="toolbar-icon-btn"
-        aria-label="Import modułów"
-        title="Import modułów"
+        aria-label={t("app.appHeader.importModules", "Import modułów")}
+        title={t("app.appHeader.importModules", "Import modułów")}
         onClick={onOpenSvgImport}
       >
         <AppIcon name="import" size={14} />
@@ -89,8 +91,8 @@ export function AppHeaderCenterToolbar({
       <button
         type="button"
         className="toolbar-icon-btn"
-        aria-label="Przybliż"
-        title="Przybliż"
+        aria-label={t("app.appHeader.zoomIn", "Przybliż")}
+        title={t("app.appHeader.zoomIn", "Przybliż")}
       >
         <AppIcon name="zoomIn" size={14} />
       </button>
@@ -98,12 +100,12 @@ export function AppHeaderCenterToolbar({
       <button
         type="button"
         className="toolbar-icon-btn"
-        aria-label="Oddal"
-        title="Oddal"
+        aria-label={t("app.appHeader.zoomOut", "Oddal")}
+        title={t("app.appHeader.zoomOut", "Oddal")}
       >
         <AppIcon name="zoomOut" size={14} />
       </button>
-      <button type="button" className="toolbar-icon-btn" aria-label="Dopasuj widok" title="Dopasuj widok">
+      <button type="button" className="toolbar-icon-btn" aria-label={t("app.appHeader.zoomFit", "Dopasuj widok")} title={t("app.appHeader.zoomFit", "Dopasuj widok")}>
         <AppIcon className="accent-blue" name="zoomFit" size={14} />
       </button>
     </div>
@@ -152,6 +154,7 @@ export function AppHeaderMobileDrawer({
   onOpenHelp,
   onOpenFeedback,
 }: AppHeaderMobileDrawerProps) {
+  const { t } = useTranslation();
   return (
     <div
       className="mobile-side-drawer-overlay"
@@ -185,22 +188,22 @@ export function AppHeaderMobileDrawer({
         </div>
 
         <div className="mobile-side-drawer-content">
-          <span className="drawer-section">PROJEKT</span>
+          <span className="drawer-section">{t("app.mobileDrawer.project", "PROJEKT")}</span>
           <button className="drawer-item" onClick={() => { onClose(); onNewProject(); }}>
             <AppIcon className="drawer-icon" name="file" />
-            <span>Nowe zlecenie</span>
+            <span>{t("app.mobileDrawer.newProject", "Nowe zlecenie")}</span>
           </button>
           <button className="drawer-item" onClick={() => { onClose(); onOpenProject(); }}>
             <AppIcon className="drawer-icon" name="folderOpen" />
-            <span>Otwórz projekt</span>
+            <span>{t("app.mobileDrawer.openProject", "Otwórz projekt")}</span>
           </button>
           <button className="drawer-item" onClick={() => { onClose(); onSaveProject(false); }}>
             <AppIcon className="drawer-icon" name="save" />
-            <span>Zapisz zmiany</span>
+            <span>{t("app.mobileDrawer.saveChanges", "Zapisz zmiany")}</span>
           </button>
 
           <span className="drawer-divider" />
-          <span className="drawer-section">EDYCJA</span>
+          <span className="drawer-section">{t("app.mobileDrawer.edit", "EDYCJA")}</span>
           <button
             className="drawer-item"
             disabled={!canUndo}
@@ -208,7 +211,7 @@ export function AppHeaderMobileDrawer({
             onClick={() => { onClose(); onUndo(); }}
           >
             <AppIcon className="drawer-icon" name="undo" />
-            <span>{undoLabel ? `Cofnij: ${undoLabel}` : "Cofnij"}</span>
+            <span>{undoLabel ? `${t("app.appHeader.undoPrefix", "Cofnij:")} ${undoLabel}` : t("app.appHeader.undo", "Cofnij")}</span>
           </button>
           <button
             className="drawer-item"
@@ -217,33 +220,33 @@ export function AppHeaderMobileDrawer({
             onClick={() => { onClose(); onRedo(); }}
           >
             <AppIcon className="drawer-icon" name="redo" />
-            <span>{redoLabel ? `Ponów: ${redoLabel}` : "Ponów"}</span>
+            <span>{redoLabel ? `${t("app.appHeader.redoPrefix", "Ponów:")} ${redoLabel}` : t("app.appHeader.redo", "Ponów")}</span>
           </button>
 
           <span className="drawer-divider" />
-          <span className="drawer-section">EKSPORT I NARZĘDZIA</span>
+          <span className="drawer-section">{t("app.mobileDrawer.exportTools", "EKSPORT I NARZĘDZIA")}</span>
           <button className="drawer-item" onClick={() => { onClose(); onExportPdf(); }}>
             <AppIcon className="drawer-icon" name="pdf" />
-            <span>Eksportuj PDF</span>
+            <span>{t("app.mobileDrawer.exportPdf", "Eksportuj PDF")}</span>
           </button>
           <button className="drawer-item" onClick={() => { onClose(); onOpenDinRailGenerator(); }}>
             <AppIcon className="drawer-icon accent-blue" name="module" />
-            <span>Generator Szyny DIN</span>
+            <span>{t("app.mobileDrawer.dinRailGenerator", "Generator Szyny DIN")}</span>
           </button>
           <button className="drawer-item" onClick={() => { onClose(); onOpenSvgImport(); }}>
             <AppIcon className="drawer-icon" name="import" />
-            <span>Import modułów SVG</span>
+            <span>{t("app.mobileDrawer.importSvg", "Import modułów SVG")}</span>
           </button>
 
           <span className="drawer-divider" />
-          <span className="drawer-section">INNE</span>
+          <span className="drawer-section">{t("app.mobileDrawer.other", "INNE")}</span>
           <button className="drawer-item" onClick={() => { onClose(); onOpenHelp(); }}>
             <AppIcon className="drawer-icon" name="help" />
-            <span>Pomoc i instrukcja</span>
+            <span>{t("app.mobileDrawer.help", "Pomoc i instrukcja")}</span>
           </button>
           <button className="drawer-item" onClick={() => { onClose(); onOpenFeedback(); }}>
             <AppIcon className="drawer-icon" name="feedback" />
-            <span>Zgłoś pomysł / Błąd</span>
+            <span>{t("app.mobileDrawer.feedback", "Zgłoś pomysł / Błąd")}</span>
           </button>
           <a
             href="https://suppi.pl/dinboard"
@@ -253,7 +256,7 @@ export function AppHeaderMobileDrawer({
             style={{ color: "#FFB020" }}
           >
             <AppIcon className="drawer-icon" name="coffee" />
-            <span>Postaw kawę</span>
+            <span>{t("app.mobileDrawer.buyCoffee", "Postaw kawę")}</span>
           </a>
         </div>
       </div>

@@ -1,5 +1,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   applyCircuitEditValues,
   getCircuitEditFields,
@@ -25,12 +26,13 @@ type FieldValue = string | number | boolean;
 import { CircuitCalculators } from "./CircuitCalculators";
 
 export function CircuitEditPanel({ symbol, symbols, highlightedFieldKey, hideRemoveCover, onSave, onClearSelection }: CircuitEditPanelProps) {
-  const allFields = useMemo(() => (symbol ? getCircuitEditFields(symbol, symbols) : []), [symbol, symbols]);
+  const { t } = useTranslation();
+  const allFields = useMemo(() => (symbol ? getCircuitEditFields(symbol, t, symbols) : []), [symbol, symbols, t]);
   const fields = useMemo(
     () => (hideRemoveCover ? allFields.filter((f) => f.key !== "RemoveCover") : allFields),
     [allFields, hideRemoveCover],
   );
-  const header = useMemo(() => (symbol ? getCircuitEditHeader(symbol) : null), [symbol]);
+  const header = useMemo(() => (symbol ? getCircuitEditHeader(symbol, t) : null), [symbol, t]);
   const [values, setValues] = useState<Record<string, FieldValue>>({});
   const fieldsRef = useRef<HTMLDivElement | null>(null);
 
@@ -48,9 +50,9 @@ export function CircuitEditPanel({ symbol, symbols, highlightedFieldKey, hideRem
   if (!symbol || !header) {
     return (
       <div className="circuit-edit-empty card">
-        <span className="workspace-tag">Edycja</span>
-        <strong>Brak zaznaczonego modułu</strong>
-        <p>Wybierz element na schemacie albo dodaj moduł z palety, aby edytować parametry.</p>
+        <span className="workspace-tag">{t("app.circuitEdit.emptyBadge")}</span>
+        <strong>{t("app.circuitEdit.emptyTitle")}</strong>
+        <p>{t("app.circuitEdit.emptyDesc")}</p>
       </div>
     );
   }
@@ -104,7 +106,7 @@ export function CircuitEditPanel({ symbol, symbols, highlightedFieldKey, hideRem
           <strong>{header.title}</strong>
           <span>{header.subtitle}</span>
         </div>
-        <button type="button" className="circuit-edit-close" aria-label="Zamknij" title="Zamknij" onClick={onClearSelection}>
+        <button type="button" className="circuit-edit-close" aria-label={t("app.circuitEdit.close")} title={t("app.circuitEdit.close")} onClick={onClearSelection}>
           <AppIcon name="exit" size={14} />
         </button>
       </div>

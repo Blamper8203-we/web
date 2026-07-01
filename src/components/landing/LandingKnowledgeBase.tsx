@@ -1,15 +1,18 @@
 import { useState } from "react";
-import { knowledgeBase } from "./landingData";
+import { useTranslation } from "react-i18next";
+import { getKnowledgeBase } from "./landingData";
 
 export function LandingKnowledgeBase() {
   const [activeArticle, setActiveArticle] = useState<number>(1);
+  const { t } = useTranslation();
+  const knowledgeBase = getKnowledgeBase(t);
 
   return (
     <section id="artykuly" className="landing-kb-section">
       <div className="landing-container">
         <div className="landing-kb-grid">
           <div className="landing-kb-left">
-            <span className="landing-kb-badge">KOMPENDIUM WIEDZY</span>
+            <span className="landing-kb-badge">{t("landing.kb.badge")}</span>
             <h2 className="landing-kb-title">
               {knowledgeBase[activeArticle as keyof typeof knowledgeBase].title}
             </h2>
@@ -20,7 +23,7 @@ export function LandingKnowledgeBase() {
           </div>
 
           <div className="landing-kb-right">
-            <span className="landing-kb-right-header">Baza wiedzy:</span>
+            <span className="landing-kb-right-header">{t("landing.kb.header")}</span>
 
             <div className="landing-kb-list">
               {[1, 2].map((id) => (

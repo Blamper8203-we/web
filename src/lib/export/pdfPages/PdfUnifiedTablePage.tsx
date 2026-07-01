@@ -3,6 +3,7 @@ import type { ProjectMetadata } from "../../../types/projectMetadata";
 import type { MeasurementUnifiedProtocolRow } from "../../../types/projectMetadata";
 import { pdfStyles as styles } from "./pdfStyles";
 import { formatProtocolNumberLabel, formatProtocolTitle, getSuffix, protocolValue } from "./pdfHelpers";
+import { t } from "i18next";
 
 interface PdfUnifiedTablePageProps {
   metadata: ProjectMetadata;
@@ -33,53 +34,53 @@ export function PdfUnifiedTablePage({
       <View style={[styles.flexRow, styles.justifyBetween, styles.borderB2Dark, styles.pb3]}>
         <View style={[styles.flexRow, styles.itemsCenter, { width: "72%" }]}>
           <View style={[styles.bgBrand, styles.px3, styles.py1, styles.rounded, styles.mr3]}>
-            <Text style={[styles.textWhite, styles.fontBold, styles.textXs, styles.uppercase]}>Tabela zbiorcza</Text>
+            <Text style={[styles.textWhite, styles.fontBold, styles.textXs, styles.uppercase]}>{t("pdf.unifiedTable.badge", "Tabela zbiorcza")}</Text>
           </View>
           <View>
             <Text style={[styles.textLg, styles.fontExtraBold, styles.textGray900, styles.uppercase]}>
               Protokół Pomiarów Nr <Text style={[styles.bgGray100, styles.px1, styles.rounded, styles.textBrand]}>{chunkProtocolNumberLabel}</Text>
             </Text>
-            <Text style={[styles.textXs, styles.textGray500, styles.fontMedium, styles.mt1]}>Zbiorcze wyniki pomiarów pętli zwarcia i rezystancji izolacji</Text>
+            <Text style={[styles.textXs, styles.textGray500, styles.fontMedium, styles.mt1]}>{t("pdf.unifiedTable.title", "Zbiorcze wyniki pomiarów pętli zwarcia i rezystancji izolacji")}</Text>
           </View>
         </View>
         <View style={[styles.textRight, { width: "26%" }]}>
-          <Text style={[styles.textXs, styles.textGray400]}>Data pomiarów: <Text style={[styles.fontMedium, styles.textGray700]}>{displayDate}</Text></Text>
-          <Text style={[styles.textXs, styles.textGray500, styles.mt1]}>Obiekt: <Text style={[styles.fontSemiBold, styles.textGray900]}>{fallbackObjectName}</Text></Text>
+          <Text style={[styles.textXs, styles.textGray400]}>{t("pdf.unifiedTable.date", "Data pomiarów:")} <Text style={[styles.fontMedium, styles.textGray700]}>{displayDate}</Text></Text>
+          <Text style={[styles.textXs, styles.textGray500, styles.mt1]}>{t("pdf.unifiedTable.object", "Obiekt:")} <Text style={[styles.fontSemiBold, styles.textGray900]}>{fallbackObjectName}</Text></Text>
         </View>
       </View>
 
       {isFirstPage && (
         <View style={styles.mt4}>
           <View style={[styles.bgGray100, styles.px3, styles.py2, styles.rounded, styles.border, { borderBottomWidth: 0, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }]}>
-            <Text style={[styles.textXs, styles.fontBold, styles.textGray800]}>1. Dane techniczne i narzędzia pomiarowe</Text>
+            <Text style={[styles.textXs, styles.fontBold, styles.textGray800]}>{t("pdf.unifiedTable.section1", "1. Dane techniczne i narzędzia pomiarowe")}</Text>
           </View>
           <View style={[styles.bgWhite, styles.p3, styles.border, styles.rounded, styles.flexRow, styles.flexWrap, { borderTopLeftRadius: 0, borderTopRightRadius: 0 }]}>
             <View style={[styles.flexRow, styles.itemsCenter, { width: "50%", marginBottom: 8 }]}>
-              <Text style={[styles.textXs, styles.fontBold, styles.textGray600, styles.mr2]}>Miernik (Pętla):</Text>
+              <Text style={[styles.textXs, styles.fontBold, styles.textGray600, styles.mr2]}>{t("pdf.unifiedTable.meterLoop", "Miernik (Pętla):")}</Text>
               <Text style={[styles.textXs, styles.fontMedium, styles.textGray900]}>{protocolValue(metadata.measurementProtocols?.loopMeterName, "....................")}</Text>
             </View>
             <View style={[styles.flexRow, styles.itemsCenter, { width: "50%", marginBottom: 8 }]}>
-              <Text style={[styles.textXs, styles.fontBold, styles.textGray600, styles.mr2]}>Miernik (Izolacja):</Text>
+              <Text style={[styles.textXs, styles.fontBold, styles.textGray600, styles.mr2]}>{t("pdf.unifiedTable.meterInsulation", "Miernik (Izolacja):")}</Text>
               <Text style={[styles.textXs, styles.fontMedium, styles.textGray900]}>{protocolValue(metadata.measurementProtocols?.insulationMeterName, "....................")}</Text>
             </View>
             <View style={[styles.flexRow, styles.itemsCenter, { width: "50%", marginBottom: 8 }]}>
-              <Text style={[styles.textXs, styles.fontBold, styles.textGray600, styles.mr2]}>Nr ser. (Pętla):</Text>
+              <Text style={[styles.textXs, styles.fontBold, styles.textGray600, styles.mr2]}>{t("pdf.unifiedTable.serialLoop", "Nr ser. (Pętla):")}</Text>
               <Text style={[styles.textXs, styles.fontMedium, styles.textGray900]}>{protocolValue(metadata.measurementProtocols?.loopMeterSerialNumber, "....................")}</Text>
             </View>
             <View style={[styles.flexRow, styles.itemsCenter, { width: "50%", marginBottom: 8 }]}>
-              <Text style={[styles.textXs, styles.fontBold, styles.textGray600, styles.mr2]}>Nr ser. (Izolacja):</Text>
+              <Text style={[styles.textXs, styles.fontBold, styles.textGray600, styles.mr2]}>{t("pdf.unifiedTable.serialInsulation", "Nr ser. (Izolacja):")}</Text>
               <Text style={[styles.textXs, styles.fontMedium, styles.textGray900]}>{protocolValue(metadata.measurementProtocols?.insulationMeterSerialNumber, "....................")}</Text>
             </View>
             <View style={[styles.flexRow, styles.itemsCenter, { width: "50%", marginBottom: 8 }]}>
-              <Text style={[styles.textXs, styles.fontBold, styles.textGray600, styles.mr2]}>Napięcie sieci:</Text>
+              <Text style={[styles.textXs, styles.fontBold, styles.textGray600, styles.mr2]}>{t("pdf.unifiedTable.voltage", "Napięcie sieci:")}</Text>
               <Text style={[styles.textXs, styles.fontSemiBold, styles.textGray900, styles.bgGray100, styles.px1, styles.rounded]}>{protocolValue(metadata.measurementProtocols?.loopNetworkVoltage, "230/400V")}</Text>
             </View>
             <View style={[styles.flexRow, styles.itemsCenter, { width: "50%", marginBottom: 8 }]}>
-              <Text style={[styles.textXs, styles.fontBold, styles.textGray600, styles.mr2]}>Układ sieci:</Text>
+              <Text style={[styles.textXs, styles.fontBold, styles.textGray600, styles.mr2]}>{t("pdf.unifiedTable.network", "Układ sieci:")}</Text>
               <Text style={[styles.textXs, styles.fontSemiBold, styles.textGray900, styles.bgGray100, styles.px1, styles.rounded]}>{protocolValue(metadata.measurementProtocols?.loopNetworkSystem, "TN-S / TN-C-S")}</Text>
             </View>
             <View style={[styles.flexRow, styles.itemsCenter, { width: "50%" }]}>
-              <Text style={[styles.textXs, styles.fontBold, styles.textGray600, styles.mr2]}>Napięcie próby:</Text>
+              <Text style={[styles.textXs, styles.fontBold, styles.textGray600, styles.mr2]}>{t("pdf.unifiedTable.testVoltage", "Napięcie próby:")}</Text>
               <Text style={[styles.textXs, styles.fontSemiBold, styles.textGray900, styles.bgGray100, styles.px1, styles.rounded]}>{protocolValue(metadata.measurementProtocols?.insulationTestVoltage, "500V")}</Text>
             </View>
           </View>
@@ -88,31 +89,31 @@ export function PdfUnifiedTablePage({
 
       <View style={styles.mt4}>
         <View style={[styles.bgGray100, styles.px3, styles.py2, styles.rounded, styles.border, { borderBottomWidth: 0, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }]}>
-          <Text style={[styles.textXs, styles.fontBold, styles.textGray800]}>{isFirstPage ? "2. Zbiorcze wyniki pomiarów obwodów" : `2. Zbiorcze wyniki pomiarów obwodów (ciąg dalszy ${chunkIdx + 1})`}</Text>
+          <Text style={[styles.textXs, styles.fontBold, styles.textGray800]}>{t("pdf.unifiedTable.section2", { current: chunkIdx + 1, defaultValue: isFirstPage ? "2. Zbiorcze wyniki pomiarów obwodów" : `2. Zbiorcze wyniki pomiarów obwodów (ciąg dalszy ${chunkIdx + 1})` })}</Text>
         </View>
         
         <View style={[styles.border, { borderTopWidth: 0, borderBottomWidth: 0 }]}>
           <View style={[styles.flexRow, styles.bgGray50, styles.borderB]}>
-            <View style={[styles.tableCellHeader, { width: "4%", justifyContent: "center", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>Lp.</Text></View>
-            <View style={[styles.tableCellHeader, { width: "20%", justifyContent: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>Nazwa obwodu</Text></View>
-            <View style={[styles.tableCellHeader, { width: "12%", justifyContent: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>Lokalizacja</Text></View>
-            <View style={[styles.tableCellHeader, { width: "8%", justifyContent: "center", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700, styles.textCenter]}>In</Text></View>
+            <View style={[styles.tableCellHeader, { width: "4%", justifyContent: "center", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>{t("pdf.unifiedTable.colIndex", "Lp.")}</Text></View>
+            <View style={[styles.tableCellHeader, { width: "20%", justifyContent: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>{t("pdf.unifiedTable.colCircuit", "Nazwa obwodu")}</Text></View>
+            <View style={[styles.tableCellHeader, { width: "12%", justifyContent: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>{t("pdf.unifiedTable.colLocation", "Lokalizacja")}</Text></View>
+            <View style={[styles.tableCellHeader, { width: "8%", justifyContent: "center", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700, styles.textCenter]}>{t("pdf.unifiedTable.colIn", "In")}</Text></View>
             <View style={[styles.tableCellHeader, { width: "22%", padding: 0 }]}>
-              <Text style={[styles.textXs, styles.fontBold, styles.textGray700, styles.textCenter, styles.p1, styles.borderB]}>Riso [MΩ] (Wym. {metadata.measurementProtocols?.groundRequiredResistance || "> 1.0"})</Text>
+              <Text style={[styles.textXs, styles.fontBold, styles.textGray700, styles.textCenter, styles.p1, styles.borderB]}>{t("pdf.unifiedTable.colRiso", { req: metadata.measurementProtocols?.groundRequiredResistance || "> 1.0", defaultValue: `Riso [MΩ] (Wym. ${metadata.measurementProtocols?.groundRequiredResistance || "> 1.0"})` })}</Text>
               <View style={[styles.flexRow, styles.bgWhite]}>
-                <View style={[styles.flex1, styles.borderR, styles.p1, styles.justifyCenter, styles.itemsCenter]}><Text style={[styles.textXs, styles.fontSemiBold, styles.textGray500]}>L-N</Text></View>
-                <View style={[styles.flex1, styles.borderR, styles.p1, styles.justifyCenter, styles.itemsCenter]}><Text style={[styles.textXs, styles.fontSemiBold, styles.textGray500]}>L-PE</Text></View>
-                <View style={[styles.flex1, styles.p1, styles.justifyCenter, styles.itemsCenter]}><Text style={[styles.textXs, styles.fontSemiBold, styles.textGray500]}>N-PE</Text></View>
+                <View style={[styles.flex1, styles.borderR, styles.p1, styles.justifyCenter, styles.itemsCenter]}><Text style={[styles.textXs, styles.fontSemiBold, styles.textGray500]}>{t("pdf.unifiedTable.colLN", "L-N")}</Text></View>
+                <View style={[styles.flex1, styles.borderR, styles.p1, styles.justifyCenter, styles.itemsCenter]}><Text style={[styles.textXs, styles.fontSemiBold, styles.textGray500]}>{t("pdf.unifiedTable.colLPE", "L-PE")}</Text></View>
+                <View style={[styles.flex1, styles.p1, styles.justifyCenter, styles.itemsCenter]}><Text style={[styles.textXs, styles.fontSemiBold, styles.textGray500]}>{t("pdf.unifiedTable.colNPE", "N-PE")}</Text></View>
               </View>
             </View>
             <View style={[styles.tableCellHeader, { width: "22%", padding: 0 }]}>
-              <Text style={[styles.textXs, styles.fontBold, styles.textGray700, styles.textCenter, styles.p1, styles.borderB]}>Pętla zwarcia</Text>
+              <Text style={[styles.textXs, styles.fontBold, styles.textGray700, styles.textCenter, styles.p1, styles.borderB]}>{t("pdf.unifiedTable.colLoop", "Pętla zwarcia")}</Text>
               <View style={[styles.flexRow, styles.bgWhite]}>
-                <View style={[styles.flex1, styles.borderR, styles.p1, styles.justifyCenter, styles.itemsCenter]}><Text style={[styles.textXs, styles.fontSemiBold, styles.textGray500]}>Zs [Ω]</Text></View>
-                <View style={[styles.flex1, styles.p1, styles.justifyCenter, styles.itemsCenter]}><Text style={[styles.textXs, styles.fontSemiBold, styles.textGray500]}>Zadm [Ω]</Text></View>
+                <View style={[styles.flex1, styles.borderR, styles.p1, styles.justifyCenter, styles.itemsCenter]}><Text style={[styles.textXs, styles.fontSemiBold, styles.textGray500]}>{t("pdf.unifiedTable.colZs", "Zs [Ω]")}</Text></View>
+                <View style={[styles.flex1, styles.p1, styles.justifyCenter, styles.itemsCenter]}><Text style={[styles.textXs, styles.fontSemiBold, styles.textGray500]}>{t("pdf.unifiedTable.colZadm", "Zadm [Ω]")}</Text></View>
               </View>
             </View>
-            <View style={[styles.tableCellHeader, { width: "12%", borderRightWidth: 0, justifyContent: "center", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>Ocena</Text></View>
+            <View style={[styles.tableCellHeader, { width: "12%", borderRightWidth: 0, justifyContent: "center", alignItems: "center" }]}><Text style={[styles.textXs, styles.fontBold, styles.textGray700]}>{t("pdf.unifiedTable.colResult", "Ocena")}</Text></View>
           </View>
 
           {chunk.map((row, index) => {
@@ -148,15 +149,15 @@ export function PdfUnifiedTablePage({
 
       {isLastPage && (
         <View style={[styles.mt4]}>
-          <Text style={[styles.textXs, styles.textGray500, styles.mb1]}><Text style={styles.fontBold}>Uwaga:</Text> Wszystkie odbiorniki elektryczne na czas pomiaru rezystancji izolacji zostały odłączone. Pomiary przeprowadzono przy napięciu probierczym stałym {protocolValue(metadata.measurementProtocols?.insulationTestVoltage, "500V")}.</Text>
-          <Text style={[styles.textXs, styles.textGray500]}><Text style={styles.fontBold}>Legenda:</Text> In - prąd znamionowy zabezpieczenia, Zs - zmierzona impedancja pętli zwarcia, Zadm - maksymalna dopuszczalna impedancja pętli zwarcia warunkująca szybkie wyłączenie.</Text>
+          <Text style={[styles.textXs, styles.textGray500, styles.mb1]}><Text style={styles.fontBold}>{t("pdf.unifiedTable.noteLabel", "Uwaga:")}</Text> {t("pdf.unifiedTable.noteText", { testVoltage: protocolValue(metadata.measurementProtocols?.insulationTestVoltage, "500V"), defaultValue: `Wszystkie odbiorniki elektryczne na czas pomiaru rezystancji izolacji zostały odłączone. Pomiary przeprowadzono przy napięciu probierczym stałym ${protocolValue(metadata.measurementProtocols?.insulationTestVoltage, "500V")}.` })}</Text>
+          <Text style={[styles.textXs, styles.textGray500]}><Text style={styles.fontBold}>{t("pdf.unifiedTable.legendLabel", "Legenda:")}</Text> {t("pdf.unifiedTable.legendText", " In - prąd znamionowy zabezpieczenia, Zs - zmierzona impedancja pętli zwarcia, Zadm - maksymalna dopuszczalna impedancja pętli zwarcia warunkująca szybkie wyłączenie.")}</Text>
         </View>
       )}
 
       {isLastPage && metadata.measurementProtocols?.recommendationsText && (
         <View style={styles.mt4}>
           <View style={[styles.bgGray100, styles.px3, styles.py2, styles.rounded, styles.border, { borderBottomWidth: 0, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }]}>
-            <Text style={[styles.textXs, styles.fontBold, styles.textGray800]}>3. Zalecenia</Text>
+            <Text style={[styles.textXs, styles.fontBold, styles.textGray800]}>{t("pdf.unifiedTable.section3", "3. Zalecenia")}</Text>
           </View>
           <View style={[styles.bgWhite, styles.p3, styles.border, styles.rounded, { borderTopLeftRadius: 0, borderTopRightRadius: 0 }]}>
             <Text style={[styles.textXs, styles.textGray900, styles.fontMedium, { lineHeight: 1.5 }]}>{metadata.measurementProtocols.recommendationsText}</Text>
@@ -168,10 +169,10 @@ export function PdfUnifiedTablePage({
         {metadata.isFormalDocumentationMode !== false ? (
           <View style={[styles.flexRow, styles.borderT, styles.pt4, { alignItems: 'flex-end', justifyContent: 'flex-end' }]}>
             <View style={[styles.textCenter, { width: 250 }]}>
-              <View style={styles.signatureSlot}><Text style={[styles.textXs, styles.textGray300, styles.italic]}>miejsce na pieczęć / podpis</Text></View>
+              <View style={styles.signatureSlot}><Text style={[styles.textXs, styles.textGray300, styles.italic]}>{t("pdf.footer.signatureSlot", "miejsce na pieczęć / podpis")}</Text></View>
               <View style={[styles.borderT, styles.pt2]}>
-                <Text style={[styles.textSm, styles.fontBold, styles.textGray700, styles.uppercase]}>Sprawdził (Wykonawca/Elektryk)</Text>
-                <Text style={[styles.textXs, styles.textGray400, styles.mt1]}>Podpis osoby z uprawnieniami SEP</Text>
+                <Text style={[styles.textSm, styles.fontBold, styles.textGray700, styles.uppercase]}>{t("pdf.footer.checkedBy", "Sprawdził (Wykonawca/Elektryk)")}</Text>
+                <Text style={[styles.textXs, styles.textGray400, styles.mt1]}>{t("pdf.footer.sepSignature", "Podpis osoby z uprawnieniami SEP")}</Text>
               </View>
             </View>
           </View>
@@ -179,7 +180,7 @@ export function PdfUnifiedTablePage({
         <View style={[styles.textCenter, styles.mt6]} fixed>
           <Text
             style={[styles.textXs, styles.textGray400, styles.uppercase]}
-            render={({ pageNumber, totalPages }) => `Strona ${pageNumber} z ${totalPages} • Dokument wygenerowany cyfrowo • Zgodny z normą PN-HD 60364`}
+            render={({ pageNumber, totalPages }) => t("pdf.footer.pageInfo", { pageNumber, totalPages, defaultValue: `Strona ${pageNumber} z ${totalPages} • Dokument wygenerowany cyfrowo • Zgodny z normą PN-HD 60364` })}
           />
         </View>
       </View>

@@ -103,8 +103,7 @@ describe("PdfCircuitListPage", () => {
   it("renders the header and table rows for a non-empty chunk", () => {
     const text = renderChunk(sampleChunk, 0, 1);
 
-    expect(text).toContain("Lista obwodów");
-    expect(text).toContain("Zestawienie obwodów instalacji elektrycznej");
+    expect(text).toContain("Lista obwodów elektrycznych");
     // Each row's reference designation should appear.
     expect(text).toContain("F1");
     expect(text).toContain("F2");
@@ -129,6 +128,6 @@ describe("PdfCircuitListPage", () => {
     const text = renderChunk([], 0, 1);
 
     // Header is still rendered; only the body is empty.
-    expect(text).toContain("Lista obwodów");
+    expect(text).toContain("Lista obwodów elektrycznych");
   });
 });

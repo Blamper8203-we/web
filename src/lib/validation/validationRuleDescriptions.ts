@@ -134,8 +134,18 @@ export const VALIDATION_RULE_DESCRIPTIONS: Record<string, ValidationRuleDescript
  * unknown (e.g. a future rule that hasn't been documented yet). Callers
  * should handle null gracefully — typically by not rendering the tooltip.
  */
-export function getValidationRuleDescription(code: string): ValidationRuleDescription | null {
-  return VALIDATION_RULE_DESCRIPTIONS[code] ?? null;
+export function getValidationRuleDescription(code: string, t?: (key: string, defaultValue: string) => string): ValidationRuleDescription | null {
+  const entry = VALIDATION_RULE_DESCRIPTIONS[code];
+  if (!entry) return null;
+  
+  if (!t) return entry;
+
+  return {
+    ...entry,
+    description: t(`app.validationRule.${code}.description`, entry.description),
+    normRef: entry.normRef ? t(`app.validationRule.${code}.normRef`, entry.normRef) : undefined,
+    remediation: entry.remediation ? t(`app.validationRule.${code}.remediation`, entry.remediation) : undefined,
+  };
 }
 
 /**
@@ -144,6 +154,11 @@ export function getValidationRuleDescription(code: string): ValidationRuleDescri
  * sentence (Kliknij..., Przenieś...) describing what the user should
  * do to fix the finding.
  */
-export function getValidationRemediation(code: string): string | null {
-  return VALIDATION_RULE_DESCRIPTIONS[code]?.remediation ?? null;
+export function getValidationRemediation(code: string, t?: (key: string, defaultValue: string) => string): string | null {
+  const entry = VALIDATION_RULE_DESCRIPTIONS[code];
+  if (!entry || !entry.remediation) return null;
+  
+  if (!t) return entry.remediation;
+
+  return t(`app.validationRule.${code}.remediation`, entry.remediation);
 }

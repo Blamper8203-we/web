@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import "./PublicLandingPage.css";
 import "./landing/Landing.css";
 
@@ -22,6 +23,7 @@ export function PublicLandingPage({
 }) {
   const isReady = useLandingAssets();
   const [showFab, setShowFab] = useState<boolean>(false);
+  const { t } = useTranslation();
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     // Pokaż FAB, gdy zjedziemy w dół o więcej niż 600px
@@ -54,7 +56,7 @@ export function PublicLandingPage({
         <div className="landing-fab-icon-wrapper">
           <i data-lucide="plus" className="landing-fab-icon"></i>
         </div>
-        <span className="landing-fab-text">Nowy projekt</span>
+        <span className="landing-fab-text">{t("landing.buttonNew")}</span>
       </button>
     </div>
   );

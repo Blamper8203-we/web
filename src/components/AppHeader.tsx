@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { AppIcon } from "./AppIcon";
 import "./AppHeader.css";
 import type { SheetType } from "../lib/appHelpers";
@@ -101,6 +102,7 @@ export function AppHeader({
   onChangeSheet,
   showTemporaryStatus,
 }: AppHeaderProps) {
+  const { t } = useTranslation();
   const menu = useToolbarMenuState();
   const isNative = useIsNativePlatform();
   const isMobileLayout = useIsMobileLayout();
@@ -173,7 +175,7 @@ export function AppHeader({
                 menu.toggle("file");
               }}
             >
-              Plik
+              {t("app.header.file")}
             </button>
             {menu.isOpen("file") && (
               <AppHeaderFileMenu
@@ -203,7 +205,7 @@ export function AppHeader({
                 menu.toggle("view");
               }}
             >
-              Widok
+              {t("app.header.view")}
             </button>
             {menu.isOpen("view") && (
               <AppHeaderViewMenu
@@ -227,7 +229,7 @@ export function AppHeader({
                 menu.toggle("tools");
               }}
             >
-              Narzędzia
+              {t("app.header.tools")}
             </button>
             {menu.isOpen("tools") && (
               <AppHeaderToolsMenu
@@ -240,7 +242,7 @@ export function AppHeader({
           </div>
 
           <button type="button" className="toolbar-menu-btn" onClick={onOpenHelp}>
-            Pomoc
+            {t("app.header.help")}
           </button>
 
           <button
@@ -248,7 +250,7 @@ export function AppHeader({
             className="toolbar-menu-btn"
             onClick={() => setIsAboutOpen(true)}
           >
-            O aplikacji
+            {t("app.header.about")}
           </button>
 
           <button
@@ -258,7 +260,7 @@ export function AppHeader({
             onClick={onOpenFeedback}
           >
             <AppIcon name="feedback" size={14} />
-            Zgłoś pomysł
+            {t("app.header.feedback")}
           </button>
 
           <a
@@ -275,7 +277,7 @@ export function AppHeader({
             }}
           >
             <AppIcon name="coffee" size={14} />
-            Postaw kawę
+            {t("app.header.donate")}
           </a>
         </div>
       </div>

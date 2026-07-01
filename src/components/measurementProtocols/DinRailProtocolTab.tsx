@@ -1,6 +1,7 @@
 
 import { PageFooter } from "./ProtocolShared";
 import { PinchZoomImage } from "./PinchZoomImage";
+import { useTranslation } from "react-i18next";
 
 interface DinRailProtocolTabProps {
   dinRailPreviewUrl: string | null;
@@ -23,10 +24,11 @@ export function DinRailProtocolTab({
   totalUiPages,
   mode = "clean",
 }: DinRailProtocolTabProps) {
+  const { t } = useTranslation();
   const isConnections = mode === "connections";
   const altText = isConnections
-    ? "Widok rozdzielnicy z połączeniami"
-    : "Widok rozdzielnicy elektrycznej";
+    ? t("app.pdf.dinRail.connectionsAlt", "Widok rozdzielnicy z połączeniami")
+    : t("app.pdf.dinRail.cleanAlt", "Widok rozdzielnicy elektrycznej");
 
 return (
     <div className="a4-page a4-page--portrait" key="din-rail-page">
@@ -37,12 +39,12 @@ return (
         <div className="flex justify-between items-start border-b-2 border-gray-800 pb-2 gap-4">
           <div className="flex items-center gap-3 flex-grow" style={{ minWidth: 0 }}>
             <div className="px-3 py-1 bg-brand text-white font-bold rounded text-xs uppercase tracking-wider">
-              {isConnections ? "Połączenia" : "Rozdzielnica elektryczna"}
+              {isConnections ? t("app.pdf.dinRail.connectionsTitle", "Połączenia") : t("app.pdf.dinRail.cleanTitle", "Rozdzielnica elektryczna")}
             </div>
           </div>
           <div className="text-right shrink-0">
-            <div className="text-[9px] text-gray-400">Data: <span className="font-medium text-gray-700">{displayDate}</span></div>
-            <div className="text-[9px] text-gray-500 mt-0.5">Obiekt: <span className="font-semibold text-gray-900">{objectType}</span></div>
+            <div className="text-[9px] text-gray-400">{t("app.pdf.shared.date", "Data:")} <span className="font-medium text-gray-700">{displayDate}</span></div>
+            <div className="text-[9px] text-gray-500 mt-0.5">{t("app.pdf.shared.object", "Obiekt:")} <span className="font-semibold text-gray-900">{objectType}</span></div>
           </div>
         </div>
 
@@ -57,8 +59,8 @@ return (
             </div>
           ) : (
             <div className="mp-din-rail-preview-empty">
-              <strong>{dinRailPreviewError ? "Nie udało się odświeżyć widoku." : "Odświeżanie widoku rozdzielnicy..."}</strong>
-              <span>{dinRailPreviewError ?? "Podgląd zostanie pokazany po przygotowaniu snapshotu szyny DIN."}</span>
+              <strong>{dinRailPreviewError ? t("app.pdf.dinRail.errorTitle", "Nie udało się odświeżyć widoku.") : t("app.pdf.dinRail.loadingTitle", "Odświeżanie widoku rozdzielnicy...")}</strong>
+              <span>{dinRailPreviewError ?? t("app.pdf.dinRail.loadingDesc", "Podgląd zostanie pokazany po przygotowaniu snapshotu szyny DIN.")}</span>
               {dinRailPreviewError && onRetry ? (
                 <button
                   type="button"
@@ -66,7 +68,7 @@ return (
                   onClick={onRetry}
                   style={{ marginTop: "var(--space-3, 12px)" }}
                 >
-                  Spróbuj ponownie
+                  {t("app.pdf.shared.retry", "Spróbuj ponownie")}
                 </button>
               ) : null}
             </div>

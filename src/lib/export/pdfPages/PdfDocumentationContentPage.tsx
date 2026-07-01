@@ -1,4 +1,5 @@
 import { Page, Text, View } from "@react-pdf/renderer";
+import { t } from "i18next";
 import type { ProjectMetadata } from "../../../types/projectMetadata";
 import { pdfStyles as styles } from "./pdfStyles";
 
@@ -16,17 +17,17 @@ interface PdfDocumentationContentPageProps {
 
 interface DocumentationSection {
   field: keyof ProjectMetadata;
-  title: string;
+  titleKey: string;
 }
 
 const DOCUMENTATION_SECTIONS: DocumentationSection[] = [
-  { field: "documentationEquipmentList", title: "Spis urządzeń i osprzętu" },
-  { field: "documentationCableSelection", title: "Dobór kabli i zabezpieczeń" },
-  { field: "documentationTechnicalCalculations", title: "Obliczenia techniczne" },
-  { field: "documentationLegendAndSymbols", title: "Legenda i symbole" },
-  { field: "documentationTechnicalDescription", title: "Opis techniczny instalacji" },
-  { field: "documentationShockProtection", title: "Ochrona przeciwporażeniowa" },
-  { field: "documentationAcceptanceConditions", title: "Warunki odbioru i uwagi" },
+  { field: "documentationEquipmentList", titleKey: "pdf.docContentPage.sections.equipmentList" },
+  { field: "documentationCableSelection", titleKey: "pdf.docContentPage.sections.cableSelection" },
+  { field: "documentationTechnicalCalculations", titleKey: "pdf.docContentPage.sections.techCalculations" },
+  { field: "documentationLegendAndSymbols", titleKey: "pdf.docContentPage.sections.legendAndSymbols" },
+  { field: "documentationTechnicalDescription", titleKey: "pdf.docContentPage.sections.techDescription" },
+  { field: "documentationShockProtection", titleKey: "pdf.docContentPage.sections.shockProtection" },
+  { field: "documentationAcceptanceConditions", titleKey: "pdf.docContentPage.sections.acceptanceConditions" },
 ];
 
 function getSectionText(metadata: ProjectMetadata, field: DocumentationSection["field"]): string {
@@ -47,15 +48,15 @@ export function PdfDocumentationContentPage({
       <View style={[styles.flexRow, styles.justifyBetween, styles.borderB2Dark, styles.pb3]}>
         <View>
           <Text style={[styles.textLg, styles.fontBold, styles.textGray900, styles.uppercase]}>
-            Dokumentacja projektu
+            {t("pdf.docContentPage.title")}
           </Text>
           <Text style={[styles.textXs, styles.textGray500, styles.mt1]}>
-            Opis techniczny, dobór, obliczenia i warunki odbioru
+            {t("pdf.docContentPage.subtitle")}
           </Text>
         </View>
         <View style={styles.textRight}>
           <Text style={[styles.textXs, styles.textGray400]}>
-            Data: <Text style={[styles.fontBold, styles.textGray700]}>{displayDate}</Text>
+            {t("pdf.docContentPage.date")} <Text style={[styles.fontBold, styles.textGray700]}>{displayDate}</Text>
           </Text>
         </View>
       </View>
@@ -63,8 +64,7 @@ export function PdfDocumentationContentPage({
       {populatedSections.length === 0 ? (
         <View style={[styles.bgGray50, styles.roundedXl, styles.border, styles.p4, styles.mt4]}>
           <Text style={[styles.textSm, styles.textGray500, styles.italic]}>
-            Brak wypełnionych sekcji opisu. Uzupełnij pola „Opis techniczny", „Dobór kabli",
-            „Obliczenia" i pokrewne w Ustawieniach projektu, aby dołączyć je do dokumentacji PDF.
+            {t("pdf.docContentPage.emptyMessage")}
           </Text>
         </View>
       ) : (
@@ -75,7 +75,7 @@ export function PdfDocumentationContentPage({
             wrap={false}
           >
             <Text style={[styles.textSm, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb2]}>
-              {section.title}
+              {t(section.titleKey)}
             </Text>
             {text.split("\n").map((line, lineIdx) => (
               <Text key={lineIdx} style={[styles.textSm, styles.textGray900, { lineHeight: 1.5 }]}>

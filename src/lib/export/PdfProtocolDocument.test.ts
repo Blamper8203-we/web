@@ -211,20 +211,20 @@ describe("PdfProtocolDocument", () => {
 
     const text = collectTextContent(document).join("\n");
 
-    expect(text).toContain("Dokumentacja Powykonawcza");
+    expect(text).toContain("DOKUMENTACJA ODBIORCZA POWYKONAWCZA");
     expect(text).toContain("Oświadczenie Wykonawcy");
-    expect(text).toContain("Pełna treść oświadczenia wykonawcy");
+    expect(text).toContain("Oświadczam, że instalacja elektryczna");
     // WHY: when no company logo is uploaded the logoBox is hidden entirely
     // (instead of showing a "LOGO" placeholder) so the title page no longer
     // carries a UI-style placeholder text into the final PDF.
     expect(text).not.toContain("LOGO");
-    expect(text).toContain("Tabela zbiorcza pomiarów");
-    expect(text).toContain("RCD i uziemienie");
+    expect(text).toContain("Tabela zbiorcza wyników pomiarów");
+    expect(text).toContain("Test wyłączników różnicowoprądowych RCD");
     expect(text).toContain("Schemat instalacji elektrycznej");
     // WHY: "Widok rozdzielnicy elektrycznej" was a label box on the din-rail
     // PDF page; it was removed to free vertical space on A4 portrait. The page
     // itself is verified by checking imageSources instead of text.
-    expect(text).toContain("Lista obwodów");
+    expect(text).toContain("Lista obwodów elektrycznych");
     expect(text).not.toContain("Opis obwodów");
     expect(text).toContain("Tabela zbiorcza");
     expect(text).toContain("RCD i uziemienie");
@@ -343,7 +343,7 @@ describe("PdfProtocolDocument", () => {
 
     const text = collectTextContent(document).join("\n");
 
-    expect(text).toContain("Lista obwodów");
+    expect(text).toContain("Lista obwodów elektrycznych");
     expect(text).toContain("Gniazda kuchnia");
     expect(text).toContain("F1.1");
     expect(text).toContain("Q1");
@@ -371,7 +371,7 @@ describe("PdfProtocolDocument", () => {
     });
 
     const pages = collectA4PageTextContent(document);
-    const circuitPages = pages.filter((pageText) => pageText.includes("Zestawienie obwod"));
+    const circuitPages = pages.filter((pageText) => pageText.includes("Lista obwodów elektrycznych"));
 
     expect(circuitPages).toHaveLength(2);
     expect(circuitPages[0]).toContain("Obwod testowy 10");
@@ -589,7 +589,7 @@ describe("PdfProtocolDocument", () => {
       });
 
       const pages = collectA4PageTextContent(document);
-      const circuitPages = pages.filter((pageText) => pageText.includes("Zestawienie obwod"));
+      const circuitPages = pages.filter((pageText) => pageText.includes("Lista obwodów elektrycznych"));
       // Every circuit-list page must show the same display date — drift here
       // is the bug.
       expect(circuitPages.length).toBeGreaterThanOrEqual(2);

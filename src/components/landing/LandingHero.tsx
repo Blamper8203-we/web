@@ -1,9 +1,13 @@
+import { useTranslation } from "react-i18next";
+
 interface LandingHeroProps {
   onOpenProjectFile: () => void;
   onOpenNewProject: () => void;
 }
 
 export function LandingHero({ onOpenProjectFile, onOpenNewProject }: LandingHeroProps) {
+  const { t } = useTranslation();
+
   return (
     <section className="landing-hero">
       <div className="landing-hero-bg-grid"></div>
@@ -19,14 +23,14 @@ export function LandingHero({ onOpenProjectFile, onOpenNewProject }: LandingHero
             </div>
 
             <h1 className="landing-hero-title">
-              Projektowanie schematu <br />
+              {t("landing.title", "Projektowanie schematu")} <br />
               <span className="landing-hero-title-accent">
                 instalacji elektrycznej
               </span>
             </h1>
 
             <p className="landing-hero-desc">
-              DINBoard wspiera elektryka przy wykonaniu rozdzielnicy, tworzeniu czytelnego schematu instalacji, sprawdzeniu obwodów oraz przygotowaniu profesjonalnej dokumentacji odbiorczej PDF. Wszystko w Twojej przeglądarce.
+              {t("landing.subtitle", "DINBoard wspiera elektryka przy wykonaniu rozdzielnicy, tworzeniu czytelnego schematu instalacji, sprawdzeniu obwodów oraz przygotowaniu profesjonalnej dokumentacji odbiorczej PDF. Wszystko w Twojej przeglądarce.")}
             </p>
 
             {/* Profesjonalne info o bezpieczeństwie i wersji testowej */}
@@ -51,7 +55,7 @@ export function LandingHero({ onOpenProjectFile, onOpenNewProject }: LandingHero
                 className="landing-btn-secondary"
               >
                 <i data-lucide="folder-open" className="icon"></i>
-                Otwórz projekt z dysku
+                {t("landing.buttonOpen", "Otwórz projekt z dysku")}
               </button>
             </div>
           </div>
@@ -69,7 +73,7 @@ export function LandingHero({ onOpenProjectFile, onOpenNewProject }: LandingHero
                   <i data-lucide="plus" className="landing-new-project-icon"></i>
                 </div>
 
-                <h3 className="landing-new-project-title">Utwórz nowy projekt</h3>
+                <h3 className="landing-new-project-title">{t("landing.buttonNew", "Utwórz nowy projekt")}</h3>
                 <p className="landing-new-project-desc">Rozpocznij projektowanie czystej szyny DIN, konfiguruj fazy i wygeneruj schemat montażowy.</p>
 
                 <div className="landing-new-project-cta">

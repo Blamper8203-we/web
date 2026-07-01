@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import "./CookieConsent.css";
 
 // WHY: Google AdSense requires explicit consent before personalised ads.
@@ -31,6 +32,7 @@ function applyConsent(mode: ConsentMode) {
 }
 
 export function CookieConsent() {
+  const { t } = useTranslation();
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -62,13 +64,12 @@ export function CookieConsent() {
   if (!show) return null;
 
   return (
-    <div className="cookie-banner" role="dialog" aria-live="polite" aria-label="Zgoda na pliki cookies">
+    <div className="cookie-banner" role="dialog" aria-live="polite" aria-label={t("app.cookieConsent.ariaLabel", "Zgoda na pliki cookies")}>
       <div className="cookie-banner__text">
         <p>
-          Używamy lokalnego magazynu przeglądarki i anonimowych statystyk.
-          W przyszłości planujemy wyświetlanie reklam (Google AdSense).
-          Możesz wybrać, na co się zgadzasz.{" "}
-          <Link to="/polityka-prywatnosci">Polityka prywatności</Link>
+          {t("app.cookieConsent.desc", "Używamy lokalnego magazynu przeglądarki i anonimowych statystyk. W przyszłości planujemy wyświetlanie reklam (Google AdSense). Możesz wybrać, na co się zgadzasz.")}
+          {" "}
+          <Link to="/polityka-prywatnosci">{t("app.cookieConsent.policyLink", "Polityka prywatności")}</Link>
         </p>
       </div>
       <div className="cookie-banner__buttons">
@@ -77,14 +78,14 @@ export function CookieConsent() {
           className="cookie-banner__btn cookie-banner__btn--secondary"
           onClick={() => save("essential")}
         >
-          Tylko niezbędne
+          {t("app.cookieConsent.btnEssential", "Tylko niezbędne")}
         </button>
         <button
           type="button"
           className="cookie-banner__btn cookie-banner__btn--primary"
           onClick={() => save("all")}
         >
-          Akceptuję wszystkie
+          {t("app.cookieConsent.btnAll", "Akceptuję wszystkie")}
         </button>
       </div>
     </div>

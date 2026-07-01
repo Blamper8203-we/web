@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { useTranslation } from "react-i18next";
 import { AppLeftPanel, type AppLeftPanelProps } from "./AppLeftPanel";
 import { AppWorkspaceCanvas, type AppWorkspaceCanvasProps } from "./AppWorkspaceCanvas";
 import { AppRightPanel, type AppRightPanelProps } from "./AppRightPanel";
@@ -41,6 +42,7 @@ export interface MainWorkspaceProps {
 }
 
 export function MainWorkspace(props: MainWorkspaceProps) {
+  const { t } = useTranslation();
   const {
     activeSheet,
     showLeftPanel,
@@ -74,7 +76,7 @@ export function MainWorkspace(props: MainWorkspaceProps) {
                 justifyContent: "center",
               }}
             >
-              Ładowanie modułu PDF...
+              {t("app.mainWorkspace.loadingPdf", "Ładowanie modułu PDF...")}
             </div>
           }
         >

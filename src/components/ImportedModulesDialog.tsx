@@ -1,4 +1,5 @@
 import type { ImportedModuleDefinition } from "../lib/modules/importedModuleCatalog";
+import { useTranslation } from "react-i18next";
 import { ModuleAssetPreview } from "./ModuleAssetPreview";
 import { AppIcon } from "./AppIcon";
 import "./ImportedModulesDialog.css";
@@ -18,28 +19,29 @@ export function ImportedModulesDialog({
   onClose,
   onRemove,
 }: ImportedModulesDialogProps) {
+  const { t } = useTranslation();
   return (
     <div className="din-rail-dialog-backdrop" onMouseDown={onClose}>
       <div
         className="imported-modules-dialog"
         role="dialog"
         aria-modal="true"
-        aria-label="Zarządzaj importowanymi modułami"
+        aria-label={t("app.importedModules.ariaLabel", "Zarządzaj importowanymi modułami")}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="imported-modules-dialog__header">
           <div className="din-rail-dialog-title">
             <AppIcon name="import" size={18} />
-            <strong>Importowane moduły SVG</strong>
+            <strong>{t("app.importedModules.title", "Importowane moduły SVG")}</strong>
           </div>
-          <span>{modules.length} elementów</span>
+          <span>{t("app.importedModules.count", "{{count}} elementów", { count: modules.length })}</span>
         </div>
 
         <div className="imported-modules-dialog__list">
           {modules.length === 0 ? (
             <div className="imported-modules-dialog__empty">
-              <strong>Brak importowanych modułów</strong>
-              <span>Zaimportowane SVG pojawią się tutaj i w lewej palecie.</span>
+              <strong>{t("app.importedModules.emptyTitle", "Brak importowanych modułów")}</strong>
+              <span>{t("app.importedModules.emptyDesc", "Zaimportowane SVG pojawią się tutaj i w lewej palecie.")}</span>
             </div>
           ) : (
             modules.map((moduleDefinition) => (
@@ -85,8 +87,8 @@ export function ImportedModulesDialog({
                 <button
                   type="button"
                   className="imported-modules-item__remove"
-                  aria-label={`Usuń ${moduleDefinition.label}`}
-                  title="Usuń import"
+                  aria-label={t("app.importedModules.removeAria", "Usuń {{name}}", { name: moduleDefinition.label })}
+                  title={t("app.importedModules.removeTitle", "Usuń import")}
                   onClick={() => onRemove(moduleDefinition.id)}
                 >
                   <AppIcon name="delete" size={14} />
@@ -98,7 +100,7 @@ export function ImportedModulesDialog({
 
         <div className="din-rail-dialog-actions">
           <button type="button" onClick={onClose}>
-            Zamknij
+            {t("app.importedModules.btnClose", "Zamknij")}
           </button>
         </div>
       </div>

@@ -3,6 +3,7 @@ import type { MeasurementProtocolsData, MeasurementUnifiedProtocolRow } from "..
 import { UNIFIED_ROWS_PER_PAGE, formatProtocolNumberLabel } from "../../lib/export/pdfPages/pdfHelpers";
 import { createHeaderForPage } from "../../lib/measurementProtocolHelpers";
 import { PageFooter } from "./ProtocolShared";
+import { useTranslation } from "react-i18next";
 
 interface UnifiedProtocolsTabProps {
   protocols: MeasurementProtocolsData;
@@ -30,6 +31,7 @@ export function UnifiedProtocolsTab({
   unifiedStartPage,
   totalUiPages,
 }: UnifiedProtocolsTabProps) {
+  const { t } = useTranslation();
   return (
     <>
       {unifiedPages.map((rowsPage, pageIndex) => {
@@ -45,51 +47,51 @@ export function UnifiedProtocolsTab({
               <div className="flex justify-between items-start border-b-2 border-gray-800 pb-3 gap-4">
                 <div className="flex items-center gap-3 flex-grow" style={{ minWidth: 0 }}>
                   <div className="px-3 py-1 bg-brand text-white font-bold rounded text-xs uppercase tracking-wider">
-                    Tabela zbiorcza
+                    {t("app.pdf.unified.title", "Tabela zbiorcza")}
                   </div>
                   <div style={{ minWidth: 0 }}>
-                    <h2 className="text-sm font-extrabold text-gray-900 tracking-wider uppercase">Protokół Pomiarów Nr <span className="bg-gray-100 px-1 rounded text-brand">{protocolNumberLabel}</span></h2>
-                    <p className="text-[9px] text-gray-500 font-medium">Zbiorcze wyniki pomiarów pętli zwarcia i rezystancji izolacji</p>
+                    <h2 className="text-sm font-extrabold text-gray-900 tracking-wider uppercase">{t("app.pdfDocumentationPage.editor.unifiedProtocol.protocolNrPrefix", "Protokół Pomiarów Nr ")}<span className="bg-gray-100 px-1 rounded text-brand">{protocolNumberLabel}</span></h2>
+                    <p className="text-[9px] text-gray-500 font-medium">{t("app.pdf.unified.subtitle", "Zbiorcze wyniki pomiarów pętli zwarcia i rezystancji izolacji")}</p>
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="text-[9px] text-gray-400">Data pomiarów: <span className="font-medium text-gray-700">{displayDate}</span></div>
-                  <div className="text-[9px] text-gray-500 mt-0.5">Obiekt: <span className="font-semibold text-gray-900">{objectType}</span></div>
+                  <div className="text-[9px] text-gray-400">{t("app.pdf.unified.measureDate", "Data pomiarów:")} <span className="font-medium text-gray-700">{displayDate}</span></div>
+                  <div className="text-[9px] text-gray-500 mt-0.5">{t("app.pdf.shared.object", "Obiekt:")} <span className="font-semibold text-gray-900">{objectType}</span></div>
                 </div>
               </div>
 
               {isFirstPage && (
                 <div className="mt-4">
                   <div className="bg-gray-100 text-gray-800 text-[10px] font-bold px-3 py-1.5 rounded-t-lg border border-gray-200">
-                    1. Dane techniczne i narzędzia pomiarowe
+                    {t("app.pdf.unified.section1Title", "1. Dane techniczne i narzędzia pomiarowe")}
                   </div>
                   <div className="border-x border-b border-gray-200 rounded-b-lg p-3 bg-white grid grid-cols-2 gap-y-2 gap-x-4 text-xs">
                     <div className="flex items-center">
-                      <span className="font-bold text-gray-600 mr-2 shrink-0">Miernik (Pętla):</span>
+                      <span className="font-bold text-gray-600 mr-2 shrink-0">{t("app.pdf.unified.techData.meterLoop", "Miernik (Pętla):")}</span>
                       <input className="mp-editable text-gray-900 font-medium flex-grow" value={protocols.loopMeterName || ""} placeholder="..." onChange={(e) => updateProtocols({ loopMeterName: e.target.value })} />
                     </div>
                     <div className="flex items-center">
-                      <span className="font-bold text-gray-600 mr-2 shrink-0">Miernik (Izolacja):</span>
+                      <span className="font-bold text-gray-600 mr-2 shrink-0">{t("app.pdf.unified.techData.meterInsulation", "Miernik (Izolacja):")}</span>
                       <input className="mp-editable text-gray-900 font-medium flex-grow" value={protocols.insulationMeterName || ""} placeholder="..." onChange={(e) => updateProtocols({ insulationMeterName: e.target.value })} />
                     </div>
                     <div className="flex items-center">
-                      <span className="font-bold text-gray-600 mr-2 shrink-0">Nr ser. (Pętla):</span>
+                      <span className="font-bold text-gray-600 mr-2 shrink-0">{t("app.pdf.unified.techData.serialLoop", "Nr ser. (Pętla):")}</span>
                       <input className="mp-editable text-gray-900 font-medium flex-grow" value={protocols.loopMeterSerialNumber || ""} placeholder="..." onChange={(e) => updateProtocols({ loopMeterSerialNumber: e.target.value })} />
                     </div>
                     <div className="flex items-center">
-                      <span className="font-bold text-gray-600 mr-2 shrink-0">Nr ser. (Izolacja):</span>
+                      <span className="font-bold text-gray-600 mr-2 shrink-0">{t("app.pdf.unified.techData.serialInsulation", "Nr ser. (Izolacja):")}</span>
                       <input className="mp-editable text-gray-900 font-medium flex-grow" value={protocols.insulationMeterSerialNumber || ""} placeholder="..." onChange={(e) => updateProtocols({ insulationMeterSerialNumber: e.target.value })} />
                     </div>
                     <div className="flex items-center">
-                      <span className="font-bold text-gray-600 mr-2 shrink-0">Napięcie sieci:</span>
-                      <input className="mp-editable text-gray-900 font-semibold bg-gray-100 px-1.5 py-0.5 rounded w-24" value={protocols.loopNetworkVoltage || ""} placeholder="np. 230/400V" onChange={(e) => updateProtocols({ loopNetworkVoltage: e.target.value })} />
+                      <span className="font-bold text-gray-600 mr-2 shrink-0">{t("app.pdf.unified.techData.voltage", "Napięcie sieci:")}</span>
+                      <input className="mp-editable text-gray-900 font-semibold bg-gray-100 px-1.5 py-0.5 rounded w-24" value={protocols.loopNetworkVoltage || ""} placeholder={t("app.pdf.unified.techData.voltagePlaceholder", "np. 230/400V")} onChange={(e) => updateProtocols({ loopNetworkVoltage: e.target.value })} />
                     </div>
                     <div className="flex items-center">
-                      <span className="font-bold text-gray-600 mr-2 shrink-0">Układ sieci:</span>
-                      <input className="mp-editable text-gray-900 font-semibold bg-gray-100 px-1.5 py-0.5 rounded flex-grow" value={protocols.loopNetworkSystem || ""} placeholder="np. TN-S / TN-C-S" onChange={(e) => updateProtocols({ loopNetworkSystem: e.target.value })} />
+                      <span className="font-bold text-gray-600 mr-2 shrink-0">{t("app.pdf.unified.techData.system", "Układ sieci:")}</span>
+                      <input className="mp-editable text-gray-900 font-semibold bg-gray-100 px-1.5 py-0.5 rounded flex-grow" value={protocols.loopNetworkSystem || ""} placeholder={t("app.pdf.unified.techData.systemPlaceholder", "np. TN-S / TN-C-S")} onChange={(e) => updateProtocols({ loopNetworkSystem: e.target.value })} />
                     </div>
                     <div className="flex items-center">
-                      <span className="font-bold text-gray-600 mr-2 shrink-0">Napięcie próby:</span>
+                      <span className="font-bold text-gray-600 mr-2 shrink-0">{t("app.pdf.unified.techData.testVoltage", "Napięcie próby:")}</span>
                       <input className="mp-editable text-gray-900 font-semibold bg-gray-100 px-1.5 py-0.5 rounded w-16" value={protocols.insulationTestVoltage || "500V"} onChange={(e) => updateProtocols({ insulationTestVoltage: e.target.value })} />
                     </div>
                   </div>
@@ -98,19 +100,19 @@ export function UnifiedProtocolsTab({
 
               <div className="mt-4">
                 <div className="bg-gray-100 text-gray-800 text-[10px] font-bold px-3 py-1.5 rounded-t-lg border border-gray-300 flex justify-between items-center">
-                  <span>{isFirstPage ? "2. Zbiorcze wyniki pomiarów obwodów" : `2. Zbiorcze wyniki pomiarów obwodów (ciąg dalszy ${pageIndex + 1})`}</span>
+                  <span>{isFirstPage ? t("app.pdf.unified.section2Title", "2. Zbiorcze wyniki pomiarów obwodów") : t("app.pdf.unified.section2TitleContinued", "2. Zbiorcze wyniki pomiarów obwodów (ciąg dalszy {{page}})", { page: pageIndex + 1 })}</span>
                 </div>
                 <div className="overflow-x-auto border-x border-b border-gray-300 rounded-b-lg">
                   <table className="w-full text-left border-collapse" style={{ fontSize: "10px" }}>
                     <thead>
                       <tr className="bg-gray-100 text-gray-800 font-bold border-b border-gray-300">
-                        <th className="p-2 border-r border-gray-300 text-center w-8">Lp.</th>
-                        <th className="p-2 border-r border-gray-300 w-48">Nazwa obwodu</th>
-                        <th className="p-2 border-r border-gray-300 w-24">Lokalizacja</th>
-                        <th className="p-2 border-r border-gray-300 text-center w-16">In</th>
-                        <th colSpan={3} className="p-1 border-r border-gray-300 text-center bg-blue-50/50 text-gray-800">Riso [MΩ] (Wym. {protocols.groundRequiredResistance || "> 1.0"})</th>
-                        <th colSpan={2} className="p-1 border-r border-gray-300 text-center bg-gray-100 text-gray-800">Pętla zwarcia</th>
-                        <th className="p-2 text-center w-16">Ocena</th>
+                        <th className="p-2 border-r border-gray-300 text-center w-8">{t("app.pdf.unified.table.no", "Lp.")}</th>
+                        <th className="p-2 border-r border-gray-300 w-48">{t("app.pdf.unified.table.circuitName", "Nazwa obwodu")}</th>
+                        <th className="p-2 border-r border-gray-300 w-24">{t("app.pdf.unified.table.location", "Lokalizacja")}</th>
+                        <th className="p-2 border-r border-gray-300 text-center w-16">{t("app.pdf.unified.table.in", "In")}</th>
+                        <th colSpan={3} className="p-1 border-r border-gray-300 text-center bg-blue-50/50 text-gray-800">Riso [MΩ] ({t("app.pdf.unified.table.req", "Wym.")} {protocols.groundRequiredResistance || "> 1.0"})</th>
+                        <th colSpan={2} className="p-1 border-r border-gray-300 text-center bg-gray-100 text-gray-800">{t("app.pdf.unified.table.loop", "Pętla zwarcia")}</th>
+                        <th className="p-2 text-center w-16">{t("app.pdf.unified.table.evaluation", "Ocena")}</th>
                       </tr>
                       <tr className="bg-gray-50 text-[10px] text-gray-700 border-b border-gray-300">
                         <th colSpan={4} className="border-r border-gray-300"></th>
@@ -147,21 +149,21 @@ export function UnifiedProtocolsTab({
 
               {isLastPage && (
                 <div className="mt-4 text-[9px] text-gray-500 leading-relaxed space-y-1">
-                  <p><span className="font-bold">Uwaga:</span> Wszystkie odbiorniki elektryczne na czas pomiaru rezystancji izolacji zostały odłączone. Pomiary przeprowadzono przy napięciu probierczym stałym {protocols.insulationTestVoltage || "500V"}.</p>
-                  <p><span className="font-bold">Legenda:</span> <span className="font-semibold text-gray-700">In</span> - prąd znamionowy zabezpieczenia, <span className="font-semibold text-gray-700">Zs</span> - zmierzona impedancja pętli zwarcia, <span className="font-semibold text-gray-700">Zadm</span> - maksymalna dopuszczalna impedancja pętli zwarcia warunkująca szybkie wyłączenie.</p>
+                  <p><span className="font-bold">{t("app.pdf.unified.noteLabel", "Uwaga:")}</span> <span dangerouslySetInnerHTML={{ __html: t("app.pdf.unified.noteText", "Wszystkie odbiorniki elektryczne na czas pomiaru rezystancji izolacji zostały odłączone. Pomiary przeprowadzono przy napięciu probierczym stałym {{voltage}}.", { voltage: protocols.insulationTestVoltage || "500V" }) }} /></p>
+                  <p><span className="font-bold">{t("app.pdf.unified.legendLabel", "Legenda:")}</span> <span dangerouslySetInnerHTML={{ __html: t("app.pdf.unified.legendText", "<span class=\"font-semibold text-gray-700\">In</span> - prąd znamionowy zabezpieczenia, <span class=\"font-semibold text-gray-700\">Zs</span> - zmierzona impedancja pętli zwarcia, <span class=\"font-semibold text-gray-700\">Zadm</span> - maksymalna dopuszczalna impedancja pętli zwarcia warunkująca szybkie wyłączenie.") }} /></p>
                 </div>
               )}
 
               {isLastPage && (
                 <div className="mt-4">
                   <div className="bg-gray-100 text-gray-800 text-[10px] font-bold px-3 py-1.5 rounded-t-lg border border-gray-200">
-                    3. Zalecenia
+                    {t("app.pdf.unified.section3Title", "3. Zalecenia")}
                   </div>
                   <div className="border-x border-b border-gray-200 rounded-b-lg p-3 bg-white">
                     <textarea
                       className="mp-editable text-gray-900 w-full text-xs leading-relaxed min-h-[80px] resize-y"
                       value={protocols.recommendationsText || ""}
-                      placeholder="np. Wymienić zabezpieczenie nadprądowe F3 w obwodzie oświetlenia..."
+                      placeholder={t("app.pdfDocumentationPage.editor.unifiedProtocol.recommendationsPlaceholder", "np. Wymienić zabezpieczenie nadprądowe F3 w obwodzie oświetlenia...")}
                       onChange={(e) => updateProtocols({ recommendationsText: e.target.value })}
                     />
                   </div>
@@ -173,11 +175,11 @@ export function UnifiedProtocolsTab({
               <div className="flex justify-end pt-4 border-t border-gray-100">
                 <div className="text-center w-64">
                   <div className="h-16 flex items-center justify-center">
-                    <span className="text-[10px] text-gray-300 italic">miejsce na pieczęć / podpis</span>
+                    <span className="text-[10px] text-gray-300 italic">{t("app.pdf.unified.stampPlaceholder", "miejsce na pieczęć / podpis")}</span>
                   </div>
                   <div className="border-t border-gray-300 pt-1.5">
-                    <p className="text-[10px] font-bold text-gray-700 uppercase">Sprawdził (Wykonawca/Elektryk)</p>
-                    <p className="text-[8px] text-gray-400 mt-0.5">Podpis osoby z uprawnieniami SEP</p>
+                    <p className="text-[10px] font-bold text-gray-700 uppercase">{t("app.pdf.unified.contractorSignature", "Sprawdził (Wykonawca/Elektryk)")}</p>
+                    <p className="text-[8px] text-gray-400 mt-0.5">{t("app.pdf.unified.contractorSubtitle", "Podpis osoby z uprawnieniami SEP")}</p>
                   </div>
                 </div>
               </div>

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import "./ValidationPanel.css";
 import type { ValidationResult, ValidationSeverity } from "../lib/validation/electricalValidationService";
 import { getValidationEditTargetForMessage } from "../lib/validation/validationEditTargets";
@@ -32,6 +33,7 @@ export function ValidationPanel({
   onEditSymbolField,
   onApplyQuickFix,
 }: ValidationPanelProps) {
+  const { t } = useTranslation();
   const errorCount = result.errors.length;
   const warningCount = result.warnings.length;
   const infoCount = result.info.length;
@@ -68,10 +70,10 @@ export function ValidationPanel({
   if (!isDinRailGenerated) {
     return (
       <div className="validation-panel">
-        <div className="section-header">WYNIKI WALIDACJI</div>
+        <div className="section-header">{t("app.validationPanel.header", "WYNIKI WALIDACJI")}</div>
         <div className="card validation-empty validation-idle">
-          <strong>Walidacja oczekuje na rozdzielnicę</strong>
-          <p>Wygeneruj szynę DIN, aby rozpocząć sprawdzanie modułów i obwodów.</p>
+          <strong>{t("app.validationPanel.waitingTitle", "Walidacja oczekuje na rozdzielnicę")}</strong>
+          <p>{t("app.validationPanel.waitingDesc", "Wygeneruj szynę DIN, aby rozpocząć sprawdzanie modułów i obwodów.")}</p>
         </div>
       </div>
     );
@@ -80,10 +82,10 @@ export function ValidationPanel({
   if (readiness === "emptyProject") {
     return (
       <div className="validation-panel">
-        <div className="section-header">WYNIKI WALIDACJI</div>
+        <div className="section-header">{t("app.validationPanel.header", "WYNIKI WALIDACJI")}</div>
         <div className="card validation-empty validation-idle">
-          <strong>Walidacja gotowa</strong>
-          <p>Dodaj moduły i obwody, aby rozpocząć sprawdzanie projektu.</p>
+          <strong>{t("app.validationPanel.readyTitle", "Walidacja gotowa")}</strong>
+          <p>{t("app.validationPanel.readyDesc", "Dodaj moduły i obwody, aby rozpocząć sprawdzanie projektu.")}</p>
         </div>
       </div>
     );
@@ -92,10 +94,10 @@ export function ValidationPanel({
   if (readiness === "noCircuitDevices") {
     return (
       <div className="validation-panel">
-        <div className="section-header">WYNIKI WALIDACJI</div>
+        <div className="section-header">{t("app.validationPanel.header", "WYNIKI WALIDACJI")}</div>
         <div className="card validation-empty validation-idle">
-          <strong>Brak obwodów do sprawdzenia</strong>
-          <p>Moduły pomocnicze są obecne, ale walidacja obwodów ruszy po dodaniu MCB albo RCBO.</p>
+          <strong>{t("app.validationPanel.noCircuitsTitle", "Brak obwodów do sprawdzenia")}</strong>
+          <p>{t("app.validationPanel.noCircuitsDesc", "Moduły pomocnicze są obecne, ale walidacja obwodów ruszy po dodaniu MCB albo RCBO.")}</p>
         </div>
       </div>
     );
@@ -104,10 +106,10 @@ export function ValidationPanel({
   if (errorCount === 0 && warningCount === 0 && infoCount === 0) {
     return (
       <div className="validation-panel">
-        <div className="section-header">WYNIKI WALIDACJI</div>
+        <div className="section-header">{t("app.validationPanel.header", "WYNIKI WALIDACJI")}</div>
         <div className="card validation-empty">
-          <strong>Dokumentacja poprawna</strong>
-          <p>Brak problemów w aktualnym zleceniu.</p>
+          <strong>{t("app.validationPanel.correctTitle", "Dokumentacja poprawna")}</strong>
+          <p>{t("app.validationPanel.correctDesc", "Brak problemów w aktualnym zleceniu.")}</p>
         </div>
       </div>
     );
@@ -115,60 +117,60 @@ export function ValidationPanel({
 
   return (
     <div className="validation-panel">
-      <div className="section-header">WYNIKI WALIDACJI</div>
+      <div className="section-header">{t("app.validationPanel.header", "WYNIKI WALIDACJI")}</div>
 
       <div className="card validation-summary-card">
-        <strong>{errorCount > 0 ? "Dokumentacja wymaga poprawek" : "Dokumentacja z ostrzeżeniami"}</strong>
+        <strong>{errorCount > 0 ? t("app.validationPanel.summaryErrorsTitle", "Dokumentacja wymaga poprawek") : t("app.validationPanel.summaryWarningsTitle", "Dokumentacja z ostrzeżeniami")}</strong>
         <div className="validation-summary">
           <button
             className="validation-export-btn"
             type="button"
-            onClick={() => copyReportToClipboard(filteredGroups)}
-            title="Kopiuj listę wyników jako tekst do schowka"
+            onClick={() => copyReportToClipboard(filteredGroups, t)}
+            title={t("app.validationPanel.copyTooltip", "Kopiuj listę wyników jako tekst do schowka")}
           >
             <AppIcon name="print" size={14} />
-            Kopiuj raport
+            {t("app.validationPanel.copyAction", "Kopiuj raport")}
           </button>
           <label className="validation-filter-select">
-            <span>Pokaż:</span>
+            <span>{t("app.validationPanel.filterLabel", "Pokaż:")}</span>
             <select
               value={severityFilterMode}
               onChange={(e) => setSeverityFilterMode(e.target.value as SeverityFilterMode)}
             >
-              <option value="all">Wszystkie ({totalMessageCount})</option>
+              <option value="all">{t("app.validationPanel.filterAll", "Wszystkie")} ({totalMessageCount})</option>
               {errorCount > 0 && (
-                <option value="errors">Tylko błędy ({errorCount})</option>
+                <option value="errors">{t("app.validationPanel.filterErrorsOnly", "Tylko błędy")} ({errorCount})</option>
               )}
               {(errorCount + warningCount) > 0 && (
-                <option value="errors-warnings">Błędy + ostrzeżenia ({errorCount + warningCount})</option>
+                <option value="errors-warnings">{t("app.validationPanel.filterErrorsWarnings", "Błędy + ostrzeżenia")} ({errorCount + warningCount})</option>
               )}
               {warningCount > 0 && (
-                <option value="warnings">Tylko ostrzeżenia ({warningCount})</option>
+                <option value="warnings">{t("app.validationPanel.filterWarningsOnly", "Tylko ostrzeżenia")} ({warningCount})</option>
               )}
               {infoCount > 0 && (
-                <option value="info">Tylko info ({infoCount})</option>
+                <option value="info">{t("app.validationPanel.filterInfoOnly", "Tylko info")} ({infoCount})</option>
               )}
             </select>
           </label>
           <div className="validation-counts">
-            <span className="validation-count errors" aria-label={`Błędy: ${errorCount}`}>
+            <span className="validation-count errors" aria-label={`${t("app.validationPanel.errorsLabel", "Błędy:")} ${errorCount}`}>
               <AppIcon name="validation" size={14} />
-              Błędy: {errorCount}
+              {t("app.validationPanel.errorsLabel", "Błędy:")} {errorCount}
             </span>
-            <span className="validation-count warnings" aria-label={`Ostrzeżenia: ${warningCount}`}>
+            <span className="validation-count warnings" aria-label={`${t("app.validationPanel.warningsLabel", "Ostrzeżenia:")} ${warningCount}`}>
               <AppIcon name="validation" size={14} />
-              Ostrzeżenia: {warningCount}
+              {t("app.validationPanel.warningsLabel", "Ostrzeżenia:")} {warningCount}
             </span>
             {infoCount > 0 && (
-              <span className="validation-count info" aria-label={`Info: ${infoCount}`}>
+              <span className="validation-count info" aria-label={`${t("app.validationPanel.infoLabel", "Info:")} ${infoCount}`}>
                 <AppIcon name="help" size={14} />
-                Info: {infoCount}
+                {t("app.validationPanel.infoLabel", "Info:")} {infoCount}
               </span>
             )}
           </div>
         </div>
         {hiddenMessageCount > 0 ? (
-          <span className="validation-filter-note">Ukryto: {hiddenMessageCount}</span>
+          <span className="validation-filter-note">{t("app.validationPanel.hiddenItems", "Ukryto:")} {hiddenMessageCount}</span>
         ) : null}
       </div>
 
@@ -218,10 +220,10 @@ export function ValidationPanel({
                       onSelectSymbol(group.technicalId!);
                     }}
                   >
-                    Pokaż
+                    {t("app.validationPanel.showAction", "Pokaż")}
                   </span>
                 ) : null}
-                <span className="validation-expand-indicator">{expandedGroupIds.has(group.id) ? "Zwiń" : "Rozwiń"}</span>
+                <span className="validation-expand-indicator">{expandedGroupIds.has(group.id) ? t("app.validationPanel.collapse", "Zwiń") : t("app.validationPanel.expand", "Rozwiń")}</span>
               </div>
             </button>
             {expandedGroupIds.has(group.id) && (
@@ -238,15 +240,15 @@ export function ValidationPanel({
                       key={`${msg.code}-${msg.symbolId ?? "project"}-${msg.message}`}
                       className={`validation-item ${msg.severity.toLowerCase()}`}
                     >
-                      <span className="validation-code" title={buildRuleTooltip(msg.code)}>{msg.code}</span>
+                      <span className="validation-code" title={buildRuleTooltip(msg.code, t)}>{msg.code}</span>
                       <span className="validation-message">{msg.message}</span>
                       {msg.details && <span className="validation-details">{msg.details}</span>}
                       {(() => {
-                        const remediation = getValidationRemediation(msg.code);
+                        const remediation = getValidationRemediation(msg.code, t);
                         return remediation ? (
                           <span className="validation-remediation">
                             <AppIcon name="help" size={12} />
-                            <strong>Co zrobić:</strong> {remediation}
+                            <strong>{t("app.validationPanel.remediationLabel", "Co zrobić:")}</strong> {remediation}
                           </span>
                         ) : null;
                       })()}
@@ -289,12 +291,14 @@ export function ValidationPanel({
 }
 
 function SeverityBadge({ severity }: { severity: ValidationSeverity }) {
-  const label = severity === "Error" ? "Błąd" : severity === "Warning" ? "Ostrzeżenie" : "Info";
+  const { t } = useTranslation();
+  const label = severity === "Error" ? t("app.validationPanel.severityError", "Błąd") : severity === "Warning" ? t("app.validationPanel.severityWarning", "Ostrzeżenie") : t("app.validationPanel.severityInfo", "Info");
 
   return <span className={`validation-severity-badge ${severity.toLowerCase()}`}>{label}</span>;
 }
 
 function RulesReferenceSection() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   // Sorted list of all registered rule codes — drawn from the registry so
   // adding a new VAL-XXX entry to `VALIDATION_RULE_DESCRIPTIONS` automatically
@@ -316,9 +320,9 @@ function RulesReferenceSection() {
         onClick={() => setIsOpen((current) => !current)}
       >
         <AppIcon name="help" size={14} />
-        <strong>Reguły walidacji ({entries.length})</strong>
+        <strong>{t("app.validationPanel.rulesTitle", "Reguły walidacji")} ({entries.length})</strong>
         <span className="validation-rules-reference-hint">
-          {isOpen ? "Zwiń" : "Pokaż wszystkie reguły"}
+          {isOpen ? t("app.validationPanel.collapse", "Zwiń") : t("app.validationPanel.showAllRules", "Pokaż wszystkie reguły")}
         </span>
       </button>
       {isOpen && (
@@ -327,10 +331,10 @@ function RulesReferenceSection() {
             <li key={code} className="validation-rules-reference-item">
               <div className="validation-rules-reference-row">
                 <span className="validation-code">{code}</span>
-                <span className="validation-rules-reference-description">{entry.description}</span>
+                <span className="validation-rules-reference-description">{t(`app.validationRule.${code}.description`, entry.description)}</span>
               </div>
               {entry.normRef && (
-                <div className="validation-rules-reference-norm">{entry.normRef}</div>
+                <div className="validation-rules-reference-norm">{t(`app.validationRule.${code}.normRef`, entry.normRef)}</div>
               )}
             </li>
           ))}
@@ -357,8 +361,8 @@ function severityModeToSet(mode: SeverityFilterMode): Set<ValidationSeverity> {
   }
 }
 
-function buildRuleTooltip(code: string): string {
-  const entry = getValidationRuleDescription(code);
+function buildRuleTooltip(code: string, t: (key: string, defaultValue: string) => string): string {
+  const entry = getValidationRuleDescription(code, t);
   if (!entry) return "";
 
   // WHY: tooltip text combines plain rule explanation with the standard
@@ -375,15 +379,16 @@ function getHighestSeverity(severities: ValidationSeverity[]): ValidationSeverit
 
 function formatReportForClipboard(
   groups: ReturnType<typeof buildValidationDisplayGroupsForSymbols>,
+  t: (key: string, defaultValue: string) => string
 ): string {
   const date = new Date().toISOString().split("T")[0];
   const lines: string[] = [];
-  lines.push(`Raport walidacji DINBoard — ${date}`);
+  lines.push(`${t("app.validationPanel.reportHeader", "Raport walidacji DINBoard —")} ${date}`);
   lines.push("=".repeat(50));
   lines.push("");
 
   if (groups.length === 0) {
-    lines.push("Brak problemów w wybranym filtrze.");
+    lines.push(t("app.validationPanel.reportEmpty", "Brak problemów w wybranym filtrze."));
     return lines.join("\n");
   }
 
@@ -401,8 +406,9 @@ function formatReportForClipboard(
 
 async function copyReportToClipboard(
   groups: ReturnType<typeof buildValidationDisplayGroupsForSymbols>,
+  t: (key: string, defaultValue: string) => string
 ): Promise<void> {
-  const text = formatReportForClipboard(groups);
+  const text = formatReportForClipboard(groups, t);
   try {
     await navigator.clipboard.writeText(text);
   } catch {

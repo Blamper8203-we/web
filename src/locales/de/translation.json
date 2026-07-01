@@ -1,0 +1,714 @@
+{
+  "landing": {
+    "title": "Schaltplan-Design",
+    "subtitle": "DINBoard unterstützt den Elektriker beim Aufbau der Verteilung, bei der Erstellung eines übersichtlichen Installationsplans, der Stromkreisprüfung und der Vorbereitung einer professionellen PDF-Abnahmedokumentation. Alles in Ihrem Browser.",
+    "buttonNew": "Neues Projekt erstellen",
+    "buttonOpen": "Projekt von der Festplatte öffnen",
+    "preview": {
+      "badge": "APP-VORSCHAU",
+      "title": "Klare und intuitive Benutzeroberfläche",
+      "desc": "Sehen Sie sich an, wie ich den Arbeitsbereich von DinBoard für schnelles und komfortables Arbeiten des Installateurs konzipiert habe."
+    },
+    "features": {
+      "badge": "WARUM DINBOARD?",
+      "title": "Entwickelt, um Installateuren Zeit zu sparen",
+      "desc": "Wechseln Sie in wenigen Minuten von der Idee zur fertigen Verteilung und zum Protokoll. Ohne komplizierte, teure CAD-Software.",
+      "f1": {
+        "title": "DIN-Schiene zeichnen",
+        "desc": "Einfache und schnelle Anordnung von Schutz- und Modulargeräten per Drag-and-Drop. Entwerfen Sie im Handumdrehen eine übersichtliche Frontansicht der Schaltanlage."
+      },
+      "f2": {
+        "title": "Einlinienschema",
+        "desc": "Die App erstellt automatisch einen Schaltplan basierend auf den auf der Schiene angeordneten Geräten. Schluss mit dem mühsamen manuellen Zeichnen von Stromkreisen."
+      },
+      "f3": {
+        "title": "PDF-Dokumentation",
+        "desc": "Erstellen Sie klare Montagezeichnungen und eine druckfertige As-Built-Dokumentation in Sekundenschnelle, unter Beibehaltung Ihres Logos."
+      },
+      "f4": {
+        "title": "Datenschutz und Sicherheit",
+        "desc": "Ihre Projekte sind zu 100 % vertraulich. Die App verarbeitet Daten in Ihrem Browser und Sie speichern Projektdateien (.dinboard) sicher auf Ihrer eigenen Festplatte."
+      },
+      "f5": {
+        "title": "Intelligente Überprüfung",
+        "desc": "Eingebaute Validierungsalgorithmen überprüfen ständig die Korrektheit der Verbindungen, überwachen die Phasenlastverteilung und schützen Sie vor kritischen Fehlern."
+      },
+      "f6": {
+        "title": "Eigene Gerätedatenbank",
+        "desc": "Importieren Sie ganz einfach SVG-Vektordateien von Geräten, die in externen Grafikprogrammen entworfen wurden, und erstellen Sie mühelos Ihre eigene Datenbank mit einzigartigen Komponenten."
+      }
+    },
+    "kb": {
+      "1": {
+        "title": "Schritt-für-Schritt-Planung der Elektroinstallation",
+        "desc": "Ein kompletter Leitfaden für den Installateur von der leeren Schiene bis zum endgültigen Ausdruck des Abnahmeprotokolls.",
+        "p1": "Die Montage von Wohnungsverteilern erfordert Präzision und genaue Stromberechnungen. Herkömmliche CAD-Tools erfordern stundenlanges manuelles Zeichnen jeder Leitung und Verteilertabelle. DinBoard automatisiert diesen Prozess und erleichtert die Erstellung übersichtlicher Zeichnungen für den Investor.",
+        "p2": "Das intuitive Seitenpanel ermöglicht das Verschieben von Leitungsschutzschaltern in Sekundenbruchteilen, was das Einlinienschema direkt modifiziert und so das Fundament einer perfekten Hausinstallation bildet.",
+        "quote": "\"Ein gut erstelltes Einlinienschema und eine präzise Anordnung der DIN-Schienen sind die Visitenkarte eines professionellen Elektroinstallateurs.\""
+      },
+      "2": {
+        "title": "Wie man die Leistungsbilanz in einem Einfamilienhaus berechnet",
+        "desc": "Erfahren Sie, wie Sie teure Stromausfälle durch frühzeitige Erkennung von Phasenungleichgewichten und die richtige L1-L3-Aufteilung vermeiden können.",
+        "p1": "Ein Schlüsselelement einer sicheren Installation ist die Beibehaltung einer minimalen Phasenlastasymmetrie in Dreiphasensystemen (3F TN-S / TN-C). Unsere Algorithmen stellen sicher, dass einphasige Verbraucher mit hohem Stromverbrauch (wie Induktionskochfelder, Waschmaschinen oder Durchlauferhitzer) optimal auf die Phasen L1, L2 und L3 verteilt werden.",
+        "p2": "Ein Ungleichgewicht führt nicht nur zur Überlastung und zum Auslösen des Hauptschalters, sondern verstärkt auch das Problem des Durchbrennens des PEN-Neutralleiters bei Überlastungen. DinBoard berechnet diese Asymmetrien und gibt mögliche Fehlermeldungen bereits in der Planungsphase des Projekts zurück, nicht erst an der Verteilung in der realen Welt."
+      },
+      "badge": "WISSENSDATENBANK",
+      "header": "Wissensdatenbank:"
+    },
+    "faq": {
+      "badge": "Wissensdatenbank",
+      "title": "Häufig gestellte Fragen (FAQ)",
+      "q1": {
+        "title": "Muss DinBoard auf dem Computer installiert werden?",
+        "desc": "Nein! DinBoard ist eine moderne Web-App. Sie funktioniert direkt im Webbrowser auf PCs, Macs, Tablets und sogar Handys. Keine mühsame Installation und Konfiguration erforderlich."
+      },
+      "q2": {
+        "title": "In welchem Format kann ich Dateien und Dokumentationen speichern?",
+        "desc": "Sie können die Dokumentation der Schaltschrankansichten und die Stromkreisliste als PDF-Dateien (druckfertig für den Kunden) herunterladen. Die App bietet auch den Export der Stückliste (BOM) in eine CSV-Datei sowie verlustfreie hochwertige Screenshots der Verteilung und Schaltpläne im PNG-Format."
+      },
+      "q3": {
+        "title": "Unterstützt das Programm den Lastausgleich bei dreiphasigen Anlagen?",
+        "desc": "Ja! Der integrierte Algorithmus analysiert die den einzelnen Schutzgeräten zugewiesenen Leistungen und ordnet einphasige Stromkreise den Phasen L1, L2, L3 zu, um die Stromasymmetrie in der Empfangsanlage zu minimieren."
+      }
+    },
+    "footer": {
+      "subtitle": "Ein Werkzeug für moderne Elektriker.",
+      "privacy": "Datenschutzerklärung",
+      "terms": "Nutzungsbedingungen",
+      "contact": "Fehler melden / Kontakt",
+      "copyright": "© 2026 DinBoard.pl. Alle Rechte vorbehalten."
+    }
+  },
+  "app": {
+    "header": {
+      "file": "Datei",
+      "view": "Ansicht",
+      "tools": "Werkzeuge",
+      "help": "Hilfe",
+      "about": "Über",
+      "feedback": "Idee einreichen",
+      "donate": "Kaffee spendieren"
+    },
+    "fileMenu": {
+      "section": "Auftrag",
+      "new": "Neuer Auftrag",
+      "open": "Öffnen",
+      "save": "Speichern",
+      "saveAs": "Speichern unter",
+      "exportSection": "Exportieren",
+      "print": "Drucken",
+      "exportPdf": "Als PDF exportieren",
+      "exportPng": "Als PNG exportieren (sauber)",
+      "exportPngAnnotations": "Als PNG exportieren (mit Anmerkungen)",
+      "exportPngHq": "Als PNG HQ exportieren (ohne Klammern)",
+      "exportBom": "BOM exportieren (CSV)",
+      "exit": "Beenden",
+      "exitMsg": "Das Schließen der Web-App ist im Browser nicht möglich"
+    },
+    "viewMenu": {
+      "section": "Anzeige",
+      "rightPanel": "Rechtes Panel",
+      "hideGroups": "Gruppen ausblenden",
+      "showGroups": "Gruppen anzeigen",
+      "sheets": "Pläne",
+      "sheet1": "Verteilerkasten",
+      "sheet2": "Schaltplan",
+      "sheet3": "Stromkreisliste",
+      "sheet4": "PDF-Dokumentation",
+      "sheet1_connections": "Verbindungen"
+    },
+    "toolsMenu": {
+      "section": "Werkzeuge",
+      "dinRail": "DIN-Schiene",
+      "importSvg": "SVG-Import",
+      "manageImport": "SVG-Import verwalten",
+      "addModule": "Modul hinzufügen"
+    },
+    "settingsMenu": {
+      "appearance": "Erscheinungsbild",
+      "theme": "App-Thema",
+      "dark": "Dunkel",
+      "style": "UI-Stil",
+      "shadows": "Mit Schatten",
+      "classic": "Klassisch",
+      "interface": "Schnittstelle",
+      "iconSize": "Symbolgröße",
+      "propertyPanel": "Eigenschaften-Panel",
+      "visible": "Sichtbar",
+      "hidden": "Versteckt"
+    },
+    "circuitEdit": {
+      "emptyBadge": "Bearbeitung",
+      "emptyTitle": "Kein Modul ausgewählt",
+      "emptyDesc": "Wählen Sie ein Element auf dem Schema aus oder fügen Sie ein Modul aus der Palette hinzu, um Parameter zu bearbeiten.",
+      "close": "Schließen",
+      "headers": {
+        "networkSwitch": {
+          "title": "Netzschalter",
+          "subtitle": "Stromschalter (I-0-II)"
+        },
+        "switch": {
+          "title": "Hauptschalter",
+          "subtitle": "Hauptschalter (FR)"
+        },
+        "phaseIndicator": {
+          "title": "Phasenanzeigen",
+          "subtitle": "Phasenanzeigen"
+        },
+        "rcd": {
+          "title": "RCD",
+          "subtitle": "Fehlerstromschutzschalter"
+        },
+        "spd": {
+          "title": "ÜSS",
+          "subtitle": "Überspannungsschutzgerät (ÜSS)"
+        },
+        "terminalBlock": {
+          "title": "Reihenklemme",
+          "subtitle": "Reihenklemme / Terminal"
+        },
+        "distributionBlock": {
+          "title": "Verteilerblock",
+          "subtitle": "Verteilerblock / Anschluss"
+        },
+        "obwod": {
+          "title": "Stromkreis",
+          "subtitle": "Leitungsschutzschalter / Verbraucher"
+        }
+      },
+      "fields": {
+        "designation": "Bezeichnung",
+        "label": "Etikett",
+        "removeCover": "Abdeckung abnehmen",
+        "frType": "FR-Typ",
+        "ratedCurrent": "Nennstrom",
+        "phase": "Phase",
+        "model": "Modell",
+        "fuse": "Sicherung",
+        "rcdType": "RCD-Typ",
+        "spdType": "ÜSS-Typ",
+        "circuitName": "Stromkreisname",
+        "location": "Ort",
+        "circuitType": "Stromkreistyp",
+        "protectionType": "Absicherung",
+        "powerW": "Leistung (W)",
+        "phaseLocked": "Phase sperren",
+        "cableDesig": "Kabelbezeichnung",
+        "cableType": "Kabeltyp",
+        "cableLength": "Kabellänge (m)",
+        "cableCrossSection": "Querschnitt (mm2)",
+        "placeholder": {
+          "circuitName": "z. B. Servicesteckdose",
+          "location": "z. B. Schaltschrank",
+          "powerW": "z. B. 2000",
+          "cableLength": "z. B. 15",
+          "cableCrossSection": "z. B. 2.5"
+        }
+      }
+    },
+    "pdfDocumentationPage": {
+      "heading": {
+        "titlePage": {
+          "title": "Titelseite der Dokumentation",
+          "description": "Auf der linken Seite bearbeiten Sie die Titelseite. Messvorlagen füllen Sie in den entsprechenden Registerkarten der Dokumentation aus."
+        },
+        "circuitList": {
+          "title": "Stromkreisliste",
+          "description": "Diese Registerkarte zeigt die Stromkreise direkt aus der aktuellen Verteilung. Das Bearbeiten von Namen, Phasen, Absicherungen und Kabeln erfolgt in den Stromkreisdaten."
+        },
+        "dinRail": {
+          "title": "Elektroverteilung",
+          "description": "Diese Registerkarte zeigt die Ansicht der Verteilung von der aktuellen DIN-Schiene und wird nach Änderungen an den Modulen synchronisiert."
+        },
+        "dinRailConnections": {
+          "title": "Verbindungen",
+          "description": "Diese Registerkarte zeigt die Ansicht der Verteilung zusammen mit den Verbindungen — Drähte und Aderendhülsen, die basierend auf dem aktuellen Projekt gezeichnet wurden."
+        },
+        "schematic": {
+          "title": "Schaltplan",
+          "description": "Diese Registerkarte zeigt den aus den hinzugefügten Stromkreisen generierten Schaltplan. Der Schaltplan wird nach Änderungen der Modulparameter aktualisiert."
+        },
+        "protocol": {
+          "title": "Protokollkopf: {{label}}",
+          "description": "Jede Messregisterkarte hat einen eigenen Kopfbereich. Änderungen in diesem Panel wirken sich nur auf das aktuell ausgewählte Protokoll aus."
+        }
+      },
+      "editor": {
+        "titlePage": {
+          "headerDoc": "Dokumentenkopf",
+          "protocolNr": "Protokoll Nr.",
+          "protocolNrPlaceholder": "12",
+          "docDate": "Datum der Dokumentation:",
+          "statementDate": "Erklärungsdatum:",
+          "objectInfo": "Objektinformationen",
+          "objectType": "Objekttyp:",
+          "objectTypePlaceholder": "Einfamilienhaus / Wohnfläche",
+          "address": "Adresse:",
+          "investor": "Bauherr:",
+          "investorAddress": "Adresse (Bauherr):",
+          "contractorLicense": "Auftragnehmer und Qualifikationen",
+          "contractor": "Auftragnehmer / Installateur",
+          "electrician": "Installateur / Elektriker",
+          "sepE": "Bedienung (E):",
+          "sepD": "Aufsicht (D):",
+          "validUntil": "Gültig bis",
+          "companyData": "Unternehmensdaten",
+          "companyDataHelp": "Optionale Felder — füllen Sie diese aus, wenn Sie die vollständigen Firmendaten des Auftragnehmers auf der Titelseite der PDF-Datei einfügen möchten.",
+          "nip": "USt-IdNr.",
+          "regon": "Registernummer",
+          "phone": "Telefon",
+          "email": "E-Mail",
+          "logo": "Firmenlogo",
+          "logoHelp1": "Das hinzugefügte Logo wird im Auftrag gespeichert und auf der ersten Seite der PDF-Dokumentation angezeigt.",
+          "logoInfoSelected": "Ausgewähltes Logo: {{name}}",
+          "logoInfoNone": "Kein Logo ausgewählt.",
+          "btnSelectLogo": "Logo auswählen",
+          "btnRemoveLogo": "Logo entfernen",
+          "logoHelp2": "Unterstützte Formate: PNG, JPG, JPEG, BMP.",
+          "logoError": "Logo konnte nicht geladen werden. Verwenden Sie eine PNG-, JPG-, JPEG- oder BMP-Datei.",
+          "workScope": "Arbeitsumfang",
+          "workScopeHelp": "Geben Sie jeden Punkt in eine eigene Zeile ein. In der PDF können Sie leere Felder für manuelles Abhaken lassen oder digitale Markierungen verwenden.",
+          "manualCheckboxes": "Leere zum Drucken",
+          "attachments": "Anlagen",
+          "attachmentsHelp": "Dieser Abschnitt enthält vordefinierte, feste Anlagen.",
+          "signatures": "Unterschriften",
+          "signInvestor": "Unterschrift Bauherr",
+          "signElectrician": "Unterschrift Elektriker",
+          "signContractor": "Stempel / Unterschrift Auftragnehmer",
+          "investorAddressPlaceholder": "(optional)",
+          "sepLicenses": "Zulassungen (Qualifikationen)",
+          "sepValidUntil": "Gültig bis:",
+          "statementFull": "Vollständiger Wortlaut der Erklärung des Auftragnehmers",
+          "signaturePlaceholder": "Unterschriftsfeld"
+        },
+        "circuitList": {
+          "title": "Datenquelle der Liste",
+          "desc1": "Die Stromkreisliste wird aus den aktuellen Symbolen der Verteilung generiert und bei Änderungen an den Modulen synchronisiert.",
+          "desc2": "RCDs, Phasenanzeigen, Klemmen und Verteilerblöcke werden nicht als separate Stromkreise angezeigt."
+        },
+        "dinRail": {
+          "title": "Datenquelle der Verteilungsansicht",
+          "desc1": "Die Ansicht wird aus der aktuellen DIN-Schiene, den Modulen und den im Projekt sichtbaren Beschriftungen generiert.",
+          "desc2": "Nach dem Hinzufügen, Entfernen oder Verschieben eines Moduls wird die Vorschau mit denselben Daten aktualisiert, die in den PDF-Export einfließen."
+        },
+        "dinRailConnections": {
+          "title": "Datenquelle der Verteilungsansicht mit Verbindungen",
+          "desc1": "Die Ebene mit Drähten und Aderendhülsen wird aus den aktuellen Projektverbindungen übernommen. Die Vorschau wird nach jeder Verbindungsänderung aktualisiert.",
+          "desc2": "Der PDF-Export enthält beide Seiten: die saubere Verteilung und die Verteilung mit Verbindungen."
+        },
+        "schematic": {
+          "title": "Schaltplanquelle",
+          "desc1": "Der Schaltplan wird automatisch basierend auf den hinzugefügten Stromkreisen, Phasen und Absicherungswerten generiert."
+        },
+        "protocol": {
+          "title": "Protokollkopf",
+          "desc": "In diesem Panel bearbeiten Sie den Kopf der aktiven Messregisterkarte.",
+          "mainTitle": "Haupttitel",
+          "subtitle": "Untertitel",
+          "rightData": "Daten auf der rechten Seite des Kopfes",
+          "measureDate": "Messdatum",
+          "objectName": "Objekt"
+        },
+        "unifiedProtocol": {
+          "protocolNrPrefix": "Messprotokoll Nr. ",
+          "recommendationsPlaceholder": "z. B. Ersetzen Sie die F3-Überstromsicherung im Beleuchtungskreis..."
+        }
+      },
+      "footer": {
+        "exportBtn": "Als PDF exportieren",
+        "exportBtnLoading": "Vorbereitung...",
+        "errorRetry": "Erneut versuchen"
+      }
+    },
+    "pdf": {
+      "measurementProtocols": {
+        "rcdGroundSubtitle": "Prüfung der Fehlerstromschutzschalter und Erdungswiderstand",
+        "groundConclusion": "Die Installation entspricht hinsichtlich des Schutzes gegen elektrischen Schlag, des Isolationszustands und der Wirksamkeit der Erdung den Anforderungen der Norm PN-HD 60364 und ist betriebsbereit.",
+        "unifiedSubtitle": "Zusammenfassende Tabelle der Messergebnisse",
+        "method": "Dreipolig / Schleifenimpedanz",
+        "electrodeType": "Fundament- / Ringerder"
+      },
+      "titlePage": {
+        "mainHeader": "As-Built-Dokumentation",
+        "electricalInstallation": "ÜBEREINSTIMMUNG MIT PN-HD 60364 (BLATT 6)",
+        "subDocument": "Protokoll der Schutzmessungen, Schaltplan und Stromkreisliste",
+        "object": "Objekt",
+        "address": "Adresse",
+        "investor": "Bauherr",
+        "investorAddress": "Adresse des Bauherrn",
+        "contractor": "Auftragnehmer",
+        "nip": "USt-IdNr.:",
+        "regon": "Reg.-Nr.:",
+        "tel": "Tel.:",
+        "email": "E-Mail:",
+        "author": "Erstellt von / Messungen",
+        "sepE": "Qualifikation E:",
+        "sepD": "Qualifikation D:",
+        "date": "Datum",
+        "scope": "Umfang der Arbeiten",
+        "attachments": "Anlagen zum Protokoll",
+        "statement": "Erklärung des Auftragnehmers",
+        "statementBody": "Ich erkläre, dass die Elektroinstallation in dem oben genannten Objekt in Übereinstimmung mit den geltenden Vorschriften, den Regeln der Technik und der Norm PN-HD 60364 ausgeführt wurde.",
+        "signatures": "Unterschriften",
+        "signInvestor": "Bauherr",
+        "signAuthor": "Ersteller / Auftragnehmer",
+        "statementSubtitle": "der nach den Vorschriften und Normen ausgeführten Elektroinstallation",
+        "contractorSubtitle": "Verantwortlicher für die Installation",
+        "statementText": "Ich erkläre, dass die elektrische Anlage in dem oben genannten Objekt gemäß den Bestimmungen des Baurechts, den geltenden technischen Normen (einschließlich <span className=\\",
+        "contractorStamp": "Firmenstempel",
+        "electricianSignature": "Unterschrift des Elektrikers",
+        "electricianSubtitle": "Qualifizierte Person (Prüfer)",
+        "investorSignature": "Unterschrift des Bauherrn",
+        "investorSubtitle": "Eigentümer / Verwalter des Objekts"
+      },
+      "projectSummary": {
+        "title": "Projektzusammenfassung",
+        "subtitle": "Gruppierung RCD \u2192 MCB und Anlagenstatistik",
+        "date": "Datum:",
+        "stats": "Anlagenstatistik",
+        "mcb": "Schutzvorrichtungen (MCB/RCBO)",
+        "rcd": "Fehlerstromschutzschalter (RCD)",
+        "noRcd": "Stromkreise ohne RCD",
+        "rcdGrouping": "Gruppierung der Fehlerstromschutzeinrichtungen",
+        "noMcbRcd": "Das Projekt enthält keine Schutzvorrichtungen oder Fehlerstromschutzschalter.",
+        "rcdGroup": "RCD-Gruppe",
+        "noRcdCircuit": "Stromkreis ohne RCD",
+        "rcdType": "RCD-Typ",
+        "circuits": "Stromkreise",
+        "object": "Objekt:",
+        "newOrder": "Neuer Auftrag",
+        "contractor": "Auftragnehmer:"
+      },
+      "circuitList": {
+        "title": "Liste der Stromkreise",
+        "colId": "Id.",
+        "colDesc": "Stromkreisbeschreibung",
+        "colLocation": "Ort",
+        "colProt": "Absicherung",
+        "colRcd": "RCD",
+        "colCrossSection": "Querschnitt",
+        "colCable": "Kabel/Leit."
+      },
+      "rcdTable": {
+        "badge": "RCD und Erdung",
+        "title": "Prüfung der Fehlerstromschutzschalter und Erdungswiderstand",
+        "date": "Messdatum:",
+        "object": "Objekt:",
+        "section1": "1. Technische Daten und Messgeräte",
+        "meter": "Messgerät:",
+        "serialNo": "Seriennr.:",
+        "section2": "2. Messtabelle (Fehlerstromschutzschalter)",
+        "colIndex": "Lfd. Nr.",
+        "colType": "RCD-Typ",
+        "colIdn": "IΔn [mA]",
+        "colTripCurrent": "Auslösestrom [mA]",
+        "colTripTime": "Auslösezeit [ms]",
+        "colTest": "TEST-Taste",
+        "colResult": "Bewertung",
+        "section3": "3. Messung des Erdungswiderstands",
+        "method": "Messmethode:",
+        "electrodeType": "Erderart:",
+        "measuredRu": "Gemessener Ru-Wert:",
+        "requiredVal": "Geforderter Wert:",
+        "conclusion": "Technisches Urteil:"
+      },
+      "unifiedTable": {
+        "badge": "Zusammenfassung",
+        "title": "Zusammenfassende Tabelle der Messergebnisse",
+        "section1": "1. Messgeräte und Anlagenparameter",
+        "insulationTester": "Isolationsmessgerät:",
+        "loopTester": "Schleifenmessgerät:",
+        "testVolt": "Isolationsprüfspannung:",
+        "netVolt": "Nennspannung des Netzes:",
+        "netSystem": "Netzsystem:",
+        "section2": "2. Messtabelle (Isolationswiderstand und Fehlerschleife)",
+        "colCircuit": "Stromkreis",
+        "colProt": "Absich.",
+        "colInsulation": "Isolation",
+        "colLoop": "Fehlerschleife",
+        "colId": "Id.",
+        "colName": "Stromkreisname",
+        "colType": "Typ",
+        "colIn": "In [A]",
+        "colLN": "L-N [MΩ]",
+        "colLPE": "L-PE [MΩ]",
+        "colNPE": "N-PE [MΩ]",
+        "colZs": "Zs [Ω]",
+        "colZa": "Za [Ω]"
+      },
+      "footer": {
+        "signatureSlot": "Platz für Stempel / Unterschrift",
+        "checkedBy": "Geprüft von (Auftragnehmer/Elektriker)",
+        "sepSignature": "Unterschrift der qualifizierten Person",
+        "pageInfo": "Seite {{pageNumber}} von {{totalPages}} • Digital erstelltes Dokument • Konform mit PN-HD 60364"
+      },
+      "docContentPage": {
+        "title": "Projektdokumentation",
+        "subtitle": "Technische Beschreibung, Auswahl, Berechnungen und Abnahmebedingungen",
+        "date": "Datum:",
+        "emptyMessage": "Keine ausgefüllten Beschreibungsabschnitte. Füllen Sie die Felder „Technische Beschreibung“, „Kabelauswahl“, „Berechnungen“ und ähnliche in den Projekteinstellungen aus, um sie der PDF-Dokumentation hinzuzufügen.",
+        "sections": {
+          "equipmentList": "Verzeichnis der Geräte und Zubehörteile",
+          "cableSelection": "Auswahl der Kabel und Schutzvorrichtungen",
+          "techCalculations": "Technische Berechnungen",
+          "legendAndSymbols": "Legende und Symbole",
+          "techDescription": "Technische Beschreibung der Anlage",
+          "shockProtection": "Schutz gegen elektrischen Schlag",
+          "acceptanceConditions": "Abnahmebedingungen und Hinweise"
+        }
+      },
+      "circuits": {
+        "title": "Stromkreisliste",
+        "mainHeader": "Liste der elektrischen Stromkreise",
+        "subtitle": "Blatt {{page}} von {{total}} • Daten aus aktueller Verteilung",
+        "tableHeader": "1. Stromkreisliste",
+        "tableHeaderContinued": "1. Stromkreisliste (Fortsetzung {{page}})",
+        "itemsCount": "Elemente",
+        "columns": {
+          "no": "Lfd. Nr.",
+          "designation": "Kennz.",
+          "circuitName": "Stromkreisname",
+          "location": "Ort",
+          "phase": "Phase",
+          "protection": "Sicherung",
+          "rcd": "RCD",
+          "cable": "Kabel",
+          "length": "Länge [m]",
+          "power": "Leistung [W]"
+        },
+        "empty": "Keine Stromkreise zum Anzeigen."
+      },
+      "shared": {
+        "date": "Datum:",
+        "object": "Objekt:",
+        "retry": "Erneut versuchen"
+      },
+      "dinRail": {
+        "connectionsAlt": "Ansicht des Verteilerkastens mit Verbindungen",
+        "cleanAlt": "Ansicht des elektrischen Verteilerkastens",
+        "connectionsTitle": "Verbindungen",
+        "cleanTitle": "Elektrischer Verteilerkasten",
+        "errorTitle": "Ansicht konnte nicht aktualisiert werden.",
+        "loadingTitle": "Ansicht des Verteilerkastens wird aktualisiert...",
+        "loadingDesc": "Die Vorschau wird angezeigt, sobald der Schnappschuss der DIN-Schiene fertig ist."
+      },
+      "rcd": {
+        "title": "RCD und Erdung",
+        "subtitle": "Test von Fehlerstromschutzschaltern RCD und Erdungswiderstandsmessung",
+        "meterName": "Messgerät:",
+        "meterSerial": "Seriennummer:",
+        "section2Title": "2. Messtabelle (Fehlerstromschutzschalter)",
+        "table": {
+          "no": "Lfd. Nr.",
+          "rcdType": "RCD-Typ",
+          "idn": "IΔn [mA]",
+          "tripCurrent": "Auslösestrom [mA]",
+          "tripTime": "Auslösezeit [ms]",
+          "testBtn": "TEST-Taste",
+          "eval": "Bewertung"
+        },
+        "section3Title": "3. Erdungswiderstandsmessung (HES)",
+        "groundMethod": "Messmethode:",
+        "groundType": "Erderart:",
+        "groundMeasured": "Gemessener Ru-Wert:",
+        "groundRequired": "Erforderlicher Wert:",
+        "conclusionLabel": "Technische Stellungnahme:",
+        "conclusionPlaceholder": "Stellungnahme eingeben..."
+      },
+      "unified": {
+        "measureDate": "Messdatum:",
+        "section1Title": "1. Technische Daten und Messgeräte",
+        "stampPlaceholder": "Platz für Stempel / Unterschrift",
+        "contractorSignature": "Geprüft (Auftragnehmer/Elektriker)",
+        "contractorSubtitle": "Unterschrift der qualifizierten Person",
+        "title": "Zusammenfassende Tabelle",
+        "subtitle": "Zusammenfassende Ergebnisse von Fehlerschleifen- und Isolationswiderstandsmessungen",
+        "techData": {
+          "meterLoop": "Messgerät (Schleife):",
+          "meterInsulation": "Messgerät (Isolation):",
+          "serialLoop": "Seriennr. (Schleife):",
+          "serialInsulation": "Seriennr. (Isolation):",
+          "voltage": "Netzspannung:",
+          "voltagePlaceholder": "z. B. 230/400V",
+          "system": "Netzsystem:",
+          "systemPlaceholder": "z. B. TN-S / TN-C-S",
+          "testVoltage": "Prüfspannung:"
+        },
+        "section2Title": "2. Zusammenfassende Ergebnisse der Stromkreismessungen",
+        "section2TitleContinued": "2. Zusammenfassende Ergebnisse der Stromkreismessungen (Fortsetzung {{page}})",
+        "table": {
+          "no": "Lfd. Nr.",
+          "circuitName": "Stromkreisname",
+          "location": "Ort",
+          "in": "In",
+          "req": "Erf.",
+          "loop": "Fehlerschleife",
+          "evaluation": "Bewertung"
+        },
+        "noteLabel": "Hinweis:",
+        "noteText": "Alle elektrischen Verbraucher wurden für die Isolationswiderstandsmessung abgeklemmt. Die Messungen wurden bei einer konstanten Prüfspannung von {{voltage}} durchgeführt.",
+        "legendLabel": "Legenda:",
+        "legendText": "<span class=\\",
+        "section3Title": "3. Empfehlungen"
+      },
+      "schematic": {
+        "alt": "Schaltplan — Blatt {{page}}",
+        "errorTitle": "Schaltplan konnte nicht aktualisiert werden.",
+        "loadingTitle": "Schaltplan wird vorbereitet...",
+        "emptyTitle": "Kein Schaltplan zum Anzeigen.",
+        "loadingDesc": "Der Schaltplan wird aus den hinzugefügten Stromkreisen, Phasen und Sicherungen generiert.",
+        "emptyDesc": "Fügen Sie Stromkreise, Phasen und Sicherungen hinzu, um den Schaltplan zu sehen."
+      }
+    },
+    "errorBoundary": {
+      "title": "Die App konnte nicht geladen werden",
+      "desc1": "Die Arbeitsdaten in diesem Browser sollten verfügbar bleiben. Aktualisieren Sie die App und überprüfen Sie das zuletzt gespeicherte Projekt.",
+      "desc2": "Wenn das Problem nach der Aktualisierung weiterhin besteht, verwenden Sie 'Aktuelles Projekt löschen'. Der aktuelle Zustand wird archiviert (nicht gelöscht), und die App startet mit einem leeren Projekt.",
+      "reloadAction": "Aktualisieren",
+      "returnAction": "Zurück zur App",
+      "resetAction": "Aktuelles Projekt löschen"
+    },
+    "appHeader": {
+      "undo": "Rückgängig",
+      "undoPrefix": "Rückgängig:",
+      "redo": "Wiederholen",
+      "redoPrefix": "Wiederholen:",
+      "deleteSelected": "Auswahl löschen",
+      "dinRail": "DIN-Schiene",
+      "importModules": "Module importieren",
+      "zoomIn": "Vergrößern",
+      "zoomOut": "Verkleinern",
+      "zoomFit": "An Ansicht anpassen"
+    },
+    "mobileDrawer": {
+      "project": "PROJEKT",
+      "newProject": "Neuer Auftrag",
+      "openProject": "Projekt öffnen",
+      "saveChanges": "Änderungen speichern",
+      "edit": "BEARBEITEN",
+      "exportTools": "EXPORT UND WERKZEUGE",
+      "exportPdf": "Als PDF exportieren",
+      "dinRailGenerator": "DIN-Schienen-Generator",
+      "importSvg": "SVG-Module importieren",
+      "other": "SONSTIGES",
+      "help": "Hilfe und Anleitung",
+      "feedback": "Idee / Fehler melden",
+      "buyCoffee": "Kaffee spendieren"
+    },
+    "rightPanel": {
+      "tabs": {
+        "power": "Spannung",
+        "balance": "Bilanz",
+        "validation": "Validierung",
+        "edit": "Bearbeiten"
+      },
+      "powerConfig": {
+        "header": "ENERGIEKONFIGURATION",
+        "voltage": "Spannung",
+        "phases": "Anzahl der Phasen",
+        "mainBreaker": "Hauptsicherung",
+        "power": "Anschlussleistung",
+        "simultaneity": "Gleichzeitigkeitsfaktor",
+        "powerFactor": "Leistungsfaktor (cosφ)"
+      },
+      "rcdSettings": {
+        "header": "RCD-EINSTELLUNGEN",
+        "manage": "RCD verwalten"
+      }
+    },
+    "circuitCalculators": {
+      "title": "Berechnungsparameter",
+      "currentIb": "Laststrom (Ib)",
+      "voltageDrop": "Spannungsabfall (dU)",
+      "requiredZs": "Erforderliches Zs (max)",
+      "cableZTooltip": "Kabelimpedanz für diesen Stromkreis",
+      "cableZLabel": "Kabelimpedanz"
+    },
+    "connectionsLeftPanel": {
+      "deleteAction": "Draht löschen",
+      "deleteStatus": "Ausgewählte Verbindung gelöscht",
+      "modeTitle": "Verdrahtungsmodus",
+      "modeDesc": "Verdrahtung und Verbindungen der DIN-Schiene konfigurieren",
+      "selectedTitle": "Ausgewählter Draht",
+      "selectedDesc": "Sie ändern nur die Eigenschaften des ausgewählten Drahtes.",
+      "radiusLabel": "Biegeradius (Radius)",
+      "deleteButton": "Draht löschen",
+      "newWireTitle": "Neuer Draht Einstellungen",
+      "newWireDesc": "Standardparameter wählen. Neu gezeichnete Verbindungen werden mit diesen Eigenschaften erstellt.",
+      "wireColorLabel": "Isolationsfarbe",
+      "wireColors": {
+        "peShort": "Ge-Gn"
+      },
+      "ferruleColorLabel": "Aderendhülsenfarbe (LgY)",
+      "crossSectionLabel": "Querschnitt",
+      "wireTypeLabel": "Drahttyp"
+    },
+    "mainWorkspace": {
+      "loadingPdf": "PDF-Modul wird geladen..."
+    },
+    "ui": {
+      "logoError": "Logo-Datei konnte nicht gelesen werden.",
+      "changeLogo": "Logo ändern",
+      "addLogo": "LOGO HINZUFÜGEN",
+      "addScopePoint": "Weiteren Punkt hinzufügen"
+    },
+    "validationPanel": {
+      "header": "VALIDIERUNGSERGEBNISSE",
+      "waitingTitle": "Validierung wartet auf Verteilerkasten",
+      "waitingDesc": "Erstellen Sie eine DIN-Schiene, um mit der Überprüfung der Module und Stromkreise zu beginnen.",
+      "readyTitle": "Validierung bereit",
+      "readyDesc": "Fügen Sie Module und Stromkreise hinzu, um die Projektüberprüfung zu starten.",
+      "noCircuitsTitle": "Keine Stromkreise zur Überprüfung",
+      "noCircuitsDesc": "Zusatzmodule sind vorhanden, aber die Validierung startet erst nach Hinzufügen eines MCB oder RCBO.",
+      "correctTitle": "Dokumentation korrekt",
+      "correctDesc": "Keine Probleme im aktuellen Auftrag.",
+      "summaryErrorsTitle": "Dokumentation muss korrigiert werden",
+      "summaryWarningsTitle": "Dokumentation mit Warnungen",
+      "copyTooltip": "Ergebnisliste als Text in die Zwischenablage kopieren",
+      "copyAction": "Bericht kopieren",
+      "filterLabel": "Zeigen:",
+      "filterAll": "Alle",
+      "filterErrorsOnly": "Nur Fehler",
+      "filterErrorsWarnings": "Fehler + Warnungen",
+      "filterWarningsOnly": "Nur Warnungen",
+      "filterInfoOnly": "Nur Info",
+      "errorsLabel": "Fehler:",
+      "warningsLabel": "Warnungen:",
+      "infoLabel": "Info:",
+      "hiddenItems": "Versteckt:",
+      "showAction": "Anzeigen",
+      "collapse": "Einklappen",
+      "expand": "Ausklappen",
+      "remediationLabel": "Was tun:",
+      "severityError": "Fehler",
+      "severityWarning": "Warnung",
+      "severityInfo": "Info",
+      "rulesTitle": "Validierungsregeln",
+      "showAllRules": "Alle Regeln anzeigen",
+      "reportHeader": "DINBoard-Validierungsbericht —",
+      "reportEmpty": "Keine Probleme im gewählten Filter."
+    },
+    "validationRule": {
+      "noMainBreaker": {
+        "title": "Kein Hauptschalter FR im Projekt.",
+        "desc": "Die Verwendung eines Hauptschalters (Trennschalter) wird empfohlen.",
+        "remediation": "Fügen Sie einen FR-Schalter aus der Palette zur Hauptschiene hinzu."
+      },
+      "overloadedPhase": {
+        "title": "Überlastete Phase L1/L2/L3.",
+        "desc": "Die Gesamtleistung überschreitet die Anschlusskapazität dieser Phase.",
+        "remediation": "Ändern Sie die Phasenzuordnung der belasteten Stromkreise oder erhöhen Sie die bestellte Leistung."
+      },
+      "missingRcd": {
+        "title": "1P-Stromkreis ohne RCD-Schutz.",
+        "desc": "Steckdosenstromkreise erfordern einen Fehlerstromschutz.",
+        "remediation": "Fügen Sie vor diesem Stromkreis einen RCD hinzu oder ändern Sie den Sicherungstyp in RCBO."
+      },
+      "missingSurgeProtector": {
+        "title": "Kein Überspannungsschutz (ÜSS/SPD).",
+        "desc": "Eine Hausinstallation erfordert einen Überspannungsschutz mind. Typ 2.",
+        "remediation": "Fügen Sie einen ÜSS in der Nähe des Haupteinspeisungsschalters hinzu."
+      }
+    }
+  }
+}

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { WireColor, WireType, RoutingMode, FerruleColor } from "../types/connectionItem";
 import { DEFAULT_CUSTOM_RADIUS } from "../lib/connections/connectionsLogic";
 
@@ -55,6 +56,7 @@ export function ConnectionsLeftPanel({
   connections,
   onConnectionsChange,
 }: ConnectionsLeftPanelProps) {
+  const { t } = useTranslation();
   const updateSetting = <K extends keyof ConnectionsLeftPanelProps["defaultWireSettings"]>(
     key: K,
     value: ConnectionsLeftPanelProps["defaultWireSettings"][K]
@@ -84,7 +86,7 @@ export function ConnectionsLeftPanel({
   const handleDeleteSelected = () => {
     if (!selectedConnection || !connections || !onConnectionsChange) return;
     const nextConnections = connections.filter((conn) => conn.id !== selectedConnection.id);
-    onConnectionsChange(nextConnections, "Usunięcie przewodu", "Usunięto zaznaczone połączenie");
+    onConnectionsChange(nextConnections, t("app.connectionsLeftPanel.deleteAction", "Usunięcie przewodu"), t("app.connectionsLeftPanel.deleteStatus", "Usunięto zaznaczone połączenie"));
   };
 
   return (
@@ -93,10 +95,10 @@ export function ConnectionsLeftPanel({
       {/* NAGŁÓWEK PANELU (TRYB PRZEWODNIKA) */}
       <div style={{ display: "flex", flexDirection: "column", gap: "4px", paddingBottom: "16px", borderBottom: "1px solid var(--panel-border)" }}>
         <h2 style={{ fontSize: "16px", fontWeight: 700, color: "var(--text-main)", margin: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-          Tryb przewodnika
+          {t("app.connectionsLeftPanel.modeTitle", "Tryb przewodnika")}
         </h2>
         <p style={{ fontSize: "11px", color: "var(--text-secondary)", margin: 0 }}>
-          Konfiguracja okablowania i połączeń szyny DIN
+          {t("app.connectionsLeftPanel.modeDesc", "Konfiguracja okablowania i połączeń szyny DIN")}
         </p>
       </div>
 
@@ -104,16 +106,16 @@ export function ConnectionsLeftPanel({
       {selectedConnection && (
         <div className="sidebar-section" style={{ background: "rgba(59, 130, 246, 0.05)", padding: "12px", borderRadius: "8px", border: "1px solid rgba(59, 130, 246, 0.2)" }}>
           <h3 className="section-title" style={{ fontSize: "14px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--accent-primary)", marginBottom: "12px" }}>
-            Zaznaczony przewód
+            {t("app.connectionsLeftPanel.selectedTitle", "Zaznaczony przewód")}
           </h3>
           <p style={{ fontSize: "11px", color: "var(--text-secondary)", marginBottom: "16px" }}>
-            Zmieniasz właściwości wyłącznie dla wybranego przewodu.
+            {t("app.connectionsLeftPanel.selectedDesc", "Zmieniasz właściwości wyłącznie dla wybranego przewodu.")}
           </p>
 
           {/* Promień zagięcia (dla zaznaczonego) */}
           <div style={{ marginBottom: "12px" }}>
             <label style={{ display: "block", fontSize: "12px", fontWeight: 600, marginBottom: "6px", color: "var(--text-main)" }}>
-              Promień zagięcia (Radius)
+              {t("app.connectionsLeftPanel.radiusLabel", "Promień zagięcia (Radius)")}
             </label>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <input
@@ -155,7 +157,7 @@ export function ConnectionsLeftPanel({
                 transition: "all 0.2s"
               }}
             >
-              Usuń przewód
+              {t("app.connectionsLeftPanel.deleteButton", "Usuń przewód")}
             </button>
           </div>
           
@@ -166,10 +168,10 @@ export function ConnectionsLeftPanel({
       {/* SEKCJA USTAWIEN DOMYSLNYCH */}
       <div className="sidebar-section">
         <h3 className="section-title" style={{ fontSize: "14px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--accent-primary)", marginBottom: "12px" }}>
-          Ustawienia nowego przewodu
+          {t("app.connectionsLeftPanel.newWireTitle", "Ustawienia nowego przewodu")}
         </h3>
         <p style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "16px" }}>
-          Wybierz domyślne parametry. Nowo narysowane połączenia będą tworzone z tymi właściwościami.
+          {t("app.connectionsLeftPanel.newWireDesc", "Wybierz domyślne parametry. Nowo narysowane połączenia będą tworzone z tymi właściwościami.")}
         </p>
       </div>
 
@@ -178,11 +180,12 @@ export function ConnectionsLeftPanel({
       {/* Kolor przewodu */}
       <div className="sidebar-section">
         <label style={{ display: "block", fontSize: "12px", fontWeight: 600, marginBottom: "8px", color: "var(--text-main)" }}>
-          Kolor izolacji
+          {t("app.connectionsLeftPanel.wireColorLabel", "Kolor izolacji")}
         </label>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
           {WIRE_COLORS.map((color) => {
             const isSelected = defaultWireSettings.wireColor === color.value;
+            const localizedLabel = t(`app.connectionsLeftPanel.wireColors.${color.value}`, color.label);
             return (
               <button
                 key={color.value}
@@ -200,7 +203,7 @@ export function ConnectionsLeftPanel({
                   cursor: "pointer",
                   transition: "all 0.2s ease",
                 }}
-                title={color.label}
+                title={localizedLabel}
               >
                 <div
                   style={{
@@ -214,7 +217,7 @@ export function ConnectionsLeftPanel({
                   }}
                 />
                 <span style={{ fontSize: "10px", color: "var(--text-main)", textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>
-                  {color.value === "green-yellow" ? "Żół-Ziel" : color.label.split(" ")[0]}
+                  {color.value === "green-yellow" ? t("app.connectionsLeftPanel.wireColors.peShort", "Żół-Ziel") : localizedLabel.split(" ")[0]}
                 </span>
               </button>
             );
@@ -227,11 +230,12 @@ export function ConnectionsLeftPanel({
       {/* Kolor tulejki */}
       <div className="sidebar-section">
         <label style={{ display: "block", fontSize: "12px", fontWeight: 600, marginBottom: "8px", color: "var(--text-main)" }}>
-          Kolor tulejki (LgY)
+          {t("app.connectionsLeftPanel.ferruleColorLabel", "Kolor tulejki (LgY)")}
         </label>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
           {FERRULE_COLORS.map((color) => {
             const isSelected = (defaultWireSettings.ferruleColor || "none") === color.value;
+            const localizedLabel = t(`app.connectionsLeftPanel.ferruleColors.${color.value}`, color.label);
             return (
               <button
                 key={color.value}
@@ -266,7 +270,7 @@ export function ConnectionsLeftPanel({
                   )}
                 </div>
                 <span style={{ fontSize: "10px", fontWeight: 500, color: isSelected ? "var(--accent-primary)" : "var(--text-secondary)", textAlign: "center", lineHeight: 1.1 }}>
-                  {color.label}
+                  {localizedLabel}
                 </span>
               </button>
             );
@@ -279,7 +283,7 @@ export function ConnectionsLeftPanel({
       {/* Przekrój przewodu */}
       <div className="sidebar-section">
         <label style={{ display: "block", fontSize: "12px", fontWeight: 600, marginBottom: "8px", color: "var(--text-main)" }}>
-          Przekrój poprzeczny
+          {t("app.connectionsLeftPanel.crossSectionLabel", "Przekrój poprzeczny")}
         </label>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
           {WIRE_CROSS_SECTIONS.map((size) => {
@@ -313,11 +317,12 @@ export function ConnectionsLeftPanel({
       {/* Typ przewodu */}
       <div className="sidebar-section">
         <label style={{ display: "block", fontSize: "12px", fontWeight: 600, marginBottom: "8px", color: "var(--text-main)" }}>
-          Typ przewodnika
+          {t("app.connectionsLeftPanel.wireTypeLabel", "Typ przewodnika")}
         </label>
         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
           {WIRE_TYPES.map((type) => {
             const isSelected = defaultWireSettings.wireType === type.value;
+            const localizedLabel = t(`app.connectionsLeftPanel.wireTypes.${type.value}`, type.label);
             return (
               <button
                 key={type.value}
@@ -347,7 +352,7 @@ export function ConnectionsLeftPanel({
                     marginRight: "10px",
                   }}
                 />
-                {type.label}
+                {localizedLabel}
               </button>
             );
           })}
