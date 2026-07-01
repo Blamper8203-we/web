@@ -3,9 +3,7 @@ import { useTranslation } from "react-i18next";
 export function LandingHeader() {
   const { i18n } = useTranslation();
 
-  const handleLanguageChange = (lang: string) => {
-    i18n.changeLanguage(lang);
-  };
+
 
   return (
     <header className="landing-header">
