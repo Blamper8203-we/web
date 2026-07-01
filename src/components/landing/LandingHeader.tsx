@@ -1,10 +1,4 @@
-import { useTranslation } from "react-i18next";
-
 export function LandingHeader() {
-  const { i18n } = useTranslation();
-
-
-
   return (
     <header className="landing-header">
       <div className="landing-header-container">
