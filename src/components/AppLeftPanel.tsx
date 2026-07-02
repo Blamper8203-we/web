@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { AppIcon } from "./AppIcon";
 import { ModuleAssetPreview } from "./ModuleAssetPreview";
 import { ProjectPropertiesPage } from "./ProjectPropertiesPage";
@@ -53,6 +54,7 @@ export function AppLeftPanel({
   connections = [],
   onConnectionsChange,
 }: AppLeftPanelProps) {
+  const { t } = useTranslation();
   const activePaletteGroup =
     paletteGroups.find((g) => g.title === activePaletteGroupTitle) ??
     paletteGroups[0] ??
@@ -79,8 +81,8 @@ export function AppLeftPanel({
         )}
         {activeSheet === "sheet3" && (
           <div className="left-panel-empty">
-            <span className="workspace-tag">Lista</span>
-            <strong>Lista obwodów</strong>
+            <span className="workspace-tag">{t("auto.lista_233", "Lista")}</span>
+            <strong>{t("auto.listaobwodw_752", "Lista obwodów")}</strong>
           </div>
         )}
         {activeSheet === "sheet1" && (
@@ -88,7 +90,7 @@ export function AppLeftPanel({
             <div className="panel-title-strip" style={{ justifyContent: "space-between" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <AppIcon className="panel-title-icon" name="palette" size={18} />
-                <strong>MODUŁY</strong>
+                <strong>{t("auto.moduy_511", "MODUŁY")}</strong>
               </div>
               {onClose && (
                 <button type="button" className="toolbar-icon-btn mobile-only-tab" onClick={onClose} style={{ border: 0, background: "transparent", cursor: "pointer", color: "var(--text-main)" }}>
@@ -97,7 +99,7 @@ export function AppLeftPanel({
               )}
             </div>
             <div className="panel-divider" />
-            <div className="palette-tabs" aria-label="Kategorie modułów">
+            <div className="palette-tabs" aria-label={t("auto.kategoriemoduw_133", "Kategorie modułów")}>
               {paletteGroups.map((group) => (
                 <button
                   className={`palette-tab ${group.title === activePaletteGroup.title ? "active" : ""}`}
@@ -105,7 +107,7 @@ export function AppLeftPanel({
                   type="button"
                   onClick={() => setActivePaletteGroupTitle(group.title)}
                 >
-                  {group.title}
+                  {t(`moduleCategory.${group.title}`, group.title === "Controls" ? "Kontrolki faz" : group.title)}
                 </button>
               ))}
             </div>
@@ -115,7 +117,7 @@ export function AppLeftPanel({
                   <AppIcon name="module" size={15} />
                 </span>
                 <div>
-                  <strong>{activePaletteGroup.title}</strong>
+                  <strong>{t(`moduleCategory.${activePaletteGroup.title}`, activePaletteGroup.title === "Controls" ? "Kontrolki faz" : activePaletteGroup.title)}</strong>
                 </div>
                 <span className="palette-group-header__count">{activePaletteGroup.items.length}</span>
               </div>
@@ -157,8 +159,8 @@ export function AppLeftPanel({
                     {(() => {
                       const isRcdPreview =
                         item.deviceKind === "rcd"
-                        || item.type.toUpperCase().includes("RCD")
-                        || item.category?.toUpperCase() === "RCD";
+                        || (item.type || "").toUpperCase().includes("RCD")
+                        || (item.category || "").toUpperCase() === "RCD";
                       return (
                         <span className="palette-item-visual">
                           {item.assetPath ? (
@@ -185,7 +187,7 @@ export function AppLeftPanel({
                           <span className="palette-item-description">{getPaletteDescription(item)}</span>
                         )}
                       </span>
-                      {item.code.toUpperCase() !== item.label.toUpperCase() && (
+                      {(item.code || "").toUpperCase() !== (item.label || "").toUpperCase() && (
                         <span className="palette-item-code">{item.code}</span>
                       )}
                     </div>
@@ -196,8 +198,8 @@ export function AppLeftPanel({
             {!dinRail.isVisible && (
               <button type="button" className="palette-blocker" onClick={handleOpenDinRailGenerator}>
                 <AppIcon name="validation" size={24} />
-                <strong>Najpierw wygeneruj szynę DIN</strong>
-                <span>Moduły będą dostępne po utworzeniu rozdzielnicy.</span>
+                <strong>{t("auto.najpierwwygener_746", "Najpierw wygeneruj szynę DIN")}</strong>
+                <span>{t("auto.moduybddostpnep_339", "Moduły będą dostępne po utworzeniu rozdzielnicy.")}</span>
               </button>
             )}
           </div>

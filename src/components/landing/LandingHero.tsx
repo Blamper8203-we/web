@@ -25,7 +25,7 @@ export function LandingHero({ onOpenProjectFile, onOpenNewProject }: LandingHero
             <h1 className="landing-hero-title">
               {t("landing.title", "Projektowanie schematu")} <br />
               <span className="landing-hero-title-accent">
-                instalacji elektrycznej
+                {t("landing.instalacji", "instalacji elektrycznej")}
               </span>
             </h1>
 
@@ -38,13 +38,13 @@ export function LandingHero({ onOpenProjectFile, onOpenNewProject }: LandingHero
               <div className="landing-hero-alert">
                 <i data-lucide="alert-triangle" className="landing-hero-alert-icon warning"></i>
                 <div className="landing-hero-alert-text">
-                  <strong className="warning">Bezpieczeństwo przede wszystkim:</strong> Jeżeli nie posiadasz uprawnień elektrycznych (SEP), każdy schemat zaprojektowany w tej aplikacji musi zostać bezwzględnie sprawdzony i zatwierdzony przez wykwalifikowanego elektryka. Prąd elektryczny stanowi bezpośrednie zagrożenie zdrowia i życia — nie wykonuj montażu instalacji na własną rękę bez odpowiedniej wiedzy.
+                  <strong className="warning">{t("auto.bezpieczestwopr_573", "Bezpieczeństwo przede wszystkim:")}</strong> {t("landing.warning", "Jeżeli nie posiadasz uprawnień elektrycznych (SEP), każdy schemat zaprojektowany w tej aplikacji musi zostać bezwzględnie sprawdzony i zatwierdzony przez wykwalifikowanego elektryka. Prąd elektryczny stanowi bezpośrednie zagrożenie zdrowia i życia — nie wykonuj montażu instalacji na własną rękę bez odpowiedniej wiedzy.")}
                 </div>
               </div>
               <div className="landing-hero-alert">
                 <i data-lucide="info" className="landing-hero-alert-icon info"></i>
                 <div className="landing-hero-alert-text">
-                  <strong className="info">Wersja testowa (BETA):</strong> Aplikacja rozwija się dynamicznie. Wygenerowane schematy i obliczenia bilansu mocy mają charakter pomocniczy.
+                  <strong className="info">{t("auto.wersjatestowabe_809", "Wersja testowa (BETA):")}</strong> {t("landing.info", "Aplikacja rozwija się dynamicznie. Wygenerowane schematy i obliczenia bilansu mocy mają charakter pomocniczy.")}
                 </div>
               </div>
             </div>
@@ -74,10 +74,10 @@ export function LandingHero({ onOpenProjectFile, onOpenNewProject }: LandingHero
                 </div>
 
                 <h3 className="landing-new-project-title">{t("landing.buttonNew", "Utwórz nowy projekt")}</h3>
-                <p className="landing-new-project-desc">Rozpocznij projektowanie czystej szyny DIN, konfiguruj fazy i wygeneruj schemat montażowy.</p>
+                <p className="landing-new-project-desc">{t("auto.rozpocznijproje_716", "Rozpocznij projektowanie czystej szyny DIN, konfiguruj fazy i wygeneruj schemat montażowy.")}</p>
 
                 <div className="landing-new-project-cta">
-                  Uruchom darmowy edytor
+                  {t("landing.startEditor", "Uruchom darmowy edytor")}
                   <i data-lucide="chevron-right" className="landing-new-project-cta-icon"></i>
                 </div>
               </button>

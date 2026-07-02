@@ -27,7 +27,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
         body: JSON.stringify({
           access_key: import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || "",
           subject: `[DINBoard] Zgłoszenie: ${type}`,
-          from_name: "DINBoard Użytkownik",
+          from_name: t("auto.dinboarduytkown_482", "DINBoard Użytkownik"),
           email: email || "anonim@dinboard.pl",
           message: message,
           type: type,

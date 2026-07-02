@@ -51,7 +51,7 @@ export function AboutDialog({ onClose }: AboutDialogProps) {
         <div className="help-dialog__content">
           <section className="help-dialog__section">
             <div className="about-dialog__version">
-              <span className="about-dialog__name">DINBoard Web</span>
+              <span className="about-dialog__name">{t("auto.dinboardweb_755", "DINBoard Web")}</span>
               <span className="about-dialog__badge">v{APP_VERSION}</span>
             </div>
             <p>

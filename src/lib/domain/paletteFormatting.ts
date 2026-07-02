@@ -187,8 +187,8 @@ export function getPaletteDescription(template: PaletteTemplate): string {
   if (phaseText) {
     parts.push(phaseText);
   }
-  const normalizedLabel = template.label.trim().toLocaleLowerCase("pl");
-  const normalizedCode = template.code.trim().toLocaleLowerCase("pl");
+  const normalizedLabel = (template.label || "").trim().toLocaleLowerCase("pl");
+  const normalizedCode = (template.code || "").trim().toLocaleLowerCase("pl");
 
   if (template.protectionType) {
     parts.push(template.protectionType);

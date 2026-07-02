@@ -50,8 +50,8 @@ export function ImportedModulesDialog({
                   {(() => {
                     const isRcdPreview =
                       moduleDefinition.deviceKind === "rcd"
-                      || moduleDefinition.type.toUpperCase().includes("RCD")
-                      || moduleDefinition.category.toUpperCase() === "RCD";
+                      || (moduleDefinition.type || "").toUpperCase().includes("RCD")
+                      || (moduleDefinition.category || "").toUpperCase() === "RCD";
                     return (
                   <ModuleAssetPreview
                     alt={moduleDefinition.label}

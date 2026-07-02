@@ -15,7 +15,7 @@ export function LandingFooter({ onOpenFeedback }: LandingFooterProps) {
             <img src="/favicon-192.png" alt="DinBoard Logo" />
           </div>
           <div>
-            <span className="landing-footer-title">DinBoard</span>
+            <span className="landing-footer-title">{t("auto.dinboard_628", "DinBoard")}</span>
             <span className="landing-footer-subtitle">{t("landing.footer.subtitle")}</span>
           </div>
         </div>

@@ -41,30 +41,30 @@ export function RcdProtocolsTab({
         <div className="flex justify-between items-start border-b-2 border-gray-800 pb-3 gap-4">
           <div className="flex items-center gap-3 flex-grow" style={{ minWidth: 0 }}>
             <div className="px-3 py-1 bg-brand text-white font-bold rounded text-xs uppercase tracking-wider">
-              {t("app.pdf.rcd.title", "RCD i uziemienie")}
+              {t("pdf.rcd.title", "RCD i uziemienie")}
             </div>
             <div style={{ minWidth: 0 }}>
-              <h2 className="text-sm font-extrabold text-gray-900 tracking-wider uppercase">{t("app.pdfDocumentationPage.editor.unifiedProtocol.protocolNrPrefix", "Protokół Pomiarów Nr ")}<span className="bg-gray-100 px-1 rounded text-brand">{protocolNumberLabel}</span></h2>
-              <p className="text-[9px] text-gray-500 font-medium">{t("app.pdf.rcd.subtitle", "Test wyłączników różnicowoprądowych RCD i pomiar rezystancji uziemienia")}</p>
+              <h2 className="text-sm font-extrabold text-gray-900 tracking-wider uppercase">{t("pdf.shared.protocolNrPrefix", "Protokół Pomiarów Nr ")}<span className="bg-gray-100 px-1 rounded text-brand">{protocolNumberLabel}</span></h2>
+              <p className="text-[9px] text-gray-500 font-medium">{t("pdf.rcd.subtitle", "Test wyłączników różnicowoprądowych RCD i pomiar rezystancji uziemienia")}</p>
             </div>
           </div>
           <div className="text-right shrink-0">
-            <div className="text-[9px] text-gray-400">{t("app.pdf.unified.measureDate", "Data pomiarów:")} <span className="font-medium text-gray-700">{displayDate}</span></div>
-            <div className="text-[9px] text-gray-500 mt-0.5">{t("app.pdf.shared.object", "Obiekt:")} <span className="font-semibold text-gray-900">{objectType}</span></div>
+            <div className="text-[9px] text-gray-400">{t("pdf.unified.measureDate", "Data pomiarów:")} <span className="font-medium text-gray-700">{displayDate}</span></div>
+            <div className="text-[9px] text-gray-500 mt-0.5">{t("pdf.shared.object", "Obiekt:")} <span className="font-semibold text-gray-900">{objectType}</span></div>
           </div>
         </div>
 
         <div className="mt-4">
           <div className="bg-gray-100 text-gray-800 text-[10px] font-bold px-3 py-1.5 rounded-t-lg border border-gray-200">
-            {t("app.pdf.unified.section1Title", "1. Dane techniczne i narzędzia pomiarowe")}
+            {t("pdf.unified.section1Title", "1. Dane techniczne i narzędzia pomiarowe")}
           </div>
           <div className="border-x border-b border-gray-200 rounded-b-lg p-3 bg-white grid grid-cols-2 gap-y-2 gap-x-4 text-xs">
             <div className="flex items-center">
-              <span className="font-bold text-gray-600 mr-2 shrink-0">{t("app.pdf.rcd.meterName", "Miernik:")}</span>
+              <span className="font-bold text-gray-600 mr-2 shrink-0">{t("pdf.rcd.meterName", "Miernik:")}</span>
               <input className="mp-editable text-gray-900 font-medium flex-grow" value={protocols.rcdGroundMeterName || ""} placeholder="..." onChange={(e) => updateProtocols({ rcdGroundMeterName: e.target.value })} />
             </div>
             <div className="flex items-center">
-              <span className="font-bold text-gray-600 mr-2 shrink-0">{t("app.pdf.rcd.meterSerial", "Nr fabryczny:")}</span>
+              <span className="font-bold text-gray-600 mr-2 shrink-0">{t("pdf.rcd.meterSerial", "Nr fabryczny:")}</span>
               <input className="mp-editable text-gray-900 font-medium flex-grow" value={protocols.rcdGroundMeterSerialNumber || ""} placeholder="..." onChange={(e) => updateProtocols({ rcdGroundMeterSerialNumber: e.target.value })} />
             </div>
           </div>
@@ -72,19 +72,19 @@ export function RcdProtocolsTab({
 
         <div className="mt-4">
           <div className="bg-gray-100 text-gray-800 text-[10px] font-bold px-3 py-1.5 rounded-t-lg border border-gray-300">
-            {t("app.pdf.rcd.section2Title", "2. Tabela pomiarów (Wyłączniki różnicowoprądowe)")}
+            {t("pdf.rcd.section2Title", "2. Tabela pomiarów (Wyłączniki różnicowoprądowe)")}
           </div>
           <div className="overflow-x-auto border-x border-b border-gray-300 rounded-b-lg">
             <table className="w-full text-left border-collapse" style={{ fontSize: "10px" }}>
               <thead>
                 <tr className="bg-gray-100 text-gray-800 font-bold border-b border-gray-300">
-                  <th className="p-2 border-r border-gray-300 text-center w-8">{t("app.pdf.rcd.table.no", "Lp.")}</th>
-                  <th className="p-2 border-r border-gray-300 w-48">{t("app.pdf.rcd.table.rcdType", "Typ RCD")}</th>
-                  <th className="p-2 border-r border-gray-300 text-center w-20">{t("app.pdf.rcd.table.idn", "IΔn [mA]")}</th>
-                  <th className="p-2 border-r border-gray-300 text-center w-24">{t("app.pdf.rcd.table.tripCurrent", "Prąd wyzw. [mA]")}</th>
-                  <th className="p-2 border-r border-gray-300 text-center w-24">{t("app.pdf.rcd.table.tripTime", "Czas wyzw. [ms]")}</th>
-                  <th className="p-2 border-r border-gray-300 text-center w-20">{t("app.pdf.rcd.table.testBtn", "Przycisk TEST")}</th>
-                  <th className="p-2 text-center w-20">{t("app.pdf.rcd.table.eval", "Ocena")}</th>
+                  <th className="p-2 border-r border-gray-300 text-center w-8">{t("pdf.rcd.table.no", "Lp.")}</th>
+                  <th className="p-2 border-r border-gray-300 w-48">{t("pdf.rcd.table.rcdType", "Typ RCD")}</th>
+                  <th className="p-2 border-r border-gray-300 text-center w-20">{t("pdf.rcd.table.idn", "IΔn [mA]")}</th>
+                  <th className="p-2 border-r border-gray-300 text-center w-24">{t("pdf.rcd.table.tripCurrent", "Prąd wyzw. [mA]")}</th>
+                  <th className="p-2 border-r border-gray-300 text-center w-24">{t("pdf.rcd.table.tripTime", "Czas wyzw. [ms]")}</th>
+                  <th className="p-2 border-r border-gray-300 text-center w-20">{t("pdf.rcd.table.testBtn", "Przycisk TEST")}</th>
+                  <th className="p-2 text-center w-20">{t("pdf.rcd.table.eval", "Ocena")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -109,38 +109,38 @@ export function RcdProtocolsTab({
 
         <div className="mt-4">
           <div className="bg-gray-100 text-gray-800 text-[10px] font-bold px-3 py-1.5 rounded-t-lg border border-gray-300">
-            {t("app.pdf.rcd.section3Title", "3. Pomiar rezystancji uziemienia (GSU)")}
+            {t("pdf.rcd.section3Title", "3. Pomiar rezystancji uziemienia (GSU)")}
           </div>
           <div className="border-x border-b border-gray-300 rounded-b-lg p-4 bg-white text-xs">
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center">
-                <span className="font-bold text-gray-700 mr-2 shrink-0">{t("app.pdf.rcd.groundMethod", "Metoda pomiaru:")}</span>
+                <span className="font-bold text-gray-700 mr-2 shrink-0">{t("pdf.rcd.groundMethod", "Metoda pomiaru:")}</span>
                 <input className="mp-editable text-gray-950 font-bold border-b border-gray-300 flex-grow pb-0.5" value={protocols.groundMeasurementMethod || ""} placeholder="..." onChange={(e) => updateProtocols({ groundMeasurementMethod: e.target.value })} />
               </div>
               <div className="flex items-center">
-                <span className="font-bold text-gray-700 mr-2 shrink-0">{t("app.pdf.rcd.groundType", "Rodzaj uziomu:")}</span>
+                <span className="font-bold text-gray-700 mr-2 shrink-0">{t("pdf.rcd.groundType", "Rodzaj uziomu:")}</span>
                 <input className="mp-editable text-gray-950 font-bold border-b border-gray-300 flex-grow pb-0.5" value={protocols.groundElectrodeType || ""} placeholder="..." onChange={(e) => updateProtocols({ groundElectrodeType: e.target.value })} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4 mt-3">
               <div className="flex items-center">
-                <span className="font-bold text-gray-700 mr-2 shrink-0">{t("app.pdf.rcd.groundMeasured", "Zmierzona wartość Ru:")}</span>
+                <span className="font-bold text-gray-700 mr-2 shrink-0">{t("pdf.rcd.groundMeasured", "Zmierzona wartość Ru:")}</span>
                 <input className="mp-editable text-brand font-black text-sm px-1 font-mono w-16" value={protocols.groundMeasuredResistance || ""} placeholder="..." onChange={(e) => updateProtocols({ groundMeasuredResistance: e.target.value })} />
                 <span className="font-bold text-gray-900">Ω</span>
               </div>
               <div className="flex items-center">
-                <span className="font-bold text-gray-700 mr-2 shrink-0">{t("app.pdf.rcd.groundRequired", "Wartość wymagana:")}</span>
+                <span className="font-bold text-gray-700 mr-2 shrink-0">{t("pdf.rcd.groundRequired", "Wartość wymagana:")}</span>
                 <input className="mp-editable text-gray-900 font-bold px-1 font-mono w-16" value={protocols.groundRequiredResistance || ""} placeholder="..." onChange={(e) => updateProtocols({ groundRequiredResistance: e.target.value })} />
                 <span className="font-bold text-gray-900">Ω</span>
               </div>
             </div>
             <div className="mt-4 pt-3 border-t border-gray-200">
-              <span className="font-bold text-gray-900 uppercase tracking-wider block text-[10px] mb-2">{t("app.pdf.rcd.conclusionLabel", "Orzeczenie techniczne:")}</span>
+              <span className="font-bold text-gray-900 uppercase tracking-wider block text-[10px] mb-2">{t("pdf.rcd.conclusionLabel", "Orzeczenie techniczne:")}</span>
               <textarea 
                 className="mp-editable w-full bg-white p-2 rounded border border-gray-300 text-gray-900 font-medium text-xs resize-none" 
                 rows={2}
                 value={protocols.groundConclusionText || ""}
-                placeholder={t("app.pdf.rcd.conclusionPlaceholder", "Wpisz orzeczenie...")}
+                placeholder={t("pdf.rcd.conclusionPlaceholder", "Wpisz orzeczenie...")}
                 onChange={(e) => updateProtocols({ groundConclusionText: e.target.value })}
               />
             </div>
@@ -151,11 +151,11 @@ export function RcdProtocolsTab({
           <div className="flex justify-end pt-4 border-t border-gray-100">
             <div className="text-center w-64">
               <div className="h-16 flex items-center justify-center">
-                <span className="text-[10px] text-gray-300 italic">{t("app.pdf.unified.stampPlaceholder", "miejsce na pieczęć / podpis")}</span>
+                <span className="text-[10px] text-gray-300 italic">{t("pdf.unified.stampPlaceholder", "miejsce na pieczęć / podpis")}</span>
               </div>
               <div className="border-t border-gray-300 pt-1.5">
-                <p className="text-[10px] font-bold text-gray-700 uppercase">{t("app.pdf.unified.contractorSignature", "Sprawdził (Wykonawca/Elektryk)")}</p>
-                <p className="text-[8px] text-gray-400 mt-0.5">{t("app.pdf.unified.contractorSubtitle", "Podpis osoby z uprawnieniami SEP")}</p>
+                <p className="text-[10px] font-bold text-gray-700 uppercase">{t("pdf.unified.contractorSignature", "Sprawdził (Wykonawca/Elektryk)")}</p>
+                <p className="text-[8px] text-gray-400 mt-0.5">{t("pdf.unified.contractorSubtitle", "Podpis osoby z uprawnieniami SEP")}</p>
               </div>
             </div>
           </div>

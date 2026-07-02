@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Suspense, lazy } from "react";
 import { AppIcon } from "./AppIcon";
 import { CircuitListPage } from "./CircuitListPage";
@@ -93,6 +94,7 @@ export function AppWorkspaceCanvas({
   currentWireSettings,
   onRequestLeftPanelTab,
 }: AppWorkspaceCanvasProps) {
+  const { t } = useTranslation();
   return (
     <div className="canvas-area">
       <div
@@ -102,7 +104,7 @@ export function AppWorkspaceCanvas({
           inset: 0,
         }}
       >
-        <Suspense fallback={<div className="left-panel-empty"><strong>Ładowanie widoku szyny DIN...</strong></div>}>
+        <Suspense fallback={<div className="left-panel-empty"><strong>{t("auto.adowaniewidokus_239", "Ładowanie widoku szyny DIN...")}</strong></div>}>
           <DinRailCanvas
             getPaletteTemplate={(idOrRef: string) => {
               const template = paletteTemplateMap.get(idOrRef);
@@ -139,7 +141,7 @@ export function AppWorkspaceCanvas({
           inset: 0,
         }}
       >
-        <Suspense fallback={<div className="left-panel-empty"><strong>Ładowanie widoku połączeń...</strong></div>}>
+        <Suspense fallback={<div className="left-panel-empty"><strong>{t("auto.adowaniewidokup_157", "Ładowanie widoku połączeń...")}</strong></div>}>
           {activeSheet === "sheet1_connections" && (
             <DinRailConnectionsCanvas
               rail={dinRail}
@@ -169,9 +171,9 @@ export function AppWorkspaceCanvas({
             <div className="workspace-empty-state-icon">
               <AppIcon name="fileTree" size={32} />
             </div>
-            <span className="workspace-tag">Schemat</span>
-            <strong>Schemat obwodów będzie dostępny po dodaniu modułów.</strong>
-            <span>Najpierw wygeneruj szynę DIN i dodaj moduły w arkuszu Rozdzielnica.</span>
+            <span className="workspace-tag">{t("auto.schemat_955", "Schemat")}</span>
+            <strong>{t("auto.schematobwodwbd_988", "Schemat obwodów będzie dostępny po dodaniu modułów.")}</strong>
+            <span>{t("auto.najpierwwygener_84", "Najpierw wygeneruj szynę DIN i dodaj moduły w arkuszu Rozdzielnica.")}</span>
           </div>
         </div>
       )}
@@ -202,9 +204,9 @@ export function AppWorkspaceCanvas({
             <div className="workspace-empty-state-icon">
               <AppIcon name="list" size={32} />
             </div>
-            <span className="workspace-tag">Lista</span>
-            <strong>Lista obwodów będzie dostępna po dodaniu modułów.</strong>
-            <span>Najpierw wygeneruj szynę DIN i dodaj moduły w arkuszu Rozdzielnica.</span>
+            <span className="workspace-tag">{t("auto.lista_857", "Lista")}</span>
+            <strong>{t("auto.listaobwodwbdzi_601", "Lista obwodów będzie dostępna po dodaniu modułów.")}</strong>
+            <span>{t("auto.najpierwwygener_232", "Najpierw wygeneruj szynę DIN i dodaj moduły w arkuszu Rozdzielnica.")}</span>
           </div>
         </div>
       )}

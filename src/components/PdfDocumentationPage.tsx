@@ -244,19 +244,19 @@ export function PdfDocumentationPage() {
                     <Field
                       label={t("app.pdfDocumentationPage.editor.titlePage.address")}
                       value={metadata.address ?? ""}
-                      placeholder="ul. Budowlana 12, 59-300 Lubin"
+                      placeholder={t("auto.ulbudowlana1259_332", "ul. Budowlana 12, 59-300 Lubin")}
                       onChange={(value) => updateMetadata({ address: value })}
                     />
                     <Field
                       label={t("app.pdfDocumentationPage.editor.titlePage.investor")}
                       value={metadata.investor ?? ""}
-                      placeholder="Jan Kowalski"
+                      placeholder={t("auto.jankowalski_60", "Jan Kowalski")}
                       onChange={(value) => updateMetadata({ investor: value })}
                     />
                     <Field
                       label={t("app.pdfDocumentationPage.editor.titlePage.investorAddress")}
                       value={metadata.investorAddress ?? ""}
-                      placeholder="(opcjonalnie, jeśli inny niż adres obiektu)"
+                      placeholder={t("auto.opcjonalniejeli_731", "(opcjonalnie, jeśli inny niż adres obiektu)")}
                       onChange={(value) => updateMetadata({ investorAddress: value })}
                     />
                   </div>
@@ -270,19 +270,19 @@ export function PdfDocumentationPage() {
                     <Field
                       label={t("app.pdfDocumentationPage.editor.titlePage.contractor")}
                       value={metadata.contractor ?? ""}
-                      placeholder="Usługi Elektryczne PRO-EL"
+                      placeholder={t("auto.usugielektryczn_609", "Usługi Elektryczne PRO-EL")}
                       onChange={(value) => updateMetadata({ contractor: value })}
                     />
                     <Field
                       label={t("app.pdfDocumentationPage.editor.titlePage.electrician")}
                       value={metadata.author ?? ""}
-                      placeholder="Jan Kowalski"
+                      placeholder={t("auto.jankowalski_432", "Jan Kowalski")}
                       onChange={(value) => updateMetadata({ author: value })}
                     />
                     <Field
                       label={t("app.pdfDocumentationPage.editor.titlePage.sepE")}
                       value={metadata.designerId ?? ""}
-                      placeholder="E / 123/2026"
+                      placeholder={t("auto.e1232026_109", "E / 123/2026")}
                       onChange={(value) =>
                         updateMetadata({ designerId: value })
                       }
@@ -290,7 +290,7 @@ export function PdfDocumentationPage() {
                     <Field
                       label={t("app.pdfDocumentationPage.editor.titlePage.sepD")}
                       value={metadata.authorLicense ?? ""}
-                      placeholder="D / 456/2026"
+                      placeholder={t("auto.d4562026_685", "D / 456/2026")}
                       onChange={(value) =>
                         updateMetadata({ authorLicense: value })
                       }
@@ -327,13 +327,13 @@ export function PdfDocumentationPage() {
                     <Field
                       label={t("app.pdfDocumentationPage.editor.titlePage.phone")}
                       value={metadata.contractorPhone ?? ""}
-                      placeholder="+48 600 100 200"
+                      placeholder={t("auto.48600100200_289", "+48 600 100 200")}
                       onChange={(value) => updateMetadata({ contractorPhone: value })}
                     />
                     <Field
                       label={t("app.pdfDocumentationPage.editor.titlePage.email")}
                       value={metadata.contractorEmail ?? ""}
-                      placeholder="biuro@firma.pl"
+                      placeholder={t("auto.biurofirmapl_729", "biuro@firma.pl")}
                       onChange={(value) => updateMetadata({ contractorEmail: value })}
                     />
                   </div>
@@ -444,7 +444,7 @@ export function PdfDocumentationPage() {
                     <Field
                       label={t("app.pdfDocumentationPage.editor.titlePage.signContractor")}
                       value={metadata.contractorSignature ?? ""}
-                      placeholder="PIECZĄTKA WYKONAWCY"
+                      placeholder={t("auto.piecztkawykonaw_384", "PIECZĄTKA WYKONAWCY")}
                       onChange={(value) => updateMetadata({ contractorSignature: value })}
                     />
                   </div>
@@ -514,13 +514,13 @@ export function PdfDocumentationPage() {
                     <Field
                       label={t("app.pdfDocumentationPage.editor.protocol.mainTitle")}
                       value={selectedHeader?.headerTitle ?? ""}
-                      placeholder="Protokół Nr 02 / 2026"
+                      placeholder={t("auto.protoknr022026_453", "Protokół Nr 02 / 2026")}
                       onChange={(value) => updateHeader("headerTitle", value)}
                     />
                     <Field
                       label={t("app.pdfDocumentationPage.editor.protocol.subtitle")}
                       value={selectedHeader?.headerSubtitle ?? ""}
-                      placeholder="Badanie skuteczności ochrony przeciwporażeniowej"
+                      placeholder={t("auto.badanieskuteczn_236", "Badanie skuteczności ochrony przeciwporażeniowej")}
                       onChange={(value) => updateHeader("headerSubtitle", value)}
                     />
                   </div>
@@ -540,7 +540,7 @@ export function PdfDocumentationPage() {
                     <Field
                       label={t("app.pdfDocumentationPage.editor.protocol.objectName")}
                       value={selectedHeader?.objectName ?? ""}
-                      placeholder="Nowe zlecenie"
+                      placeholder={t("auto.nowezlecenie_724", "Nowe zlecenie")}
                       onChange={(value) => updateHeader("objectName", value)}
                     />
                   </div>

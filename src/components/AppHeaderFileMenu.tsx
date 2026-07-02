@@ -47,17 +47,17 @@ export function AppHeaderFileMenu({
         <AppIcon className="flyout-icon" name="file" />
         <span className="flyout-label">{t("app.fileMenu.new")}</span>
         {hasUnsavedChanges && <span className="flyout-alert-dot" />}
-        <span className="flyout-shortcut">Ctrl+N</span>
+        <span className="flyout-shortcut">{t("auto.ctrln_651", "Ctrl+N")}</span>
       </button>
       <button className="flyout-item" onClick={() => { onClose(); onOpenProject(); }}>
         <AppIcon className="flyout-icon" name="folderOpen" />
         <span className="flyout-label">{t("app.fileMenu.open")}</span>
-        <span className="flyout-shortcut">Ctrl+O</span>
+        <span className="flyout-shortcut">{t("auto.ctrlo_900", "Ctrl+O")}</span>
       </button>
       <button className="flyout-item" onClick={() => { onClose(); onSaveProject(false); }}>
         <AppIcon className="flyout-icon" name="save" />
         <span className="flyout-label">{t("app.fileMenu.save")}</span>
-        <span className="flyout-shortcut">Ctrl+S</span>
+        <span className="flyout-shortcut">{t("auto.ctrls_110", "Ctrl+S")}</span>
       </button>
       <button className="flyout-item" onClick={() => { onClose(); onSaveProject(true); }}>
         <AppIcon className="flyout-icon" name="saveEdit" />
@@ -68,7 +68,7 @@ export function AppHeaderFileMenu({
       <button className="flyout-item" onClick={() => { onClose(); onPrint(); }}>
         <AppIcon className="flyout-icon" name="print" />
         <span className="flyout-label">{t("app.fileMenu.print")}</span>
-        <span className="flyout-shortcut">Ctrl+P</span>
+        <span className="flyout-shortcut">{t("auto.ctrlp_188", "Ctrl+P")}</span>
       </button>
       <button className="flyout-item" onClick={() => { onClose(); onExportPdf(); }}>
         <AppIcon className="flyout-icon" name="pdf" />

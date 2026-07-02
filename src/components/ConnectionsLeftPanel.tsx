@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { t } from "i18next";
 import type { WireColor, WireType, RoutingMode, FerruleColor } from "../types/connectionItem";
 import { DEFAULT_CUSTOM_RADIUS } from "../lib/connections/connectionsLogic";
 
@@ -23,30 +24,30 @@ interface ConnectionsLeftPanelProps {
 }
 
 const WIRE_COLORS: Array<{ value: WireColor; label: string; hex: string }> = [
-  { value: "black", label: "Czarny (L)", hex: "#111827" },
-  { value: "brown", label: "Brązowy (L)", hex: "#78350f" },
-  { value: "grey", label: "Szary (L)", hex: "#6b7280" },
-  { value: "blue", label: "Niebieski (N)", hex: "#3b82f6" },
-  { value: "green-yellow", label: "Żółto-Zielony (PE)", hex: "repeating-linear-gradient(45deg, #eab308, #eab308 10px, #22c55e 10px, #22c55e 20px)" },
-  { value: "red", label: "Czerwony (Sterowanie)", hex: "#ef4444" },
+  { value: "black", label: t("auto.czarnyl_904", "Czarny (L)"), hex: "#111827" },
+  { value: "brown", label: t("auto.brzowyl_276", "Brązowy (L)"), hex: "#78350f" },
+  { value: "grey", label: t("auto.szaryl_195", "Szary (L)"), hex: "#6b7280" },
+  { value: "blue", label: t("auto.niebieskin_721", "Niebieski (N)"), hex: "#3b82f6" },
+  { value: "green-yellow", label: t("auto.tozielonype_827", "Żółto-Zielony (PE)"), hex: "repeating-linear-gradient(45deg, #eab308, #eab308 10px, #22c55e 10px, #22c55e 20px)" },
+  { value: "red", label: t("auto.czerwonysterowa_853", "Czerwony (Sterowanie)"), hex: "#ef4444" },
 ];
 
 const FERRULE_COLORS: Array<{ value: FerruleColor; label: string; hex: string }> = [
   { value: "none", label: "Brak", hex: "transparent" },
-  { value: "auto", label: "Auto (DIN)", hex: "linear-gradient(45deg, #171717, #1d4ed8, #b91c1c)" },
-  { value: "white", label: "Biała", hex: "#dddddd" },
+  { value: "auto", label: t("auto.autodin_817", "Auto (DIN)"), hex: "linear-gradient(45deg, #171717, #1d4ed8, #b91c1c)" },
+  { value: "white", label: t("auto.biaa_258", "Biała"), hex: "#dddddd" },
   { value: "grey", label: "Szara", hex: "#666666" },
   { value: "red", label: "Czerwona", hex: "#b91c1c" },
   { value: "blue", label: "Niebieska", hex: "#1d4ed8" },
-  { value: "yellow", label: "Żółta", hex: "#eab308" },
+  { value: "yellow", label: t("auto.ta_615", "Żółta"), hex: "#eab308" },
   { value: "black", label: "Czarna", hex: "#171717" },
-  { value: "brown", label: "Brązowa", hex: "#6b3410" },
+  { value: "brown", label: t("auto.brzowa_643", "Brązowa"), hex: "#6b3410" },
 ];
 
 const WIRE_CROSS_SECTIONS = [1.5, 2.5, 4.0, 6.0, 10.0, 16.0];
 
 const WIRE_TYPES: Array<{ value: WireType; label: string }> = [
-  { value: "LgY", label: "Linka (LgY)" },
+  { value: "LgY", label: t("auto.linkalgy_581", "Linka (LgY)") },
 ];
 
 export function ConnectionsLeftPanel({

@@ -432,3 +432,23 @@ export function loadProjectMetadata(): ProjectMetadata {
     return createEmptyProjectMetadata();
   }
 }
+
+export function translateDefaultProjectText(text: string, t: any): string {
+  const normalizedText = (text || "").trim();
+  const defaultsMap: Record<string, string> = {
+    "Montaż rozdzielnicy głównej": "pdf.smart.montaz",
+    "Układanie przewodów i osprzętu": "pdf.smart.ukladanie",
+    "Pomiary ochrony przeciwporażeniowej": "pdf.smart.pomiary",
+    "Tabela zbiorcza pomiarów": "pdf.smart.tabela",
+    "RCD i uziemienie": "pdf.smart.rcd",
+    "Schemat instalacji elektrycznej": "pdf.smart.schemat",
+    "Widok rozdzielnicy elektrycznej": "pdf.smart.widok",
+    "Lista obwodów": "pdf.smart.lista",
+    "Budynek jednorodzinny / Lokal mieszkalny": "app.pdfDocumentationPage.editor.titlePage.objectTypePlaceholder",
+    "Dokumentacja powykonawcza instalacji elektrycznej": "app.pdfDocumentationPage.editor.titlePage.projectTitlePlaceholder",
+    "PIECZĄTKA WYKONAWCY": "pdf.smart.pieczatka",
+    "PIECZĘĆ WYKONAWCY": "pdf.smart.pieczatka"
+  };
+  const key = defaultsMap[normalizedText];
+  return key ? t(key, normalizedText) : text;
+}

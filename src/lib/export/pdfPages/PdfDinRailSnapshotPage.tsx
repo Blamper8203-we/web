@@ -1,6 +1,7 @@
 import { Page, Text, View } from "@react-pdf/renderer";
 import { Image as PdfImage } from "@react-pdf/renderer";
-import { t } from "i18next";
+import i18next from "i18next";
+const t = i18next.t.bind(i18next);
 import { pdfStyles as styles } from "./pdfStyles";
 
 interface PdfDinRailSnapshotPageProps {

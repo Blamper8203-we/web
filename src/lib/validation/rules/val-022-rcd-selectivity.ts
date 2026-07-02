@@ -1,3 +1,4 @@
+import { t } from "i18next";
 /**
  * VAL-022 — possible lack of selectivity in cascaded RCDs.
  *
@@ -28,7 +29,7 @@ export function validateRcdSelectivity(
     if (parentRcd.rcdResidualCurrent < rcd.rcdResidualCurrent * 3) {
       result.warnings.push({
         code: "VAL-022",
-        message: "Możliwy brak selektywności RCD",
+        message: t("auto.moliwybrakselek_936", "Możliwy brak selektywności RCD"),
         details: `RCD nadrzędny "${parentRcd.label || parentRcd.id}" ma ${parentRcd.rcdResidualCurrent}mA, a podrzędny "${rcd.label || rcd.id}" ma ${rcd.rcdResidualCurrent}mA. Dla kaskady zwykle oczekuje się wyraźnie większego progu nadrzędnego.`,
         severity: "Warning",
         symbolId: rcd.id,

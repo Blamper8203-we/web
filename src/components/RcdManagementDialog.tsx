@@ -80,10 +80,10 @@ export function RcdManagementDialog({ entries, onClose, onSave }: RcdManagementD
             <table className="rcd-dialog__table">
               <thead>
                 <tr>
-                  <th>RCD</th>
+                  <th>{t("auto.rcd_329", "RCD")}</th>
                   <th>{t("app.rcdManagement.colGroup", "Grupa")}</th>
-                  <th>In [A]</th>
-                  <th>IΔn [mA]</th>
+                  <th>{t("auto.ina_379", "In [A]")}</th>
+                  <th>{t("auto.inma_319", "IΔn [mA]")}</th>
                   <th>{t("app.rcdManagement.colType", "Typ")}</th>
                 </tr>
               </thead>

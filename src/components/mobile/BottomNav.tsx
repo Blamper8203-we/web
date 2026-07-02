@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { SheetType } from "../../lib/appHelpers";
 import { AppIcon } from "../AppIcon";
 import "./BottomNav.css";
@@ -9,6 +10,7 @@ interface BottomNavProps {
 }
 
 export function BottomNav({ activeSheet, onChangeSheet, onOpenMenu }: BottomNavProps) {
+  const { t } = useTranslation();
   return (
     <nav className="mobile-bottom-nav">
       <button
@@ -16,7 +18,7 @@ export function BottomNav({ activeSheet, onChangeSheet, onOpenMenu }: BottomNavP
         onClick={() => onChangeSheet("sheet1")}
       >
         <AppIcon name="grid" className="bottom-nav-icon" />
-        <span>Rozdzielnica</span>
+        <span>{t("auto.rozdzielnica_26", "Rozdzielnica")}</span>
       </button>
 
       <button
@@ -24,7 +26,7 @@ export function BottomNav({ activeSheet, onChangeSheet, onOpenMenu }: BottomNavP
         onClick={() => onChangeSheet("sheet2")}
       >
         <AppIcon name="fileTree" className="bottom-nav-icon" />
-        <span>Schemat</span>
+        <span>{t("auto.schemat_288", "Schemat")}</span>
       </button>
 
       <button
@@ -32,7 +34,7 @@ export function BottomNav({ activeSheet, onChangeSheet, onOpenMenu }: BottomNavP
         onClick={() => onChangeSheet("sheet3")}
       >
         <AppIcon name="list" className="bottom-nav-icon" />
-        <span>Obwody</span>
+        <span>{t("auto.obwody_286", "Obwody")}</span>
       </button>
 
       <button
@@ -40,12 +42,12 @@ export function BottomNav({ activeSheet, onChangeSheet, onOpenMenu }: BottomNavP
         onClick={() => onChangeSheet("sheet4")}
       >
         <AppIcon name="pdf" className="bottom-nav-icon" />
-        <span>PDF</span>
+        <span>{t("auto.pdf_447", "PDF")}</span>
       </button>
 
       <button className="bottom-nav-item" onClick={onOpenMenu}>
         <AppIcon name="menu" className="bottom-nav-icon" />
-        <span>Menu</span>
+        <span>{t("auto.menu_531", "Menu")}</span>
       </button>
     </nav>
   );

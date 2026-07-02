@@ -228,7 +228,7 @@ export function ProjectPropertiesPage({
                 />
                 <Field
                   label={t("app.projectProps.fieldStandards", "Normy")}
-                  placeholder="PN-HD 60364; PN-EN 60617"
+                  placeholder={t("auto.pnhd60364pnen60_631", "PN-HD 60364; PN-EN 60617")}
                   value={standardsText}
                   multiline
                   onChange={(value) => {

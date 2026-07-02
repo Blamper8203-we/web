@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type SymbolItem } from "../types/symbolItem";
 import type { ConnectionItem } from "../types/connectionItem";
@@ -107,6 +108,7 @@ export function DinRailCanvas({
   showGroups = true,
   onRequestLeftPanelTab,
 }: DinRailCanvasProps) {
+  const { t } = useTranslation();
   useSvgTerminalsPreloader(symbols);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -323,7 +325,7 @@ export function DinRailCanvas({
             type="button"
             className="workspace-tool-btn"
             onClick={onDeleteSelected}
-            title="Usuń zaznaczone (Delete)"
+            title={t("auto.usuzaznaczonede_49", "Usuń zaznaczone (Delete)")}
           >
             <AppIcon name="delete" size={16} />
             <span className="delete-label">Usuń zaznaczone ({selectedIds.size})</span>

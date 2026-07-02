@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { AppIcon } from "./AppIcon";
 import "./AppStatusBar.css";
 
@@ -24,6 +25,7 @@ export function AppStatusBar({
   errorCount,
   warningCount,
 }: AppStatusBarProps) {
+  const { t } = useTranslation();
   return (
     <footer className="statusbar">
       <div className="statusbar-row">
@@ -31,7 +33,7 @@ export function AppStatusBar({
           <span className="statusbar-item statusbar-project" title={projectFileName}>
             <AppIcon className="statusbar-icon statusbar-icon-muted" name="file" size={12} />
             <strong>{projectFileName}</strong>
-            {hasUnsavedChanges && <span className="statusbar-unsaved-dot" title="Niezapisane zmiany" />}
+            {hasUnsavedChanges && <span className="statusbar-unsaved-dot" title={t("auto.niezapisanezmia_705", "Niezapisane zmiany")} />}
           </span>
           <span className="statusbar-divider" />
           <span className="statusbar-item statusbar-ok">
@@ -40,19 +42,19 @@ export function AppStatusBar({
           </span>
         </div>
         <div className="statusbar-right">
-          <span className="statusbar-item" title="Poziom zbliżenia">
+          <span className="statusbar-item" title={t("auto.poziomzblienia_381", "Poziom zbliżenia")}>
             <AppIcon className="statusbar-icon statusbar-icon-accent" name="zoomIn" size={12} />
             <strong>{workspaceZoomPercent}%</strong>
           </span>
-          <span className="statusbar-item" title="Moc całkowita">
+          <span className="statusbar-item" title={t("auto.moccakowita_672", "Moc całkowita")}>
             <AppIcon className="statusbar-icon statusbar-icon-warn" name="power" size={12} />
             {(totalPower / 1000).toFixed(1)} kW
           </span>
-          <span className="statusbar-item" title="Liczba grup">
+          <span className="statusbar-item" title={t("auto.liczbagrup_22", "Liczba grup")}>
             <AppIcon className="statusbar-icon statusbar-icon-accent" name="group" size={12} />
             Grupy: {groupCount}
           </span>
-          <span className="statusbar-item" title="Liczba modułów">
+          <span className="statusbar-item" title={t("auto.liczbamoduw_26", "Liczba modułów")}>
             <AppIcon className="statusbar-icon statusbar-icon-muted" name="module" size={12} />
             Moduły: {symbolCount}
           </span>

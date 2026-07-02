@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import type { ProjectMetadata } from "../types/projectMetadata";
 import { normalizeSymbolItems, type SymbolItem } from "../types/symbolItem";
@@ -55,7 +56,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function validateWebProjectShape(raw: RawProjectFileData): void {
   if (!("metadata" in raw) || !("symbols" in raw)) {
-    throw new Error("Brak wymaganych pól metadata/symbols");
+    throw new Error(t("auto.brakwymaganychp_618", "Brak wymaganych pól metadata/symbols"));
   }
 
   if (raw.metadata !== undefined && raw.metadata !== null && !isRecord(raw.metadata)) {
@@ -418,7 +419,7 @@ async function saveTextFileWithBrowserPicker(content: string, fileName: string):
     excludeAcceptAllOption: true,
     types: [
       {
-        description: "DINBoard Project",
+        description: t("auto.dinboardproject_612", "DINBoard Project"),
         accept: { "application/json": [".dinboard"] },
       },
     ],

@@ -1,3 +1,4 @@
+import { t } from "i18next";
 /**
  * VAL-007 — main breaker overload.
  *
@@ -38,7 +39,7 @@ export function validateMainOverload(
     if (configuredMainBreakerA && configuredMainBreakerA > 0 && maxPhaseCurrent > configuredMainBreakerA) {
       result.errors.push({
         code: "VAL-007",
-        message: "Przeciążenie zabezpieczenia głównego",
+        message: t("auto.przecieniezabez_198", "Przeciążenie zabezpieczenia głównego"),
         details: `Największy prąd fazowy: ${maxPhaseCurrent.toFixed(1)}A, znamionowy prąd główny (konfiguracja): ${configuredMainBreakerA}A. ${currentDetails}`,
         severity: "Error",
       });
@@ -53,7 +54,7 @@ export function validateMainOverload(
     if (maxPhaseCurrent > mainRating) {
       result.errors.push({
         code: "VAL-007",
-        message: "Przeciążenie wyłącznika głównego",
+        message: t("auto.przecieniewyczn_913", "Przeciążenie wyłącznika głównego"),
         details: `Największy prąd fazowy: ${maxPhaseCurrent.toFixed(1)}A, znamionowy prąd FR: ${mainRating}A. ${currentDetails}`,
         severity: "Error",
         symbolId: mainBreaker.id,

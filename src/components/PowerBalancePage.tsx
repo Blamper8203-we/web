@@ -113,21 +113,21 @@ export function PowerBalancePage({ symbols, onApplyBalance, onApplyPhaseMove, me
       <div className="card pb-phases">
         <PhaseCard
           color="brown"
-          label="L1"
+          label={t("auto.l1_594", "L1")}
           maxCurrent={maxPhaseCurrent}
           power={distribution.l1PowerW}
           current={distribution.l1CurrentA}
         />
         <PhaseCard
           color="black"
-          label="L2"
+          label={t("auto.l2_607", "L2")}
           maxCurrent={maxPhaseCurrent}
           power={distribution.l2PowerW}
           current={distribution.l2CurrentA}
         />
         <PhaseCard
           color="gray"
-          label="L3"
+          label={t("auto.l3_792", "L3")}
           maxCurrent={maxPhaseCurrent}
           power={distribution.l3PowerW}
           current={distribution.l3CurrentA}

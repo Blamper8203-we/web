@@ -1,4 +1,11 @@
+import { useTranslation } from "react-i18next";
 export function LandingHeader() {
+  const { t, i18n } = useTranslation();
+
+  const handleLanguageChange = (lang: string) => {
+    i18n.changeLanguage(lang);
+  };
+
   return (
     <header className="landing-header">
       <div className="landing-header-container">
@@ -8,7 +15,7 @@ export function LandingHeader() {
           </div>
           <div>
             <span className="landing-header-title">
-              Din<span className="landing-header-title-accent">Board</span>
+              Din<span className="landing-header-title-accent">{t("auto.board_264", "Board")}</span>
             </span>
             <span className="landing-header-subtitle">
               Web Application
@@ -17,14 +24,14 @@ export function LandingHeader() {
         </div>
 
         <nav className="landing-header-nav">
-          <a href="#funkcje">Możliwości</a>
-          <a href="#demo-sandbox">Interfejs</a>
-          <a href="#artykuly">Baza wiedzy</a>
-          <a href="#faq">FAQ</a>
+          <a href="#funkcje">{t("auto.moliwoci_696", "Możliwości")}</a>
+          <a href="#demo-sandbox">{t("auto.interfejs_389", "Interfejs")}</a>
+          <a href="#artykuly">{t("auto.bazawiedzy_212", "Baza wiedzy")}</a>
+          <a href="#faq">{t("auto.faq_502", "FAQ")}</a>
         </nav>
 
         <div className="landing-header-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          {/* <button 
+          <button 
             onClick={() => handleLanguageChange('pl')} 
             style={{ background: 'transparent', border: '1px solid #333', color: i18n.language === 'pl' ? '#f59e0b' : '#fff', cursor: 'pointer', padding: '4px 8px', borderRadius: '4px' }}
           >
@@ -35,7 +42,7 @@ export function LandingHeader() {
             style={{ background: 'transparent', border: '1px solid #333', color: i18n.language === 'de' ? '#f59e0b' : '#fff', cursor: 'pointer', padding: '4px 8px', borderRadius: '4px' }}
           >
             DE
-          </button> */}
+          </button>
           <a
             href="https://suppi.pl/dinboard"
             target="_blank"
@@ -43,7 +50,7 @@ export function LandingHeader() {
             className="landing-header-btn-support"
           >
             <i data-lucide="coffee" className="icon"></i>
-            <span className="landing-header-btn-text">Wesprzyj projekt</span>
+            <span className="landing-header-btn-text">{t("auto.wesprzyjprojekt_653", "Wesprzyj projekt")}</span>
           </a>
         </div>
       </div>

@@ -3,7 +3,8 @@ import type { ProjectMetadata } from "../../../types/projectMetadata";
 import type { MeasurementUnifiedProtocolRow } from "../../../types/projectMetadata";
 import { pdfStyles as styles } from "./pdfStyles";
 import { formatProtocolNumberLabel, formatProtocolTitle, getSuffix, protocolValue } from "./pdfHelpers";
-import { t } from "i18next";
+import i18next from "i18next";
+const t = i18next.t.bind(i18next);
 
 interface PdfUnifiedTablePageProps {
   metadata: ProjectMetadata;
@@ -38,7 +39,7 @@ export function PdfUnifiedTablePage({
           </View>
           <View>
             <Text style={[styles.textLg, styles.fontExtraBold, styles.textGray900, styles.uppercase]}>
-              Protokół Pomiarów Nr <Text style={[styles.bgGray100, styles.px1, styles.rounded, styles.textBrand]}>{chunkProtocolNumberLabel}</Text>
+              {t("pdf.shared.protocolNrPrefix", "Protokół Pomiarów Nr ")}<Text style={[styles.bgGray100, styles.px1, styles.rounded, styles.textBrand]}>{chunkProtocolNumberLabel}</Text>
             </Text>
             <Text style={[styles.textXs, styles.textGray500, styles.fontMedium, styles.mt1]}>{t("pdf.unifiedTable.title", "Zbiorcze wyniki pomiarów pętli zwarcia i rezystancji izolacji")}</Text>
           </View>

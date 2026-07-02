@@ -2,7 +2,9 @@ import { Page, Text, View } from "@react-pdf/renderer";
 import type { ProjectMetadata } from "../../../types/projectMetadata";
 import { pdfStyles as styles } from "./pdfStyles";
 import type { PdfCircuitGroup } from "./pdfHelpers";
-import { t } from "i18next";
+import i18next from "i18next";
+const t = i18next.t.bind(i18next);
+import { translateDefaultProjectText } from "../../projectMetadata";
 
 interface PdfProjectSummaryPageProps {
   metadata: ProjectMetadata;
@@ -117,7 +119,7 @@ export function PdfProjectSummaryPage({
         <View style={[styles.borderT, styles.pt3, styles.flexRow, styles.justifyBetween]}>
           <Text style={[styles.textXs, styles.textGray500]}>
             {t("pdf.projectSummary.object", "Obiekt:")} <Text style={[styles.fontSemiBold, styles.textGray700]}>
-              {metadata.titlePageObjectType || metadata.projectNumber || t("pdf.projectSummary.newOrder", "Nowe zlecenie")}
+              {metadata.titlePageObjectType ? translateDefaultProjectText(metadata.titlePageObjectType, t) : (metadata.projectNumber || t("pdf.projectSummary.newOrder", "Nowe zlecenie"))}
             </Text>
           </Text>
           <Text style={[styles.textXs, styles.textGray500]}>

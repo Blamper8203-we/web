@@ -1,5 +1,6 @@
+import { useTranslation } from "react-i18next";
 import { Suspense, lazy, useMemo, useState, useTransition, createContext, useContext, type TransitionStartFunction } from "react";
-import { getPdfDocumentationTabs, type PdfDocumentationPreviewTab } from "../lib/pdfDocumentation";
+import { getPdfDocumentationTabs, getProtocolLabel, type PdfDocumentationPreviewTab } from "../lib/pdfDocumentation";
 import { buildEditableMeasurementProtocols } from "../lib/measurementProtocols";
 import type { ProjectMetadata } from "../types/projectMetadata";
 import type { SymbolItem } from "../types/symbolItem";
@@ -63,6 +64,7 @@ export function PdfWorkspaceShell({
   showLeftPanel,
   showRightPanel,
 }: PdfWorkspaceShellProps) {
+  const { t } = useTranslation();
   const [pdfPreviewTab, setPdfPreviewTab] = useState<PdfDocumentationPreviewTab>("title-page");
   const [, startPdfTabTransition] = useTransition();
 
@@ -106,7 +108,7 @@ export function PdfWorkspaceShell({
       {showLeftPanel && (
         <aside className="left-panel">
           <div className="panel-content">
-            <Suspense fallback={<div className="left-panel-empty"><strong>Ładowanie panelu PDF...</strong></div>}>
+            <Suspense fallback={<div className="left-panel-empty"><strong>{t("auto.adowaniepanelup_749", "Ładowanie panelu PDF...")}</strong></div>}>
               <PdfDocumentationPage />
             </Suspense>
           </div>
@@ -139,12 +141,12 @@ export function PdfWorkspaceShell({
                   });
                 }}
               >
-                {tab.label}
+                {getProtocolLabel(tab.id)}
               </button>
             ))}
           </div>
           <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", background: "transparent" }}>
-            <Suspense fallback={<div className="pdf-preview-workspace__empty"><strong>Ładowanie arkusza A4...</strong></div>}>
+            <Suspense fallback={<div className="pdf-preview-workspace__empty"><strong>{t("auto.adowaniearkusza_559", "Ładowanie arkusza A4...")}</strong></div>}>
               <MeasurementProtocolsWorkspacePage />
             </Suspense>
           </div>
@@ -167,7 +169,7 @@ export function PdfWorkspaceShell({
                       });
                     }}
                   >
-                    <span className="pdf-right-panel-tab__title">{tab.label}</span>
+                    <span className="pdf-right-panel-tab__title">{getProtocolLabel(tab.id)}</span>
                   </button>
                 ))}
               </div>

@@ -3,8 +3,9 @@ import type { ProjectMetadata, TitlePageChecklistItem } from "../../../types/pro
 import { pdfStyles as styles } from "./pdfStyles";
 import { TITLE_WORK_SCOPE_COLUMN_SIZE, TITLE_WORK_SCOPE_MAX_ITEMS } from "./pdfHelpers";
 import { chunkRows } from "../../measurementProtocolHelpers";
-import { DEFAULT_ATTACHMENT_ITEMS, DEFAULT_WORK_SCOPE_ITEMS, mergeDefaultAttachmentItems } from "../../projectMetadata";
-import { t } from "i18next";
+import { DEFAULT_ATTACHMENT_ITEMS, DEFAULT_WORK_SCOPE_ITEMS, mergeDefaultAttachmentItems, translateDefaultProjectText } from "../../projectMetadata";
+import i18next from "i18next";
+const t = i18next.t.bind(i18next);
 
 interface PdfTitlePageProps {
   metadata: ProjectMetadata;
@@ -31,12 +32,12 @@ export function PdfTitlePage({ metadata, displayDate }: PdfTitlePageProps) {
     ? (rawProjectNum.includes('/') ? rawProjectNum : `${rawProjectNum} / ${resolvedYear}`)
     : `....... / ${resolvedYear}`;
 
-  const objectType = metadata.titlePageObjectType || t("pdfDocumentationPage.editor.titlePage.objectTypePlaceholder");
+  const objectType = metadata.titlePageObjectType ? translateDefaultProjectText(metadata.titlePageObjectType, t) : t("pdfDocumentationPage.editor.titlePage.objectTypePlaceholder");
   const contractorName = metadata.contractor || metadata.author || "................................";
   const sepE = metadata.designerId || "................................";
   const sepD = metadata.authorLicense || "................................";
   const sepValidUntil = metadata.titlePageSepValidUntil?.trim() || "........................";
-  const stampText = metadata.contractorSignature || t("pdf.titlePage.signContractor", "PIECZĘĆ WYKONAWCY");
+  const stampText = metadata.contractorSignature ? translateDefaultProjectText(metadata.contractorSignature, t) : t("pdf.titlePage.signContractor", "PIECZĘĆ WYKONAWCY");
   const designerSignatureText = metadata.designerSignature?.trim() || "";
   const investorSignatureText = metadata.investorSignature?.trim() || "";
   const useManualCheckboxes = Boolean(metadata.titlePageUseManualWorkScopeCheckboxes);
@@ -123,7 +124,7 @@ export function PdfTitlePage({ metadata, displayDate }: PdfTitlePageProps) {
                           <Text style={styles.checkboxChecked}>✓</Text>
                         ) : null}
                       </View>
-                      <Text style={[styles.textXs, styles.fontMedium, styles.textGray700, { flex: 1 }]}>{item.text}</Text>
+                      <Text style={[styles.textXs, styles.fontMedium, styles.textGray700, { flex: 1 }]}>{translateDefaultProjectText(item.text, t)}</Text>
                     </View>
                   );
                 })}
@@ -143,7 +144,7 @@ export function PdfTitlePage({ metadata, displayDate }: PdfTitlePageProps) {
                         <Text style={styles.checkboxChecked}>✓</Text>
                       ) : null}
                     </View>
-                    <Text style={[styles.textXs, styles.fontMedium, styles.textGray700, { flex: 1 }]}>{item}</Text>
+                    <Text style={[styles.textXs, styles.fontMedium, styles.textGray700, { flex: 1 }]}>{translateDefaultProjectText(item, t)}</Text>
                   </View>
                 ))}
               </View>
@@ -191,17 +192,21 @@ export function PdfTitlePage({ metadata, displayDate }: PdfTitlePageProps) {
             <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb1]}>{t("pdfDocumentationPage.editor.titlePage.contractorLicense")}</Text>
             <View style={[styles.flexCol, styles.mt1]}>
               <View style={[styles.flexRow, styles.mb1]}>
-                <Text style={[styles.fontSemiBold, styles.textGray700, styles.textSm, { width: 110 }]}>{t("pdfDocumentationPage.editor.titlePage.sepE")}</Text>
+                <Text style={[styles.fontSemiBold, styles.textGray700, styles.textSm, { width: 110 }]}>{i18next.language?.startsWith("de") ? t("pdfDocumentationPage.editor.titlePage.sepE_DE", "Register-Nr:") : t("pdfDocumentationPage.editor.titlePage.sepE")}</Text>
                 <Text style={[styles.fontBold, styles.textGray950, styles.textSm, styles.flex1]}>{sepE}</Text>
               </View>
-              <View style={[styles.flexRow]}>
-                <Text style={[styles.fontSemiBold, styles.textGray700, styles.textSm, { width: 110 }]}>{t("pdfDocumentationPage.editor.titlePage.sepD")}</Text>
-                <Text style={[styles.fontBold, styles.textGray950, styles.textSm, styles.flex1]}>{sepD}</Text>
-              </View>
-              <View style={[styles.flexRow, styles.mt1]}>
-                <Text style={[styles.fontSemiBold, styles.textGray700, styles.textSm, { width: 110 }]}>{t("pdfDocumentationPage.editor.titlePage.validUntil")}:</Text>
-                <Text style={[styles.fontBold, styles.textGray950, styles.textSm, styles.flex1]}>{sepValidUntil}</Text>
-              </View>
+              {!i18next.language?.startsWith("de") && (
+                <>
+                  <View style={[styles.flexRow]}>
+                    <Text style={[styles.fontSemiBold, styles.textGray700, styles.textSm, { width: 110 }]}>{t("pdfDocumentationPage.editor.titlePage.sepD")}</Text>
+                    <Text style={[styles.fontBold, styles.textGray950, styles.textSm, styles.flex1]}>{sepD}</Text>
+                  </View>
+                  <View style={[styles.flexRow, styles.mt1]}>
+                    <Text style={[styles.fontSemiBold, styles.textGray700, styles.textSm, { width: 110 }]}>{t("pdfDocumentationPage.editor.titlePage.validUntil")}:</Text>
+                    <Text style={[styles.fontBold, styles.textGray950, styles.textSm, styles.flex1]}>{sepValidUntil}</Text>
+                  </View>
+                </>
+              )}
             </View>
           </View>
         ) : null}

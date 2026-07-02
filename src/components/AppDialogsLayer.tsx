@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { ImportedModuleDefinition } from "../lib/modules/importedModuleCatalog";
 import { AppIcon } from "./AppIcon";
 import { HelpDialog } from "./HelpDialog";
@@ -73,6 +74,7 @@ export function AppDialogsLayer({
   onDiscardUnsavedChanges,
   onCancelUnsavedChanges,
 }: AppDialogsLayerProps) {
+  const { t } = useTranslation();
   return (
     <>
       {svgImportDialogOpen && (
@@ -102,7 +104,7 @@ export function AppDialogsLayer({
             }}
           >
             <AppIcon name="delete" size={12} />
-            <span>Usuń</span>
+            <span>{t("auto.usu_249", "Usuń")}</span>
           </button>
         </div>
       )}
@@ -113,12 +115,12 @@ export function AppDialogsLayer({
             className="palette-confirm-dialog"
             role="dialog"
             aria-modal="true"
-            aria-label="Potwierdzenie usunięcia modułu"
+            aria-label={t("auto.potwierdzenieus_635", "Potwierdzenie usunięcia modułu")}
             onMouseDown={(event) => event.stopPropagation()}
           >
             <div className="din-rail-dialog-title">
               <AppIcon name="delete" size={18} />
-              <strong>Usuń moduł z lewego panelu?</strong>
+              <strong>{t("auto.usumoduzlewegop_732", "Usuń moduł z lewego panelu?")}</strong>
             </div>
             <p className="palette-confirm-dialog__copy">
               Moduł <strong>{pendingPaletteRemoval.label}</strong> zniknie z palety po lewej stronie.

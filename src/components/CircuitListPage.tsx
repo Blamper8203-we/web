@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { CircuitRow } from "../types/circuitRow";
 import {
   buildVisibleCircuitGroups,
@@ -21,6 +22,7 @@ function formatNumber(value: number): string {
 }
 
 export function CircuitListPage({ rows }: CircuitListPageProps) {
+  const { t } = useTranslation();
   const groups = buildVisibleCircuitGroups(rows);
   const hiddenCount = countHiddenCircuitRows(rows);
   const visibleCount = rows.length - hiddenCount;
@@ -32,8 +34,8 @@ export function CircuitListPage({ rows }: CircuitListPageProps) {
     <section className="cl-page">
       <header className="cl-hero">
         <div>
-          <span className="cl-eyebrow">Obwody</span>
-          <h2>Lista obwodów</h2>
+          <span className="cl-eyebrow">{t("auto.obwody_804", "Obwody")}</span>
+          <h2>{t("auto.listaobwodw_363", "Lista obwodów")}</h2>
           <p>
             Zestawienie obwodów z grupowaniem po lokalizacji, sortowaniem po pozycji
             oraz filtrowaniem elementów pomocniczych poza główną tabelą.
@@ -43,15 +45,15 @@ export function CircuitListPage({ rows }: CircuitListPageProps) {
 
       <div className="cl-summary">
         <article className="cl-summary-card cl-summary-card--visible">
-          <span>Widoczne po filtracji</span>
+          <span>{t("auto.widocznepofiltr_118", "Widoczne po filtracji")}</span>
           <strong>{visibleCount}</strong>
         </article>
         <article className="cl-summary-card cl-summary-card--hidden">
-          <span>Ukryte elementy pomocnicze</span>
+          <span>{t("auto.ukryteelementyp_979", "Ukryte elementy pomocnicze")}</span>
           <strong>{hiddenCount}</strong>
         </article>
         <article className="cl-summary-card cl-summary-card--power">
-          <span>Suma mocy obwodów</span>
+          <span>{t("auto.sumamocyobwodw_598", "Suma mocy obwodów")}</span>
           <strong>{formatNumber(totalPower)} W</strong>
         </article>
       </div>
@@ -59,21 +61,21 @@ export function CircuitListPage({ rows }: CircuitListPageProps) {
       <div className="cl-grid">
         <section className="cl-table-area">
           <div className="cl-toolbar">
-            <strong>Lista obwodów DINBoard</strong>
-            <span>Filtr: bez RCD, kontrolek faz i elementów pomocniczych.</span>
+            <strong>{t("auto.listaobwodwdinb_136", "Lista obwodów DINBoard")}</strong>
+            <span>{t("auto.filtrbezrcdkont_590", "Filtr: bez RCD, kontrolek faz i elementów pomocniczych.")}</span>
           </div>
 
           <div className="cl-table-shell">
             <div className="cl-table">
               <div className="cl-head">
-                <span>Oznaczenie</span>
-                <span>Etykieta</span>
-                <span>Faza</span>
-                <span>Zabezpieczenie</span>
-                <span>Obwód</span>
-                <span>Moc [W]</span>
-                <span>Dług. kabla [m]</span>
-                <span>Przekrój [mm2]</span>
+                <span>{t("auto.oznaczenie_317", "Oznaczenie")}</span>
+                <span>{t("auto.etykieta_547", "Etykieta")}</span>
+                <span>{t("auto.faza_126", "Faza")}</span>
+                <span>{t("auto.zabezpieczenie_39", "Zabezpieczenie")}</span>
+                <span>{t("auto.obwd_43", "Obwód")}</span>
+                <span>{t("auto.mocw_533", "Moc [W]")}</span>
+                <span>{t("auto.dugkablam_983", "Dług. kabla [m]")}</span>
+                <span>{t("auto.przekrjmm2_436", "Przekrój [mm2]")}</span>
               </div>
 
               {groups.map((group) => (
@@ -113,39 +115,39 @@ export function CircuitListPage({ rows }: CircuitListPageProps) {
         <aside className="cl-side">
           <article className="cl-panel">
             <div className="cl-panel__header">
-              <span className="cl-eyebrow">Kolumny</span>
-              <strong>Zakres widoku</strong>
+              <span className="cl-eyebrow">{t("auto.kolumny_141", "Kolumny")}</span>
+              <strong>{t("auto.zakreswidoku_548", "Zakres widoku")}</strong>
             </div>
             <ul>
               <li>ReferenceDesignation</li>
               <li>Label</li>
-              <li>Phase</li>
-              <li>DisplayProtection</li>
-              <li>CircuitName</li>
-              <li>PowerW</li>
-              <li>CableLength</li>
-              <li>CableCrossSection</li>
+              <li>{t("auto.phase_30", "Phase")}</li>
+              <li>{t("auto.displayprotecti_378", "DisplayProtection")}</li>
+              <li>{t("auto.circuitname_313", "CircuitName")}</li>
+              <li>{t("auto.powerw_474", "PowerW")}</li>
+              <li>{t("auto.cablelength_270", "CableLength")}</li>
+              <li>{t("auto.cablecrosssecti_829", "CableCrossSection")}</li>
             </ul>
           </article>
 
           <article className="cl-panel">
             <div className="cl-panel__header">
-              <span className="cl-eyebrow">Reguły</span>
-              <strong>Elementy poza tabelą</strong>
+              <span className="cl-eyebrow">{t("auto.reguy_33", "Reguły")}</span>
+              <strong>{t("auto.elementypozatab_757", "Elementy poza tabelą")}</strong>
             </div>
             <ul>
-              <li>RCD jako zabezpieczenia grupowe</li>
-              <li>Kontrolki faz</li>
-              <li>Listwy, złączki i elementy pomocnicze</li>
+              <li>{t("auto.rcdjakozabezpie_155", "RCD jako zabezpieczenia grupowe")}</li>
+              <li>{t("auto.kontrolkifaz_905", "Kontrolki faz")}</li>
+              <li>{t("auto.listwyzczkiiele_347", "Listwy, złączki i elementy pomocnicze")}</li>
             </ul>
           </article>
 
           <article className="cl-panel">
             <div className="cl-panel__header">
-              <span className="cl-eyebrow">Stan</span>
-              <strong>Dane aktualnego zlecenia</strong>
+              <span className="cl-eyebrow">{t("auto.stan_373", "Stan")}</span>
+              <strong>{t("auto.daneaktualnegoz_178", "Dane aktualnego zlecenia")}</strong>
             </div>
-            <p>Lista czyta dane bezpośrednio z aktualnych symboli rozdzielnicy.</p>
+            <p>{t("auto.listaczytadaneb_90", "Lista czyta dane bezpośrednio z aktualnych symboli rozdzielnicy.")}</p>
             <p>Aktualny zestaw danych: {rows.length} rekordów.</p>
           </article>
         </aside>

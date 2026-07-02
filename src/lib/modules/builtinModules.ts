@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import type { PaletteTemplate } from "./moduleCatalog";
 
 export const DIN_RAIL_UNIT_PER_MODULE = 250;
@@ -17,7 +18,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "fr-1p-new-svg",
     code: "Rozłącznik izolacyjny FR 1P",
-    label: "Rozłącznik izolacyjny FR 1P",
+    label: t("auto.rozcznikizolacy_334", "Rozłącznik izolacyjny FR 1P"),
     type: "FR",
     category: "FR",
     deviceKind: "fr",
@@ -29,7 +30,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "fr-3p-new-svg",
     code: "Rozłącznik izolacyjny FR 3P",
-    label: "Rozłącznik izolacyjny FR 3P",
+    label: t("auto.rozcznikizolacy_796", "Rozłącznik izolacyjny FR 3P"),
     type: "FR",
     category: "FR",
     deviceKind: "fr",
@@ -41,7 +42,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "spd-new-svg",
     code: "SPD",
-    label: "SPD (Ogranicznik przepięć)",
+    label: t("auto.spdogranicznikp_313", "SPD (Ogranicznik przepięć)"),
     type: "SPD",
     category: "SPD",
     deviceKind: "spd",
@@ -56,7 +57,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "blok-rozdzielczy-7pin-new-svg",
     code: "Blok rozdzielczy 4x7",
-    label: "Blok rozdzielczy 4x7",
+    label: t("auto.blokrozdzielczy_626", "Blok rozdzielczy 4x7"),
     type: "Blok rozdzielczy",
     category: "Blok rozdzielczy",
     deviceKind: "terminalBlock",
@@ -71,7 +72,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "kontrolki-faz-new-svg",
     code: "Kontrolki faz",
-    label: "Kontrolki faz",
+    label: t("auto.kontrolkifaz_332", "Kontrolki faz"),
     type: "Controls",
     category: "Controls",
     deviceKind: "phaseIndicator",
@@ -82,7 +83,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "przelacznik-sieci-3p-svg",
     code: "Przełącznik sieci 3P",
-    label: "Przełącznik sieci 3P",
+    label: t("auto.przeczniksieci3_731", "Przełącznik sieci 3P"),
     type: "Przełącznik sieci",
     category: "Przełączniki sieci",
     deviceKind: "other",
@@ -95,7 +96,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "przelacznik-sieci-4p-svg",
     code: "Przełącznik sieci 4P",
-    label: "Przełącznik sieci 4P",
+    label: t("auto.przeczniksieci4_364", "Przełącznik sieci 4P"),
     type: "Przełącznik sieci",
     category: "Przełączniki sieci",
     deviceKind: "other",
@@ -108,7 +109,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "przelacznik-siec-4p-svg",
     code: "Przełącznik sieć 4P",
-    label: "Przełącznik sieć 4P",
+    label: t("auto.przeczniksie4p_343", "Przełącznik sieć 4P"),
     type: "Przełącznik sieci",
     category: "Przełączniki sieci",
     deviceKind: "other",
@@ -121,7 +122,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "rcd-1p-n-new-svg",
     code: "Rozłącznik różnicowoprądowy 1P+N",
-    label: "Rozłącznik różnicowoprądowy 1P+N",
+    label: t("auto.rozcznikrnicowo_124", "Rozłącznik różnicowoprądowy 1P+N"),
     type: "RCD",
     category: "RCD",
     deviceKind: "rcd",
@@ -137,7 +138,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "rcd-3p-n-new-svg",
     code: "Rozłącznik różnicowoprądowy 3P+N",
-    label: "Rozłącznik różnicowoprądowy 3P+N",
+    label: t("auto.rozcznikrnicowo_53", "Rozłącznik różnicowoprądowy 3P+N"),
     type: "RCD",
     category: "RCD",
     deviceKind: "rcd",
@@ -153,7 +154,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "listwa-15-pin-n-svg",
     code: "Listwa 15 pin N",
-    label: "Listwa 15 pin N",
+    label: t("auto.listwa15pinn_242", "Listwa 15 pin N"),
     type: "Listwy",
     category: "Listwy do rozdzielnicy",
     deviceKind: "terminalBlock",
@@ -179,7 +180,7 @@ export const currentModuleEntries: ModuleEntry[] = [
     {
     templateId: "modul-zabezpieczajacy-svg",
     code: "Moduł zabezpieczający 3P",
-    label: "Moduł zabezpieczający 3P",
+    label: t("auto.moduzabezpiecza_547", "Moduł zabezpieczający 3P"),
     type: "Zabezpieczenia",
     category: "Zabezpieczenia",
     deviceKind: "phaseIndicator",
@@ -192,7 +193,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "lampka-kontrolna-3f-svg",
     code: "Lampka Kontrolna 3 Fazowa",
-    label: "Lampka Kontrolna 3 Fazowa",
+    label: t("auto.lampkakontrolna_74", "Lampka Kontrolna 3 Fazowa"),
     type: "Controls",
     category: "Controls",
     deviceKind: "phaseIndicator",
@@ -205,7 +206,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "gsu-6-pin-svg",
     code: "GSU 6-zaciskowa",
-    label: "GSU (Główna Szyna Uziemiająca)",
+    label: t("auto.gsugwnaszynauzi_456", "GSU (Główna Szyna Uziemiająca)"),
     type: "Listwy",
     category: "GSU",
     deviceKind: "terminalBlock",
@@ -218,7 +219,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "listwa-n-12pin-svg",
     code: "Listwa N 12PIN",
-    label: "Listwa N 12PIN",
+    label: t("auto.listwan12pin_898", "Listwa N 12PIN"),
     type: "Listwy",
     category: "Listwy zaciskowe",
     deviceKind: "terminalBlock",
@@ -231,7 +232,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "listwa-n-15pin-svg",
     code: "Listwa N 15PIN",
-    label: "Listwa N 15PIN",
+    label: t("auto.listwan15pin_754", "Listwa N 15PIN"),
     type: "Listwy",
     category: "Listwy zaciskowe",
     deviceKind: "terminalBlock",
@@ -244,7 +245,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "listwa-n-7pin-svg",
     code: "Listwa N 7PIN",
-    label: "Listwa N 7PIN",
+    label: t("auto.listwan7pin_646", "Listwa N 7PIN"),
     type: "Listwy",
     category: "Listwy zaciskowe",
     deviceKind: "terminalBlock",
@@ -257,7 +258,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "listwa-pe-12pin-svg",
     code: "Listwa PE 12PIN",
-    label: "Listwa PE 12PIN",
+    label: t("auto.listwape12pin_183", "Listwa PE 12PIN"),
     type: "Listwy",
     category: "Listwy zaciskowe",
     deviceKind: "terminalBlock",
@@ -270,7 +271,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "listwa-pe-15pin-svg",
     code: "Listwa PE 15PIN",
-    label: "Listwa PE 15PIN",
+    label: t("auto.listwape15pin_427", "Listwa PE 15PIN"),
     type: "Listwy",
     category: "Listwy zaciskowe",
     deviceKind: "terminalBlock",
@@ -283,7 +284,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "listwa-pe-7pin-svg",
     code: "Listwa PE 7PIN",
-    label: "Listwa PE 7PIN",
+    label: t("auto.listwape7pin_901", "Listwa PE 7PIN"),
     type: "Listwy",
     category: "Listwy zaciskowe",
     deviceKind: "terminalBlock",
@@ -296,7 +297,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "zlaczka-5-torowa-svg",
     code: "Złączka 5-torowa",
-    label: "Złączka 5-torowa (L1-L2-L3-N-PE)",
+    label: t("auto.zczka5torowal1l_977", "Złączka 5-torowa (L1-L2-L3-N-PE)"),
     type: "Złącza",
     category: "Złącza",
     deviceKind: "terminalBlock",
@@ -309,7 +310,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "zlaczka-n-1-zaciskowa-svg",
     code: "Złączka N 1-zaciskowa",
-    label: "Złączka N 1-zaciskowa",
+    label: t("auto.zczkan1zaciskow_500", "Złączka N 1-zaciskowa"),
     type: "Złącza",
     category: "Złącza",
     deviceKind: "terminalBlock",
@@ -322,7 +323,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "zlaczka-n-2-zaciskowa-svg",
     code: "Złączka N 2-zaciskowa",
-    label: "Złączka N 2-zaciskowa",
+    label: t("auto.zczkan2zaciskow_129", "Złączka N 2-zaciskowa"),
     type: "Złącza",
     category: "Złącza",
     deviceKind: "terminalBlock",
@@ -335,7 +336,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "zlaczka-n-3-zaciskowa-svg",
     code: "Złączka N 3-zaciskowa",
-    label: "Złączka N 3-zaciskowa",
+    label: t("auto.zczkan3zaciskow_347", "Złączka N 3-zaciskowa"),
     type: "Złącza",
     category: "Złącza",
     deviceKind: "terminalBlock",
@@ -348,7 +349,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "zlaczka-pe-1-zaciskowa-svg",
     code: "Złączka PE 1-zaciskowa",
-    label: "Złączka PE 1-zaciskowa",
+    label: t("auto.zczkape1zacisko_298", "Złączka PE 1-zaciskowa"),
     type: "Złącza",
     category: "Złącza",
     deviceKind: "terminalBlock",
@@ -361,7 +362,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "zlaczka-pe-2-zaciskowa-svg",
     code: "Złączka PE 2-zaciskowa",
-    label: "Złączka PE 2-zaciskowa",
+    label: t("auto.zczkape2zacisko_731", "Złączka PE 2-zaciskowa"),
     type: "Złącza",
     category: "Złącza",
     deviceKind: "terminalBlock",
@@ -374,7 +375,7 @@ export const currentModuleEntries: ModuleEntry[] = [
   {
     templateId: "zlaczka-pe-3-zaciskowa-svg",
     code: "Złączka PE 3-zaciskowa",
-    label: "Złączka PE 3-zaciskowa",
+    label: t("auto.zczkape3zacisko_748", "Złączka PE 3-zaciskowa"),
     type: "Złącza",
     category: "Złącza",
     deviceKind: "terminalBlock",

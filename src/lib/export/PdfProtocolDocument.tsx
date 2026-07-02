@@ -2,6 +2,9 @@ import { Document, Image, Page, View, Text } from "@react-pdf/renderer";
 import type { ProjectMetadata, MeasurementUnifiedProtocolRow } from "../../types/projectMetadata";
 import type { SymbolItem } from "../../types/symbolItem";
 import { buildCircuitListTableRows, buildCircuitRowsFromSymbols, type CircuitListTableRow } from "../circuitRows";
+import i18next from "i18next";
+const t = i18next.t.bind(i18next);
+import { translateDefaultProjectText } from "../projectMetadata";
 
 import {
   CIRCUIT_LIST_ROWS_PER_PAGE,
@@ -45,7 +48,7 @@ export function PdfProtocolDocument({
   // the preview fell back to `toLocaleDateString("pl-PL")` (`DD.MM.YYYY`),
   // producing different strings for the same project — bug.
   const displayDate = formatDisplayDate(metadata);
-  const fallbackObjectName = metadata.titlePageObjectType || metadata.projectNumber || "Nowe zlecenie";
+  const fallbackObjectName = metadata.titlePageObjectType ? translateDefaultProjectText(metadata.titlePageObjectType, t) : (metadata.projectNumber || t("pdf.projectSummary.newOrder", "Nowe zlecenie"));
 
   const unifiedRows = metadata.measurementProtocols?.unifiedRows ?? [];
   const unifiedChunks = unifiedRows.length > 0 ? chunkRows(unifiedRows, UNIFIED_ROWS_PER_PAGE) : [[]];
@@ -129,7 +132,7 @@ export function PdfProtocolDocument({
                   <Image src={src} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
                 </View>
                 <View style={{ position: "absolute", bottom: 10, left: 0, right: 0, textAlign: "center" }} fixed>
-                  <Text style={{ fontSize: 8, color: "#9ca3af", textTransform: "uppercase" }} render={({ pageNumber, totalPages }) => `Strona ${pageNumber} z ${totalPages} • Dokument wygenerowany cyfrowo • Zgodny z normą PN-HD 60364`} />
+                  <Text style={{ fontSize: 8, color: "#9ca3af", textTransform: "uppercase" }} render={({ pageNumber, totalPages }) => t("pdf.footer.pageInfo", { pageNumber, totalPages, defaultValue: `Strona ${pageNumber} z ${totalPages} • Dokument wygenerowany cyfrowo • Zgodny z normą PN-HD 60364` })} />
                 </View>
               </Page>
             ))}

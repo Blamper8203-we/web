@@ -2,7 +2,8 @@ import { Page, Text, View } from "@react-pdf/renderer";
 import type { ProjectMetadata } from "../../../types/projectMetadata";
 import { pdfStyles as styles } from "./pdfStyles";
 import { formatProtocolNumberLabel, formatProtocolTitle, protocolValue } from "./pdfHelpers";
-import { t } from "i18next";
+import i18next from "i18next";
+const t = i18next.t.bind(i18next);
 
 interface PdfRcdTablePageProps {
   metadata: ProjectMetadata;
@@ -30,7 +31,7 @@ export function PdfRcdTablePage({
           </View>
           <View>
             <Text style={[styles.textLg, styles.fontExtraBold, styles.textGray900, styles.uppercase]}>
-              Protokół Pomiarów Nr <Text style={[styles.bgGray100, styles.px1, styles.rounded, styles.textBrand]}>{rcdProtocolNumberLabel}</Text>
+              {t("pdf.shared.protocolNrPrefix", "Protokół Pomiarów Nr ")}<Text style={[styles.bgGray100, styles.px1, styles.rounded, styles.textBrand]}>{rcdProtocolNumberLabel}</Text>
             </Text>
             <Text style={[styles.textXs, styles.textGray500, styles.fontMedium, styles.mt1]}>{t("pdf.rcdTable.title", "Test wyłączników różnicowoprądowych RCD i pomiar rezystancji uziemienia")}</Text>
           </View>

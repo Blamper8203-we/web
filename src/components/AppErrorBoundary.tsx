@@ -62,7 +62,7 @@ class AppErrorBoundaryInner extends React.Component<
         <section className="app-error-boundary__panel">
           <div className="app-error-boundary__mark">!</div>
           <div className="app-error-boundary__copy">
-            <span className="app-error-boundary__eyebrow">DINBoard Web</span>
+            <span className="app-error-boundary__eyebrow">{t("auto.dinboardweb_764", "DINBoard Web")}</span>
             <h1>{t("app.errorBoundary.title", "Nie udało się wyświetlić aplikacji")}</h1>
             <p>
               {t("app.errorBoundary.desc1", "Dane robocze zapisane w tej przeglądarce powinny pozostać dostępne. Odśwież aplikację i sprawdź ostatni zapis zlecenia.")}

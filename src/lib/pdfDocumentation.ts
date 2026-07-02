@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import type {
   MeasurementProtocolHeaderSettings,
   ProjectMetadata,
@@ -15,20 +16,18 @@ export type PdfDocumentationPreviewTab =
 
 export const pdfDocumentationTabs: Array<{
   id: PdfDocumentationPreviewTab;
-  label: string;
 }> = [
-  { id: "title-page", label: "Strona główna" },
-  { id: "unified", label: "Tabela zbiorcza" },
-  { id: "rcd-ground", label: "RCD i uziemienie" },
-  { id: "circuit-list", label: "Lista obwodów" },
-  { id: "din-rail", label: "Rozdzielnica elektryczna" },
-  { id: "din-rail-connections", label: "Rozdzielnica połączenia" },
-  { id: "schematic", label: "Schemat obwodów" },
+  { id: "title-page" },
+  { id: "unified" },
+  { id: "rcd-ground" },
+  { id: "circuit-list" },
+  { id: "din-rail" },
+  { id: "din-rail-connections" },
+  { id: "schematic" },
 ];
 
 export function getPdfDocumentationTabs(): Array<{
   id: PdfDocumentationPreviewTab;
-  label: string;
 }> {
   return pdfDocumentationTabs;
 }
@@ -36,19 +35,19 @@ export function getPdfDocumentationTabs(): Array<{
 export function getProtocolLabel(tab: PdfDocumentationPreviewTab): string {
   switch (tab) {
     case "circuit-list":
-      return "Lista obwodów";
+      return t("pdf.tabs.circuit-list", "Lista obwodów");
     case "din-rail":
-      return "Rozdzielnica elektryczna";
+      return t("pdf.tabs.din-rail", "Rozdzielnica elektryczna");
     case "din-rail-connections":
-      return "Rozdzielnica połączenia";
+      return t("pdf.tabs.din-rail-connections", "Rozdzielnica połączenia");
     case "schematic":
-      return "Schemat obwodów";
+      return t("pdf.tabs.schematic", "Schemat obwodów");
     case "unified":
-      return "Tabela zbiorcza";
+      return t("pdf.tabs.unified", "Tabela zbiorcza");
     case "rcd-ground":
-      return "RCD i uziemienie";
+      return t("pdf.tabs.rcd-ground", "RCD i uziemienie");
     default:
-      return "Strona główna";
+      return t("pdf.tabs.title-page", "Strona główna");
   }
 }
 

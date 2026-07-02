@@ -247,8 +247,8 @@ export function SvgImportDialog({
                     {(() => {
                       const isRcdPreview =
                         item.deviceKind === "rcd"
-                        || item.type.toUpperCase().includes("RCD")
-                        || item.category.toUpperCase() === "RCD";
+                        || (item.type || "").toUpperCase().includes("RCD")
+                        || (item.category || "").toUpperCase() === "RCD";
                       return (
                     <ModuleAssetPreview
                       alt={item.label}
@@ -280,8 +280,8 @@ export function SvgImportDialog({
                   {(() => {
                     const isRcdPreview =
                       selectedItem.deviceKind === "rcd"
-                      || selectedItem.type.toUpperCase().includes("RCD")
-                      || selectedItem.category.toUpperCase() === "RCD";
+                      || (selectedItem.type || "").toUpperCase().includes("RCD")
+                      || (selectedItem.category || "").toUpperCase() === "RCD";
                     return (
                   <ModuleAssetPreview
                     alt={selectedItem.label}

@@ -38,7 +38,7 @@
 // for any geometry that can be expressed as a pure function.
 // =============================================================================
 
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ConnectionItem } from "../types/connectionItem";
 import { getSymbolTerminals, findTerminalByName } from "../lib/modules/moduleTerminals";
 import { type SymbolItem, isDistributionBlockSymbol } from "../types/symbolItem";

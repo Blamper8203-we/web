@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useState, useCallback } from "react";
 import { Outlet, useNavigate, useOutletContext, useRouteError } from "react-router-dom";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
@@ -90,6 +91,7 @@ export function AppLayout() {
 }
 
 function LandingRoute() {
+  const { t } = useTranslation();
   const { handleOpenNewProject, handleOpenProjectFile, openFeedback } = useOutletContext<AppContextType>();
   return (
     <>
@@ -100,14 +102,14 @@ function LandingRoute() {
           page-specific tags at SSG render time so each route owns its own
           canonical URL and social-share preview. */}
       <Helmet>
-        <title>DINBoard Web – Projektowanie schematu instalacji elektrycznej</title>
-        <meta name="description" content="DINBoard to profesjonalna aplikacja dla elektryków umożliwiająca projektowanie rozdzielnic, tworzenie obwodów, obliczanie bilansu mocy oraz generowanie dokumentacji zgodnej z polskimi standardami." />
+        <title>{t("auto.dinboardwebproj_226", "DINBoard Web – Projektowanie schematu instalacji elektrycznej")}</title>
+        <meta name="description" content={t("auto.dinboardtoprofe_548", "DINBoard to profesjonalna aplikacja dla elektryków umożliwiająca projektowanie rozdzielnic, tworzenie obwodów, obliczanie bilansu mocy oraz generowanie dokumentacji zgodnej z polskimi standardami.")} />
         <link rel="canonical" href="https://dinboard.pl/" />
-        <meta property="og:title" content="DINBoard Web – Projektowanie Rozdzielnic Elektrycznych" />
-        <meta property="og:description" content="Aplikacja dla elektryków umożliwiająca projektowanie rozdzielnic, tworzenie obwodów, obliczanie bilansu mocy oraz generowanie dokumentacji instalacji elektrycznych." />
+        <meta property="og:title" content={t("auto.dinboardwebproj_262", "DINBoard Web – Projektowanie Rozdzielnic Elektrycznych")} />
+        <meta property="og:description" content={t("auto.aplikacjadlaele_954", "Aplikacja dla elektryków umożliwiająca projektowanie rozdzielnic, tworzenie obwodów, obliczanie bilansu mocy oraz generowanie dokumentacji instalacji elektrycznych.")} />
         <meta property="og:url" content="https://dinboard.pl/" />
-        <meta name="twitter:title" content="DINBoard Web – Projektowanie Rozdzielnic Elektrycznych" />
-        <meta name="twitter:description" content="Aplikacja dla elektryków do projektowania rozdzielnic, obliczania bilansu mocy i generowania dokumentacji." />
+        <meta name="twitter:title" content={t("auto.dinboardwebproj_272", "DINBoard Web – Projektowanie Rozdzielnic Elektrycznych")} />
+        <meta name="twitter:description" content={t("auto.aplikacjadlaele_726", "Aplikacja dla elektryków do projektowania rozdzielnic, obliczania bilansu mocy i generowania dokumentacji.")} />
       </Helmet>
       <PublicLandingPage
         onOpenNewProject={handleOpenNewProject}
@@ -119,6 +121,7 @@ function LandingRoute() {
 }
 
 function AppRoute() {
+  const { t } = useTranslation();
   const { initialAction, initialData, openFeedback } = useOutletContext<AppContextType>();
   return (
     <>
@@ -126,9 +129,9 @@ function AppRoute() {
           JavaScript and user interaction — Google can't crawl it meaningfully.
           noindex prevents it from appearing in search results. */}
       <Helmet>
-        <title>DINBoard – Otwórz lub utwórz projekt rozdzielnicy</title>
-        <meta name="robots" content="noindex, nofollow" />
-        <meta name="description" content="Edytor rozdzielnicy DINBoard — narzędzie do projektowania, nie strona publiczna." />
+        <title>{t("auto.dinboardotwrzlu_661", "DINBoard – Otwórz lub utwórz projekt rozdzielnicy")}</title>
+        <meta name="robots" content={t("auto.noindexnofollow_652", "noindex, nofollow")} />
+        <meta name="description" content={t("auto.edytorrozdzieln_802", "Edytor rozdzielnicy DINBoard — narzędzie do projektowania, nie strona publiczna.")} />
         <link rel="canonical" href="https://dinboard.pl/app" />
       </Helmet>
       <AppWorkspace
@@ -141,6 +144,7 @@ function AppRoute() {
 }
 
 function RootRouteErrorFallback() {
+  const { t } = useTranslation();
   const error = useRouteError();
   const errorMessage = error instanceof Error ? error.message : String(error);
 
@@ -149,8 +153,8 @@ function RootRouteErrorFallback() {
       <section className="app-error-boundary__panel">
         <div className="app-error-boundary__mark">!</div>
         <div className="app-error-boundary__copy">
-          <span className="app-error-boundary__eyebrow">DINBoard Web</span>
-          <h1>Aplikacja wymaga odświeżenia</h1>
+          <span className="app-error-boundary__eyebrow">{t("auto.dinboardweb_743", "DINBoard Web")}</span>
+          <h1>{t("auto.aplikacjawymaga_798", "Aplikacja wymaga odświeżenia")}</h1>
           <p>
             Struktura plików została zaktualizowana i obecna wersja w przeglądarce 
             straciła z nią synchronizację (częsty objaw np. podczas ładowania modułów tła).

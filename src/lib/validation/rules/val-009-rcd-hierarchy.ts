@@ -1,3 +1,4 @@
+import { t } from "i18next";
 /**
  * VAL-009 — child RCD has higher residual current than its parent.
  *
@@ -25,7 +26,7 @@ export function validateRcdHierarchy(
     if (rcd.rcdResidualCurrent > parentRcd.rcdResidualCurrent) {
       result.errors.push({
         code: "VAL-009",
-        message: "Błąd hierarchii RCD",
+        message: t("auto.bdhierarchiircd_352", "Błąd hierarchii RCD"),
         details: `Wyłącznik RCD "${rcd.label || rcd.id}" ma większy prąd różnicowy (${rcd.rcdResidualCurrent}mA) niż wyłącznik nadrzędny (${parentRcd.rcdResidualCurrent}mA).`,
         severity: "Error",
         symbolId: rcd.id,

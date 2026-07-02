@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { CSSProperties } from "react";
 import type { SymbolItem } from "../../types/symbolItem";
 import type { DinRailCanvasRail } from "../DinRailCanvasPixi";
@@ -16,6 +17,7 @@ export function DinRailListwyPlaceholdersLayer({
   worldLayerBaseStyle,
   onRequestLeftPanelTab,
 }: DinRailListwyPlaceholdersLayerProps) {
+  const { t } = useTranslation();
   if (!rail.isVisible) return null;
 
   const {
@@ -67,7 +69,7 @@ export function DinRailListwyPlaceholdersLayer({
         e.currentTarget.style.backgroundColor = "rgba(15, 23, 42, 0.4)";
       }}
     >
-      <span style={textStyle}>DODAJ LISTWY</span>
+      <span style={textStyle}>{t("auto.dodajlistwy_836", "DODAJ LISTWY")}</span>
     </div>
   );
 

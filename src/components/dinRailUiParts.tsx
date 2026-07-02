@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { DinRailConfig } from "../lib/schematic/dinRailGenerator";
 import { AppIcon } from "./AppIcon";
 
@@ -12,10 +13,11 @@ export function DinRailViewportHud({
   modulesPerRow,
   rows,
 }: DinRailViewportHudProps) {
+  const { t } = useTranslation();
   return (
     <div className="workspace-hud workspace-hud--top-left">
-      <span className="workspace-tag">Rozdzielnica</span>
-      <strong>Szyna DIN</strong>
+      <span className="workspace-tag">{t("auto.rozdzielnica_310", "Rozdzielnica")}</span>
+      <strong>{t("auto.szynadin_555", "Szyna DIN")}</strong>
       <span>
         {isVisible
           ? `${rows} rząd / ${modulesPerRow} modułów`
@@ -42,6 +44,7 @@ export function DinRailZoomToolbar({
   onToggleGroups,
   showGroups = true,
 }: DinRailZoomToolbarProps) {
+  const { t } = useTranslation();
   return (
     <div className="workspace-hud workspace-hud--top-right">
       {onToggleGroups && (
@@ -62,8 +65,8 @@ export function DinRailZoomToolbar({
       <button
         type="button"
         className="workspace-tool-btn"
-        title="Pomniejsz"
-        aria-label="Pomniejsz"
+        title={t("auto.pomniejsz_963", "Pomniejsz")}
+        aria-label={t("auto.pomniejsz_460", "Pomniejsz")}
         onClick={onZoomOut}
         disabled={!canInteract}
       >
@@ -72,8 +75,8 @@ export function DinRailZoomToolbar({
       <button
         type="button"
         className="workspace-tool-btn"
-        title="Dopasuj do widoku"
-        aria-label="Dopasuj do widoku"
+        title={t("auto.dopasujdowidoku_884", "Dopasuj do widoku")}
+        aria-label={t("auto.dopasujdowidoku_857", "Dopasuj do widoku")}
         onClick={onFit}
         disabled={!canInteract}
       >
@@ -82,8 +85,8 @@ export function DinRailZoomToolbar({
       <button
         type="button"
         className="workspace-tool-btn"
-        title="Powiększ"
-        aria-label="Powiększ"
+        title={t("auto.powiksz_499", "Powiększ")}
+        aria-label={t("auto.powiksz_911", "Powiększ")}
         onClick={onZoomIn}
         disabled={!canInteract}
       >
@@ -98,11 +101,12 @@ interface DinRailEmptyStateProps {
 }
 
 export function DinRailEmptyState({ onOpenGenerator }: DinRailEmptyStateProps) {
+  const { t } = useTranslation();
   return (
     <button type="button" className="din-rail-empty-action" onClick={onOpenGenerator}>
       <AppIcon name="module" size={48} />
-      <strong>Wygeneruj szynę DIN</strong>
-      <span>Kliknij tutaj lub użyj ikony na pasku narzędzi</span>
+      <strong>{t("auto.wygenerujszyndi_901", "Wygeneruj szynę DIN")}</strong>
+      <span>{t("auto.kliknijtutajlub_394", "Kliknij tutaj lub użyj ikony na pasku narzędzi")}</span>
     </button>
   );
 }
@@ -130,13 +134,14 @@ export function DinRailGeneratorDialog({
   previewSvg,
   previewWidth,
 }: DinRailGeneratorDialogProps) {
+  const { t } = useTranslation();
   return (
     <div className="din-rail-dialog-backdrop" onMouseDown={onClose}>
       <div
         className="din-rail-dialog"
         role="dialog"
         aria-modal="true"
-        aria-label="Generator szyny DIN"
+        aria-label={t("auto.generatorszynyd_58", "Generator szyny DIN")}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="din-rail-dialog-preview">
@@ -159,11 +164,11 @@ export function DinRailGeneratorDialog({
         <div className="din-rail-dialog-controls">
           <div className="din-rail-dialog-title">
             <AppIcon name="module" size={18} />
-            <strong>Generator szyny DIN</strong>
+            <strong>{t("auto.generatorszynyd_788", "Generator szyny DIN")}</strong>
           </div>
 
           <label className="din-rail-dialog-field">
-            <span>Liczba rzędów</span>
+            <span>{t("auto.liczbarzdw_743", "Liczba rzędów")}</span>
             <input
               type="number"
               min={1}
@@ -174,7 +179,7 @@ export function DinRailGeneratorDialog({
           </label>
 
           <label className="din-rail-dialog-field">
-            <span>Moduły na rząd</span>
+            <span>{t("auto.moduynarzd_384", "Moduły na rząd")}</span>
             <input
               type="number"
               min={6}
@@ -190,7 +195,7 @@ export function DinRailGeneratorDialog({
           <div className="din-rail-dialog-actions">
             <button type="button" className="accent-btn" onClick={onGenerate}>
               <AppIcon name="check" size={12} />
-              <span>Generuj</span>
+              <span>{t("auto.generuj_866", "Generuj")}</span>
             </button>
             <button type="button" onClick={onClose}>
               Anuluj

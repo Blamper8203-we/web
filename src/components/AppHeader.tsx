@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AppIcon } from "./AppIcon";
 import "./AppHeader.css";
@@ -7,7 +6,6 @@ import type { AppUiTheme } from "../hooks/app/useAppPersistence";
 import { useIsMobileLayout, useIsNativePlatform } from "../hooks/useViewport";
 import { useToolbarMenuState } from "../hooks/useToolbarMenuState";
 import { AppHeaderFileMenu } from "./AppHeaderFileMenu";
-import { AboutDialog } from "./AboutDialog";
 import {
   AppHeaderViewMenu,
   AppHeaderToolsMenu,
@@ -106,7 +104,6 @@ export function AppHeader({
   const menu = useToolbarMenuState();
   const isNative = useIsNativePlatform();
   const isMobileLayout = useIsMobileLayout();
-  const [isAboutOpen, setIsAboutOpen] = useState(false);
 
   // Drukuj — wydzielone z inline `window.print()` dla testowalności.
   const handlePrint = () => {
@@ -248,14 +245,6 @@ export function AppHeader({
           <button
             type="button"
             className="toolbar-menu-btn"
-            onClick={() => setIsAboutOpen(true)}
-          >
-            {t("app.header.about")}
-          </button>
-
-          <button
-            type="button"
-            className="toolbar-menu-btn"
             style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#e8eaef" }}
             onClick={onOpenFeedback}
           >
@@ -306,8 +295,8 @@ export function AppHeader({
           <button
             type="button"
             className={`toolbar-icon-btn ${menu.isOpen("settings") ? "active" : ""}`}
-            aria-label="Ustawienia"
-            title="Ustawienia"
+            aria-label={t("auto.ustawienia_452", "Ustawienia")}
+            title={t("auto.ustawienia_343", "Ustawienia")}
             onClick={(e) => {
               e.stopPropagation();
               menu.toggle("settings");
@@ -345,8 +334,6 @@ export function AppHeader({
           onOpenFeedback={onOpenFeedback}
         />
       )}
-
-      {isAboutOpen && <AboutDialog onClose={() => setIsAboutOpen(false)} />}
     </header>
   );
 }

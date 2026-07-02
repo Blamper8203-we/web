@@ -2,7 +2,8 @@ import { Page, Text, View } from "@react-pdf/renderer";
 import type { CircuitListTableRow } from "../../circuitRows";
 import { pdfStyles as styles } from "./pdfStyles";
 import { EMPTY_FIELD_PLACEHOLDER } from "./pdfHelpers";
-import { t } from "i18next";
+import i18next from "i18next";
+const t = i18next.t.bind(i18next);
 
 interface PdfCircuitListPageProps {
   chunk: CircuitListTableRow[];

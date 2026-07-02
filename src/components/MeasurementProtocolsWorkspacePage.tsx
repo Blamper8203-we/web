@@ -13,6 +13,8 @@ import {
   formatDisplayDate,
 } from "../lib/export/pdfPages/pdfHelpers";
 import { usePdfWorkspace } from "./PdfWorkspaceShell";
+import { useTranslation } from "react-i18next";
+import { translateDefaultProjectText } from "../lib/projectMetadata";
 import "./MeasurementProtocolsWorkspacePage.css";
 
 // Podkomponenty
@@ -32,6 +34,7 @@ type ProtocolTableKey = keyof ProtocolTableRowsMap;
 
 
 export function MeasurementProtocolsWorkspacePage() {
+  const { t } = useTranslation();
   const {
     metadata,
     symbols,
@@ -185,7 +188,7 @@ export function MeasurementProtocolsWorkspacePage() {
   const protocolNumber = metadata.projectNumber?.trim()
     ? `${metadata.projectNumber.trim()} / ${protocolYear}`
     : `....... / ${protocolYear}`;
-  const objectType = metadata.titlePageObjectType || "Budynek jednorodzinny / Lokal mieszkalny";
+  const objectType = metadata.titlePageObjectType ? translateDefaultProjectText(metadata.titlePageObjectType, t) : translateDefaultProjectText("Budynek jednorodzinny / Lokal mieszkalny", t);
   const stampText = metadata.contractorSignature || "PIECZĘĆ WYKONAWCY";
 
   // WHY: single source of truth for "how many pages does this PDF actually
