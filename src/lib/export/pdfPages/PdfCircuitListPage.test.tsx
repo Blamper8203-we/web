@@ -120,8 +120,8 @@ describe("PdfCircuitListPage", () => {
     // meaningful fragments individually.
     expect(text).toContain("Arkusz");
     expect(text).toMatch(/2\s*z\s*3/);
-    // Page-2 indicator in the body label ("(ciąg dalszy 2)").
-    expect(text).toContain("ciąg dalszy 2");
+    // Page-2 indicator in the body label (new design: "arkusz 2" suffix)
+    expect(text).toContain("arkusz 2");
   });
 
   it("renders an empty chunk without throwing (defensive against zero-row state)", () => {

@@ -1,6 +1,6 @@
 import { Image, Page, Text, View } from "@react-pdf/renderer";
 import type { ProjectMetadata, TitlePageChecklistItem } from "../../../types/projectMetadata";
-import { pdfStyles as styles } from "./pdfStyles";
+import { pdfStyles as styles, palette } from "./pdfStyles";
 import { TITLE_WORK_SCOPE_COLUMN_SIZE, TITLE_WORK_SCOPE_MAX_ITEMS } from "./pdfHelpers";
 import { chunkRows } from "../../measurementProtocolHelpers";
 import { DEFAULT_ATTACHMENT_ITEMS, DEFAULT_WORK_SCOPE_ITEMS, mergeDefaultAttachmentItems, translateDefaultProjectText } from "../../projectMetadata";
@@ -56,75 +56,99 @@ export function PdfTitlePage({ metadata, displayDate }: PdfTitlePageProps) {
 
   return (
     <Page size="A4" style={styles.titlePage}>
-      <View style={[styles.flexRow, styles.justifyBetween, styles.borderB2Dark, styles.pb3]}>
-        <View style={[styles.flexRow, styles.itemsCenter]}>
+      {/* Navy top bar — visual identity mark */}
+      <View style={styles.pageTopBar} fixed />
+
+      {/* Page header: left identity block + right protocol number pill */}
+      <View style={styles.pageHeader}>
+        <View style={styles.pageHeaderLeft}>
           {metadata.titlePageCompanyLogoDataUrl ? (
-            <View style={[styles.logoBox, styles.mr3]}>
+            <View style={[styles.logoBox, { marginRight: 14 }]}>
               <Image src={metadata.titlePageCompanyLogoDataUrl} style={styles.logoImage} />
             </View>
           ) : null}
           <View>
-            <Text style={[styles.textLg, styles.fontBold, styles.textGray900, styles.uppercase]}>{t("pdf.titlePage.mainHeader")}</Text>
-            <Text style={[styles.textXs, styles.textGray500, styles.mt1]}>{t("pdf.titlePage.subHeader", "ZGODNOŚĆ Z NORMĄ PN-HD 60364 (ARKUSZ 6)")}</Text>
+            <Text style={styles.eyebrow}>{t("pdf.titlePage.mainHeader", "Dokumentacja powykonawcza")}</Text>
+            <Text style={styles.pageSubtitle}>{t("pdf.titlePage.subHeader", "ZGODNOŚĆ Z NORMĄ PN-HD 60364 (ARKUSZ 6)")}</Text>
           </View>
         </View>
-        <View style={styles.textRight}>
-          <Text style={[styles.textXs, styles.fontSemiBold, styles.textGray500, styles.uppercase]}>{t("pdfDocumentationPage.editor.titlePage.protocolNr")}</Text>
-          <View style={[styles.bgBrand, styles.px2, styles.py1, styles.rounded, styles.mt1, { alignSelf: 'flex-end' }]}>
-            <Text style={[styles.textBase, styles.fontBold, styles.textWhite]}>{resolvedProtocolNumber}</Text>
+        <View style={styles.pageHeaderRight}>
+          <Text style={[styles.metaLabel, { alignSelf: "flex-end" }]}>{t("pdfDocumentationPage.editor.titlePage.protocolNr", "Numer protokołu")}</Text>
+          <View style={[styles.protocolNumberPill, { marginTop: 4 }]}>
+            <Text style={styles.protocolNumberText}>{resolvedProtocolNumber}</Text>
           </View>
-          <Text style={[styles.textXs, styles.textGray400, styles.mt2]}>{t("pdfDocumentationPage.editor.titlePage.docDate")}: <Text style={[styles.fontMedium, styles.textGray700]}>{displayDate}</Text></Text>
+          <Text style={[styles.metaValueSubtle, { marginTop: 8, fontSize: 8 }]}>
+            <Text style={styles.metaLabel}>{t("pdfDocumentationPage.editor.titlePage.docDate", "Data dokumentacji")}: </Text>
+            <Text style={[styles.metaValue, { fontSize: 8.5 }]}>{displayDate}</Text>
+          </Text>
           {metadata.statementDate?.trim() && metadata.statementDate !== metadata.drawingDate ? (
-            <Text style={[styles.textXs, styles.textGray400, styles.mt1]}>{t("pdfDocumentationPage.editor.titlePage.statementDate")}: <Text style={[styles.fontMedium, styles.textGray700]}>{metadata.statementDate}</Text></Text>
+            <Text style={[styles.metaValueSubtle, { marginTop: 3, fontSize: 8 }]}>
+              <Text style={styles.metaLabel}>{t("pdfDocumentationPage.editor.titlePage.statementDate", "Data oświadczenia")}: </Text>
+              <Text style={[styles.metaValue, { fontSize: 8.5 }]}>{metadata.statementDate}</Text>
+            </Text>
           ) : null}
         </View>
       </View>
 
-      <View style={[styles.itemsCenter, { marginTop: 14, marginBottom: 14 }]}>
-        <Text style={[styles.text2xl, styles.fontBlack, styles.textGray900, styles.uppercase]}>{t("pdf.titlePage.statement")}</Text>
-        <Text style={[styles.textSm, styles.textGray700, styles.italic, styles.mt1]}>{t("pdf.titlePage.statementSub", "instalacji elektrycznej wykonanej zgodnie z przepisami i normami")}</Text>
+      {/* Hero — document title (centred) */}
+      <View style={{ alignItems: "center", marginBottom: 22, marginTop: 4 }}>
+        <Text style={[styles.pageTitle, { fontSize: 22, letterSpacing: 1.2 }]}>
+          {t("pdf.titlePage.statement", "Oświadczenie Wykonawcy")}
+        </Text>
+        <Text style={[styles.pageSubtitle, { fontStyle: "italic", marginTop: 6, fontSize: 9.5, color: palette.inkSecondary }]}>
+          {t("pdf.titlePage.statementSub", "instalacji elektrycznej wykonanej zgodnie z przepisami i normami")}
+        </Text>
       </View>
 
-      <View style={[styles.bgGray50, styles.roundedXl, styles.border, styles.p3, styles.mb2]}>
-        <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb2]}>{t("pdfDocumentationPage.editor.titlePage.objectInfo")}</Text>
-        <View style={styles.flexCol}>
-          <View style={[styles.flexRow, styles.mb1]}>
-            <Text style={[styles.fontBold, styles.textGray700, styles.textSm, { width: 100 }]}>{t("pdfDocumentationPage.editor.titlePage.objectType")}:</Text>
-            <Text style={[styles.fontSemiBold, styles.textGray900, styles.textSm, styles.flex1]}>{objectType}</Text>
-          </View>
-          <View style={[styles.flexRow, styles.mb1]}>
-            <Text style={[styles.fontBold, styles.textGray700, styles.textSm, { width: 100 }]}>{t("pdf.titlePage.address")}:</Text>
-            <Text style={[styles.fontSemiBold, styles.textGray900, styles.textSm, styles.flex1]}>{metadata.address || "................................................................"}</Text>
-          </View>
-          <View style={[styles.flexRow, styles.mb1]}>
-            <Text style={[styles.fontBold, styles.textGray700, styles.textSm, { width: 100 }]}>{t("pdf.titlePage.investor")}:</Text>
-            <Text style={[styles.fontSemiBold, styles.textGray900, styles.textSm, styles.flex1]}>{metadata.investor || "................................................................"}</Text>
-          </View>
-          {metadata.investorAddress?.trim() ? (
-            <View style={[styles.flexRow]}>
-              <Text style={[styles.fontBold, styles.textGray700, styles.textSm, { width: 100 }]}>{t("pdf.titlePage.investorAddress")}:</Text>
-              <Text style={[styles.fontSemiBold, styles.textGray900, styles.textSm, styles.flex1]}>{metadata.investorAddress}</Text>
-            </View>
-          ) : null}
+      {/* Section 01 — Informacje o obiekcie */}
+      <View style={styles.sectionHeading}>
+        <Text style={styles.sectionNumber}>01</Text>
+        <Text style={styles.sectionTitle}>{t("pdfDocumentationPage.editor.titlePage.objectInfo", "Informacje o obiekcie")}</Text>
+      </View>
+      <View>
+        <View style={styles.dataRow}>
+          <Text style={[styles.dataLabel, { width: 110 }]}>{t("pdfDocumentationPage.editor.titlePage.objectType", "Rodzaj obiektu")}</Text>
+          <Text style={[styles.dataValue, { flex: 1 }]}>{objectType}</Text>
         </View>
+        <View style={styles.dataRow}>
+          <Text style={[styles.dataLabel, { width: 110 }]}>{t("pdf.titlePage.address", "Adres")}</Text>
+          <Text style={[styles.dataValue, { flex: 1 }]}>{metadata.address || "................................................................"}</Text>
+        </View>
+        <View style={styles.dataRow}>
+          <Text style={[styles.dataLabel, { width: 110 }]}>{t("pdf.titlePage.investor", "Inwestor")}</Text>
+          <Text style={[styles.dataValue, { flex: 1 }]}>{metadata.investor || "................................................................"}</Text>
+        </View>
+        {metadata.investorAddress?.trim() ? (
+          <View style={styles.dataRowLast}>
+            <Text style={[styles.dataLabel, { width: 110 }]}>{t("pdf.titlePage.investorAddress", "Adres inwestora")}</Text>
+            <Text style={[styles.dataValue, { flex: 1 }]}>{metadata.investorAddress}</Text>
+          </View>
+        ) : (
+          <View style={styles.dataRowLast} />
+        )}
       </View>
 
-      <View style={[styles.grid2, styles.mb2]}>
-        <View style={[styles.border, styles.roundedXl, styles.p3, styles.grid2Col]}>
-          <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb2]}>{t("pdf.titlePage.scope")}</Text>
-          <View style={titleWorkScopeColumns.length > 1 ? styles.grid2 : styles.flexCol}>
+      {/* Section 02 — Zakres + Załączniki (two-column, no cards) */}
+      <View style={styles.sectionHeading}>
+        <Text style={styles.sectionNumber}>02</Text>
+        <Text style={styles.sectionTitle}>{t("pdf.titlePage.scope", "Zakres prac i załączniki")}</Text>
+      </View>
+      <View style={styles.twoColGrid}>
+        <View style={styles.twoColGridItem}>
+          <Text style={[styles.eyebrow, { marginBottom: 10 }]}>{t("pdf.titlePage.scope", "Zakres prac")}</Text>
+          <View style={titleWorkScopeColumns.length > 1 ? styles.flexRow : styles.flexCol}>
             {titleWorkScopeColumns.map((columnItems: TitlePageChecklistItem[], columnIndex: number) => (
-              <View key={columnIndex} style={titleWorkScopeColumns.length > 1 ? styles.grid2Col : undefined}>
+              <View key={columnIndex} style={titleWorkScopeColumns.length > 1 ? styles.twoColGridItem : undefined}>
                 {columnItems.map((item: TitlePageChecklistItem, itemIndex: number) => {
                   const absoluteIndex = columnIndex * TITLE_WORK_SCOPE_COLUMN_SIZE + itemIndex;
                   return (
-                    <View key={absoluteIndex} style={[styles.flexRow, styles.itemsCenter, styles.mb2]}>
+                    <View key={absoluteIndex} style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
                       <View style={styles.checkboxContainer}>
                         {!useManualCheckboxes && item.isChecked ? (
                           <Text style={styles.checkboxChecked}>✓</Text>
                         ) : null}
                       </View>
-                      <Text style={[styles.textXs, styles.fontMedium, styles.textGray700, { flex: 1 }]}>{translateDefaultProjectText(item.text, t)}</Text>
+                      <Text style={[styles.dataValue, { fontSize: 8.5, fontWeight: "normal" }]}>{translateDefaultProjectText(item.text, t)}</Text>
                     </View>
                   );
                 })}
@@ -132,19 +156,19 @@ export function PdfTitlePage({ metadata, displayDate }: PdfTitlePageProps) {
             ))}
           </View>
         </View>
-        <View style={[styles.border, styles.roundedXl, styles.p3, styles.grid2Col]}>
-          <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb2]}>{t("pdf.titlePage.attachments")}</Text>
-          <View style={titleAttachmentColumns.length > 1 ? styles.grid2 : styles.flexCol}>
+        <View style={styles.twoColGridItem}>
+          <Text style={[styles.eyebrow, { marginBottom: 10 }]}>{t("pdf.titlePage.attachments", "Załączniki do protokołu")}</Text>
+          <View style={titleAttachmentColumns.length > 1 ? styles.flexRow : styles.flexCol}>
             {titleAttachmentColumns.map((columnItems: string[], columnIndex: number) => (
-              <View key={columnIndex} style={titleAttachmentColumns.length > 1 ? styles.grid2Col : undefined}>
+              <View key={columnIndex} style={titleAttachmentColumns.length > 1 ? styles.twoColGridItem : undefined}>
                 {columnItems.map((item: string, itemIndex: number) => (
-                  <View key={`${columnIndex}-${itemIndex}`} style={[styles.flexRow, styles.itemsCenter, styles.mb2]}>
+                  <View key={`${columnIndex}-${itemIndex}`} style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
                     <View style={styles.checkboxContainer}>
                       {!useManualCheckboxes ? (
                         <Text style={styles.checkboxChecked}>✓</Text>
                       ) : null}
                     </View>
-                    <Text style={[styles.textXs, styles.fontMedium, styles.textGray700, { flex: 1 }]}>{translateDefaultProjectText(item, t)}</Text>
+                    <Text style={[styles.dataValue, { fontSize: 8.5, fontWeight: "normal" }]}>{translateDefaultProjectText(item, t)}</Text>
                   </View>
                 ))}
               </View>
@@ -153,117 +177,126 @@ export function PdfTitlePage({ metadata, displayDate }: PdfTitlePageProps) {
         </View>
       </View>
 
-      <View style={[styles.grid2, styles.mb2]}>
-        <View style={[styles.border, styles.roundedXl, styles.p3, styles.grid2Col, styles.justifyCenter]}>
-          <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb1]}>{t("pdf.titlePage.contractor")}</Text>
-          <Text style={[styles.textSm, styles.fontBold, styles.textGray950, styles.mt2]}>{contractorName}</Text>
-          <Text style={[styles.textXs, styles.textGray400, styles.mt1]}>{t("pdf.titlePage.contractorSub", "Podmiot odpowiedzialny za montaż instalacji")}</Text>
+      {/* Section 03 — Wykonawca + Uprawnienia SEP (two-column, no cards) */}
+      <View style={styles.sectionHeading}>
+        <Text style={styles.sectionNumber}>03</Text>
+        <Text style={styles.sectionTitle}>{t("pdfDocumentationPage.editor.titlePage.parties", "Strony i uprawnienia")}</Text>
+      </View>
+      <View style={styles.twoColGrid}>
+        <View style={styles.twoColGridItem}>
+          <Text style={[styles.eyebrow, { marginBottom: 10 }]}>{t("pdf.titlePage.contractor", "Wykonawca")}</Text>
+          <Text style={[styles.dataValue, { fontSize: 12, marginBottom: 2 }]}>{contractorName}</Text>
+          <Text style={[styles.dataValueMuted, { fontSize: 8, marginBottom: 10 }]}>{t("pdf.titlePage.contractorSub", "Podmiot odpowiedzialny za montaż instalacji")}</Text>
           {metadata.contractorNip?.trim() || metadata.contractorRegon?.trim() || metadata.contractorPhone?.trim() || metadata.contractorEmail?.trim() ? (
-            <View style={[styles.flexCol, { marginTop: 6, paddingTop: 6, borderTopWidth: 0.5, borderTopColor: "#E5E7EB", borderTopStyle: "solid" }]}>
+            <View>
               {metadata.contractorNip?.trim() ? (
-                <View style={[styles.flexRow, styles.mb1]}>
-                  <Text style={[styles.fontSemiBold, styles.textGray700, styles.textXs, { width: 55 }]}>{t("pdf.titlePage.nip")}</Text>
-                  <Text style={[styles.fontBold, styles.textGray950, styles.textXs, styles.flex1]}>{metadata.contractorNip}</Text>
+                <View style={styles.dataRow}>
+                  <Text style={[styles.dataLabel, { width: 50 }]}>{t("pdf.titlePage.nip", "NIP")}</Text>
+                  <Text style={[styles.dataValue, { flex: 1, fontSize: 9 }]}>{metadata.contractorNip}</Text>
                 </View>
               ) : null}
               {metadata.contractorRegon?.trim() ? (
-                <View style={[styles.flexRow, styles.mb1]}>
-                  <Text style={[styles.fontSemiBold, styles.textGray700, styles.textXs, { width: 55 }]}>{t("pdf.titlePage.regon")}</Text>
-                  <Text style={[styles.fontBold, styles.textGray950, styles.textXs, styles.flex1]}>{metadata.contractorRegon}</Text>
+                <View style={styles.dataRow}>
+                  <Text style={[styles.dataLabel, { width: 50 }]}>{t("pdf.titlePage.regon", "REGON")}</Text>
+                  <Text style={[styles.dataValue, { flex: 1, fontSize: 9 }]}>{metadata.contractorRegon}</Text>
                 </View>
               ) : null}
               {metadata.contractorPhone?.trim() ? (
-                <View style={[styles.flexRow, styles.mb1]}>
-                  <Text style={[styles.fontSemiBold, styles.textGray700, styles.textXs, { width: 55 }]}>{t("pdf.titlePage.tel")}</Text>
-                  <Text style={[styles.fontBold, styles.textGray950, styles.textXs, styles.flex1]}>{metadata.contractorPhone}</Text>
+                <View style={styles.dataRow}>
+                  <Text style={[styles.dataLabel, { width: 50 }]}>{t("pdf.titlePage.tel", "Tel.")}</Text>
+                  <Text style={[styles.dataValue, { flex: 1, fontSize: 9 }]}>{metadata.contractorPhone}</Text>
                 </View>
               ) : null}
               {metadata.contractorEmail?.trim() ? (
-                <View style={[styles.flexRow]}>
-                  <Text style={[styles.fontSemiBold, styles.textGray700, styles.textXs, { width: 55 }]}>{t("pdf.titlePage.email")}</Text>
-                  <Text style={[styles.fontBold, styles.textGray950, styles.textXs, styles.flex1]}>{metadata.contractorEmail}</Text>
+                <View style={styles.dataRowLast}>
+                  <Text style={[styles.dataLabel, { width: 50 }]}>{t("pdf.titlePage.email", "E-mail")}</Text>
+                  <Text style={[styles.dataValue, { flex: 1, fontSize: 9 }]}>{metadata.contractorEmail}</Text>
                 </View>
-              ) : null}
+              ) : (
+                <View style={styles.dataRowLast} />
+              )}
             </View>
           ) : null}
         </View>
         {isFormalDocumentationMode ? (
-          <View style={[styles.border, styles.roundedXl, styles.p3, styles.grid2Col, styles.justifyCenter]}>
-            <Text style={[styles.textXs, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb1]}>{t("pdfDocumentationPage.editor.titlePage.contractorLicense")}</Text>
-            <View style={[styles.flexCol, styles.mt1]}>
-              <View style={[styles.flexRow, styles.mb1]}>
-                <Text style={[styles.fontSemiBold, styles.textGray700, styles.textSm, { width: 110 }]}>{i18next.language?.startsWith("de") ? t("pdfDocumentationPage.editor.titlePage.sepE_DE", "Register-Nr:") : t("pdfDocumentationPage.editor.titlePage.sepE")}</Text>
-                <Text style={[styles.fontBold, styles.textGray950, styles.textSm, styles.flex1]}>{sepE}</Text>
+          <View style={styles.twoColGridItem}>
+            <Text style={[styles.eyebrow, { marginBottom: 10 }]}>{t("pdfDocumentationPage.editor.titlePage.contractorLicense", "Uprawnienia SEP")}</Text>
+            <View>
+              <View style={styles.dataRow}>
+                <Text style={[styles.dataLabel, { width: 110 }]}>{i18next.language?.startsWith("de") ? t("pdfDocumentationPage.editor.titlePage.sepE_DE", "Register-Nr:") : t("pdfDocumentationPage.editor.titlePage.sepE", "Eksploatacja (E)")}</Text>
+                <Text style={[styles.dataValue, { flex: 1 }]}>{sepE}</Text>
               </View>
               {!i18next.language?.startsWith("de") && (
                 <>
-                  <View style={[styles.flexRow]}>
-                    <Text style={[styles.fontSemiBold, styles.textGray700, styles.textSm, { width: 110 }]}>{t("pdfDocumentationPage.editor.titlePage.sepD")}</Text>
-                    <Text style={[styles.fontBold, styles.textGray950, styles.textSm, styles.flex1]}>{sepD}</Text>
+                  <View style={styles.dataRow}>
+                    <Text style={[styles.dataLabel, { width: 110 }]}>{t("pdfDocumentationPage.editor.titlePage.sepD", "Dozór (D)")}</Text>
+                    <Text style={[styles.dataValue, { flex: 1 }]}>{sepD}</Text>
                   </View>
-                  <View style={[styles.flexRow, styles.mt1]}>
-                    <Text style={[styles.fontSemiBold, styles.textGray700, styles.textSm, { width: 110 }]}>{t("pdfDocumentationPage.editor.titlePage.validUntil")}:</Text>
-                    <Text style={[styles.fontBold, styles.textGray950, styles.textSm, styles.flex1]}>{sepValidUntil}</Text>
+                  <View style={styles.dataRowLast}>
+                    <Text style={[styles.dataLabel, { width: 110 }]}>{t("pdfDocumentationPage.editor.titlePage.validUntil", "Ważne do")}</Text>
+                    <Text style={[styles.dataValue, { flex: 1 }]}>{sepValidUntil}</Text>
                   </View>
                 </>
               )}
+              {i18next.language?.startsWith("de") ? <View style={styles.dataRowLast} /> : null}
             </View>
           </View>
-        ) : null}
+        ) : (
+          <View style={styles.twoColGridItem} />
+        )}
       </View>
 
+      {/* Statement — accent bar + body text */}
       {isFormalDocumentationMode ? (
-        <View style={[styles.bgWhite, styles.border, { borderColor: "#1e3a5f" }, styles.roundedXl, styles.p3, styles.mb3, styles.textCenter]}>
-          <Text style={[styles.textSm, styles.fontBold, styles.textBrand, styles.uppercase, styles.mb2]}>{t("pdf.titlePage.statementFull", "Pełna treść oświadczenia wykonawcy")}</Text>
-          <Text style={[styles.textSm, styles.fontNormal, styles.textGray800, { lineHeight: 1.5 }]}>
+        <View style={styles.statementBlock}>
+          <Text style={styles.statementTitle}>{t("pdf.titlePage.statementFull", "Pełna treść oświadczenia wykonawcy")}</Text>
+          <Text style={styles.statementBody}>
             {t("pdf.titlePage.statementBody")}
           </Text>
         </View>
       ) : null}
 
-      <View style={[styles.mtAuto]}>
-        {isFormalDocumentationMode ? (
-          <View style={[styles.flexRow, styles.borderT, styles.pt4, { alignItems: 'flex-end', justifyContent: 'space-between' }]}>
-            <View style={[styles.textCenter, styles.itemsCenter, { width: 165 }]}>
-              <View style={[styles.borderDashed, styles.roundedLg, styles.bgGray50, styles.titleStampSlot, styles.mb1]}>
-                <Text style={[styles.textXs, styles.textGray400, styles.fontSemiBold, styles.uppercase]}>{stampText}</Text>
-              </View>
-              <Text style={[styles.textXs, styles.textGray500]}>{t("pdf.titlePage.signContractor", "Pieczęć wykonawcy")}</Text>
+      {/* Signatures — minimal: stamp box + thin line + label */}
+      {isFormalDocumentationMode ? (
+        <View style={styles.signatureRow}>
+          <View style={styles.signatureSlot}>
+            <View style={styles.signatureStampSlot}>
+              <Text style={[styles.dataValueMuted, { fontSize: 7, textAlign: "center", paddingHorizontal: 4 }]}>{stampText}</Text>
             </View>
-            <View style={[styles.textCenter, { width: 165 }]}>
-              <View style={styles.signatureSlot}>
-                {designerSignatureText ? (
-                  <Text style={[styles.textSm, styles.fontSemiBold, styles.textGray700]}>{designerSignatureText}</Text>
-                ) : (
-                  <Text style={[styles.textXs, styles.textGray300, styles.italic]}>{t("pdf.footer.signatureSlot")}</Text>
-                )}
-              </View>
-              <View style={[styles.borderT, styles.pt2]}>
-                <Text style={[styles.textSm, styles.fontBold, styles.textGray700, styles.uppercase]}>{t("pdf.titlePage.signAuthor")}</Text>
-                <Text style={[styles.textXs, styles.textGray400, styles.mt1]}>{t("pdf.titlePage.signAuthorSub", "Osoba uprawniona (pomiarowiec)")}</Text>
-              </View>
-            </View>
-            <View style={[styles.textCenter, { width: 165 }]}>
-              <View style={styles.signatureSlot}>
-                {investorSignatureText ? (
-                  <Text style={[styles.textSm, styles.fontSemiBold, styles.textGray700]}>{investorSignatureText}</Text>
-                ) : (
-                  <Text style={[styles.textXs, styles.textGray300, styles.italic]}>{t("pdf.footer.signatureSlot")}</Text>
-                )}
-              </View>
-              <View style={[styles.borderT, styles.pt2]}>
-                <Text style={[styles.textSm, styles.fontBold, styles.textGray700, styles.uppercase]}>{t("pdf.titlePage.signInvestor")}</Text>
-                <Text style={[styles.textXs, styles.textGray400, styles.mt1]}>{t("pdf.titlePage.signInvestorSub", "Właściciel / zarządca obiektu")}</Text>
-              </View>
-            </View>
+            <Text style={styles.signatureLabel}>{t("pdf.titlePage.signContractor", "Pieczęć wykonawcy")}</Text>
           </View>
-        ) : null}
-        <View style={[styles.textCenter, styles.mt6]} fixed>
-          <Text
-            style={[styles.textXs, styles.textGray400, styles.uppercase]}
-            render={({ pageNumber, totalPages }) => t("pdf.footer.pageInfo", { pageNumber, totalPages, defaultValue: `Strona ${pageNumber} z ${totalPages} • Dokument wygenerowany cyfrowo • Zgodny z normą PN-HD 60364` })}
-          />
+          <View style={styles.signatureSlot}>
+            <View style={styles.signatureLine}>
+              {designerSignatureText ? (
+                <Text style={[styles.dataValue, { fontSize: 9 }]}>{designerSignatureText}</Text>
+              ) : (
+                <Text style={[styles.dataValueMuted, { fontSize: 7 }]}>{t("pdf.footer.signatureSlot", "miejsce na podpis")}</Text>
+              )}
+            </View>
+            <Text style={styles.signatureLabel}>{t("pdf.titlePage.signAuthor", "Projektant / pomiarowiec")}</Text>
+            <Text style={styles.signatureSubLabel}>{t("pdf.titlePage.signAuthorSub", "Osoba uprawniona (SEP)")}</Text>
+          </View>
+          <View style={styles.signatureSlot}>
+            <View style={styles.signatureLine}>
+              {investorSignatureText ? (
+                <Text style={[styles.dataValue, { fontSize: 9 }]}>{investorSignatureText}</Text>
+              ) : (
+                <Text style={[styles.dataValueMuted, { fontSize: 7 }]}>{t("pdf.footer.signatureSlot", "miejsce na podpis")}</Text>
+              )}
+            </View>
+            <Text style={styles.signatureLabel}>{t("pdf.titlePage.signInvestor", "Inwestor")}</Text>
+            <Text style={styles.signatureSubLabel}>{t("pdf.titlePage.signInvestorSub", "Właściciel / zarządca obiektu")}</Text>
+          </View>
         </View>
+      ) : null}
+
+      {/* Footer (page-fixed) */}
+      <View style={styles.pageFooter} fixed>
+        <Text style={styles.pageFooterText}>{t("pdf.footer.normLabel", "PN-HD 60364 • dokument wygenerowany cyfrowo")}</Text>
+        <Text
+          style={styles.pageFooterText}
+          render={({ pageNumber, totalPages }) => t("pdf.footer.pageInfo", { pageNumber, totalPages, defaultValue: `${pageNumber} / ${totalPages}` })}
+        />
       </View>
     </Page>
   );

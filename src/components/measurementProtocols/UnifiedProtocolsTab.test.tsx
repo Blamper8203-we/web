@@ -169,11 +169,12 @@ describe("UnifiedProtocolsTab - Dane techniczne i narzędzia pomiarowe", () => {
       />,
     );
 
-    // Section header "1. Dane techniczne..." appears exactly once across the
-    // entire DOM — pin the contract that isFirstPage gates the block.
-    const sectionHeaders = Array.from(container.querySelectorAll("div")).filter(
-      (el) => el.textContent === "1. Dane techniczne i narzędzia pomiarowe",
+    // New design: section number + title rendered separately ("01" and "Dane techniczne...")
+    // so we check the title element appears exactly once across the entire DOM —
+    // pins the contract that isFirstPage gates the block.
+    const sectionTitles = Array.from(container.querySelectorAll("span")).filter(
+      (el) => el.textContent === "Dane techniczne i narzędzia pomiarowe",
     );
-    expect(sectionHeaders).toHaveLength(1);
+    expect(sectionTitles).toHaveLength(1);
   });
 });

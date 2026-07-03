@@ -60,8 +60,8 @@ describe("PdfUnifiedTablePage - Dane techniczne i narzędzia pomiarowe", () => {
 
     expect(text).toContain("S/N 12345");
     expect(text).toContain("S/N 67890");
-    expect(text).toContain("Nr ser. (Pętla):");
-    expect(text).toContain("Nr ser. (Izolacja):");
+    expect(text).toContain("Nr ser. (Pętla)");
+    expect(text).toContain("Nr ser. (Izolacja)");
   });
 
   it("renders loop network voltage and system in the Dane techniczne block (replacing the old hardcoded badge)", () => {
@@ -73,8 +73,8 @@ describe("PdfUnifiedTablePage - Dane techniczne i narzędzia pomiarowe", () => {
 
     expect(text).toContain("400V");
     expect(text).toContain("TN-S");
-    expect(text).toContain("Napięcie sieci:");
-    expect(text).toContain("Układ sieci:");
+    expect(text).toContain("Napięcie sieci");
+    expect(text).toContain("Układ sieci");
   });
 
   it("falls back to the engineering defaults (230/400V and TN-S / TN-C-S) when the user has not set the fields", () => {
@@ -95,7 +95,8 @@ describe("PdfUnifiedTablePage - Dane techniczne i narzędzia pomiarowe", () => {
 
     const text = renderUnified(metadata, 0, 1);
 
-    expect(text).toContain("3. Zalecenia");
+    // In the new design Zalecenia is a sub-section under "Uwagi, legenda i zalecenia"
+    expect(text).toContain("Zalecenia");
     expect(text).toContain("Wymienić zabezpieczenie F3 w obwodzie oświetlenia.");
   });
 
@@ -105,7 +106,8 @@ describe("PdfUnifiedTablePage - Dane techniczne i narzędzia pomiarowe", () => {
 
     const text = renderUnified(metadata, 0, 1);
 
-    expect(text).not.toContain("3. Zalecenia");
+    // Empty recommendations => the "Zalecenia" eyebrow label should not be rendered
+    expect(text).not.toContain("Zalecenia");
   });
 
   it("renders the SEP signature footer in formal mode (isFormalDocumentationMode=true)", () => {

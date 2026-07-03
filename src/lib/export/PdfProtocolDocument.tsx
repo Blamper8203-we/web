@@ -126,13 +126,15 @@ export function PdfProtocolDocument({
                 key={`schematic-${index}`}
                 size="A4"
                 orientation="landscape"
-                style={[pdfStyles.landscapePage, { paddingBottom: 25 }]}
+                style={[pdfStyles.landscapePage, { paddingBottom: 36 }]}
               >
+                <View style={pdfStyles.pageTopBar} fixed />
                 <View style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
                   <Image src={src} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
                 </View>
-                <View style={{ position: "absolute", bottom: 10, left: 0, right: 0, textAlign: "center" }} fixed>
-                  <Text style={{ fontSize: 8, color: "#9ca3af", textTransform: "uppercase" }} render={({ pageNumber, totalPages }) => t("pdf.footer.pageInfo", { pageNumber, totalPages, defaultValue: `Strona ${pageNumber} z ${totalPages} • Dokument wygenerowany cyfrowo • Zgodny z normą PN-HD 60364` })} />
+                <View style={pdfStyles.pageFooter} fixed>
+                  <Text style={pdfStyles.pageFooterText}>{t("pdf.footer.normLabel", "PN-HD 60364 • dokument wygenerowany cyfrowo")}</Text>
+                  <Text style={pdfStyles.pageFooterText} render={({ pageNumber, totalPages }) => t("pdf.footer.pageInfo", { pageNumber, totalPages, defaultValue: `${pageNumber} / ${totalPages}` })} />
                 </View>
               </Page>
             ))}

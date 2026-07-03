@@ -24,76 +24,77 @@ export function CircuitListTab({
     <>
       {circuitListPages.map((rowsPage, pageIndex) => (
         <div className="a4-page a4-page--landscape" key={`circuit-list-page-${pageIndex}`}>
-          <div>
-            <div className="flex justify-between items-start border-b-2 border-gray-800 pb-3 gap-4">
-              <div className="flex items-center gap-3 flex-grow" style={{ minWidth: 0 }}>
-                <div className="px-3 py-1 bg-brand text-white font-bold rounded text-xs uppercase tracking-wider">
-                  {t("app.pdf.circuits.title", "Lista obwodów")}
+          <div className="pd-page-top-bar" />
+
+          {/* Header */}
+          <div className="pd-page-header">
+            <div className="pd-page-header-left">
+              <div>
+                <div className="pd-eyebrow">{t("app.pdf.circuits.title", "Lista obwodów")}</div>
+                <div className="pd-page-title">{t("app.pdf.circuits.mainHeader", "Zestawienie obwodów instalacji elektrycznej")}</div>
+                <div className="pd-page-subtitle">
+                  {t("app.pdf.circuits.subtitle", "Arkusz {{page}} z {{total}} • dane z aktualnej rozdzielnicy", { page: pageIndex + 1, total: circuitListPages.length })}
                 </div>
-                <div style={{ minWidth: 0 }}>
-                  <h2 className="text-sm font-extrabold text-gray-900 tracking-wider uppercase">
-                    {t("app.pdf.circuits.mainHeader", "Zestawienie obwodów instalacji elektrycznej")}
-                  </h2>
-                  <p className="text-[9px] text-gray-500 font-medium">
-                    {t("app.pdf.circuits.subtitle", "Arkusz {{page}} z {{total}} • dane z aktualnej rozdzielnicy", { page: pageIndex + 1, total: circuitListPages.length })}
-                  </p>
-                </div>
-              </div>
-              <div className="text-right shrink-0">
-                <div className="text-[9px] text-gray-400">{t("app.pdf.shared.date", "Data:")} <span className="font-medium text-gray-700">{displayDate}</span></div>
-                <div className="text-[9px] text-gray-500 mt-0.5">{t("app.pdf.shared.object", "Obiekt:")} <span className="font-semibold text-gray-900">{objectType}</span></div>
               </div>
             </div>
-
-            <div className="mt-4">
-              <div className="bg-gray-100 text-gray-800 text-[10px] font-bold px-3 py-1.5 rounded-t-lg border border-gray-300 flex justify-between items-center">
-                <span>{pageIndex === 0 ? t("app.pdf.circuits.tableHeader", "1. Lista obwodów") : t("app.pdf.circuits.tableHeaderContinued", "1. Lista obwodów (ciąg dalszy {{page}})", { page: pageIndex + 1 })}</span>
-                <span className="text-gray-500 font-medium">{circuitListRowsCount} {t("app.pdf.circuits.itemsCount", "pozycji")}</span>
-              </div>
-              <div className="overflow-x-auto border-x border-b border-gray-300 rounded-b-lg">
-                <table className="w-full text-left border-collapse" style={{ fontSize: "9px" }}>
-                  <thead>
-                    <tr className="bg-gray-100 text-gray-800 font-bold border-b border-gray-300">
-                      <th className="p-2 border-r border-gray-300 text-center w-8">{t("app.pdf.circuits.columns.no", "Lp.")}</th>
-                      <th className="p-2 border-r border-gray-300 text-center w-16">{t("app.pdf.circuits.columns.designation", "Ozn.")}</th>
-                      <th className="p-2 border-r border-gray-300 w-36">{t("app.pdf.circuits.columns.circuitName", "Nazwa obwodu")}</th>
-                      <th className="p-2 border-r border-gray-300 w-28">{t("app.pdf.circuits.columns.location", "Lokalizacja")}</th>
-                      <th className="p-2 border-r border-gray-300 text-center w-12">{t("app.pdf.circuits.columns.phase", "Faza")}</th>
-                      <th className="p-2 border-r border-gray-300 text-center w-20">{t("app.pdf.circuits.columns.protection", "Zabezp.")}</th>
-                      <th className="p-2 border-r border-gray-300 text-center w-24">{t("app.pdf.circuits.columns.rcd", "RCD")}</th>
-                      <th className="p-2 border-r border-gray-300 text-center w-16">{t("app.pdf.circuits.columns.cable", "Przewód")}</th>
-                      <th className="p-2 border-r border-gray-300 text-center w-16">{t("app.pdf.circuits.columns.length", "Dł. [m]")}</th>
-                      <th className="p-2 text-center w-16">{t("app.pdf.circuits.columns.power", "Moc [W]")}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {rowsPage.map(({ index, location, rcdLabel, rcdProtection, row }) => (
-                      <tr key={row.id} className="border-b border-gray-200">
-                        <td className="p-2 border-r border-gray-300 text-center font-bold text-gray-700">{index}</td>
-                        <td className="p-2 border-r border-gray-300 text-center font-mono font-semibold text-gray-900">{row.referenceDesignation || EMPTY_FIELD_PLACEHOLDER}</td>
-                        <td className="p-2 border-r border-gray-300 font-semibold text-gray-900">{row.circuitName || row.label || EMPTY_FIELD_PLACEHOLDER}</td>
-                        <td className="p-2 border-r border-gray-300 text-gray-700">{location || row.displayLocation || EMPTY_FIELD_PLACEHOLDER}</td>
-                        <td className="p-2 border-r border-gray-300 text-center font-mono text-gray-900">{row.phase || EMPTY_FIELD_PLACEHOLDER}</td>
-                        <td className="p-2 border-r border-gray-300 text-center font-mono font-semibold text-gray-900">{row.displayProtection || row.protectionType || EMPTY_FIELD_PLACEHOLDER}</td>
-                        <td className="p-2 border-r border-gray-300 text-center text-gray-700">
-                          <div className="font-semibold">{rcdLabel || EMPTY_FIELD_PLACEHOLDER}</div>
-                          {rcdProtection ? <div className="text-[8px] text-gray-500">{rcdProtection}</div> : null}
-                        </td>
-                        <td className="p-2 border-r border-gray-300 text-center font-mono text-gray-900">{row.cableCrossSection ? `${row.cableCrossSection} mm²` : EMPTY_FIELD_PLACEHOLDER}</td>
-                        <td className="p-2 border-r border-gray-300 text-center font-mono text-gray-900">{row.cableLength || EMPTY_FIELD_PLACEHOLDER}</td>
-                        <td className="p-2 text-center font-mono text-gray-900">{row.powerW || EMPTY_FIELD_PLACEHOLDER}</td>
-                      </tr>
-                    ))}
-                    {circuitListRowsCount === 0 && (
-                      <tr>
-                        <td className="p-3 text-center text-gray-500" colSpan={10}>{t("app.pdf.circuits.empty", "Brak obwodów do pokazania.")}</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+            <div className="pd-page-header-right">
+              <div className="pd-meta-label">{t("app.pdf.shared.date", "Data")}</div>
+              <div className="pd-meta-value">{displayDate}</div>
+              <div className="pd-meta-label" style={{ marginTop: 6 }}>{t("app.pdf.shared.object", "Obiekt")}</div>
+              <div className="pd-meta-value" style={{ fontSize: 8.5 }}>{objectType}</div>
             </div>
           </div>
+
+          {/* Section — single section (table is the content) */}
+          <div className="pd-section-heading">
+            <span className="pd-section-number">01</span>
+            <span className="pd-section-title">
+              {pageIndex === 0
+                ? t("app.pdf.circuits.tableHeader", "Lista obwodów")
+                : t("app.pdf.circuits.tableHeaderContinued", "Lista obwodów · arkusz {{page}}", { page: pageIndex + 1 })}
+            </span>
+          </div>
+
+          <table className="pd-table">
+            <thead>
+              <tr>
+                <th className="pd-center" style={{ width: 32 }}>{t("app.pdf.circuits.columns.no", "Lp.")}</th>
+                <th className="pd-center" style={{ width: 64 }}>{t("app.pdf.circuits.columns.designation", "Ozn.")}</th>
+                <th style={{ width: 144 }}>{t("app.pdf.circuits.columns.circuitName", "Nazwa obwodu")}</th>
+                <th style={{ width: 112 }}>{t("app.pdf.circuits.columns.location", "Lokalizacja")}</th>
+                <th className="pd-center" style={{ width: 48 }}>{t("app.pdf.circuits.columns.phase", "Faza")}</th>
+                <th className="pd-center" style={{ width: 80 }}>{t("app.pdf.circuits.columns.protection", "Zabezp.")}</th>
+                <th className="pd-center" style={{ width: 96 }}>{t("app.pdf.circuits.columns.rcd", "RCD")}</th>
+                <th className="pd-center" style={{ width: 64 }}>{t("app.pdf.circuits.columns.cable", "Przewód")}</th>
+                <th className="pd-center" style={{ width: 64 }}>{t("app.pdf.circuits.columns.length", "Dł. [m]")}</th>
+                <th className="pd-center" style={{ width: 64 }}>{t("app.pdf.circuits.columns.power", "Moc [W]")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rowsPage.map(({ index, location, rcdLabel, rcdProtection, row }, rowIdx) => (
+                <tr key={row.id} className={rowIdx % 2 === 1 ? "pd-alt" : ""}>
+                  <td className="pd-index">{index}</td>
+                  <td className="pd-center pd-emphasis font-mono">{row.referenceDesignation || EMPTY_FIELD_PLACEHOLDER}</td>
+                  <td className="pd-emphasis">{row.circuitName || row.label || EMPTY_FIELD_PLACEHOLDER}</td>
+                  <td className="pd-muted">{location || row.displayLocation || EMPTY_FIELD_PLACEHOLDER}</td>
+                  <td className="pd-center font-mono">{row.phase || EMPTY_FIELD_PLACEHOLDER}</td>
+                  <td className="pd-center pd-emphasis font-mono">{row.displayProtection || row.protectionType || EMPTY_FIELD_PLACEHOLDER}</td>
+                  <td className="pd-center">
+                    <div className="pd-emphasis">{rcdLabel || EMPTY_FIELD_PLACEHOLDER}</div>
+                    {rcdProtection ? <div className="text-[8px] text-gray-500 mt-0.5">{rcdProtection}</div> : null}
+                  </td>
+                  <td className="pd-center font-mono">{row.cableCrossSection ? `${row.cableCrossSection} mm²` : EMPTY_FIELD_PLACEHOLDER}</td>
+                  <td className="pd-center font-mono">{row.cableLength || EMPTY_FIELD_PLACEHOLDER}</td>
+                  <td className="pd-center font-mono">{row.powerW || EMPTY_FIELD_PLACEHOLDER}</td>
+                </tr>
+              ))}
+              {circuitListRowsCount === 0 && (
+                <tr>
+                  <td colSpan={10} className="pd-empty-row">{t("app.pdf.circuits.empty", "Brak obwodów do pokazania.")}</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
 
           <div className="mt-auto">
             <PageFooter pageNumber={circuitListStartPage + pageIndex} totalUiPages={totalUiPages} />

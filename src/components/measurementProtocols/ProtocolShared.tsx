@@ -1,4 +1,3 @@
-
 import { useTranslation } from "react-i18next";
 
 interface PageFooterProps {
@@ -9,9 +8,18 @@ interface PageFooterProps {
 
 export function PageFooter({ pageNumber, totalUiPages, noBorder = false }: PageFooterProps) {
   const { t } = useTranslation();
+  // The "noBorder" variant is used on pages where the signature row already
+  // provides the visual separator (title page, unified table). Default is a
+  // hairline rule above for clean separation on table-heavy pages.
   return (
-    <div className={`text-center text-[8px] text-gray-400 tracking-wide uppercase pt-4 ${noBorder ? 'mt-6' : 'mt-auto border-t border-gray-100'}`}>
-      {t("pdf.footer.pageInfo", { pageNumber, totalPages: totalUiPages, defaultValue: `Strona ${pageNumber} z ${totalUiPages} • Dokument wygenerowany cyfrowo • Zgodny z normą PN-HD 60364` })}
+    <div
+      className={noBorder ? "pd-page-footer" : "pd-page-footer"}
+      style={noBorder ? { position: "absolute", borderTop: "none", paddingTop: 0 } : undefined}
+    >
+      <span className="pd-page-footer-text">{t("pdf.footer.normLabel", "PN-HD 60364 • dokument wygenerowany cyfrowo")}</span>
+      <span className="pd-page-footer-text">
+        {t("pdf.footer.pageInfo", { pageNumber, totalPages: totalUiPages, defaultValue: `${pageNumber} / ${totalUiPages}` })}
+      </span>
     </div>
   );
 }

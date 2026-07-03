@@ -23,13 +23,17 @@ export function PdfDinRailSnapshotPage({ imageDataUrl }: PdfDinRailSnapshotPageP
     // that matters because the rail content is wide and the scaled image is
     // already short on the page.
     <Page size="A4" orientation="portrait" style={styles.page}>
+      <View style={styles.pageTopBar} fixed />
+
       <View style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
         <PdfImage src={dataUrl} />
       </View>
-      <View style={[styles.textCenter, styles.mt4]} fixed>
+
+      <View style={styles.pageFooter} fixed>
+        <Text style={styles.pageFooterText}>{t("pdf.footer.normLabel", "PN-HD 60364 • dokument wygenerowany cyfrowo")}</Text>
         <Text
-          style={[styles.textXs, styles.textGray400, styles.uppercase]}
-          render={({ pageNumber, totalPages }) => t("pdf.footer.pageInfo", { pageNumber, totalPages })}
+          style={styles.pageFooterText}
+          render={({ pageNumber, totalPages }) => t("pdf.footer.pageInfo", { pageNumber, totalPages, defaultValue: `${pageNumber} / ${totalPages}` })}
         />
       </View>
     </Page>
