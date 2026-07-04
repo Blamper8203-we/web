@@ -20,6 +20,7 @@ import { PdfCircuitListPage } from "./pdfPages/PdfCircuitListPage";
 import { PdfUnifiedTablePage } from "./pdfPages/PdfUnifiedTablePage";
 import { PdfRcdTablePage } from "./pdfPages/PdfRcdTablePage";
 import { PdfDinRailSnapshotPage } from "./pdfPages/PdfDinRailSnapshotPage";
+import { PdfTableOfContentsPage } from "./pdfPages/PdfTableOfContentsPage";
 import { pdfStyles } from "./pdfPages/pdfStyles";
 
 interface PdfProtocolDocumentProps {
@@ -61,6 +62,18 @@ export function PdfProtocolDocument({
     <Document title={`Dokumentacja_${metadata.projectNumber || "powykonawcza"}`}>
       {(!previewOnly || previewOnly === "title-page") && (
         <PdfTitlePage metadata={metadata} displayDate={displayDate} />
+      )}
+
+      {(!previewOnly || previewOnly === "toc") && (
+        <PdfTableOfContentsPage
+          metadata={metadata}
+          displayDate={displayDate}
+          hasCircuitList={circuitListRows.length > 0}
+          hasUnified={unifiedRows.length > 0}
+          hasRcd={(metadata.measurementProtocols?.rcdRows?.length ?? 0) > 0}
+          schematicCount={schematicImages.length}
+          dinRailCount={dinRailWithoutWiresImages.length + dinRailImages.length}
+        />
       )}
 
       {(!previewOnly || previewOnly === "summary") && (
@@ -123,6 +136,7 @@ export function PdfProtocolDocument({
               // table. 25pt ≈ 8.8mm — enough to clear the footer band while
               // still keeping the schematic visually full-bleed.
               <Page
+                id={index === 0 ? "schematic" : undefined}
                 key={`schematic-${index}`}
                 size="A4"
                 orientation="landscape"
@@ -143,6 +157,7 @@ export function PdfProtocolDocument({
             <>
               {dinRailWithoutWiresImages.map((svg, index) => (
                 <PdfDinRailSnapshotPage
+                  id={index === 0 ? "din-rail" : undefined}
                   key={`din-rail-main-${index}`}
                   imageDataUrl={svg}
                 />

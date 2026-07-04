@@ -211,9 +211,20 @@ describe("PdfProtocolDocument", () => {
 
     const text = collectTextContent(document).join("\n");
 
-    expect(text).toContain("DOKUMENTACJA ODBIORCZA POWYKONAWCZA");
+    // WHY: 2026-07-04 polish pass v2 — page header is now a single brand line
+    // ("DINBOARD · Dokumentacja odbiorcza" + "PN-HD 60364-6 · Arkusz 6"),
+    // the old uppercase "DOKUMENTACJA ODBIORCZA POWYKONAWCZA" stack was
+    // removed. Title is "Oświadczenie Wykonawcy" and the standalone
+    // "Pełna treść oświadczenia" callout was removed from the title page
+    // (it overflowed A4) — see PdfTitlePage.test.tsx for the regression
+    // pin that asserts the restructure. The statement belongs on a
+    // dedicated statement page if/when needed.
+    expect(text).toContain("DINBOARD · Dokumentacja odbiorcza");
+    expect(text).toContain("PN-HD 60364-6 · Arkusz 6");
+    expect(text).not.toContain("DOKUMENTACJA ODBIORCZA POWYKONAWCZA");
     expect(text).toContain("Oświadczenie Wykonawcy");
-    expect(text).toContain("Oświadczam, że instalacja elektryczna");
+    // Statement moved off the title page (kept in i18n catalogs for future use)
+    expect(text).not.toContain("Pełna treść oświadczenia wykonawcy");
     // WHY: when no company logo is uploaded the logoBox is hidden entirely
     // (instead of showing a "LOGO" placeholder) so the title page no longer
     // carries a UI-style placeholder text into the final PDF.
@@ -308,7 +319,7 @@ describe("PdfProtocolDocument", () => {
     expect(text).toContain("Protokół Pomiarów Nr");
     expect(text).toContain("04 / 2026");
     expect(text).not.toContain("Protokół Pomiarów Nr\nProtokół Nr");
-    expect(collectPageOrientations(document)).toEqual([undefined]);
+    expect(collectPageOrientations(document)).toEqual(["portrait"]);
   });
 
   it("renders the synchronized circuit list preview page from current symbols", () => {

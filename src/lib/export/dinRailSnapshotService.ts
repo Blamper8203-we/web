@@ -399,12 +399,22 @@ function getSafeScaleForCanvas(
   contentHeight: number,
   optionsScale: number | undefined
 ): number {
-  const MAX_CANVAS_DIMENSION = 3840;
+  const MAX_DIMENSION = 8192; // 8K support
+  const MAX_AREA = 16777216; // 16 Megapixels (iOS Safari limit)
   const requestedScale = clamp(optionsScale ?? 2, 1, 8);
+  
   const maxDimension = Math.max(contentWidth, contentHeight);
-  const safeScale = maxDimension * requestedScale > MAX_CANVAS_DIMENSION
-    ? Math.floor((MAX_CANVAS_DIMENSION / maxDimension) * 100) / 100
+  let safeScale = maxDimension * requestedScale > MAX_DIMENSION
+    ? MAX_DIMENSION / maxDimension
     : requestedScale;
+    
+  const area = contentWidth * contentHeight;
+  if (area * safeScale * safeScale > MAX_AREA) {
+    safeScale = Math.sqrt(MAX_AREA / area);
+  }
+  
+  // Obcinamy do 2 miejsc po przecinku w dół, żeby uniknąć problemów z precyzją
+  safeScale = Math.floor(safeScale * 100) / 100;
   return Math.max(1, safeScale);
 }
 

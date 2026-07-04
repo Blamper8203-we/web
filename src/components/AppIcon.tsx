@@ -107,7 +107,7 @@ export function AppIcon({ name, size = 16, className, ...props }: AppIconProps) 
       width={size}
       {...props}
     >
-      {paths[name].map((path, index) => (
+      {(paths[name] ?? []).map((path, index) => (
         <path d={path} key={`${name}-${index}`} />
       ))}
     </svg>

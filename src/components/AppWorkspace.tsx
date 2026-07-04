@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
 import { AppHeader } from "./AppHeader";
+import { OnboardingOverlay } from "./OnboardingOverlay";
 import { AppStatusBar } from "./AppStatusBar";
 import { AppDialogsLayer } from "./AppDialogsLayer";
 import { MainWorkspace } from "./MainWorkspace";
@@ -189,6 +190,18 @@ export function AppWorkspace({
     executeSymbolsCommand: history.executeSymbolsCommand,
     showTemporaryStatus, handleOpenDinRailGenerator, handleHidePaletteTemplate,
   });
+
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("dinboardFirstRunComplete") !== "true";
+  });
+
+  const handleOnboardingFinish = () => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("dinboardFirstRunComplete", "true");
+    }
+    setShowOnboarding(false);
+  };
 
   const [didHandleInitialAction, setDidHandleInitialAction] = useState(false);
 
@@ -469,6 +482,8 @@ export function AppWorkspace({
         onDiscardUnsavedChanges={handleDiscardUnsavedChanges}
         onCancelUnsavedChanges={handleCancelUnsavedChanges}
       />
+
+      {showOnboarding && <OnboardingOverlay onFinish={handleOnboardingFinish} />}
     </main>
   );
 }

@@ -91,7 +91,7 @@
 }
 
 .pd-field span,
-.pd-checkbox span,
+.pd-editor-checkbox span,
 .pd-logo-info {
   color: var(--text-secondary);
   font-size: 0.8rem;
@@ -102,14 +102,14 @@
   resize: vertical;
 }
 
-.pd-checkbox {
+.pd-editor-checkbox {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 12px;
 }
 
-.pd-checkbox input {
+.pd-editor-checkbox input {
   width: 16px;
   height: 16px;
   accent-color: var(--accent-blue);
@@ -247,7 +247,7 @@
 }
 
 .pd-field span,
-.pd-checkbox span,
+.pd-editor-checkbox span,
 .pd-logo-info {
   font-size: 11px;
 }

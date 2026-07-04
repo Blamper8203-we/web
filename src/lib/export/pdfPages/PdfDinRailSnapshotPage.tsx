@@ -5,10 +5,11 @@ const t = i18next.t.bind(i18next);
 import { pdfStyles as styles } from "./pdfStyles";
 
 interface PdfDinRailSnapshotPageProps {
+  id?: string;
   imageDataUrl: string;
 }
 
-export function PdfDinRailSnapshotPage({ imageDataUrl }: PdfDinRailSnapshotPageProps) {
+export function PdfDinRailSnapshotPage({ id, imageDataUrl }: PdfDinRailSnapshotPageProps) {
   // Przekazany dataUrl jest teraz generowany jako obraz PNG z canvas (exportDinRailToDataURLWithOptions)
   // zamiast natywnego SVG. `@react-pdf/renderer` wspiera poprawnie tylko obrazy rastrowe (PNG, JPG)
   // w znaczniku <Image>, w przeciwieństwie do zagnieżdżonych obrazów SVG.
@@ -22,7 +23,7 @@ export function PdfDinRailSnapshotPage({ imageDataUrl }: PdfDinRailSnapshotPageP
     // header above the image, which ate ~40pt of vertical space — on A4 portrait
     // that matters because the rail content is wide and the scaled image is
     // already short on the page.
-    <Page size="A4" orientation="portrait" style={styles.page}>
+    <Page id={id} size="A4" orientation="portrait" style={styles.page}>
       <View style={styles.pageTopBar} fixed />
 
       <View style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>

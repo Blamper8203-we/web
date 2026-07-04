@@ -2,6 +2,7 @@ import type { SymbolItem } from "../../../types/symbolItem";
 import type { ProjectMetadata } from "../../../types/projectMetadata";
 import { buildCircuitListTableRows, buildCircuitRowsFromSymbols } from "../../circuitRows";
 import { chunkRows } from "../../measurementProtocolHelpers";
+import { hasDocumentationContent } from "./PdfDocumentationContentPage";
 
 export const UNIFIED_ROWS_PER_PAGE = 7;
 export const CIRCUIT_LIST_ROWS_PER_PAGE = 10;
@@ -166,8 +167,12 @@ export function countPdfPages(
     : 0;
 
   let pages = 0;
-  if (!previewOnly || previewOnly === "title-page") pages += 1;
+  if (!previewOnly || previewOnly === "title-page") pages += 2;
+  if (!previewOnly || previewOnly === "toc") pages += 1;
   if (!previewOnly || previewOnly === "summary") pages += 1;
+  if (!previewOnly || previewOnly === "documentation") {
+    if (hasDocumentationContent(metadata)) pages += 1;
+  }
   if (!previewOnly || previewOnly === "circuit-list") pages += circuitListChunks;
   if (!previewOnly || previewOnly === "unified") pages += unifiedChunks;
   if (!previewOnly || previewOnly === "rcd-ground") {

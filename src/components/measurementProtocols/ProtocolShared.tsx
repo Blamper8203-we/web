@@ -16,7 +16,7 @@ export function PageFooter({ pageNumber, totalUiPages, noBorder = false }: PageF
       className={noBorder ? "pd-page-footer" : "pd-page-footer"}
       style={noBorder ? { position: "absolute", borderTop: "none", paddingTop: 0 } : undefined}
     >
-      <span className="pd-page-footer-text">{t("pdf.footer.normLabel", "PN-HD 60364 • dokument wygenerowany cyfrowo")}</span>
+      <span className="pd-page-footer-text">{t("pdf.footer.normLabel", "PN-HD 60364 · DINBOARD")}</span>
       <span className="pd-page-footer-text">
         {t("pdf.footer.pageInfo", { pageNumber, totalPages: totalUiPages, defaultValue: `${pageNumber} / ${totalUiPages}` })}
       </span>

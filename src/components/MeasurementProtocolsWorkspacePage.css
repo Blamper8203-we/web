@@ -1,7 +1,75 @@
 /* ================================================================
-   DINBoard Web — PDF Workspace Preview Styles
-   New design: "Modern Technical Documentation" — Linear/Stripe Docs vibe
+   DINBoard Web â€” PDF Workspace Preview Styles
+   Design: "Engineering Hierarchy" (Style 8)
+   Mirrors `src/lib/export/pdfPages/pdfStyles.ts` so the live A4 preview
+   in the app matches the exported PDF.
+
+   Design rules:
+     1. ONE accent color (warm amber #d97706) â€” page top bar, eyebrow,
+        section numbers, protocol pill, statement/callout left bar.
+     2. UPPERCASE + letter-spacing ONLY on structural labels (brand strip
+        where applicable, section titles, table headers, footer chrome).
+        DATA labels stay in sentence case â€” "Rodzaj obiektu" not "RODZAJ".
+     3. Hairline borders (#E5E7EB) by default. Ink (#1F2937) on table top
+        edge, page top bar, signature lines.
+     4. Table header background is DARK SLATE (not accent) â€” keeps the
+        accent reserved for hierarchy cues, prevents amber soup.
+     5. Checkboxes use ink border (less visual noise than accent border).
+
+   Fonts: IBM Plex Sans (body) + IBM Plex Mono (numeric chrome), bundled
+   under public/fonts/. SIL Open Font License 1.1 â€” see the OFL .txt
+   files in public/fonts/. "Plex" is a Reserved Font Name; we ship the
+   fonts unmodified as IBM distributes them.
    ================================================================ */
+
+/* IBM Plex Sans â€” Regular, Bold, Italic, BoldItalic.
+   @font-face declarations duplicate the registration in pdfStyles.ts so
+   the browser-side preview matches the exported PDF. Same TTF files in
+   public/fonts/ are referenced by both. */
+@font-face {
+  font-family: 'IBM Plex Sans';
+  src: url('/fonts/IBMPlexSans-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IBM Plex Sans';
+  src: url('/fonts/IBMPlexSans-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IBM Plex Sans';
+  src: url('/fonts/IBMPlexSans-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IBM Plex Sans';
+  src: url('/fonts/IBMPlexSans-BoldItalic.ttf') format('truetype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* IBM Plex Mono â€” for section numbers + numeric chrome. */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('/fonts/IBMPlexMono-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('/fonts/IBMPlexMono-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 .mp-page {
   height: 100%;
@@ -9,10 +77,10 @@
   flex-direction: column;
   background: transparent;
   overflow: hidden;
-  line-height: 1.45;
-  font-family: 'Roboto', system-ui, -apple-system, Arial, sans-serif;
-  color: #0F172A;
-  font-size: 9pt;
+  line-height: 1.5;
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, Arial, sans-serif;
+  color: #1f2937;
+  font-size: 10pt;
 }
 
 .mp-stage {
@@ -33,12 +101,12 @@
 .mp-stage::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 999px; }
 .mp-stage::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
 
-/* A4 sheet — keep size but clean up shadow + typography defaults */
+/* A4 sheet â€” keep size but clean up shadow + typography defaults */
 .a4-page {
   width: 210mm;
   height: 297mm;
-  background-color: #FAF9F6;
-  color: #0F172A;
+  background-color: #ffffff;  /* matches PDF pageBg â€” pure white paper */
+  color: #1f2937;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   padding: 15mm 15mm 15mm 15mm;
   box-sizing: border-box;
@@ -47,9 +115,9 @@
   flex-direction: column;
   justify-content: space-between;
   margin-bottom: 24px;
-  font-family: 'Roboto', system-ui, -apple-system, Arial, sans-serif;
-  line-height: 1.45;
-  font-size: 9pt;
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, Arial, sans-serif;
+  line-height: 1.5;
+  font-size: 10pt;
 }
 
 .a4-page--landscape {
@@ -62,39 +130,46 @@
   height: 297mm;
 }
 
-/* ─────────────────────────────────────────────────────────────────────
-   New design tokens — shared with PDF render
-   ───────────────────────────────────────────────────────────────────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   Design tokens â€” mirrored from src/lib/export/pdfPages/pdfStyles.ts
+   Keep these values in sync with the PDF palette.
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 :root {
-  --pd-brand: #1E3A5F;
-  --pd-brand-strong: #2D5078;
-  --pd-brand-subtle: #F1F4F9;
-  --pd-ink: #0F172A;
-  --pd-ink-secondary: #334155;
-  --pd-ink-tertiary: #64748B;
-  --pd-ink-muted: #94A3B8;
-  --pd-hairline: #E2E8F0;
-  --pd-border: #CBD5E1;
-  --pd-row-alt: #F8FAFC;
-  --pd-page-bg: #FAF9F6;
-  --pd-info-tint: #EFF4FA;
-  --pd-success: #047857;
-  --pd-warning: #B45309;
-  --pd-danger: #B91C1C;
+  /* Accent — crisp corporate teal, professional and modern */
+  --pd-brand: #0d9488;
+  --pd-brand-strong: #0f766e;
+  --pd-brand-subtle: #f0fdfa;
+  --pd-info-tint: #f0fdfa;
 
-  --pd-font-display: 'Roboto', system-ui, -apple-system, Arial, sans-serif;
-  --pd-font-body: 'Roboto', system-ui, -apple-system, Arial, sans-serif;
-  --pd-font-mono: ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  /* Ink hierarchy — clean slate */
+  --pd-ink: #0f172a;
+  --pd-ink-secondary: #334155;
+  --pd-ink-tertiary: #64748b;
+  --pd-ink-muted: #94a3b8;
+  --pd-hairline: #e2e8f0;
+  --pd-border: #cbd5e1;
+  --pd-row-alt: #f8fafc;
+  --pd-page-bg: #ffffff;
+
+  /* Status â€” semantic, no brand-color pollution */
+  --pd-success: #059669;
+  --pd-warning: #d97706;
+  --pd-danger: #dc2626;
+
+  /* Typography */
+  --pd-font-display: 'IBM Plex Sans', system-ui, -apple-system, Arial, sans-serif;
+  --pd-font-body: 'IBM Plex Sans', system-ui, -apple-system, Arial, sans-serif;
+  --pd-font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, monospace;
 }
 
-/* Brand helpers — also reused by other parts of the app */
+/* Brand helpers â€” also reused by other parts of the app */
 .text-brand { color: var(--pd-brand); --mp-editable-color: var(--pd-brand); }
 .bg-brand { background-color: var(--pd-brand); }
 .border-brand { border-color: var(--pd-brand); }
 
-/* ─────────────────────────────────────────────────────────────────────
-   Page chrome — top bar + page header
-   ───────────────────────────────────────────────────────────────────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   Page chrome â€” top bar + page header
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .pd-page-top-bar {
   position: absolute;
   top: 0;
@@ -108,9 +183,9 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding-bottom: 14px;
-  margin-bottom: 22px;
-  border-bottom: 0.75px solid var(--pd-ink);
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--pd-hairline);
 }
 
 .pd-page-header-left {
@@ -129,28 +204,75 @@
 }
 
 .pd-eyebrow {
-  font-size: 7pt;
+  font-size: 7.5pt;
   font-weight: 700;
   color: var(--pd-brand);
   text-transform: uppercase;
-  letter-spacing: 1.4px;
+  letter-spacing: 1.6px;
   line-height: 1;
 }
 
 .pd-page-title {
-  font-size: 18pt;
+  /* KEY CHANGE: regular case, tight tracking. Big titles don't shout. */
+  font-size: 22pt;
   font-weight: 700;
   color: var(--pd-ink);
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: -0.4px;
   line-height: 1.15;
   margin-top: 4px;
 }
 
-.pd-page-subtitle {
+.pd-page-brand {
+  /* WHY: wordmark + caption on one line. DINBOARD is the brand wordmark
+     (kept semibold for legibility at 11.5pt), caption is the document
+     category (regular weight + ink color). */
+  font-size: 11.5pt;
+  font-weight: 700;
+  color: var(--pd-ink);
+  letter-spacing: 0;
+  line-height: 1.2;
+}
+
+.pd-page-brand-sub {
   font-size: 8.5pt;
   color: var(--pd-ink-tertiary);
-  margin-top: 3px;
+  margin-top: 2px;
+  letter-spacing: 0.2px;
+}
+
+.pd-page-header-right-line {
+  font-size: 10pt;
+  font-weight: 700;
+  color: var(--pd-ink);
+  text-align: right;
+  line-height: 1.25;
+}
+
+.pd-page-header-right-label {
+  font-size: 8pt;
+  font-weight: 700;
+  color: var(--pd-ink-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+
+.pd-page-header-right-value {
+  font-size: 10pt;
+  font-weight: 700;
+  color: var(--pd-ink);
+}
+
+.pd-page-header-right-sep {
+  font-size: 10pt;
+  color: var(--pd-ink-tertiary);
+  font-weight: 400;
+}
+
+.pd-page-subtitle {
+  font-size: 10pt;
+  color: var(--pd-ink-tertiary);
+  margin-top: 4px;
+  line-height: 1.45;
 }
 
 .pd-meta-label {
@@ -186,38 +308,40 @@
   margin-top: 4px;
 }
 
-/* ─────────────────────────────────────────────────────────────────────
-   Section heading — numbered marker + title + thin rule
-   ───────────────────────────────────────────────────────────────────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   Section heading â€” mono amber number + UPPERCASE title + ink rule
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .pd-section-heading {
   display: flex;
   align-items: baseline;
-  margin-top: 18px;
-  margin-bottom: 12px;
+  margin-top: 14px;
+  margin-bottom: 8px;
   padding-bottom: 6px;
-  border-bottom: 0.5px solid var(--pd-hairline);
+  border-bottom: 1px solid var(--pd-brand);
 }
 
 .pd-section-number {
-  font-size: 9pt;
+  font-family: var(--pd-font-mono);
+  font-size: 10pt;
   font-weight: 700;
   color: var(--pd-brand);
-  margin-right: 10px;
-  letter-spacing: 1.2px;
+  margin-right: 12px;
+  letter-spacing: 0;
   min-width: 22px;
 }
 
 .pd-section-title {
-  font-size: 10pt;
+  font-size: 11pt;
   font-weight: 700;
   color: var(--pd-ink);
   text-transform: uppercase;
-  letter-spacing: 1.4px;
+  letter-spacing: 1.2px;
 }
 
-/* ─────────────────────────────────────────────────────────────────────
-   Data rows — label : value pairs
-   ───────────────────────────────────────────────────────────────────── */
+/* ──────────────────────────────────────────────────────────────────────────
+   Data rows â€” KEY CHANGE: labels in SENTENCE case (no uppercase /
+   tracking / bold), values slightly larger and bold.
+   ────────────────────────────────────────────────────────────────────────── */
 .pd-data-row {
   display: flex;
   align-items: baseline;
@@ -230,15 +354,14 @@
 }
 
 .pd-data-label {
-  font-size: 8.5pt;
-  font-weight: 700;
-  color: var(--pd-ink-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
+  /* NO text-transform. NO letter-spacing. NO bold. Sentence-case muted. */
+  font-size: 9.5pt;
+  font-weight: 400;
+  color: var(--pd-ink-tertiary);
 }
 
 .pd-data-value {
-  font-size: 10pt;
+  font-size: 10.5pt;
   color: var(--pd-ink);
   font-weight: 700;
 }
@@ -249,13 +372,13 @@
   font-style: italic;
 }
 
-/* ─────────────────────────────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    Two- and three-column grids
-   ───────────────────────────────────────────────────────────────────── */
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .pd-two-col-grid {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
   gap: 24px;
 }
 
@@ -275,34 +398,35 @@
   padding-left: 18px;
 }
 
-/* ─────────────────────────────────────────────────────────────────────
-   Statement block — left accent bar + generous padding
-   ───────────────────────────────────────────────────────────────────── */
+/* ──────────────────────────────────────────────────────────────────────────
+   Statement block — left accent bar + tighter padding than previous version
+   so statement fits comfortably above signature row on one A4 page.
+   ────────────────────────────────────────────────────────────────────────── */
 .pd-statement-block {
-  padding: 14px 16px;
-  margin: 18px 0;
+  padding: 10px 14px;
+  margin: 14px 0;
   border-left: 3px solid var(--pd-brand);
   background: var(--pd-brand-subtle);
 }
 
 .pd-statement-title {
-  font-size: 8pt;
+  font-size: 7.5pt;
   font-weight: 700;
   color: var(--pd-brand);
   text-transform: uppercase;
   letter-spacing: 1.6px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .pd-statement-body {
-  font-size: 9.5pt;
+  font-size: 9pt;
   color: var(--pd-ink-secondary);
   line-height: 1.55;
 }
 
-/* ─────────────────────────────────────────────────────────────────────
-   Callout — generic blockquote-style
-   ───────────────────────────────────────────────────────────────────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   Callout â€” generic blockquote-style
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .pd-callout {
   padding: 12px 14px;
   margin-bottom: 12px;
@@ -325,14 +449,15 @@
   line-height: 1.55;
 }
 
-/* ─────────────────────────────────────────────────────────────────────
-   Checkbox — slim, navy border, navy check
-   ───────────────────────────────────────────────────────────────────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   Checkbox â€” slim, INK border (was amber). Less visual noise than the
+   accent border; reserves amber for hierarchy cues only.
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .pd-checkbox {
   width: 12px;
   height: 12px;
   border-radius: 2px;
-  border: 0.75px solid var(--pd-brand);
+  border: 0.75px solid var(--pd-ink);
   background: #fff;
   display: flex;
   justify-content: center;
@@ -343,30 +468,31 @@
 }
 
 .pd-checkbox-check {
-  color: var(--pd-brand);
+  color: var(--pd-ink);
   font-size: 9pt;
   font-weight: 700;
   line-height: 1;
 }
 
-/* ─────────────────────────────────────────────────────────────────────
-   Table — navy header, alternating rows, no vertical lines
-   ───────────────────────────────────────────────────────────────────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   Table â€” DARK SLATE header (was navy). Tracked UPPERCASE column
+   headers, alternating rows, no vertical lines.
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .pd-table {
-  border-top: 1.5px solid var(--pd-brand);
-  margin-bottom: 12px;
+  border-top: 2px solid var(--pd-ink);
+  margin-bottom: 16px;
   width: 100%;
   border-collapse: collapse;
 }
 
 .pd-table thead th {
-  background: var(--pd-brand);
+  background: var(--pd-ink);
   color: #fff;
-  padding: 7px 6px;
+  padding: 8px 6px;
   font-size: 7.5pt;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 1px;
   text-align: left;
   border: 0;
 }
@@ -374,12 +500,13 @@
 .pd-table thead th.pd-center { text-align: center; }
 
 .pd-table tbody tr {
-  background: #fff;
-  border-bottom: 0.5px solid var(--pd-hairline);
+  background: #ffffff;
+  border-bottom: 0.5px solid #f1f5f9; /* slate-100 */
 }
 
 .pd-table tbody tr.pd-alt {
-  background: var(--pd-row-alt);
+  background: #f8fafc; /* slate-50 */
+  border-bottom: 0.5px solid #f1f5f9;
 }
 
 .pd-table tbody td {
@@ -397,9 +524,9 @@
 .pd-table tbody td.pd-success { color: var(--pd-success); font-weight: 700; text-align: center; }
 .pd-table tbody td.pd-info-tint { background: var(--pd-info-tint); }
 
-/* For Riso/Loop sub-header (lighter navy) */
+/* For Riso/Loop sub-header (lighter slate â€” sits between main header and body) */
 .pd-table thead tr.pd-subhead th {
-  background: var(--pd-brand-strong);
+  background: #374151;  /* gray-700 â€” lighter than main ink header */
   padding: 5px 6px;
 }
 
@@ -415,20 +542,22 @@
   font-style: italic;
 }
 
-/* ─────────────────────────────────────────────────────────────────────
-   Signature row — minimal: thin line + label
-   ───────────────────────────────────────────────────────────────────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   Signature row â€” minimal: thin line + label.
+   WHY: equal 44pt slot height for all 3 columns so stamp box doesn't
+   overshadow signature lines. Slot width reduced from 160â†’150pt to match.
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .pd-signature-row {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  padding-top: 20px;
-  margin-top: 20px;
+  padding-top: 14px;
+  margin-top: 14px;
   border-top: 0.5px solid var(--pd-hairline);
 }
 
 .pd-signature-slot {
-  width: 160px;
+  width: 150px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -436,8 +565,8 @@
 
 .pd-signature-line {
   width: 100%;
-  height: 36px;
-  border-bottom: 0.75px solid var(--pd-ink-muted);
+  height: 44px;
+  border-bottom: 0.75px solid var(--pd-ink);
   display: flex;
   justify-content: center;
   align-items: flex-end;
@@ -446,7 +575,7 @@
 
 .pd-signature-stamp-slot {
   width: 100%;
-  height: 56px;
+  height: 44px;
   border: 0.5px dashed var(--pd-border);
   border-radius: 2px;
   display: flex;
@@ -472,9 +601,9 @@
   text-align: center;
 }
 
-/* ─────────────────────────────────────────────────────────────────────
-   Page footer — fixed band at bottom of every page
-   ───────────────────────────────────────────────────────────────────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   Page footer â€” fixed band at bottom of every page
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .pd-page-footer {
   position: absolute;
   bottom: 14px;
@@ -488,40 +617,51 @@
 }
 
 .pd-page-footer-text {
-  font-size: 6.5pt;
-  color: var(--pd-ink-muted);
+  font-size: 7.5pt;
+  color: var(--pd-ink-tertiary);
   text-transform: uppercase;
   letter-spacing: 1.2px;
 }
 
-/* ─────────────────────────────────────────────────────────────────────
-   Hero — centred title block on TitlePage
-   ───────────────────────────────────────────────────────────────────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   Hero â€” left-aligned eyebrow + big regular-case title (Engineering
+   Hierarchy pattern, mirrors pdfStyles.ts hero).
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .pd-hero {
-  text-align: center;
-  margin: 4px 0 22px;
+  text-align: left;
+  margin: 2px 0 14px;
+  background-color: transparent;
+}
+
+.pd-hero-eyebrow {
+  font-size: 7.5pt;
+  font-weight: 700;
+  color: var(--pd-brand);
+  text-transform: uppercase;
+  letter-spacing: 1.8px;
+  margin-bottom: 6px;
 }
 
 .pd-hero-title {
-  font-size: 22pt;
+  /* KEY CHANGE: regular case, tight tracking (was uppercase tracked). */
+  font-size: 26pt;
   font-weight: 700;
   color: var(--pd-ink);
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
+  letter-spacing: -0.5px;
   line-height: 1.1;
 }
 
 .pd-hero-subtitle {
-  font-size: 9.5pt;
+  font-size: 10pt;
   color: var(--pd-ink-secondary);
-  font-style: italic;
   margin-top: 6px;
   font-weight: 400;
+  line-height: 1.45;
 }
 
-/* ─────────────────────────────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    Logo / frame
-   ───────────────────────────────────────────────────────────────────── */
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .mp-title-logo-frame {
   border: 0.5px solid var(--pd-border);
   background: #fff;
@@ -557,9 +697,9 @@
   accent-color: var(--pd-brand);
 }
 
-/* ─────────────────────────────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    DIN rail preview frame
-   ───────────────────────────────────────────────────────────────────── */
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .mp-din-rail-preview-frame {
   min-height: 140mm;
   padding: 10mm;
@@ -590,9 +730,9 @@
 .mp-din-rail-preview-empty {
   min-height: 110mm;
   width: 100%;
-  border: 1px dashed var(--pd-border);
-  border-radius: 4px;
-  color: #64748b;
+  border: 1px dashed var(--pd-hairline);
+  background: #ffffff;
+  color: var(--pd-ink-muted);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -603,8 +743,10 @@
 }
 
 .mp-din-rail-preview-empty strong {
-  color: #334155;
+  color: var(--pd-ink-secondary);
   font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .mp-schematic-preview-frame {
@@ -633,9 +775,9 @@
 .mp-schematic-preview-empty {
   min-height: 100mm;
   width: 100%;
-  border: 1px dashed var(--pd-border);
-  border-radius: 4px;
-  color: #64748b;
+  border: 1px dashed var(--pd-hairline);
+  background: #ffffff;
+  color: var(--pd-ink-muted);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -646,27 +788,33 @@
 }
 
 .mp-schematic-preview-empty strong {
-  color: #334155;
+  color: var(--pd-ink-secondary);
   font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-/* ─────────────────────────────────────────────────────────────────────
-   Editables (input UX — unchanged from previous version, still works)
-   ───────────────────────────────────────────────────────────────────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   Editables (input UX).
+   WHY: previous version used a 2px focus ring (--focus-ring) that made
+   editable fields look like a web form, not a static document. New design:
+   subtle background change only â€” no ring, no shadow. Inputs now feel like
+   inline editable text, matching the static PDF output.
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 [contenteditable="true"] {
   outline: none;
   transition: background-color 0.2s;
-  border-radius: 4px;
+  border-radius: 2px;
   padding: 1px 4px;
   margin: -1px -4px;
 }
 [contenteditable="true"]:hover {
-  background-color: var(--accent-primary-soft);
+  background-color: rgba(13, 148, 136, 0.06);
   cursor: text;
 }
 [contenteditable="true"]:focus {
-  background-color: var(--accent-primary-soft);
-  box-shadow: 0 0 0 2px var(--focus-ring);
+  background-color: rgba(13, 148, 136, 0.10);
+  outline: none;
 }
 
 .mp-page input.mp-editable,
@@ -675,7 +823,7 @@
   background: transparent;
   padding: 1px 4px;
   margin: -1px -4px;
-  border-radius: 4px;
+  border-radius: 2px;
   font-family: inherit;
   font-size: inherit;
   color: var(--mp-editable-color, var(--pd-ink));
@@ -684,23 +832,33 @@
   width: 100%;
 }
 
+.mp-page input.mp-editable::placeholder,
+.mp-page textarea.mp-editable::placeholder {
+  color: var(--pd-ink-muted);
+  font-weight: 400;
+  font-style: normal;
+  opacity: 0.7;
+}
+
 .mp-page input.mp-editable:hover,
 .mp-page textarea.mp-editable:hover {
-  background-color: var(--accent-primary-soft);
+  background-color: rgba(13, 148, 136, 0.06);
   cursor: text;
 }
 
 .mp-page input.mp-editable:focus,
 .mp-page textarea.mp-editable:focus {
-  background-color: var(--accent-primary-soft);
-  box-shadow: 0 0 0 2px var(--focus-ring);
+  background-color: rgba(13, 148, 136, 0.10);
   outline: none;
+  box-shadow: none;
 }
 
 .mp-page textarea.mp-editable {
   resize: none;
   overflow: hidden;
   line-height: 1.4;
+  outline: none;
+  box-shadow: none;
 }
 
 .mp-delete-btn {
@@ -726,9 +884,9 @@ label:hover .mp-delete-btn {
   opacity: 1;
 }
 
-/* ─────────────────────────────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    Backwards-compat utility classes (kept for the rest of the app)
-   ───────────────────────────────────────────────────────────────────── */
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .flex { display: flex; }
 .flex-col { flex-direction: column; }
 .flex-row { flex-direction: row; }
@@ -924,9 +1082,9 @@ label:hover .mp-delete-btn {
 .group:hover .group-hover\:scale-105 { transform: scale(1.05); }
 .hover\:bg-gray-50:hover { background-color: #f9fafb; }
 
-/* ─────────────────────────────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    Responsive: dostosowanie A4 preview do mobile
-   ───────────────────────────────────────────────────────────────────── */
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media (max-width: 900px) {
   .a4-page {
     width: min(210mm, calc(100vw - 32px));
@@ -985,9 +1143,9 @@ label:hover .mp-delete-btn {
   }
 }
 
-/* ─────────────────────────────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    Pinch-to-zoom preview (schematic + din-rail PNG w PDF workspace).
-   ───────────────────────────────────────────────────────────────────── */
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .pinch-zoom-image {
   width: 100%;
   height: 100%;

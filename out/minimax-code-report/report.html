@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MiniMax Code · Product Brief 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  /* ============================================================
+     @page + universal print color fidelity
+     ============================================================ */
+  @page { size: A4 portrait; margin: 0; }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  /* ============================================================
+     Tokens — AI / research lab mood (not the Apple-blue default)
+     ============================================================ */
+  :root {
+    --ink:        #0F1024;
+    --ink-2:      #2A2B45;
+    --ink-3:      #5B5D7A;
+    --ink-4:      #8B8DA6;
+    --paper:      #FAFAFD;
+    --surface:    #FFFFFF;
+    --mute:       #F2F2F8;
+    --hairline:   #E2E2EE;
+    --rule:       #D2D2DE;
+    --accent:     #7C3AED;          /* electric violet — section rules */
+    --accent-2:   #22D3EE;          /* cyan — secondary series / halos */
+    --accent-3:   #F472B6;          /* magenta — tertiary series */
+    --good:       #14B8A6;          /* teal — positive */
+    --warn:       #F59E0B;          /* amber — neutral */
+    --bad:        #EF4444;          /* red — caution */
+    --cover-1:    #0A0E2A;          /* deep ink */
+    --cover-2:    #1A1450;          /* deep violet */
+    --cover-3:    #3D1D8E;          /* electric violet */
+  }
+
+  html, body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+                 "Inter", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink); background: var(--paper);
+    font-size: 10.5pt; line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .content { padding: 0; }
+  .page-break  { page-break-after: always; }
+  .avoid-break { page-break-inside: avoid; }
+
+  /* Body padding for non-cover sections (cover uses its own) */
+  .page, .toc-hero { padding: 14mm 12mm 18mm; }
+
+  /* ============================================================
+     Cover — full-bleed gradient hero with halos (one full A4 page)
+     ============================================================ */
+  .cover {
+    width: 100%;
+    min-height: 297mm;
+    margin: 0;
+    background: linear-gradient(135deg, var(--cover-1) 0%, var(--cover-2) 45%, var(--cover-3) 100%);
+    color: #fff; padding: 28mm 18mm; position: relative; overflow: hidden;
+    page-break-after: always;
+    box-sizing: border-box;
+  }
+  .cover::before {
+    content: ""; position: absolute; top: -120px; right: -120px;
+    width: 520px; height: 520px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(34,211,238,0.32), transparent 70%);
+  }
+  .cover::after {
+    content: ""; position: absolute; bottom: -180px; left: -180px;
+    width: 620px; height: 620px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(244,114,182,0.18), transparent 70%);
+  }
+  .cover-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 32px 32px; pointer-events: none;
+  }
+  .cover-tag {
+    display: inline-block; padding: 6px 14px; border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 20px; font-size: 9.5pt; letter-spacing: 2.5px;
+    opacity: 0.92; position: relative; z-index: 2;
+    font-weight: 500;
+  }
+  .cover h1 {
+    font-size: 56pt; font-weight: 800; margin: 28px 0 8px; line-height: 1.05;
+    letter-spacing: -2.5px; position: relative; z-index: 2;
+    background: linear-gradient(180deg, #ffffff 0%, #c4b5fd 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .cover h1 .brand-sub {
+    display: block; font-size: 13pt; font-weight: 500; letter-spacing: 4px;
+    color: #c4b5fd; margin-top: 10px; -webkit-text-fill-color: #c4b5fd;
+  }
+  .cover .subtitle {
+    font-size: 13.5pt; opacity: 0.92; max-width: 560px;
+    line-height: 1.7; position: relative; z-index: 2;
+    color: #E6E6F0; margin-top: 18px;
+  }
+  .cover-meta {
+    position: absolute; bottom: 28mm; left: 18mm; right: 18mm;
+    display: flex; justify-content: space-between; align-items: flex-end; z-index: 2;
+  }
+  .meta-stats { display: flex; gap: 36px; }
+  .meta-stat .num {
+    font-size: 30pt; font-weight: 800; line-height: 1; color: #fff;
+    letter-spacing: -1px;
+  }
+  .meta-stat .num .accent { color: #22D3EE; }
+  .meta-stat .lbl {
+    font-size: 8.5pt; opacity: 0.7; margin-top: 6px; letter-spacing: 1.5px;
+    text-transform: uppercase; color: #c4b5fd;
+  }
+  .cover-info { text-align: right; opacity: 0.78; font-size: 9pt; line-height: 1.85; }
+  .cover-info .row { display: flex; gap: 8px; align-items: center; justify-content: flex-end; }
+  .cover-info .row span:first-child { color: #c4b5fd; }
+
+  /* ============================================================
+     Section / H2 / lead
+     ============================================================ */
+  .page { padding: 14mm 12mm 18mm; }
+  h2.section {
+    font-size: 22pt; font-weight: 800; margin: 0 0 4px;
+    color: var(--ink); letter-spacing: -0.8px; line-height: 1.15;
+  }
+  .section-num {
+    display: inline-block; font-size: 10pt; font-weight: 700;
+    color: var(--accent); letter-spacing: 3.5px; margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+  .section-line {
+    width: 56px; height: 3px; background: var(--accent);
+    border-radius: 2px; margin: 12px 0 26px;
+  }
+  h3 {
+    font-size: 14pt; font-weight: 700; margin: 26px 0 10px;
+    color: var(--ink); letter-spacing: -0.4px;
+  }
+  h3 .num {
+    display: inline-block; font-size: 10pt; font-weight: 700;
+    color: var(--accent); letter-spacing: 2px; margin-right: 10px;
+    background: rgba(124,58,237,0.08); padding: 2px 8px; border-radius: 4px;
+    vertical-align: middle;
+  }
+  h4 {
+    font-size: 11pt; font-weight: 700; margin: 14px 0 6px; color: var(--ink);
+    letter-spacing: 0.2px;
+  }
+  p { margin: 8px 0; color: var(--ink-2); }
+  .lead {
+    font-size: 11.5pt; color: var(--ink-2); line-height: 1.75;
+    border-left: 3px solid var(--accent);
+    background: linear-gradient(90deg, rgba(124,58,237,0.05), transparent);
+    padding: 14px 18px; border-radius: 0 6px 6px 0; margin: 16px 0 26px;
+  }
+
+  /* ============================================================
+     TOC page
+     ============================================================ */
+  .toc-hero {
+    padding: 14mm 12mm 8mm;
+  }
+  .toc-list {
+    margin: 24px 0;
+    padding: 0; list-style: none;
+  }
+  .toc-list li {
+    display: flex; align-items: baseline; gap: 16px;
+    padding: 18px 0; border-bottom: 1px dashed var(--hairline);
+  }
+  .toc-list li:last-child { border-bottom: 0; }
+  .toc-num {
+    font-size: 11pt; font-weight: 800; color: var(--accent);
+    width: 38px; flex-shrink: 0; letter-spacing: 1px;
+  }
+  .toc-link {
+    flex: 1; text-decoration: none; color: var(--ink);
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .toc-link .toc-title {
+    font-size: 12pt; font-weight: 700; color: var(--ink); letter-spacing: -0.2px;
+  }
+  .toc-link .toc-sub {
+    font-size: 9pt; color: var(--ink-3); flex: 1; min-width: 0;
+  }
+  .toc-link .toc-page {
+    font-size: 9pt; font-weight: 700; color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+    background: var(--mute); padding: 3px 9px; border-radius: 12px;
+    letter-spacing: 0.4px;
+  }
+  .toc-link:hover .toc-title { color: var(--accent); }
+
+  /* ============================================================
+     KPI grid (4-up) — with 4 color variants
+     ============================================================ */
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 22px 0; }
+  .kpi {
+    padding: 16px; border-radius: 12px;
+    background: linear-gradient(135deg, #fafafe, #f0f0fa);
+    border: 1px solid var(--rule);
+  }
+  .kpi.violet { background: linear-gradient(135deg, #f3edff, #e4d4ff); border-color: #c9b3ff; }
+  .kpi.cyan   { background: linear-gradient(135deg, #e0fbff, #c4f0fb); border-color: #9fe0f0; }
+  .kpi.magenta{ background: linear-gradient(135deg, #fde2f0, #fbcfe8); border-color: #f0a8d4; }
+  .kpi.green  { background: linear-gradient(135deg, #d9f9ed, #c2f0d8); border-color: #95ddb6; }
+  .kpi .label {
+    font-size: 8.5pt; color: var(--ink-3); letter-spacing: 0.6px;
+    text-transform: uppercase; font-weight: 600;
+  }
+  .kpi .value {
+    font-size: 24pt; font-weight: 800; color: var(--ink); line-height: 1.05;
+    margin-top: 6px; letter-spacing: -1px;
+  }
+  .kpi .unit  { font-size: 12pt; color: var(--ink-3); margin-left: 3px; font-weight: 600; }
+  .kpi .desc  { font-size: 8.5pt; color: var(--ink-3); margin-top: 6px; line-height: 1.4; }
+
+  /* ============================================================
+     Chart card
+     ============================================================ */
+  .chart-card {
+    background: #fff; border: 1px solid var(--hairline);
+    border-radius: 12px; padding: 18px 18px 14px; margin: 18px 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .chart-title {
+    font-size: 11.5pt; font-weight: 700; color: var(--ink);
+    margin: 0 0 4px; display: flex; align-items: center; gap: 10px;
+    letter-spacing: -0.2px;
+  }
+  .chart-title::before {
+    content: ""; width: 4px; height: 16px; background: var(--accent); border-radius: 2px;
+  }
+  .chart-sub  {
+    font-size: 9pt; color: var(--ink-4); margin: 0 0 14px; padding-left: 14px;
+  }
+  .chart-wrap { position: relative; height: 240px; }
+  .chart-wrap.tall  { height: 320px; }
+  .chart-wrap.short { height: 180px; }
+  .chart-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .chart-pair .chart-wrap { height: 220px; }
+
+  /* ============================================================
+     Data table + 5-level pill badges
+     ============================================================ */
+  table.data {
+    width: 100%; border-collapse: collapse; font-size: 9pt;
+    margin: 14px 0; background: #fff;
+    border-radius: 8px; overflow: hidden; border: 1px solid var(--hairline);
+  }
+  table.data thead th {
+    background: linear-gradient(180deg, #1a1450, #0F1024);
+    color: #fff; padding: 10px 12px; text-align: left;
+    font-weight: 700; font-size: 9pt; letter-spacing: 0.4px;
+  }
+  table.data tbody td { padding: 9px 12px; border-bottom: 1px solid var(--mute); color: var(--ink-2); }
+  table.data tbody tr:last-child td { border-bottom: 0; }
+  table.data tbody tr:nth-child(even) { background: #fbfbfd; }
+  table.data tbody td.bold { font-weight: 700; color: var(--ink); }
+  .pill { display: inline-block; padding: 3px 9px; border-radius: 10px; font-size: 7.5pt; font-weight: 700; letter-spacing: 0.3px; }
+  .pill-bad  { background: #fee2e2; color: #991b1b; }
+  .pill-warn { background: #fef3c7; color: #92400e; }
+  .pill-ok   { background: #d1fae5; color: #065f46; }
+  .pill-good { background: #dbeafe; color: #1e40af; }
+  .pill-best { background: #ede9fe; color: #5b21b6; }
+
+  /* ============================================================
+     Comparison cards
+     ============================================================ */
+  .versus {
+    display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px;
+    align-items: stretch; margin: 18px 0;
+  }
+  .vs-card {
+    padding: 18px; border-radius: 14px; border: 1px solid;
+  }
+  .vs-card.minimax {
+    background: linear-gradient(160deg, #f3edff, #fff);
+    border-color: #c9b3ff;
+  }
+  .vs-card.traditional {
+    background: linear-gradient(160deg, #f5f5f7, #fff);
+    border-color: #d2d2d7;
+  }
+  .vs-divider {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14pt; font-weight: 800; color: var(--ink-4);
+  }
+  .vs-card h4 { margin: 0 0 8px; font-size: 14pt; font-weight: 800; letter-spacing: -0.3px; }
+  .vs-card.minimax h4     { color: var(--accent); }
+  .vs-card.traditional h4 { color: var(--ink); }
+  .vs-card .tag {
+    display: inline-block; font-size: 8pt; padding: 2px 8px;
+    border-radius: 10px; background: rgba(0,0,0,0.06); margin-bottom: 8px;
+    font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase;
+  }
+  .vs-card.minimax .tag     { background: rgba(124,58,237,0.12); color: var(--accent); }
+  .vs-card .vsrow {
+    display: flex; gap: 10px; margin: 8px 0; font-size: 9.5pt;
+    color: var(--ink-2);
+  }
+  .vs-card .vsrow .lbl { color: var(--ink-3); min-width: 88px; font-weight: 600; }
+  .vs-card ul { margin: 8px 0 0; padding-left: 18px; font-size: 9.5pt; color: var(--ink-2); }
+  .vs-card ul li { margin: 4px 0; }
+
+  /* ============================================================
+     Insight callout (yellow / violet)
+     ============================================================ */
+  .insight {
+    background: linear-gradient(135deg, #fff8e6, #fef0c7);
+    border-left: 4px solid #f59e0b;
+    padding: 14px 18px; border-radius: 0 8px 8px 0;
+    margin: 18px 0; font-size: 10pt; color: #5c3a08;
+  }
+  .insight .ins-label {
+    font-size: 8.5pt; font-weight: 800; letter-spacing: 1.5px;
+    color: #92400e; text-transform: uppercase; margin-bottom: 4px;
+  }
+  .insight strong { color: #3f2307; }
+
+  /* ============================================================
+     Stack diagram — vertical layer stack
+     ============================================================ */
+  .stack-diagram {
+    margin: 18px 0; border-radius: 12px; overflow: hidden;
+    border: 1px solid var(--hairline);
+  }
+  .stack-layer {
+    display: grid; grid-template-columns: 140px 1fr 100px;
+    align-items: center; padding: 12px 16px;
+    border-bottom: 1px solid var(--hairline);
+    font-size: 9.5pt;
+  }
+  .stack-layer:last-child { border-bottom: 0; }
+  .stack-layer.surface  { background: linear-gradient(90deg, #f3edff, #ffffff); }
+  .stack-layer.tools    { background: linear-gradient(90deg, #e0fbff, #ffffff); }
+  .stack-layer.harness  { background: linear-gradient(90deg, #fde2f0, #ffffff); }
+  .stack-layer.model    { background: linear-gradient(90deg, #1a1450, #0F1024); color: #fff; }
+  .stack-layer.platform { background: linear-gradient(90deg, #0a0e2a, #050714); color: #fff; }
+  .stack-layer .l {
+    font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase;
+    font-size: 8.5pt;
+  }
+  .stack-layer.platform .l, .stack-layer.model .l { color: #c4b5fd; }
+  .stack-layer .d { color: var(--ink-2); }
+  .stack-layer.model .d, .stack-layer.platform .d { color: #d0d0e8; }
+  .stack-layer .r { text-align: right; }
+  .stack-layer .r .pill-best { font-size: 7.5pt; }
+
+  /* ============================================================
+     Timeline strip
+     ============================================================ */
+  .timeline {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 0; margin: 22px 0; position: relative;
+  }
+  .timeline::before {
+    content: ""; position: absolute; top: 19px; left: 6%; right: 6%;
+    height: 2px; background: var(--rule);
+  }
+  .gen {
+    text-align: center; padding: 0 8px; position: relative;
+  }
+  .gen .dot {
+    width: 14px; height: 14px; border-radius: 50%; background: #fff;
+    border: 3px solid var(--accent); display: inline-block;
+    margin-bottom: 10px; position: relative; z-index: 2;
+  }
+  .gen.upcoming .dot { border-color: var(--ink-4); background: var(--mute); }
+  .gen .gen-q {
+    font-size: 9pt; font-weight: 800; color: var(--accent); letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .gen.upcoming .gen-q { color: var(--ink-4); }
+  .gen .gen-t {
+    font-size: 10pt; font-weight: 700; color: var(--ink);
+    margin-top: 4px; line-height: 1.2;
+  }
+  .gen.upcoming .gen-t { color: var(--ink-3); }
+  .gen .gen-d {
+    font-size: 8.5pt; color: var(--ink-3); margin-top: 4px; line-height: 1.4;
+  }
+
+  /* ============================================================
+     Takeaway rows
+     ============================================================ */
+  .takeaway {
+    display: grid; grid-template-columns: 56px 1fr;
+    gap: 16px; padding: 14px 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .takeaway:last-child { border-bottom: 0; }
+  .takeaway .tk-num {
+    font-size: 24pt; font-weight: 800; color: var(--accent);
+    line-height: 1; letter-spacing: -1px;
+  }
+  .takeaway .tk-title { font-size: 12pt; font-weight: 800; color: var(--ink); margin-bottom: 4px; }
+  .takeaway .tk-body  { font-size: 10pt; color: var(--ink-2); line-height: 1.6; }
+
+  /* ============================================================
+     Conclusion blocks (dark)
+     ============================================================ */
+  .conclusions {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+    margin: 18px 0;
+  }
+  .conclusion {
+    background: linear-gradient(160deg, #1a1450, #0F1024);
+    color: #fff; padding: 18px; border-radius: 12px;
+    border: 1px solid rgba(124,58,237,0.3);
+  }
+  .conclusion .cn-num {
+    font-size: 9pt; font-weight: 800; letter-spacing: 2px; color: #22D3EE;
+    margin-bottom: 6px;
+  }
+  .conclusion .cn-title {
+    font-size: 12pt; font-weight: 800; color: #fff;
+    margin-bottom: 8px; letter-spacing: -0.2px;
+  }
+  .conclusion .cn-body {
+    font-size: 9.5pt; color: #d0d0e8; line-height: 1.6;
+  }
+
+  /* ============================================================
+     Recommend cards (3-tier)
+     ============================================================ */
+  .recommend-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+  .rec-card {
+    padding: 16px; border-radius: 12px; border: 1px solid var(--hairline);
+    background: #fff;
+  }
+  .rec-card.entry      { border-top: 3px solid var(--ink-4); }
+  .rec-card.recommend  { border-top: 3px solid var(--accent); background: linear-gradient(180deg, #fbf9ff, #fff); }
+  .rec-card.power      { border-top: 3px solid var(--accent-2); background: linear-gradient(180deg, #f0fcff, #fff); }
+  .rec-card h4 { margin: 0 0 6px; font-size: 12pt; font-weight: 800; }
+  .rec-card .rec-tier {
+    font-size: 7.5pt; font-weight: 700; letter-spacing: 1px;
+    color: var(--ink-3); text-transform: uppercase; margin-bottom: 6px;
+  }
+  .rec-card.recommend h4 { color: var(--accent); }
+  .rec-card.power h4 { color: #0e7490; }
+  .rec-card ul { margin: 6px 0 0; padding-left: 18px; font-size: 9.5pt; color: var(--ink-2); }
+  .rec-card ul li { margin: 3px 0; }
+
+  /* ============================================================
+     Footer meta
+     ============================================================ */
+  .footer-meta {
+    margin-top: 24px; padding-top: 16px;
+    border-top: 2px solid var(--ink);
+    font-size: 8.5pt; color: var(--ink-3);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  }
+  .footer-meta h5 {
+    margin: 0 0 6px; font-size: 9pt; font-weight: 800; color: var(--ink);
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+  .footer-meta ul { margin: 0; padding-left: 18px; }
+  .footer-meta ul li { margin: 2px 0; }
+  .footer-meta .stamp {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff; padding: 4px 10px; border-radius: 12px;
+    font-size: 7.5pt; font-weight: 700; letter-spacing: 1px;
+    display: inline-block; margin-right: 6px;
+  }
+
+  /* ============================================================
+     Two-column flex grid (for layout variation)
+     ============================================================ */
+  .two-col {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    margin: 16px 0;
+  }
+
+  /* highlight callout in violet (compared to yellow insight) */
+  .callout-violet {
+    background: linear-gradient(135deg, #f3edff, #ede9fe);
+    border-left: 4px solid var(--accent);
+    padding: 14px 18px; border-radius: 0 8px 8px 0;
+    margin: 18px 0; font-size: 10pt; color: #3b0764;
+  }
+  .callout-violet .clv-label {
+    font-size: 8.5pt; font-weight: 800; letter-spacing: 1.5px;
+    color: var(--accent); text-transform: uppercase; margin-bottom: 4px;
+  }
+  .callout-violet strong { color: #1e0a4d; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     COVER PAGE
+     ============================================================ -->
+<section class="cover" id="cover">
+  <div class="cover-grid"></div>
+  <span class="cover-tag">PRODUCT BRIEF · 2026</span>
+  <h1>MiniMax Code<span class="brand-sub">AGENTIC CODING WORKSPACE</span></h1>
+  <p class="subtitle">
+    A multi-model agentic workspace where engineering teams ship production
+    software with AI teammates — autonomous loops, durable memory, and a
+    tool-rich harness around the model.
+  </p>
+  <div class="cover-meta">
+    <div class="meta-stats">
+      <div class="meta-stat">
+        <div class="num">1<span class="accent">·</span>M</div>
+        <div class="lbl">Unified Model Layer</div>
+      </div>
+      <div class="meta-stat">
+        <div class="num">6<span class="accent">+</span></div>
+        <div class="lbl">Capability Surfaces</div>
+      </div>
+      <div class="meta-stat">
+        <div class="num">∞</div>
+        <div class="lbl">Session Memory</div>
+      </div>
+    </div>
+    <div class="cover-info">
+      <div class="row"><span>VERSION</span> <span>brief-2026.07</span></div>
+      <div class="row"><span>AUTHOR</span> <span>Mavis · mavis</span></div>
+      <div class="row"><span>RELEASE</span> <span>Public · v1 ready</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     TABLE OF CONTENTS
+     ============================================================ -->
+<section class="page toc-hero page-break">
+  <span class="section-num">CONTENTS</span>
+  <h2 class="section">Inside this report</h2>
+  <div class="section-line"></div>
+  <p class="lead">
+    A six-section brief on what MiniMax Code is, how it's built, and where
+    it's going. Every section is a self-contained read — skip around using
+    the links below.
+  </p>
+
+  <ul class="toc-list">
+    <li>
+      <span class="toc-num">01</span>
+      <a class="toc-link" href="#sec-mission">
+        <span class="toc-title">Mission &amp; Positioning</span>
+        <span class="toc-sub">What problem MiniMax Code solves, who it's for, and the three beliefs it ships with.</span>
+        <span class="toc-page">P.04</span>
+      </a>
+    </li>
+    <li>
+      <span class="toc-num">02</span>
+      <a class="toc-link" href="#sec-capabilities">
+        <span class="toc-title">Core Capabilities</span>
+        <span class="toc-sub">Agentic loop, multi-agent orchestration, persistent memory, and skills extensibility.</span>
+        <span class="toc-page">P.05</span>
+      </a>
+    </li>
+    <li>
+      <span class="toc-num">03</span>
+      <a class="toc-link" href="#sec-architecture">
+        <span class="toc-title">Architecture &amp; Stack</span>
+        <span class="toc-sub">Five layers from foundation model up to surface — and why each layer is its own product.</span>
+        <span class="toc-page">P.06</span>
+      </a>
+    </li>
+    <li>
+      <span class="toc-num">04</span>
+      <a class="toc-link" href="#sec-workflows">
+        <span class="toc-title">Developer Workflows</span>
+        <span class="toc-sub">Autonomy levels, recommended entry paths, and how teams actually use MiniMax Code day to day.</span>
+        <span class="toc-page">P.07</span>
+      </a>
+    </li>
+    <li>
+      <span class="toc-num">05</span>
+      <a class="toc-link" href="#sec-trust">
+        <span class="toc-title">Trust, Safety &amp; Distribution</span>
+        <span class="toc-sub">Audit trails, guardrails, and the conventions that keep shipping reliable across surfaces.</span>
+        <span class="toc-page">P.08</span>
+      </a>
+    </li>
+    <li>
+      <span class="toc-num">06</span>
+      <a class="toc-link" href="#sec-outlook">
+        <span class="toc-title">Outlook &amp; Roadmap</span>
+        <span class="toc-sub">Where the product is heading in the next 18 months, and what stays the same.</span>
+        <span class="toc-page">P.09</span>
+      </a>
+    </li>
+  </ul>
+
+  <div class="callout-violet">
+    <div class="clv-label">HOW TO READ THIS</div>
+    <strong>Brief and visual.</strong> Every section opens with one lead
+    paragraph, anchors you with a small KPI grid, and earns its keep with
+    one or two charts and a concrete takeaway. No filler.
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 01 — MISSION & POSITIONING
+     ============================================================ -->
+<section class="page page-break" id="sec-mission">
+  <span class="section-num">SECTION 01 · MISSION</span>
+  <h2 class="section">A workspace built for shipping, not chatting.</h2>
+  <div class="section-line"></div>
+
+  <p class="lead">
+    Most AI coding tools stop at autocompletion or chat. MiniMax Code starts
+    there and keeps going — into a runtime that can read your repository,
+    run tools, write back changes, persist across sessions, and verify its
+    own work. The end goal isn't a clever answer. It's a commit you can ship.
+  </p>
+
+  <div class="kpis">
+    <div class="kpi violet">
+      <div class="label">POSITIONING</div>
+      <div class="value">1<span class="unit">workspace</span></div>
+      <div class="desc">One runtime spans chat, IDE, CLI, and CI surfaces.</div>
+    </div>
+    <div class="kpi cyan">
+      <div class="label">MULTI-AGENT</div>
+      <div class="value">N<span class="unit">roles</span></div>
+      <div class="desc">Orchestrator routes to specialist agents per task.</div>
+    </div>
+    <div class="kpi magenta">
+      <div class="label">DURABILITY</div>
+      <div class="value">3<span class="unit">layers</span></div>
+      <div class="desc">Project, agent, and user memory outlast a session.</div>
+    </div>
+    <div class="kpi green">
+      <div class="label">EXTENSIBLE</div>
+      <div class="value">N<span class="unit">tools/skills</span></div>
+      <div class="desc">Add hooks, tools, and skills without forking the runtime.</div>
+    </div>
+  </div>
+
+  <h3><span class="num">01</span>What problem we solve</h3>
+  <p>
+    Engineering teams don't need another autocomplete. They need a teammate
+    that can take a ticket — read the codebase, follow the conventions,
+    run the tests, hand back a patch — and stay coherent across days,
+    not just turns. <strong>MiniMax Code is the workspace that hosts that
+    teammate.</strong> The product blends a foundation model, an agentic
+    harness, and a tool-rich runtime behind a single command surface.
+  </p>
+
+  <h3><span class="num">02</span>Three beliefs we ship with</h3>
+  <div class="two-col">
+    <div>
+      <h4>⏵  Agents must have memory</h4>
+      <p>
+        Stateless chat loses context on every reload. MiniMax Code treats
+        memory as a first-class artifact — three layers (project, agent,
+        user) — and writes to it as the agent works, not after.
+      </p>
+    </div>
+    <div>
+      <h4>⏵  Tools belong in the harness</h4>
+      <p>
+        The model can think, but the harness is what reads files, runs
+        shells, calls APIs. The harness wraps the model with the same
+        rigor an OS wraps a process.
+      </p>
+    </div>
+    <div>
+      <h4>⏵  Shipping beats impressive</h4>
+      <p>
+        We optimize for diffs that land, not chat that wows. Every
+        capability ships with a verification path — tests, lint, build —
+        before the agent hands a result back.
+      </p>
+    </div>
+    <div>
+      <h4>⏵  Independence from any one model</h4>
+      <p>
+        Model quality will keep moving. The harness is the long-term asset;
+        the model is a swappable component behind it.
+      </p>
+    </div>
+  </div>
+
+  <div class="callout-violet">
+    <div class="clv-label">POSITIONING SUMMARY</div>
+    MiniMax Code is to <strong>chat-based coding assistants</strong> what a
+    CI runner is to a script: not smarter syntax — a different unit of
+    work. The unit isn't an answer; it's a verified change.
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 02 — CORE CAPABILITIES
+     ============================================================ -->
+<section class="page page-break" id="sec-capabilities">
+  <span class="section-num">SECTION 02 · CAPABILITIES</span>
+  <h2 class="section">What the agent loop actually does.</h2>
+  <div class="section-line"></div>
+
+  <p class="lead">
+    Behind every chat reply is a loop: <em>plan → act → observe → reflect</em>.
+    The four capabilities below are how that loop stays grounded, durable,
+    and extensible. None of them is "AI magic" — each is a hardened
+    subsystem you can swap or extend.
+  </p>
+
+  <h3><span class="num">01</span>Capability scoreboard</h3>
+  <div class="chart-card avoid-break">
+    <div class="chart-title">Capability depth across the loop</div>
+    <div class="chart-sub">Subjective maturity score (0–10) per capability, judged across
+    shipped subsystems, test coverage, and external extensibility.</div>
+    <div class="chart-wrap tall">
+      <canvas id="chartCapabilities"></canvas>
+    </div>
+  </div>
+
+  <h3><span class="num">02</span>Traditional IDE vs. MiniMax Code</h3>
+  <div class="versus avoid-break">
+    <div class="vs-card traditional">
+      <span class="tag">BEFORE</span>
+      <h4>Chat-first IDE assistant</h4>
+      <div class="vsrow"><span class="lbl">Scope</span> single-turn Q&amp;A in a sidebar</div>
+      <div class="vsrow"><span class="lbl">Memory</span> last few messages only</div>
+      <div class="vsrow"><span class="lbl">Tools</span> read-only file lookup</div>
+      <div class="vsrow"><span class="lbl">Agents</span> one model, no roles</div>
+      <div class="vsrow"><span class="lbl">Recovery</span> copy/paste results</div>
+    </div>
+    <div class="vs-divider">VS</div>
+    <div class="vs-card minimax">
+      <span class="tag">MINIMAX CODE</span>
+      <h4>Agentic workspace</h4>
+      <div class="vsrow"><span class="lbl">Scope</span> ticket to verified patch</div>
+      <div class="vsrow"><span class="lbl">Memory</span> 3-layer, persistent</div>
+      <div class="vsrow"><span class="lbl">Tools</span> full harness, OS-level</div>
+      <div class="vsrow"><span class="lbl">Agents</span> orchestrator + specialists</div>
+      <div class="vsrow"><span class="lbl">Recovery</span> checkpointed sessions</div>
+    </div>
+  </div>
+
+  <h3><span class="num">03</span>Multi-dimensional positioning</h3>
+  <p>
+    Same data, different view: where MiniMax Code lands on the dimensions
+    engineers actually argue about. Higher = stronger on that axis.
+  </p>
+  <div class="chart-card avoid-break">
+    <div class="chart-title">MiniMax Code vs. chat-first assistant</div>
+    <div class="chart-sub">Six axes: autonomy, memory, tools, multi-agent,
+    extensibility, verifiability. Scored 0–10.</div>
+    <div class="chart-wrap">
+      <canvas id="chartRadar"></canvas>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="ins-label">⏵  INSIGHT</div>
+    The biggest axis isn't "smarter model" — it's <strong>recovery</strong>.
+    Most chat tools drop context on reload; MiniMax Code treats every session
+    as a recoverable artifact with a checkpoint trail.
+  </div>
+
+  <h3><span class="num">04</span>Capability catalog (at a glance)</h3>
+  <table class="data avoid-break">
+    <thead>
+      <tr>
+        <th style="width:28%">Capability</th>
+        <th style="width:34%">What it does</th>
+        <th style="width:22%">Where it lives</th>
+        <th style="width:16%">Maturity</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="bold">Agentic loop</td>
+        <td>Plan, act, observe, reflect — running in a sandboxed process</td>
+        <td>Harness runtime</td>
+        <td><span class="pill pill-best">Production</span></td>
+      </tr>
+      <tr>
+        <td class="bold">Multi-agent orchestration</td>
+        <td>Orchestrator routes a task to specialist agents by capability</td>
+        <td>Harness · agent tree</td>
+        <td><span class="pill pill-best">Production</span></td>
+      </tr>
+      <tr>
+        <td class="bold">Persistent memory</td>
+        <td>Project / agent / user memory layers, content-addressed store</td>
+        <td>lib/memory · hooks</td>
+        <td><span class="pill pill-good">Stable</span></td>
+      </tr>
+      <tr>
+        <td class="bold">Tool calling</td>
+        <td>Read/Write/Edit/Bash/Glob/Grep; safe-by-default shell policy</td>
+        <td>Tool registry</td>
+        <td><span class="pill pill-best">Production</span></td>
+      </tr>
+      <tr>
+        <td class="bold">Skills &amp; hooks</td>
+        <td>External skill packages; pre/post hooks at every step</td>
+        <td>Plugin registry</td>
+        <td><span class="pill pill-good">Stable</span></td>
+      </tr>
+      <tr>
+        <td class="bold">Session &amp; checkpoints</td>
+        <td>Resumable sessions, undo/redo, branch-and-merge worktrees</td>
+        <td>Session store</td>
+        <td><span class="pill pill-good">Stable</span></td>
+      </tr>
+      <tr>
+        <td class="bold">TUI / CLI surfaces</td>
+        <td>Interactive TUI, headless --print, batch and watch modes</td>
+        <td>Surface layer</td>
+        <td><span class="pill pill-best">Production</span></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============================================================
+     SECTION 03 — ARCHITECTURE & STACK
+     ============================================================ -->
+<section class="page page-break" id="sec-architecture">
+  <span class="section-num">SECTION 03 · ARCHITECTURE</span>
+  <h2 class="section">Five layers, one runtime.</h2>
+  <div class="section-line"></div>
+
+  <p class="lead">
+    MiniMax Code is structured as five horizontal layers. Each layer has
+    its own contract and can be swapped independently — the foundation
+    model is replaceable; the harness is the long-term asset.
+  </p>
+
+  <div class="stack-diagram avoid-break">
+    <div class="stack-layer surface">
+      <span class="l">SURFACE</span>
+      <span class="d">TUI · CLI · IDE extension · Web · CI runner</span>
+      <span class="r"><span class="pill pill-best">User-facing</span></span>
+    </div>
+    <div class="stack-layer tools">
+      <span class="l">TOOL LAYER</span>
+      <span class="d">Read · Write · Edit · Bash · Glob · Grep · MCP tools · Custom tools</span>
+      <span class="r"><span class="pill pill-good">Sandboxed</span></span>
+    </div>
+    <div class="stack-layer harness">
+      <span class="l">HARNESS</span>
+      <span class="d">Agent loop · Memory · Skills · Hooks · Sessions · Permissions</span>
+      <span class="r"><span class="pill pill-best">Long-term IP</span></span>
+    </div>
+    <div class="stack-layer model">
+      <span class="l">MODEL LAYER</span>
+      <span class="d">MiniMax M3 (primary) · secondary models · per-task routing</span>
+      <span class="r"><span class="pill pill-good">Swappable</span></span>
+    </div>
+    <div class="stack-layer platform">
+      <span class="l">PLATFORM</span>
+      <span class="d">Node 22+ · multi-OS · terminal-native · offline-capable</span>
+      <span class="r"><span class="pill pill-best">Stable</span></span>
+    </div>
+  </div>
+
+  <h3><span class="num">01</span>Engineer-facing architecture diagram</h3>
+  <div class="chart-card avoid-break">
+    <div class="chart-title">Where effort and complexity concentrate</div>
+    <div class="chart-sub">Relative LoC weight per layer across a typical MiniMax Code
+    workspace install. Approximately proportional to test surface, not user code.</div>
+    <div class="chart-wrap">
+      <canvas id="chartStack"></canvas>
+    </div>
+  </div>
+
+  <h3><span class="num">02</span>Layer-by-layer responsibility</h3>
+  <table class="data avoid-break">
+    <thead>
+      <tr>
+        <th style="width:18%">Layer</th>
+        <th style="width:32%">Responsibility</th>
+        <th style="width:30%">Failure mode if it breaks</th>
+        <th style="width:20%">Replaceable?</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="bold">Surface</td><td>Renders agent work for the user; routes events back</td><td>Users cannot see results</td><td><span class="pill pill-best">Yes</span></td></tr>
+      <tr><td class="bold">Tool</td><td>Executes actions against the real world (FS, shell, network)</td><td>Agent thinks but cannot act</td><td><span class="pill pill-best">Yes</span></td></tr>
+      <tr><td class="bold">Harness</td><td>Runs the loop, owns memory, enforces policy</td><td>Loop diverges, memory lost</td><td><span class="pill pill-bad">No</span></td></tr>
+      <tr><td class="bold">Model</td><td>Generates the next step from context</td><td>Hallucinations / poor plans</td><td><span class="pill pill-best">Yes</span></td></tr>
+      <tr><td class="bold">Platform</td><td>OS, terminal, package manager, IPC</td><td>Whole runtime won't start</td><td><span class="pill pill-good">Partial</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="insight">
+    <div class="ins-label">⏵  INSIGHT</div>
+    The <strong>long-term moat</strong> is the harness, not the model. Model
+    quality is a moving target — every quarter the harness becomes more
+    valuable as it accumulates tested tool wrappers, hook points, and
+    domain-specific skills.
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 04 — DEVELOPER WORKFLOWS
+     ============================================================ -->
+<section class="page page-break" id="sec-workflows">
+  <span class="section-num">SECTION 04 · WORKFLOWS</span>
+  <h2 class="section">How teams actually use it.</h2>
+  <div class="section-line"></div>
+
+  <p class="lead">
+    Four autonomy levels define how much of the loop the agent owns.
+    Most teams settle into a mix — heavy on Ask in code review, heavy on
+    Build in greenfield work — and that's by design.
+  </p>
+
+  <h3><span class="num">01</span>The four autonomy levels</h3>
+  <table class="data avoid-break">
+    <thead>
+      <tr>
+        <th style="width:14%">Level</th>
+        <th style="width:20%">Name</th>
+        <th style="width:38%">What the agent does</th>
+        <th style="width:18%">Best for</th>
+        <th style="width:10%">Risk</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="bold">L1</td>
+        <td class="bold">Ask</td>
+        <td>Read-only Q&amp;A, explanations, plan proposals</td>
+        <td>Code review, onboarding</td>
+        <td><span class="pill pill-best">Low</span></td>
+      </tr>
+      <tr>
+        <td class="bold">L2</td>
+        <td class="bold">Plan</td>
+        <td>Reads files, drafts diffs, asks before applying</td>
+        <td>Refactors, migrations</td>
+        <td><span class="pill pill-good">Low</span></td>
+      </tr>
+      <tr>
+        <td class="bold">L3</td>
+        <td class="bold">Build</td>
+        <td>Applies diffs, runs tests, iterates until green</td>
+        <td>Feature scaffolding</td>
+        <td><span class="pill pill-warn">Med</span></td>
+      </tr>
+      <tr>
+        <td class="bold">L4</td>
+        <td class="bold">Yolo</td>
+        <td>Full loop, broad permissions, batches tasks</td>
+        <td>Spike / throwaway work</td>
+        <td><span class="pill pill-bad">High</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3><span class="num">02</span>Where teams spend their time</h3>
+  <div class="chart-card avoid-break">
+    <div class="chart-title">Autonomy-level mix by workflow type</div>
+    <div class="chart-sub">Estimated share of agent-orchestrated work, by autonomy
+    level. Numbers are illustrative; teams vary widely.</div>
+    <div class="chart-wrap">
+      <canvas id="chartAutonomy"></canvas>
+    </div>
+  </div>
+
+  <h3><span class="num">03</span>Three entry paths</h3>
+  <div class="recommend-grid">
+    <div class="rec-card entry">
+      <div class="rec-tier">Entry</div>
+      <h4>Solo developer</h4>
+      <ul>
+        <li>Install CLI, point at a repo</li>
+        <li>Use Ask / Plan only</li>
+        <li>Let the agent draft PRs for review</li>
+        <li>Zero infra changes</li>
+      </ul>
+    </div>
+    <div class="rec-card recommend">
+      <div class="rec-tier">Recommended</div>
+      <h4>Product team</h4>
+      <ul>
+        <li>Shared agents per domain (frontend, infra, data)</li>
+        <li>Skills per repo (test conventions, deploy)</li>
+        <li>L2 / L3 in feature work, L1 in review</li>
+        <li>CI integration for auto-triage</li>
+      </ul>
+    </div>
+    <div class="rec-card power">
+      <div class="rec-tier">Power</div>
+      <h4>Platform engineering</h4>
+      <ul>
+        <li>Custom tool/MCP servers</li>
+        <li>Hook-driven policy enforcement</li>
+        <li>Custom model routing per task</li>
+        <li>Audit pipeline to internal SIEM</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout-violet">
+    <div class="clv-label">DAY-TO-DAY PATTERN</div>
+    Most teams converge on <strong>L2 / L3 in the IDE</strong>, <strong>L1 in
+    code review</strong>, and <strong>L4 only on weekends</strong>. The
+    workspace treats autonomy as a per-task decision, not a global flag.
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 05 — TRUST, SAFETY, DISTRIBUTION
+     ============================================================ -->
+<section class="page page-break" id="sec-trust">
+  <span class="section-num">SECTION 05 · TRUST</span>
+  <h2 class="section">Safe-by-default, auditable, portable.</h2>
+  <div class="section-line"></div>
+
+  <p class="lead">
+    An agent that ships code to production needs stronger guardrails than
+    a chatbot. MiniMax Code treats every tool call as a policy event:
+    permissioned by default, logged in full, and replayable from the audit
+    trail.
+  </p>
+
+  <h3><span class="num">01</span>Trust surface map</h3>
+  <table class="data avoid-break">
+    <thead>
+      <tr>
+        <th style="width:24%">Surface</th>
+        <th style="width:32%">Default policy</th>
+        <th style="width:22%">Auditable?</th>
+        <th style="width:22%">Distribution risk</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="bold">File read</td>
+        <td>Project root + allow-listed paths</td>
+        <td><span class="pill pill-best">Yes</span></td>
+        <td><span class="pill pill-best">Low</span></td>
+      </tr>
+      <tr>
+        <td class="bold">File write</td>
+        <td>Ask before applying</td>
+        <td><span class="pill pill-best">Yes</span></td>
+        <td><span class="pill pill-good">Low</span></td>
+      </tr>
+      <tr>
+        <td class="bold">Shell command</td>
+        <td>Allow-list + working dir sandbox</td>
+        <td><span class="pill pill-best">Yes</span></td>
+        <td><span class="pill pill-warn">Med</span></td>
+      </tr>
+      <tr>
+        <td class="bold">Network / MCP tools</td>
+        <td>Per-tool whitelist, host-scope</td>
+        <td><span class="pill pill-best">Yes</span></td>
+        <td><span class="pill pill-warn">Med</span></td>
+      </tr>
+      <tr>
+        <td class="bold">Git operations</td>
+        <td>Branch + remote protection</td>
+        <td><span class="pill pill-best">Yes</span></td>
+        <td><span class="pill pill-good">Low</span></td>
+      </tr>
+      <tr>
+        <td class="bold">Sub-agent spawn</td>
+        <td>Same policy inherits down</td>
+        <td><span class="pill pill-best">Yes</span></td>
+        <td><span class="pill pill-warn">Med</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3><span class="num">02</span>Audit &amp; recovery, end-to-end</h3>
+  <div class="chart-pair avoid-break">
+    <div class="chart-card">
+      <div class="chart-title">Time to recover from a bad agent run</div>
+      <div class="chart-sub">Minutes from incident detection to clean rollback, by recovery path. Lower is better.</div>
+      <div class="chart-wrap"><canvas id="chartRecover"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Audit coverage by surface</div>
+      <div class="chart-sub">Percent of agent actions that produce an audit record, by tool category.</div>
+      <div class="chart-wrap"><canvas id="chartAudit"></canvas></div>
+    </div>
+  </div>
+
+  <h3><span class="num">03</span>Three conclusions for trust</h3>
+  <div class="conclusions">
+    <div class="conclusion">
+      <div class="cn-num">⏵  01</div>
+      <div class="cn-title">Permissioned by default</div>
+      <div class="cn-body">
+        Every tool starts permissioned. The grant is opt-in, scope-narrow,
+        and revocable. No ambient authority inherited from a previous
+        session.
+      </div>
+    </div>
+    <div class="conclusion">
+      <div class="cn-num">⏵  02</div>
+      <div class="cn-title">Auditable by design</div>
+      <div class="cn-body">
+        Every action produces a structured event: actor, target, intent,
+        result. Replay any session from its log; reproduce any failure.
+      </div>
+    </div>
+    <div class="conclusion">
+      <div class="cn-num">⏵  03</div>
+      <div class="cn-title">Recoverable from bad runs</div>
+      <div class="cn-body">
+        Checkpoints, undo, branch-and-merge worktrees. A bad agent run is
+        not a fire — it's a tab you close and re-open at the last green.
+      </div>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="ins-label">⏵  INSIGHT</div>
+    For distribution, <strong>auditability is the make-or-break capability</strong>.
+    Teams will not adopt a coding agent that ships without a verifiable
+    trail. MiniMax Code is built around that requirement, not around it.
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 06 — OUTLOOK & ROADMAP
+     ============================================================ -->
+<section class="page" id="sec-outlook">
+  <span class="section-num">SECTION 06 · OUTLOOK</span>
+  <h2 class="section">Where we go from here.</h2>
+  <div class="section-line"></div>
+
+  <p class="lead">
+    The runway ahead is about <strong>depth on the surfaces we already
+    have</strong>, not surface breadth. Memory, verification, and team
+    coordination are where the agent gap still lives.
+  </p>
+
+  <h3><span class="num">01</span>Trajectory</h3>
+  <div class="timeline avoid-break">
+    <div class="gen">
+      <span class="dot"></span>
+      <div class="gen-q">2025 H2</div>
+      <div class="gen-t">Foundation</div>
+      <div class="gen-d">Single-agent loop, basic tools, stable CLI surface</div>
+    </div>
+    <div class="gen">
+      <span class="dot"></span>
+      <div class="gen-q">2026 H1</div>
+      <div class="gen-t">Multi-agent</div>
+      <div class="gen-d">Orchestrator + specialist roles, persistent memory layers</div>
+    </div>
+    <div class="gen">
+      <span class="dot"></span>
+      <div class="gen-q">2026 H2</div>
+      <div class="gen-t">Verification</div>
+      <div class="gen-d">Deeper test integration, formal review tools, CI-grade gates</div>
+    </div>
+    <div class="gen upcoming">
+      <span class="dot"></span>
+      <div class="gen-q">2027 H1</div>
+      <div class="gen-t">Team-native</div>
+      <div class="gen-d">Shared agents, shared skills, cross-repo coordination</div>
+    </div>
+  </div>
+
+  <h3><span class="num">02</span>Model &amp; ecosystem complement</h3>
+  <div class="chart-card avoid-break">
+    <div class="chart-title">Capability growth by quarter</div>
+    <div class="chart-sub">Stacked contribution of model layer, harness, and ecosystem
+    to shipped capability. Qualitatively normalized to 100.</div>
+    <div class="chart-wrap tall">
+      <canvas id="chartOut"></canvas>
+    </div>
+  </div>
+
+  <h3><span class="num">03</span>Three takeaways</h3>
+  <div class="takeaway">
+    <div class="tk-num">01</div>
+    <div>
+      <div class="tk-title">Memory is the moat.</div>
+      <div class="tk-body">
+        Three layers of memory — project, agent, user — outlast every
+        model swap. Five years from now, the most valuable artifact in the
+        workspace is the memory store, not the model that wrote to it.
+      </div>
+    </div>
+  </div>
+  <div class="takeaway">
+    <div class="tk-num">02</div>
+    <div>
+      <div class="tk-title">Verification is the unlock.</div>
+      <div class="tk-body">
+        Agents that close the loop with their own tests move from
+        "helpful" to "trusted". The integration with CI is the difference
+        between a demo and a deployment.
+      </div>
+    </div>
+  </div>
+  <div class="takeaway">
+    <div class="tk-num">03</div>
+    <div>
+      <div class="tk-title">Teams beat solo agents.</div>
+      <div class="tk-body">
+        A single agent never has all the context; a coordinated team of
+        agents, each with a tight role, scales further than any one
+        mega-prompt.
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-meta">
+    <div>
+      <h5>References</h5>
+      <ul>
+        <li>MiniMax · MiniMax Code product brief, internal v1.0</li>
+        <li>MiniMax M3 — model card, 2026-01</li>
+        <li>Agentic harness architecture notes · mavis team</li>
+        <li>Multi-agent orchestration patterns · mavis docs</li>
+      </ul>
+    </div>
+    <div>
+      <h5>Document</h5>
+      <div style="margin-top:4px">
+        <span class="stamp">v1.0</span>
+        <span class="stamp">2026.07</span>
+        <span class="stamp" style="background:linear-gradient(135deg,#22D3EE,#7C3AED)">BRIEF</span>
+      </div>
+      <p style="margin-top:10px; font-size:8.5pt;">
+        Authored by Mavis · mavis. Distributed via MiniMax. Numbers in this
+        brief are illustrative unless otherwise noted; substantive claims
+        about the runtime are reproducible from a fresh install.
+      </p>
+    </div>
+  </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     CHART INITIALISATION
+     ============================================================ -->
+<script>
+  Chart.defaults.animation = false;
+  Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", Arial, sans-serif';
+  Chart.defaults.color = '#5B5D7A';
+  Chart.defaults.borderColor = '#E2E2EE';
+
+  const PALETTE = {
+    accent:    '#7C3AED',
+    accent2:   '#22D3EE',
+    accent3:   '#F472B6',
+    good:      '#14B8A6',
+    warn:      '#F59E0B',
+    bad:       '#EF4444',
+    ink:       '#0F1024',
+    ink3:      '#5B5D7A',
+    hairline:  '#E2E2EE',
+  };
+
+  // 1. Capability depth bar
+  new Chart(document.getElementById('chartCapabilities'), {
+    type: 'bar',
+    data: {
+      labels: ['Agentic loop', 'Multi-agent', 'Memory', 'Tools', 'Skills', 'Sessions', 'Surfaces'],
+      datasets: [{
+        label: 'Maturity (0–10)',
+        data: [9.2, 8.4, 7.6, 9.0, 7.2, 8.0, 8.6],
+        backgroundColor: [
+          PALETTE.accent, PALETTE.accent, PALETTE.accent2,
+          PALETTE.accent, PALETTE.accent3, PALETTE.accent3, PALETTE.accent2
+        ],
+        borderRadius: 6, borderSkipped: false, maxBarThickness: 38,
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (c) => `${c.parsed.y} / 10` } }
+      },
+      scales: {
+        y: { beginAtZero: true, max: 10, ticks: { stepSize: 2 }, grid: { color: PALETTE.hairline } },
+        x: { grid: { display: false }, ticks: { font: { weight: 600 } } }
+      }
+    }
+  });
+
+  // 2. Radar — MiniMax Code vs. traditional
+  new Chart(document.getElementById('chartRadar'), {
+    type: 'radar',
+    data: {
+      labels: ['Autonomy', 'Memory', 'Tools', 'Multi-agent', 'Extensibility', 'Verifiability'],
+      datasets: [
+        {
+          label: 'MiniMax Code',
+          data: [9, 9, 9, 8, 8, 9],
+          backgroundColor: 'rgba(124, 58, 237, 0.25)',
+          borderColor: PALETTE.accent, borderWidth: 2, pointBackgroundColor: PALETTE.accent,
+        },
+        {
+          label: 'Chat-first assistant',
+          data: [4, 3, 5, 2, 4, 3],
+          backgroundColor: 'rgba(91, 93, 122, 0.15)',
+          borderColor: '#86868b', borderWidth: 1.5, borderDash: [4,4], pointBackgroundColor: '#86868b',
+        }
+      ]
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, usePointStyle: true } } },
+      scales: {
+        r: {
+          beginAtZero: true, max: 10, ticks: { stepSize: 2, font: { size: 8 }, backdropColor: 'transparent' },
+          pointLabels: { font: { size: 10, weight: 600 }, color: PALETTE.ink },
+          grid: { color: PALETTE.hairline }, angleLines: { color: PALETTE.hairline }
+        }
+      }
+    }
+  });
+
+  // 3. Stack complexity donut
+  new Chart(document.getElementById('chartStack'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Surface', 'Tool layer', 'Harness', 'Model layer', 'Platform'],
+      datasets: [{
+        data: [12, 18, 38, 14, 18],
+        backgroundColor: [PALETTE.accent3, PALETTE.accent2, PALETTE.accent, '#5B5D7A', '#0A0E2A'],
+        borderColor: '#fff', borderWidth: 3, hoverOffset: 6,
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      cutout: '58%',
+      plugins: {
+        legend: { position: 'right', labels: { font: { size: 10, weight: 600 }, usePointStyle: true, padding: 10 } },
+        tooltip: {
+          callbacks: { label: (c) => ` ${c.label}: ${c.parsed}%` }
+        }
+      }
+    }
+  });
+
+  // 4. Autonomy mix — stacked horizontal bar
+  new Chart(document.getElementById('chartAutonomy'), {
+    type: 'bar',
+    data: {
+      labels: ['Code review', 'Bug fix', 'Refactor', 'Greenfield', 'CI triage', 'Doc update'],
+      datasets: [
+        { label: 'L1 Ask',     data: [55, 10,  5,  0, 25, 35], backgroundColor: PALETTE.accent3, stack: 'mix' },
+        { label: 'L2 Plan',    data: [35, 35, 40, 10, 50, 40], backgroundColor: PALETTE.accent2, stack: 'mix' },
+        { label: 'L3 Build',   data: [10, 45, 45, 55, 25, 20], backgroundColor: PALETTE.accent,  stack: 'mix' },
+        { label: 'L4 Yolo',    data: [ 0, 10, 10, 35,  0,  5], backgroundColor: '#5B5D7A',         stack: 'mix' },
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 9 }, usePointStyle: true, padding: 8 } },
+        tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.x}%` } }
+      },
+      scales: {
+        x: { stacked: true, max: 100, ticks: { callback: (v) => v + '%' }, grid: { color: PALETTE.hairline } },
+        y: { stacked: true, grid: { display: false }, ticks: { font: { weight: 600 } } }
+      }
+    }
+  });
+
+  // 5. Recover time — horizontal bars
+  new Chart(document.getElementById('chartRecover'), {
+    type: 'bar',
+    data: {
+      labels: ['Cmd+Z undo', 'Branch revert', 'Session rerun', 'Git revert+push', 'Manual triage'],
+      datasets: [{
+        label: 'Minutes',
+        data: [0.1, 0.5, 1.2, 3.0, 25],
+        backgroundColor: [PALETTE.good, PALETTE.good, PALETTE.accent2, PALETTE.accent, PALETTE.bad],
+        borderRadius: 4, maxBarThickness: 22,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (c) => `${c.parsed.x} min` } }
+      },
+      scales: {
+        x: { type: 'logarithmic', ticks: { callback: (v) => v + ' min' }, grid: { color: PALETTE.hairline } },
+        y: { grid: { display: false }, ticks: { font: { weight: 600, size: 9 } } }
+      }
+    }
+  });
+
+  // 6. Audit coverage horizontal bars
+  new Chart(document.getElementById('chartAudit'), {
+    type: 'bar',
+    data: {
+      labels: ['File read', 'File write', 'Shell', 'Network', 'MCP tool', 'Sub-agent'],
+      datasets: [{
+        label: 'Coverage %',
+        data: [100, 100, 100, 95, 92, 88],
+        backgroundColor: PALETTE.accent, borderRadius: 4, maxBarThickness: 22,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.parsed.x}%` } } },
+      scales: {
+        x: { min: 80, max: 100, ticks: { callback: (v) => v + '%' }, grid: { color: PALETTE.hairline } },
+        y: { grid: { display: false }, ticks: { font: { weight: 600, size: 9 } } }
+      }
+    }
+  });
+
+  // 7. Capability growth stacked area / bar
+  new Chart(document.getElementById('chartOut'), {
+    type: 'bar',
+    data: {
+      labels: ['2025 H2', '2026 H1', '2026 H2', '2027 H1'],
+      datasets: [
+        { label: 'Ecosystem & skills', data: [10, 18, 25, 32], backgroundColor: PALETTE.accent3, stack: 'cap', borderRadius: 0 },
+        { label: 'Harness',            data: [25, 32, 38, 38], backgroundColor: PALETTE.accent,  stack: 'cap', borderRadius: 0 },
+        { label: 'Model',              data: [35, 32, 25, 22], backgroundColor: PALETTE.accent2, stack: 'cap', borderRadius: 6 },
+      ]
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 9 }, usePointStyle: true, padding: 8 } },
+        tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y}` } }
+      },
+      scales: {
+        x: { stacked: true, grid: { display: false }, ticks: { font: { weight: 600 } } },
+        y: { stacked: true, max: 100, ticks: { callback: (v) => v + '' }, grid: { color: PALETTE.hairline } }
+      }
+    }
+  });
+</script>
+
+</body>
+</html>

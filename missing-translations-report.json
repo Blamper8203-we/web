@@ -1,0 +1,2604 @@
+{
+  "src\\App.tsx": [
+    {
+      "line": 106,
+      "content": "<meta name=\"description\" content=\"DINBoard to profesjonalna aplikacja dla elektryków umożliwiająca projektowanie rozdzielnic, tworzenie obwodów, obliczanie bilansu mocy oraz generowanie dokumentacji zgodnej z polskimi standardami.\" />"
+    },
+    {
+      "line": 109,
+      "content": "<meta property=\"og:description\" content=\"Aplikacja dla elektryków umożliwiająca projektowanie rozdzielnic, tworzenie obwodów, obliczanie bilansu mocy oraz generowanie dokumentacji instalacji elektrycznych.\" />"
+    },
+    {
+      "line": 112,
+      "content": "<meta name=\"twitter:description\" content=\"Aplikacja dla elektryków do projektowania rozdzielnic, obliczania bilansu mocy i generowania dokumentacji.\" />"
+    },
+    {
+      "line": 134,
+      "content": "<meta name=\"description\" content=\"Edytor rozdzielnicy DINBoard — narzędzie do projektowania, nie strona publiczna.\" />"
+    },
+    {
+      "line": 159,
+      "content": "Struktura plików została zaktualizowana i obecna wersja w przeglądarce"
+    },
+    {
+      "line": 160,
+      "content": "straciła z nią synchronizację (częsty objaw np. podczas ładowania modułów tła)."
+    },
+    {
+      "line": 163,
+      "content": "Oryginalny błąd: {errorMessage}"
+    },
+    {
+      "line": 168,
+      "content": "Odśwież nową wersję"
+    }
+  ],
+  "src\\components\\AboutDialog.tsx": [
+    {
+      "line": 19,
+      "content": "\"Bezpieczniejsze uruchamianie po błędzie — można wyczyścić projekt bez utraty danych.\","
+    },
+    {
+      "line": 20,
+      "content": "\"Uszkodzone dane robocze nie blokują już uruchomienia aplikacji.\","
+    },
+    {
+      "line": 21,
+      "content": "\"Poprawki stabilności zapisu i odczytu pliku zlecenia.\","
+    }
+  ],
+  "src\\components\\AppDialogsLayer.tsx": [
+    {
+      "line": 126,
+      "content": "Moduł <strong>{pendingPaletteRemoval.label}</strong> zniknie z palety po lewej stronie."
+    },
+    {
+      "line": 133,
+      "content": "Usuń"
+    }
+  ],
+  "src\\components\\AppHeader.tsx": [
+    {
+      "line": 126,
+      "content": "jest ukrywana domyślnie i pokazywana przez `html.is-mobile-viewport`,"
+    },
+    {
+      "line": 128,
+      "content": "Dzięki temu eliminujemy FOUC na telefonie — pierwszy render nie"
+    },
+    {
+      "line": 129,
+      "content": "pokazuje pełnego menu desktopowego przez ~50ms przed przełączeniem."
+    },
+    {
+      "line": 167,
+      "content": "eliminuje FOUC analogicznie do hamburger buttona powyżej. */}"
+    }
+  ],
+  "src\\components\\AppStatusBar.tsx": [
+    {
+      "line": 59,
+      "content": "Moduły: {symbolCount}"
+    },
+    {
+      "line": 65,
+      "content": "{errorCount} błędów"
+    },
+    {
+      "line": 71,
+      "content": "{warningCount} ostrzeżeń"
+    }
+  ],
+  "src\\components\\canvasLayers\\DinRailDrawingPreview.tsx": [
+    {
+      "line": 30,
+      "content": "{/* Oś startowa (przerywana linia od zacisku startowego) */}"
+    },
+    {
+      "line": 47,
+      "content": "{/* Oś końcowa (przerywana linia od aktualnego punktu) */}"
+    },
+    {
+      "line": 63,
+      "content": "{/* Dynamiczne linie pomocnicze wyrównania (Snap-to-Axis) */}"
+    },
+    {
+      "line": 77,
+      "content": "{/* Podświetlenie wyrównanego zacisku docelowego */}"
+    },
+    {
+      "line": 89,
+      "content": "{/* Pulsujący okrąg wokół wyrównanego zacisku */}"
+    }
+  ],
+  "src\\components\\canvasLayers\\DinRailFerrulesGroup.tsx": [
+    {
+      "line": 24,
+      "content": "return type.includes(\"przełącznik sieci\") || ref.includes(\"przelacznik sieci\") || ref.includes(\"przelacznik siec\");"
+    }
+  ],
+  "src\\components\\canvasLayers\\DinRailHitTargets.tsx": [
+    {
+      "line": 30,
+      "content": "const isZlaczka = !isListwa && (d.symbol.isTerminalBlock || (d.moduleRef && (d.moduleRef.toLowerCase().includes(\"złącz\") || d.moduleRef.toLowerCase().replace(/ł/g, \"l\").normalize(\"NFD\").replace(/[\\u0300-\\u036f]/g, \"\").includes(\"zlacz\"))));"
+    }
+  ],
+  "src\\components\\canvasLayers\\DinRailPlaceholders.tsx": [
+    {
+      "line": 107,
+      "content": "{createPlaceholder(leftRectX, bottomY, \"bottom-left\", \"DODAJ LISTWĘ LUB GSU\", \"Listwy do rozdzielnicy\")}"
+    },
+    {
+      "line": 108,
+      "content": "{createPlaceholder(rightRectX, bottomY, \"bottom-right\", \"DODAJ LISTWĘ LUB GSU\", \"Listwy do rozdzielnicy\")}"
+    }
+  ],
+  "src\\components\\canvasLayers\\DinRailVisualHotspots.tsx": [
+    {
+      "line": 41,
+      "content": "const isZlaczka = !isListwa && (d.symbol.isTerminalBlock || (d.moduleRef && (d.moduleRef.toLowerCase().includes(\"złącz\") || d.moduleRef.toLowerCase().replace(/ł/g, \"l\").normalize(\"NFD\").replace(/[\\u0300-\\u036f]/g, \"\").includes(\"zlacz\"))));"
+    }
+  ],
+  "src\\components\\CircuitCalculators.tsx": [
+    {
+      "line": 12,
+      "content": "const RHO_COPPER = 0.0175; // Rezystywność miedzi [Ω·mm²/m]"
+    },
+    {
+      "line": 62,
+      "content": "const iaA = inA * multiplier; // Prąd wyłączający"
+    }
+  ],
+  "src\\components\\CircuitEditPanel.tsx": [
+    {
+      "line": 132,
+      "content": "{/* Przycisk Zapisz usunięto zgodnie z życzeniem, panel zapisuje automatycznie. */}"
+    }
+  ],
+  "src\\components\\CircuitListPage.tsx": [
+    {
+      "line": 40,
+      "content": "Zestawienie obwodów z grupowaniem po lokalizacji, sortowaniem po pozycji"
+    },
+    {
+      "line": 41,
+      "content": "oraz filtrowaniem elementów pomocniczych poza główną tabelą."
+    },
+    {
+      "line": 151,
+      "content": "<p>Aktualny zestaw danych: {rows.length} rekordów.</p>"
+    }
+  ],
+  "src\\components\\ConnectionsLeftPanel.tsx": [
+    {
+      "line": 27,
+      "content": "{ value: \"brown\", label: \"Brązowy (L)\", hex: \"#78350f\" },"
+    },
+    {
+      "line": 37,
+      "content": "{ value: \"white\", label: \"Biała\", hex: \"#dddddd\" },"
+    },
+    {
+      "line": 41,
+      "content": "{ value: \"yellow\", label: \"Żółta\", hex: \"#eab308\" },"
+    },
+    {
+      "line": 43,
+      "content": "{ value: \"brown\", label: \"Brązowa\", hex: \"#6b3410\" },"
+    },
+    {
+      "line": 83,
+      "content": "onConnectionsChange(nextConnections, \"Edycja przewodu\", \"Zmieniono właściwości połączenia\");"
+    },
+    {
+      "line": 95,
+      "content": "{/* NAGŁÓWEK PANELU (TRYB PRZEWODNIKA) */}"
+    },
+    {
+      "line": 115,
+      "content": "{/* Promień zagięcia (dla zaznaczonego) */}"
+    },
+    {
+      "line": 283,
+      "content": "{/* Przekrój przewodu */}"
+    }
+  ],
+  "src\\components\\DinRailCanvasPixi.tsx": [
+    {
+      "line": 331,
+      "content": "<span className=\"delete-label\">Usuń zaznaczone ({selectedIds.size})</span>"
+    }
+  ],
+  "src\\components\\DinRailConnectionsCanvas.tsx": [
+    {
+      "line": 378,
+      "content": "{/* Dynamiczny CSS: ukrywa Osłonę w tle szyny gdy użytkownik zdejmie pokrywę */}"
+    },
+    {
+      "line": 456,
+      "content": "{/* 5. Foreground parts of terminal blocks (brass/mosiądz on top) */}"
+    }
+  ],
+  "src\\components\\dinRailUiParts.tsx": [
+    {
+      "line": 23,
+      "content": "? `${rows} rząd / ${modulesPerRow} modułów`"
+    },
+    {
+      "line": 55,
+      "content": "title={showGroups ? \"Ukryj klamry grup\" : \"Pokaż klamry grup\"}"
+    },
+    {
+      "line": 56,
+      "content": "aria-label={showGroups ? \"Ukryj klamry grup\" : \"Pokaż klamry grup\"}"
+    },
+    {
+      "line": 236,
+      "content": "{totalModules} modułów"
+    },
+    {
+      "line": 246,
+      "content": "Wygeneruj szynę DIN, aby włączyć układanie modułów"
+    }
+  ],
+  "src\\components\\FeedbackModal.tsx": [
+    {
+      "line": 11,
+      "content": "const [type, setType] = useState(\"Błąd\");"
+    },
+    {
+      "line": 29,
+      "content": "subject: `[DINBoard] Zgłoszenie: ${type}`,"
+    },
+    {
+      "line": 30,
+      "content": "from_name: \"DINBoard Użytkownik\","
+    }
+  ],
+  "src\\components\\landing\\LandingHero.tsx": [
+    {
+      "line": 36,
+      "content": "{/* Profesjonalne info o bezpieczeństwie i wersji testowej */}"
+    },
+    {
+      "line": 63,
+      "content": "{/* Prawa Kolumna - Płytka Startowa */}"
+    }
+  ],
+  "src\\components\\legal\\PrivacyPolicy.tsx": [
+    {
+      "line": 8,
+      "content": "<title>Polityka prywatności – DINBoard</title>"
+    },
+    {
+      "line": 11,
+      "content": "content=\"Polityka prywatności aplikacji DINBoard. Informacje o danych zbieranych lokalnie, Vercel Analytics, planowanym Google AdSense i formularzu kontaktowym.\""
+    },
+    {
+      "line": 14,
+      "content": "<meta property=\"og:title\" content=\"Polityka prywatności – DINBoard\" />"
+    },
+    {
+      "line": 17,
+      "content": "content=\"Jak DINBoard chroni Twoje dane: lokalne przechowywanie projektów, RODO.\""
+    },
+    {
+      "line": 20,
+      "content": "<meta name=\"twitter:title\" content=\"Polityka prywatności – DINBoard\" />"
+    },
+    {
+      "line": 23,
+      "content": "content=\"Jak DINBoard chroni Twoje dane: lokalne przechowywanie projektów, RODO.\""
+    },
+    {
+      "line": 29,
+      "content": "<h1>Polityka prywatności</h1>"
+    },
+    {
+      "line": 36,
+      "content": "zamieszkały w Chocianowie (dalej „Administrator\")."
+    },
+    {
+      "line": 43,
+      "content": "Administrator prowadzi Aplikację jako osoba fizyczna, bez zarejestrowanej"
+    },
+    {
+      "line": 44,
+      "content": "działalności gospodarczej."
+    },
+    {
+      "line": 53,
+      "content": "Aplikacja DINBoard przechowuje Twoje projekty rozdzielnic wyłącznie na"
+    },
+    {
+      "line": 54,
+      "content": "Twoim urządzeniu (w pamięci przeglądarki — IndexedDB / localStorage)."
+    },
+    {
+      "line": 55,
+      "content": "Dane te <strong>nie są przesyłane na żaden serwer</strong> i nie są"
+    },
+    {
+      "line": 56,
+      "content": "widoczne dla Administratora. Obejmują one:"
+    },
+    {
+      "line": 62,
+      "content": "(imię i nazwisko lub nazwa firmy, adres, NIP, telefon, e-mail),"
+    },
+    {
+      "line": 63,
+      "content": "które sam wpisujesz."
+    },
+    {
+      "line": 67,
+      "content": "Usunięcie danych projektowych: wyczyść pamięć przeglądarki dla domeny"
+    },
+    {
+      "line": 68,
+      "content": "dinboard.pl lub użyj funkcji „Nowy projekt\" w aplikacji."
+    },
+    {
+      "line": 73,
+      "content": "Korzystamy z Vercel Analytics — narzędzia do anonimowych statystyk"
+    },
+    {
+      "line": 74,
+      "content": "użytkowania (oglądane podstrony, czas sesji, typ urządzenia, błędy)."
+    },
+    {
+      "line": 75,
+      "content": "Vercel Analytics <strong>nie używa plików cookies</strong> i nie"
+    },
+    {
+      "line": 76,
+      "content": "pozwala na identyfikację użytkownika."
+    },
+    {
+      "line": 81,
+      "content": "Na stronie planowane jest wyświetlanie reklam Google AdSense."
+    },
+    {
+      "line": 82,
+      "content": "Usługa oczekuje na zatwierdzenie przez Google. Po aktywacji"
+    },
+    {
+      "line": 84,
+      "content": "Irlandia) jako niezależny administrator danych będzie mógł"
+    },
+    {
+      "line": 85,
+      "content": "zapisywać pliki cookies i identyfikatory w celu personalizacji"
+    },
+    {
+      "line": 86,
+      "content": "reklam, ograniczania liczby wyświetleń, pomiaru skuteczności"
+    },
+    {
+      "line": 87,
+      "content": "kampanii oraz wykrywania nadużyć."
+    },
+    {
+      "line": 90,
+      "content": "Personalizacja reklam będzie domyślnie wyłączona do momentu"
+    },
+    {
+      "line": 91,
+      "content": "wyrażenia przez Ciebie zgody (baner cookies). Będziesz mógł"
+    },
+    {
+      "line": 92,
+      "content": "wycofać zgodę w dowolnym momencie, czyszcząc pamięć"
+    },
+    {
+      "line": 93,
+      "content": "przeglądarki dla domeny dinboard.pl."
+    },
+    {
+      "line": 96,
+      "content": "Podstawą prawną przetwarzania przez Google będzie art. 6 ust. 1"
+    },
+    {
+      "line": 97,
+      "content": "lit. a) RODO (zgoda). Więcej informacji:{\" \"}"
+    },
+    {
+      "line": 106,
+      "content": "Gdy wysyłasz zgłoszenie przez okno „Zgłoś błąd lub pomysł\", podajesz"
+    },
+    {
+      "line": 107,
+      "content": "dobrowolnie: adres e-mail (opcjonalnie) oraz treść wiadomości. Dane"
+    },
+    {
+      "line": 108,
+      "content": "przesyłane są do zewnętrznego procesora — Web3Forms ("
+    },
+    {
+      "line": 112,
+      "content": "), który dostarcza je Administratorowi na adres e-mail."
+    },
+    {
+      "line": 117,
+      "content": "Strona ładuje czcionki z serwerów Google (fonts.googleapis.com,"
+    },
+    {
+      "line": 118,
+      "content": "fonts.gstatic.com). Google otrzymuje Twój adres IP. Możesz zablokować"
+    },
+    {
+      "line": 119,
+      "content": "te żądania rozszerzeniem przeglądarki (np. uBlock Origin) — strona"
+    },
+    {
+      "line": 120,
+      "content": "pozostanie funkcjonalna, użyta zostanie czcionka systemowa."
+    },
+    {
+      "line": 133,
+      "content": "uzasadniony interes Administratora (analityka, bezpieczeństwo,"
+    },
+    {
+      "line": 134,
+      "content": "obsługa zgłoszeń)."
+    },
+    {
+      "line": 138,
+      "content": "(świadczenie usługi aplikacji)."
+    },
+    {
+      "line": 145,
+      "content": "<p>Twoje dane mogą być przekazywane następującym podmiotom:</p>"
+    },
+    {
+      "line": 149,
+      "content": "po aktywacji AdSense także reklamy."
+    },
+    {
+      "line": 155,
+      "content": "<strong>Web3Forms</strong> — obsługa formularza zgłoszeniowego."
+    },
+    {
+      "line": 157,
+      "content": "<li>Organy państwowe — wyłącznie na podstawie przepisów prawa.</li>"
+    },
+    {
+      "line": 160,
+      "content": "Dane mogą być przekazywane poza Europejski Obszar Gospodarczy (USA)"
+    },
+    {
+      "line": 161,
+      "content": "na podstawie decyzji Komisji Europejskiej o adekwatności lub"
+    },
+    {
+      "line": 170,
+      "content": "Dane projektowe (lokalne) — do momentu usunięcia przez Ciebie lub"
+    },
+    {
+      "line": 171,
+      "content": "wyczyszczenia pamięci przeglądarki."
+    },
+    {
+      "line": 173,
+      "content": "<li>Zgłoszenia przez formularz — do 12 miesięcy od zamknięcia sprawy.</li>"
+    },
+    {
+      "line": 175,
+      "content": "<li>Zgoda na cookies — do momentu wycofania (maks. 13 miesięcy).</li>"
+    },
+    {
+      "line": 183,
+      "content": "<li>dostępu do swoich danych (art. 15 RODO),</li>"
+    },
+    {
+      "line": 185,
+      "content": "<li>usunięcia danych (art. 17),</li>"
+    },
+    {
+      "line": 194,
+      "content": "Realizacja praw dotyczących danych projektowych (lokalnych) wymaga"
+    },
+    {
+      "line": 195,
+      "content": "działania po Twojej stronie — aplikacja ich nie przechowuje na"
+    },
+    {
+      "line": 203,
+      "content": "Aplikacja używa następujących kategorii plików cookies oraz"
+    },
+    {
+      "line": 204,
+      "content": "lokalnego magazynu przeglądarki:"
+    },
+    {
+      "line": 208,
+      "content": "<strong>Niezbędne dane lokalne</strong> — stan projektu i"
+    },
+    {
+      "line": 209,
+      "content": "preferencje interfejsu przechowywane są w pamięci przeglądarki"
+    },
+    {
+      "line": 211,
+      "content": "Bez tych danych aplikacja nie działa poprawnie. Nie są to pliki"
+    },
+    {
+      "line": 212,
+      "content": "cookies, ale przeglądarka traktuje je podobnie."
+    },
+    {
+      "line": 219,
+      "content": "aktywacji: cookies, identyfikatory urządzenia). Będą"
+    },
+    {
+      "line": 220,
+      "content": "wykorzystywane wyłącznie po wyrażeniu zgody."
+    },
+    {
+      "line": 224,
+      "content": "Zgodę możesz wycofać w dowolnym momencie, czyszcząc pamięć"
+    },
+    {
+      "line": 225,
+      "content": "przeglądarki dla domeny dinboard.pl lub klikając baner cookies"
+    },
+    {
+      "line": 226,
+      "content": "ponownie (jeśli wyświetli się po ponownym odwiedzeniu strony)."
+    },
+    {
+      "line": 231,
+      "content": "<h2>8. Bezpieczeństwo</h2>"
+    },
+    {
+      "line": 233,
+      "content": "Komunikacja z serwerem odbywa się wyłącznie przez HTTPS / TLS 1.3."
+    },
+    {
+      "line": 234,
+      "content": "Aplikacja nie przechowuje na serwerze żadnych danych projektowych."
+    },
+    {
+      "line": 235,
+      "content": "Hasła do kont usług zewnętrznych (Google, Vercel, Web3Forms)"
+    },
+    {
+      "line": 236,
+      "content": "przechowywane są zgodnie z ich politykami bezpieczeństwa."
+    },
+    {
+      "line": 241,
+      "content": "<h2>9. Zmiany polityki prywatności</h2>"
+    },
+    {
+      "line": 244,
+      "content": "polityce. O istotnych zmianach użytkownicy zostaną poinformowani"
+    },
+    {
+      "line": 245,
+      "content": "przez komunikat w aplikacji. Aktualna wersja jest zawsze dostępna"
+    },
+    {
+      "line": 252,
+      "content": "<h2>10. Prawo właściwe</h2>"
+    },
+    {
+      "line": 254,
+      "content": "W sprawach nieuregulowanych niniejszą polityką stosuje się przepisy"
+    }
+  ],
+  "src\\components\\legal\\TermsOfService.tsx": [
+    {
+      "line": 11,
+      "content": "content=\"Regulamin korzystania z DINBoard Web. Zasady, wymagania techniczne, odpowiedzialność Operatora i uwagi dotyczące projektowania rozdzielnic.\""
+    },
+    {
+      "line": 17,
+      "content": "content=\"Regulamin korzystania z aplikacji DINBoard Web – narzędzia dla elektryków do projektowania rozdzielnic.\""
+    },
+    {
+      "line": 23,
+      "content": "content=\"Regulamin korzystania z aplikacji DINBoard Web – narzędzia dla elektryków.\""
+    },
+    {
+      "line": 33,
+      "content": "<h2>1. Postanowienia ogólne</h2>"
+    },
+    {
+      "line": 35,
+      "content": "Niniejszy regulamin określa zasady korzystania z aplikacji"
+    },
+    {
+      "line": 36,
+      "content": "internetowej DINBoard Web dostępnej pod adresem{\" \"}"
+    },
+    {
+      "line": 41,
+      "content": "zamieszkały w Chocianowie, e-mail:{\" \"}"
+    },
+    {
+      "line": 43,
+      "content": "(dalej „Operator\"). Operator prowadzi Aplikację jako osoba fizyczna,"
+    },
+    {
+      "line": 44,
+      "content": "bez zarejestrowanej działalności gospodarczej."
+    },
+    {
+      "line": 47,
+      "content": "Korzystanie z Aplikacji jest bezpłatne. Aplikacja jest narzędziem"
+    },
+    {
+      "line": 48,
+      "content": "wspomagającym projektowanie rozdzielnic elektrycznych — nie jest"
+    },
+    {
+      "line": 49,
+      "content": "oprogramowaniem certyfikowanym w rozumieniu przepisów o wyrobach"
+    },
+    {
+      "line": 59,
+      "content": "(przeglądarka internetowa) oraz desktop (Tauri)."
+    },
+    {
+      "line": 62,
+      "content": "<strong>Projekt</strong> — plik z rozdzielnicą, obwodami,"
+    },
+    {
+      "line": 63,
+      "content": "schematami i metadanymi, tworzony przez Użytkownika."
+    },
+    {
+      "line": 66,
+      "content": "<strong>Użytkownik</strong> — osoba fizyczna lub prawna korzystająca"
+    },
+    {
+      "line": 71,
+      "content": "Aplikację na potrzeby odbioru instalacji."
+    },
+    {
+      "line": 78,
+      "content": "<p>Aplikacja umożliwia:</p>"
+    },
+    {
+      "line": 81,
+      "content": "<li>tworzenie schematów elektrycznych,</li>"
+    },
+    {
+      "line": 82,
+      "content": "<li>wyliczanie bilansu mocy i rozkładu faz L1 / L2 / L3,</li>"
+    },
+    {
+      "line": 84,
+      "content": "walidację projektu wg reguł PN-HD 60364 (wybrane sekcje),"
+    },
+    {
+      "line": 89,
+      "content": "Lista funkcji może być rozszerzana lub ograniczana bez uprzedniego"
+    },
+    {
+      "line": 99,
+      "content": "urządzenia z przeglądarką obsługującą standard ES2022 (Chrome"
+    },
+    {
+      "line": 103,
+      "content": "dostępu do Internetu (przy pierwszym uruchomieniu oraz dla"
+    },
+    {
+      "line": 106,
+      "content": "<li>włączonej obsługi JavaScript i IndexedDB,</li>"
+    },
+    {
+      "line": 114,
+      "content": "i laptopach. Wyświetlanie na urządzeniach mobilnych (telefony,"
+    },
+    {
+      "line": 115,
+      "content": "tablety) jest możliwe, ale pełna funkcjonalność nie jest"
+    },
+    {
+      "line": 122,
+      "content": "<p>Użytkownik zobowiązany jest do:</p>"
+    },
+    {
+      "line": 129,
+      "content": "niepodejmowania działań mogących zakłócić działanie Aplikacji"
+    },
+    {
+      "line": 130,
+      "content": "(ataki DoS, próby wstrzykiwania kodu, automatyczne scrapowanie),"
+    },
+    {
+      "line": 133,
+      "content": "nieudostępniania treści naruszających prawo lub prawa osób trzecich"
+    },
+    {
+      "line": 134,
+      "content": "w polach metadanych projektu (nazwy firm, NIP-y cudzych podmiotów"
+    },
+    {
+      "line": 141,
+      "content": "<h2>6. Prawa własności intelektualnej</h2>"
+    },
+    {
+      "line": 143,
+      "content": "Aplikacja, jej kod źródłowy, interfejs, dokumentacja, biblioteka"
+    },
+    {
+      "line": 144,
+      "content": "modułów SVG oraz logotypy stanowią własność Operatora i są"
+    },
+    {
+      "line": 146,
+      "content": "Zabrania się kopiowania, dekompilacji i redystrybucji Aplikacji w"
+    },
+    {
+      "line": 147,
+      "content": "całości lub w części bez pisemnej zgody Operatora."
+    },
+    {
+      "line": 150,
+      "content": "<strong>Projekty tworzone przez Użytkownika</strong> pozostają"
+    },
+    {
+      "line": 151,
+      "content": "własnością Użytkownika. Operator nie ma dostępu do projektów (są"
+    },
+    {
+      "line": 152,
+      "content": "przechowywane lokalnie) i nie rości sobie do nich żadnych praw."
+    },
+    {
+      "line": 157,
+      "content": "<h2>7. Odpowiedzialność Operatora</h2>"
+    },
+    {
+      "line": 160,
+      "content": "Aplikacja jest dostarczana „tak jak jest\" (as-is) i „w miarę"
+    },
+    {
+      "line": 161,
+      "content": "dostępności\" (as-available)."
+    },
+    {
+      "line": 163,
+      "content": "Operator nie gwarantuje, że:"
+    },
+    {
+      "line": 166,
+      "content": "<li>obliczenia wykonywane przez Aplikację są wolne od błędów,</li>"
+    },
+    {
+      "line": 168,
+      "content": "wyniki walidacji wyczerpują wszystkie wymagania PN-HD 60364,"
+    },
+    {
+      "line": 170,
+      "content": "<li>Aplikacja będzie działać nieprzerwanie i bezawaryjnie,</li>"
+    },
+    {
+      "line": 172,
+      "content": "Aplikacja spełnia wymagania certyfikacyjne dla oprogramowania"
+    },
+    {
+      "line": 177,
+      "content": "<strong>Użytkownik ponosi wyłączną odpowiedzialność za:</strong>"
+    },
+    {
+      "line": 181,
+      "content": "zgodność projektu z obowiązującymi przepisami i normami (w"
+    },
+    {
+      "line": 182,
+      "content": "szczególności PN-HD 60364 oraz przepisami SEP),"
+    },
+    {
+      "line": 185,
+      "content": "zweryfikowanie wyników obliczeń przed ich zastosowaniem w"
+    },
+    {
+      "line": 189,
+      "content": "podpisanie projektu przez osobę z wymaganymi uprawnieniami (w"
+    },
+    {
+      "line": 192,
+      "content": "<li>przeprowadzenie wymaganych odbiorów instalacji.</li>"
+    },
+    {
+      "line": 195,
+      "content": "<strong>Ostrzeżenie o bezpieczeństwie (dla osób bez uprawnień):</strong>"
+    },
+    {
+      "line": 197,
+      "content": "Prąd elektryczny stanowi śmiertelne zagrożenie. Jeśli nie posiadasz"
+    },
+    {
+      "line": 199,
+      "content": "Aplikacji schemat obwodów jest jedynie szkicem poglądowym."
+    },
+    {
+      "line": 200,
+      "content": "Bezwzględnie musisz skonsultować się z kwalifikowanym elektrykiem,"
+    },
+    {
+      "line": 201,
+      "content": "który zweryfikuje poprawność schematu (m.in. dobór zabezpieczeń"
+    },
+    {
+      "line": 202,
+      "content": "oraz przekrojów przewodów) przed jakimikolwiek zakupami materiałów"
+    },
+    {
+      "line": 203,
+      "content": "czy próbą fizycznego montażu rozdzielnicy."
+    },
+    {
+      "line": 206,
+      "content": "Operator nie ponosi odpowiedzialności za szkody na mieniu, zdrowiu lub życiu"
+    },
+    {
+      "line": 207,
+      "content": "wynikłe z zastosowania Aplikacji do projektowania instalacji elektrycznych"
+    },
+    {
+      "line": 208,
+      "content": "i wykonywania montażu na własną rękę bez weryfikacji i odbioru przez uprawnioną osobę."
+    },
+    {
+      "line": 209,
+      "content": "W maksymalnym zakresie dozwolonym przez prawo odpowiedzialność Operatora"
+    },
+    {
+      "line": 210,
+      "content": "jest ograniczona do kwoty 0 PLN (Aplikacja jest bezpłatna)."
+    },
+    {
+      "line": 217,
+      "content": "Operator dokłada starań, aby Aplikacja działała poprawnie, ale nie"
+    },
+    {
+      "line": 218,
+      "content": "udziela gwarancji jakości, przydatności do określonego celu ani"
+    },
+    {
+      "line": 219,
+      "content": "niezawodności w rozumieniu art. 556 i nast. Kodeksu cywilnego. W"
+    },
+    {
+      "line": 220,
+      "content": "szczególności Operator nie gwarantuje, że:"
+    },
+    {
+      "line": 224,
+      "content": "wygenerowana dokumentacja PDF spełnia wymagania konkretnego"
+    },
+    {
+      "line": 225,
+      "content": "zakładu energetycznego,"
+    },
+    {
+      "line": 228,
+      "content": "schematy ideowe są zgodne z wewnętrznymi standardami danej firmy"
+    },
+    {
+      "line": 233,
+      "content": "producentów."
+    },
+    {
+      "line": 240,
+      "content": "<p>Reklamacje dotyczące działania Aplikacji można zgłaszać:</p>"
+    },
+    {
+      "line": 246,
+      "content": "<li>przez formularz „Zgłoś błąd lub pomysł\" w aplikacji.</li>"
+    },
+    {
+      "line": 249,
+      "content": "Reklamacja powinna zawierać: opis problemu, kroki reprodukcji, typ"
+    },
+    {
+      "line": 250,
+      "content": "urządzenia i przeglądarki. Operator rozpatruje reklamacje w"
+    },
+    {
+      "line": 259,
+      "content": "istotnych zmianach Operator poinformuje przez komunikat wyświetlany"
+    },
+    {
+      "line": 260,
+      "content": "przy następnym uruchomieniu Aplikacji. Dalsze korzystanie z"
+    },
+    {
+      "line": 261,
+      "content": "Aplikacji po dacie wejścia zmian w życie oznacza ich akceptację."
+    },
+    {
+      "line": 266,
+      "content": "<h2>11. Postanowienia końcowe</h2>"
+    },
+    {
+      "line": 269,
+      "content": "Operator nie prowadzi zarejestrowanej działalności gospodarczej. W"
+    },
+    {
+      "line": 270,
+      "content": "sprawach nieuregulowanych stosuje się przepisy prawa polskiego, w"
+    },
+    {
+      "line": 271,
+      "content": "szczególności Kodeksu cywilnego."
+    },
+    {
+      "line": 274,
+      "content": "Spory rozpatrywane są przez sąd właściwy dla miejsca zamieszkania"
+    },
+    {
+      "line": 275,
+      "content": "konsumenta (jeśli Użytkownik jest konsumentem) lub przez sąd"
+    },
+    {
+      "line": 276,
+      "content": "właściwy dla miejsca zamieszkania Operatora (w pozostałych"
+    },
+    {
+      "line": 280,
+      "content": "Konsument może skorzystać z pozasądowego rozwiązywania"
+    },
+    {
+      "line": 281,
+      "content": "sporów, np. zwracając się do właściwego Wojewódzkiego"
+    },
+    {
+      "line": 282,
+      "content": "Inspektora Inspekcji Handlowej lub Stałego Polubownego"
+    },
+    {
+      "line": 283,
+      "content": "Sądu Konsumenckiego przy WIIH. Więcej informacji:{\" \"}"
+    },
+    {
+      "line": 293,
+      "content": "<li>Regulamin wchodzi w życie z dniem publikacji.</li>"
+    }
+  ],
+  "src\\components\\measurementProtocols\\ProtocolShared.tsx": [
+    {
+      "line": 12,
+      "content": "Strona {pageNumber} z {totalUiPages} • Dokument wygenerowany cyfrowo • Zgodny z normą PN-HD 60364"
+    }
+  ],
+  "src\\components\\MeasurementProtocolsWorkspacePage.tsx": [
+    {
+      "line": 93,
+      "content": ": \"Nie udało się przygotować widoku rozdzielnicy.\","
+    },
+    {
+      "line": 136,
+      "content": ": \"Nie udało się przygotować schematu.\","
+    },
+    {
+      "line": 189,
+      "content": "const stampText = metadata.contractorSignature || \"PIECZĘĆ WYKONAWCY\";"
+    },
+    {
+      "line": 307,
+      "content": "Protokoły klasyczne: układ nie otrzymał pełnej modernizacji Tailwindowej, zalecany styl zunifikowany. W PDF wyglądają poprawnie."
+    }
+  ],
+  "src\\components\\PdfWorkspaceShell.tsx": [
+    {
+      "line": 126,
+      "content": "{/* Górny pasek z zakładkami PDF — mobile only (CSS w Responsive.css"
+    },
+    {
+      "line": 127,
+      "content": "ukrywa go na desktop, bo tam tę rolę pełni prawy panel)."
+    },
+    {
+      "line": 128,
+      "content": "Rozwiązuje bug: na telefonie panele były ukryte, user nie mógł"
+    },
+    {
+      "line": 129,
+      "content": "przełączyć zakładki (title-page / schematic / RCD / itd.). */}"
+    }
+  ],
+  "src\\hooks\\app\\useAppWorkspaceCallbacks.ts": [
+    {
+      "line": 68,
+      "content": "showTemporaryStatus(\"Brak modułów RCD do konfiguracji\", 3200);"
+    },
+    {
+      "line": 84,
+      "content": "\"Zarządzanie RCD\","
+    }
+  ],
+  "src\\hooks\\connections\\useConnectionsHotkeys.ts": [
+    {
+      "line": 74,
+      "content": "onConnectionsChange(updated, \"Zmień kierunek podłączenia\", \"Zmieniono kierunek wejścia przewodu\");"
+    },
+    {
+      "line": 89,
+      "content": "onConnectionsChange(updatedConnections, \"Usuń połączenie\", \"Usunięto połączenie przewodem\");"
+    }
+  ],
+  "src\\hooks\\connections\\useConnectionsMutations.ts": [
+    {
+      "line": 427,
+      "content": "onConnectionsChange(finalState, \"Przesuń trasę\", \"Przesunięto trasę przewodu\");"
+    },
+    {
+      "line": 483,
+      "content": "onConnectionsChange(updated, \"Dodaj połączenie\", \"Dodano połączenie przewodem\");"
+    }
+  ],
+  "src\\hooks\\useDinRailForegroundSvgs.ts": [
+    {
+      "line": 56,
+      "content": "} else if (text.includes('id=\"Oslona\"') || text.includes('id=\"Osłona\"')) {"
+    },
+    {
+      "line": 59,
+      "content": "#Osłona, [id=\"Osłona\"], #Oslona, [id=\"Oslona\"],"
+    },
+    {
+      "line": 75,
+      "content": "#Background, #Tył-obudowy, #Tył\\\\ obudowy, [id=\"Tył-obudowy\"], [id=\"Tył obudowy\"] { visibility: hidden; }"
+    },
+    {
+      "line": 76,
+      "content": "${isCoverHidden ? '#Osłona, [id=\"Osłona\"], #Oslona, [id=\"Oslona\"] { visibility: hidden; }' : ''}"
+    }
+  ],
+  "src\\hooks\\useImportedModules.ts": [
+    {
+      "line": 137,
+      "content": "showTemporaryStatus('Nie wybrano żadnych modułów do importu.', 4000);"
+    },
+    {
+      "line": 143,
+      "content": "`Zaimportowano ${modules.length} moduł${modules.length === 1 ? '' : 'y'} SVG`,"
+    },
+    {
+      "line": 160,
+      "content": "showTemporaryStatus('Usunięto importowany moduł SVG', 3000);"
+    }
+  ],
+  "src\\hooks\\usePaletteActions.ts": [
+    {
+      "line": 102,
+      "content": "showTemporaryStatus('Najpierw wygeneruj szynę DIN');"
+    },
+    {
+      "line": 374,
+      "content": "showTemporaryStatus('Najpierw wygeneruj szynę DIN');"
+    },
+    {
+      "line": 380,
+      "content": "showTemporaryStatus(`${template.code} dodajemy poza szyną DIN.`);"
+    },
+    {
+      "line": 430,
+      "content": "showTemporaryStatus(`Usunięto ${pendingPaletteRemoval.label} z lewego panelu`, 3000);"
+    }
+  ],
+  "src\\hooks\\usePhaseBalanceActions.ts": [
+    {
+      "line": 68,
+      "content": "? `Zmieniono przypisanie faz dla ${applied.changedCount} elementów. Asymetria ${distributionBefore.imbalancePercent.toFixed(1)}% -> ${distributionAfter.imbalancePercent.toFixed(1)}%.`"
+    },
+    {
+      "line": 69,
+      "content": ": `Bilans nie wymagał zmian. Asymetria pozostała na poziomie ${distributionAfter.imbalancePercent.toFixed(1)}%.`;"
+    },
+    {
+      "line": 84,
+      "content": "? `Podgląd planu: ${applied.changedCount} zmian. Asymetria ${distributionBefore.imbalancePercent.toFixed(1)}% -> ${distributionAfter.imbalancePercent.toFixed(1)}%.`"
+    },
+    {
+      "line": 85,
+      "content": ": `Podgląd planu: brak zmian. Asymetria pozostaje ${distributionAfter.imbalancePercent.toFixed(1)}%.`)"
+    },
+    {
+      "line": 106,
+      "content": "showTemporaryStatus(\"Obwód ma zablokowaną fazę\", 3000);"
+    },
+    {
+      "line": 111,
+      "content": "showTemporaryStatus(\"Obwód jest już na tej fazie\", 2500);"
+    }
+  ],
+  "src\\hooks\\useProjectActions.ts": [
+    {
+      "line": 133,
+      "content": "'Wygenerowano nową, czystą szynę DIN'"
+    }
+  ],
+  "src\\hooks\\useProjectExportActions.ts": [
+    {
+      "line": 55,
+      "content": "showTemporaryStatus(`Błąd: ${e instanceof Error ? e.message : 'Nieznany'}`, 5000);"
+    },
+    {
+      "line": 67,
+      "content": "\"ObwódId\","
+    },
+    {
+      "line": 68,
+      "content": "\"ObwódNazwa\","
+    },
+    {
+      "line": 120,
+      "content": "showTemporaryStatus(\"Nie udało się wyeksportować PNG\", 3500);"
+    },
+    {
+      "line": 136,
+      "content": "showTemporaryStatus(\"Nie udało się wyeksportować PNG\", 3500);"
+    },
+    {
+      "line": 153,
+      "content": "showTemporaryStatus(\"Nie udało się wyeksportować rozdzielnicy\", 3500);"
+    },
+    {
+      "line": 166,
+      "content": "showTemporaryStatus(\"Nie udało się wyeksportować PNG HQ\", 3500);"
+    }
+  ],
+  "src\\hooks\\useProjectFileActions.ts": [
+    {
+      "line": 155,
+      "content": "showTemporaryStatus(`Błąd: ${e instanceof Error ? e.message : 'Nieznany'}`, 5000);"
+    },
+    {
+      "line": 234,
+      "content": "errorCount === 1 ? `${errorCount} błąd` : `${errorCount} błędy`;"
+    },
+    {
+      "line": 236,
+      "content": "warningCount === 1 ? `${warningCount} ostrzeżenie` : `${warningCount} ostrzeżeń`;"
+    },
+    {
+      "line": 241,
+      "content": "`Otwarto zlecenie (${parts.join(', ')}) — sprawdź walidację`,"
+    },
+    {
+      "line": 266,
+      "content": "showTemporaryStatus(`Błąd: ${e instanceof Error ? e.message : 'Nieznany'}`, 5000);"
+    }
+  ],
+  "src\\hooks\\useSvgTerminalsPreloader.ts": [
+    {
+      "line": 24,
+      "content": "sym.type?.toLowerCase().includes(\"przełącznik sieci\") ||"
+    }
+  ],
+  "src\\hooks\\useSymbolClipboard.ts": [
+    {
+      "line": 51,
+      "content": "? `${symbolsToDelete.length} elementów`"
+    },
+    {
+      "line": 77,
+      "content": "`Usunięcie ${label}`,"
+    },
+    {
+      "line": 80,
+      "content": "`Usunięto ${label}`,"
+    },
+    {
+      "line": 174,
+      "content": "? `${symbolsToDuplicate.length} elementów`"
+    }
+  ],
+  "src\\hooks\\useSymbolDragAndDrop.ts": [
+    {
+      "line": 227,
+      "content": "`Przesunięcie ${label}`,"
+    },
+    {
+      "line": 230,
+      "content": "`Przesunięto ${label}`,"
+    }
+  ],
+  "src\\hooks\\useSymbolEditing.ts": [
+    {
+      "line": 79,
+      "content": "`Zapisano komórkę tabeli: ${label}`,"
+    }
+  ],
+  "src\\hooks\\useSymbolHistory.ts": [
+    {
+      "line": 210,
+      "content": "showTemporaryStatus(label ? `Cofnięto: ${label}` : 'Cofnięto');"
+    }
+  ],
+  "src\\lib\\circuitEdit\\circuitEditFieldDefinitions.ts": [
+    {
+      "line": 465,
+      "content": "value.includes(\"złączk\") ||"
+    }
+  ],
+  "src\\lib\\connections\\canvasHelpers.ts": [
+    {
+      "line": 133,
+      "content": "return `Ostrzeżenie: Próba połączenia uziemienia (PE) z ${otherPhase}!`;"
+    },
+    {
+      "line": 139,
+      "content": "return `Niebezpieczeństwo: Zwarcie fazy ${otherPhase} z przewodem neutralnym (N)!`;"
+    },
+    {
+      "line": 145,
+      "content": "return `Niebezpieczeństwo: Zwarcie międzyfazowe (${fromPhase} ↔ ${toPhase})!`;"
+    }
+  ],
+  "src\\lib\\connections\\connectionsLogic.ts": [
+    {
+      "line": 65,
+      "content": "const normalized = moduleRef.toLowerCase().replace(/ł/g, \"l\").normalize(\"NFD\").replace(/[\\u0300-\\u036f]/g, \"\");"
+    }
+  ],
+  "src\\lib\\connections\\wirePathGenerator.ts": [
+    {
+      "line": 126,
+      "content": "const shiftAmount = wireThickness + 2; // Offset dla przewodów w tym samym zacisku"
+    }
+  ],
+  "src\\lib\\deviceIdentification.ts": [
+    {
+      "line": 10,
+      "content": ".replace(/ł/g, \"l\")"
+    }
+  ],
+  "src\\lib\\domain\\symbolGrouping.ts": [
+    {
+      "line": 30,
+      "content": ".replace(/ł/g, \"l\")"
+    }
+  ],
+  "src\\lib\\export\\dinRailSnapshotService.ts": [
+    {
+      "line": 460,
+      "content": "} else if (rawMarkup.includes('id=\"Oslona\"') || rawMarkup.includes('id=\"Osłona\"')) {"
+    },
+    {
+      "line": 462,
+      "content": "#Osłona, [id=\"Osłona\"], #Oslona, [id=\"Oslona\"],"
+    },
+    {
+      "line": 470,
+      "content": "#Background, #Tył-obudowy, #Tył\\\\ obudowy, [id=\"Tył-obudowy\"], [id=\"Tył obudowy\"] { visibility: hidden; }"
+    },
+    {
+      "line": 471,
+      "content": "${isCoverHidden ? '#Osłona, [id=\"Osłona\"], #Oslona, [id=\"Oslona\"] { visibility: hidden; }' : ''}"
+    },
+    {
+      "line": 499,
+      "content": "devWarn(`Nie udało się załadować grafiki dla modułu ${symbol.id}:`, err);"
+    }
+  ],
+  "src\\lib\\export\\dinRailSvgRenderer.ts": [
+    {
+      "line": 198,
+      "content": "if (rawMarkup.includes('id=\"Oslona\"') || rawMarkup.includes('id=\"Osłona\"')) {"
+    },
+    {
+      "line": 200,
+      "content": "#Osłona, [id=\"Osłona\"], #Oslona, [id=\"Oslona\"],"
+    },
+    {
+      "line": 210,
+      "content": "#Background, #Tył-obudowy, #Tył\\\\ obudowy, [id=\"Tył-obudowy\"], [id=\"Tył obudowy\"] { visibility: hidden; }"
+    },
+    {
+      "line": 211,
+      "content": "${isCoverHidden ? '#Osłona, [id=\"Osłona\"], #Oslona, [id=\"Oslona\"] { visibility: hidden; }' : ''}"
+    },
+    {
+      "line": 233,
+      "content": "console.warn(`Nie udało się załadować SVG dla modułu ${symbol.id}:`, err);"
+    }
+  ],
+  "src\\lib\\export\\pdfPages\\pdfHelpers.ts": [
+    {
+      "line": 69,
+      "content": "const match = originalTitle.match(/(Protokół\\s+Nr\\s+\\d+)/i);"
+    },
+    {
+      "line": 89,
+      "content": "return normalized.replace(/^protokół\\s+(pomiarów\\s+)?nr\\s+/i, \"\").trim();"
+    }
+  ],
+  "src\\lib\\export\\pdfPages\\PdfRcdTablePage.tsx": [
+    {
+      "line": 19,
+      "content": "metadata.measurementProtocols?.rcdGroundHeader?.headerTitle || \"Protokół Nr 04 / 2026\","
+    },
+    {
+      "line": 33,
+      "content": "Protokół Pomiarów Nr <Text style={[styles.bgGray100, styles.px1, styles.rounded, styles.textBrand]}>{rcdProtocolNumberLabel}</Text>"
+    },
+    {
+      "line": 120,
+      "content": "{protocolValue(metadata.measurementProtocols?.groundConclusionText, \"Instalacja uziemiająca spełnia wymagania...\")}"
+    }
+  ],
+  "src\\lib\\export\\pdfPages\\PdfUnifiedTablePage.tsx": [
+    {
+      "line": 26,
+      "content": "const originalTitle = metadata.measurementProtocols?.unifiedHeader?.headerTitle || \"Protokół Nr 01 / 2026\";"
+    },
+    {
+      "line": 41,
+      "content": "Protokół Pomiarów Nr <Text style={[styles.bgGray100, styles.px1, styles.rounded, styles.textBrand]}>{chunkProtocolNumberLabel}</Text>"
+    }
+  ],
+  "src\\lib\\export\\PdfProtocolDocument.tsx": [
+    {
+      "line": 132,
+      "content": "<Text style={{ fontSize: 8, color: \"#9ca3af\", textTransform: \"uppercase\" }} render={({ pageNumber, totalPages }) => `Strona ${pageNumber} z ${totalPages} • Dokument wygenerowany cyfrowo • Zgodny z normą PN-HD 60364`} />"
+    }
+  ],
+  "src\\lib\\export\\schematicSnapshotService.ts": [
+    {
+      "line": 37,
+      "content": "const scale = 2; // Wyższa rozdzielczość (2x) dla druku wektorowego/PDF"
+    },
+    {
+      "line": 54,
+      "content": "canvasHeight: layout.totalHeight * scale, // pozwalamy rendererowi narysować całość (clipping tnie to co poza canvas)"
+    }
+  ],
+  "src\\lib\\loadInitialState.ts": [
+    {
+      "line": 50,
+      "content": "console.warn(`[loadInitialState] Nie udało się odczytać \"${label}\" ze storage, używam wartości domyślnej.`, error);"
+    }
+  ],
+  "src\\lib\\measurementProtocolHelpers.ts": [
+    {
+      "line": 38,
+      "content": "return `Protokół Nr ${current}/${total}`;"
+    }
+  ],
+  "src\\lib\\measurementProtocols.ts": [
+    {
+      "line": 171,
+      "content": "circuitName: firstNonEmpty(row.circuitName, row.label, row.displayLocation, \"Obwód\"),"
+    }
+  ],
+  "src\\lib\\modules\\builtinModules.ts": [
+    {
+      "line": 19,
+      "content": "code: \"Rozłącznik izolacyjny FR 1P\","
+    },
+    {
+      "line": 20,
+      "content": "label: \"Rozłącznik izolacyjny FR 1P\","
+    },
+    {
+      "line": 26,
+      "content": "moduleRef: \"FR/Rozłącznik izolacyjny FR 1P.svg\","
+    },
+    {
+      "line": 31,
+      "content": "code: \"Rozłącznik izolacyjny FR 3P\","
+    },
+    {
+      "line": 32,
+      "content": "label: \"Rozłącznik izolacyjny FR 3P\","
+    },
+    {
+      "line": 38,
+      "content": "moduleRef: \"FR/Rozłącznik izolacyjny FR 3P.svg\","
+    },
+    {
+      "line": 44,
+      "content": "label: \"SPD (Ogranicznik przepięć)\","
+    },
+    {
+      "line": 84,
+      "content": "code: \"Przełącznik sieci 3P\","
+    },
+    {
+      "line": 85,
+      "content": "label: \"Przełącznik sieci 3P\","
+    },
+    {
+      "line": 86,
+      "content": "type: \"Przełącznik sieci\","
+    },
+    {
+      "line": 87,
+      "content": "category: \"Przełączniki sieci\","
+    },
+    {
+      "line": 97,
+      "content": "code: \"Przełącznik sieci 4P\","
+    },
+    {
+      "line": 98,
+      "content": "label: \"Przełącznik sieci 4P\","
+    },
+    {
+      "line": 99,
+      "content": "type: \"Przełącznik sieci\","
+    },
+    {
+      "line": 100,
+      "content": "category: \"Przełączniki sieci\","
+    },
+    {
+      "line": 110,
+      "content": "code: \"Przełącznik sieć 4P\","
+    },
+    {
+      "line": 111,
+      "content": "label: \"Przełącznik sieć 4P\","
+    },
+    {
+      "line": 112,
+      "content": "type: \"Przełącznik sieci\","
+    },
+    {
+      "line": 113,
+      "content": "category: \"Przełączniki sieci\","
+    },
+    {
+      "line": 123,
+      "content": "code: \"Rozłącznik różnicowoprądowy 1P+N\","
+    },
+    {
+      "line": 124,
+      "content": "label: \"Rozłącznik różnicowoprądowy 1P+N\","
+    },
+    {
+      "line": 130,
+      "content": "moduleRef: \"RCD/Rozłącznik różnicowoprądowy 1P+N.svg\","
+    },
+    {
+      "line": 139,
+      "content": "code: \"Rozłącznik różnicowoprądowy 3P+N\","
+    },
+    {
+      "line": 140,
+      "content": "label: \"Rozłącznik różnicowoprądowy 3P+N\","
+    },
+    {
+      "line": 146,
+      "content": "moduleRef: \"RCD/Rozłącznik różnicowoprądowy 3P+N.svg\","
+    },
+    {
+      "line": 181,
+      "content": "code: \"Moduł zabezpieczający 3P\","
+    },
+    {
+      "line": 182,
+      "content": "label: \"Moduł zabezpieczający 3P\","
+    },
+    {
+      "line": 188,
+      "content": "moduleRef: \"Zabezpieczenia/Moduł zabezpieczający 3P.svg\","
+    },
+    {
+      "line": 208,
+      "content": "label: \"GSU (Główna Szyna Uziemiająca)\","
+    },
+    {
+      "line": 298,
+      "content": "code: \"Złączka 5-torowa\","
+    },
+    {
+      "line": 299,
+      "content": "label: \"Złączka 5-torowa (L1-L2-L3-N-PE)\","
+    },
+    {
+      "line": 300,
+      "content": "type: \"Złącza\","
+    },
+    {
+      "line": 301,
+      "content": "category: \"Złącza\","
+    },
+    {
+      "line": 305,
+      "content": "moduleRef: \"Złącza/Złączka 5-torowa (L1-L2-L3-N-PE).svg\","
+    },
+    {
+      "line": 311,
+      "content": "code: \"Złączka N 1-zaciskowa\","
+    },
+    {
+      "line": 312,
+      "content": "label: \"Złączka N 1-zaciskowa\","
+    },
+    {
+      "line": 313,
+      "content": "type: \"Złącza\","
+    },
+    {
+      "line": 314,
+      "content": "category: \"Złącza\","
+    },
+    {
+      "line": 318,
+      "content": "moduleRef: \"Złącza/Złączka N 1-zaciskowa.svg\","
+    },
+    {
+      "line": 324,
+      "content": "code: \"Złączka N 2-zaciskowa\","
+    },
+    {
+      "line": 325,
+      "content": "label: \"Złączka N 2-zaciskowa\","
+    },
+    {
+      "line": 326,
+      "content": "type: \"Złącza\","
+    },
+    {
+      "line": 327,
+      "content": "category: \"Złącza\","
+    },
+    {
+      "line": 331,
+      "content": "moduleRef: \"Złącza/Złączka N 2-zaciskowa.svg\","
+    },
+    {
+      "line": 337,
+      "content": "code: \"Złączka N 3-zaciskowa\","
+    },
+    {
+      "line": 338,
+      "content": "label: \"Złączka N 3-zaciskowa\","
+    },
+    {
+      "line": 339,
+      "content": "type: \"Złącza\","
+    },
+    {
+      "line": 340,
+      "content": "category: \"Złącza\","
+    },
+    {
+      "line": 344,
+      "content": "moduleRef: \"Złącza/Złączka N 3-zaciskowa.svg\","
+    },
+    {
+      "line": 350,
+      "content": "code: \"Złączka PE 1-zaciskowa\","
+    },
+    {
+      "line": 351,
+      "content": "label: \"Złączka PE 1-zaciskowa\","
+    },
+    {
+      "line": 352,
+      "content": "type: \"Złącza\","
+    },
+    {
+      "line": 353,
+      "content": "category: \"Złącza\","
+    },
+    {
+      "line": 357,
+      "content": "moduleRef: \"Złącza/Złączka PE 1-zaciskowa.svg\","
+    },
+    {
+      "line": 363,
+      "content": "code: \"Złączka PE 2-zaciskowa\","
+    },
+    {
+      "line": 364,
+      "content": "label: \"Złączka PE 2-zaciskowa\","
+    },
+    {
+      "line": 365,
+      "content": "type: \"Złącza\","
+    },
+    {
+      "line": 366,
+      "content": "category: \"Złącza\","
+    },
+    {
+      "line": 370,
+      "content": "moduleRef: \"Złącza/Złączka PE 2-zaciskowa.svg\","
+    },
+    {
+      "line": 376,
+      "content": "code: \"Złączka PE 3-zaciskowa\","
+    },
+    {
+      "line": 377,
+      "content": "label: \"Złączka PE 3-zaciskowa\","
+    },
+    {
+      "line": 378,
+      "content": "type: \"Złącza\","
+    },
+    {
+      "line": 379,
+      "content": "category: \"Złącza\","
+    },
+    {
+      "line": 383,
+      "content": "moduleRef: \"Złącza/Złączka PE 3-zaciskowa.svg\","
+    },
+    {
+      "line": 395,
+      "content": "\"Przełączniki sieci\","
+    },
+    {
+      "line": 400,
+      "content": "\"Złącza\","
+    }
+  ],
+  "src\\lib\\modules\\moduleAssetDiscovery.ts": [
+    {
+      "line": 23,
+      "content": "fileName: \"Rozłącznik izolacyjny FR 1P.svg\","
+    },
+    {
+      "line": 24,
+      "content": "moduleRef: \"FR/Rozłącznik izolacyjny FR 1P.svg\","
+    },
+    {
+      "line": 28,
+      "content": "fileName: \"Rozłącznik izolacyjny FR 3P.svg\","
+    },
+    {
+      "line": 29,
+      "content": "moduleRef: \"FR/Rozłącznik izolacyjny FR 3P.svg\","
+    },
+    {
+      "line": 68,
+      "content": "fileName: \"rozłacznik nadprądowy MCB 1P.svg\","
+    },
+    {
+      "line": 69,
+      "content": "moduleRef: \"MCB/rozłacznik nadprądowy MCB 1P.svg\","
+    },
+    {
+      "line": 73,
+      "content": "fileName: \"rozłacznik nadprądowy MCB 2P.svg\","
+    },
+    {
+      "line": 74,
+      "content": "moduleRef: \"MCB/rozłacznik nadprądowy MCB 2P.svg\","
+    },
+    {
+      "line": 78,
+      "content": "fileName: \"rozłacznik nadprądowy MCB 3P.svg\","
+    },
+    {
+      "line": 79,
+      "content": "moduleRef: \"MCB/rozłacznik nadprądowy MCB 3P.svg\","
+    },
+    {
+      "line": 83,
+      "content": "fileName: \"Rozłącznik różnicowoprądowy 1P+N.svg\","
+    },
+    {
+      "line": 84,
+      "content": "moduleRef: \"RCD/Rozłącznik różnicowoprądowy 1P+N.svg\","
+    },
+    {
+      "line": 88,
+      "content": "fileName: \"Rozłącznik różnicowoprądowy 3P+N.svg\","
+    },
+    {
+      "line": 89,
+      "content": "moduleRef: \"RCD/Rozłącznik różnicowoprądowy 3P+N.svg\","
+    },
+    {
+      "line": 98,
+      "content": "category: \"Złącza\","
+    },
+    {
+      "line": 99,
+      "content": "fileName: \"Złączka 5-torowa (L1-L2-L3-N-PE).svg\","
+    },
+    {
+      "line": 100,
+      "content": "moduleRef: \"Złącza/Złączka 5-torowa (L1-L2-L3-N-PE).svg\","
+    },
+    {
+      "line": 104,
+      "content": "category: \"Złącza\","
+    },
+    {
+      "line": 105,
+      "content": "fileName: \"Złączka N 1-zaciskowa.svg\","
+    },
+    {
+      "line": 106,
+      "content": "moduleRef: \"Złącza/Złączka N 1-zaciskowa.svg\","
+    },
+    {
+      "line": 109,
+      "content": "category: \"Złącza\","
+    },
+    {
+      "line": 110,
+      "content": "fileName: \"Złączka N 2-zaciskowa.svg\","
+    },
+    {
+      "line": 111,
+      "content": "moduleRef: \"Złącza/Złączka N 2-zaciskowa.svg\","
+    },
+    {
+      "line": 114,
+      "content": "category: \"Złącza\","
+    },
+    {
+      "line": 115,
+      "content": "fileName: \"Złączka N 3-zaciskowa.svg\","
+    },
+    {
+      "line": 116,
+      "content": "moduleRef: \"Złącza/Złączka N 3-zaciskowa.svg\","
+    },
+    {
+      "line": 119,
+      "content": "category: \"Złącza\","
+    },
+    {
+      "line": 120,
+      "content": "fileName: \"Złączka PE 1-zaciskowa.svg\","
+    },
+    {
+      "line": 121,
+      "content": "moduleRef: \"Złącza/Złączka PE 1-zaciskowa.svg\","
+    },
+    {
+      "line": 124,
+      "content": "category: \"Złącza\","
+    },
+    {
+      "line": 125,
+      "content": "fileName: \"Złączka PE 2-zaciskowa.svg\","
+    },
+    {
+      "line": 126,
+      "content": "moduleRef: \"Złącza/Złączka PE 2-zaciskowa.svg\","
+    },
+    {
+      "line": 129,
+      "content": "category: \"Złącza\","
+    },
+    {
+      "line": 130,
+      "content": "fileName: \"Złączka PE 3-zaciskowa.svg\","
+    },
+    {
+      "line": 131,
+      "content": "moduleRef: \"Złącza/Złączka PE 3-zaciskowa.svg\","
+    }
+  ],
+  "src\\lib\\modules\\moduleCatalog.ts": [
+    {
+      "line": 75,
+      "content": "\"Złącza/Złączka 5-torowa (L1-L2-L3-N-PE).svg\": { width: 1002, height: 593 },"
+    },
+    {
+      "line": 76,
+      "content": "\"Złącza/Złączka N 1-zaciskowa.svg\": { width: 202, height: 593 },"
+    },
+    {
+      "line": 77,
+      "content": "\"Złącza/Złączka N 2-zaciskowa.svg\": { width: 390, height: 593 },"
+    },
+    {
+      "line": 78,
+      "content": "\"Złącza/Złączka N 3-zaciskowa.svg\": { width: 606, height: 593 },"
+    },
+    {
+      "line": 79,
+      "content": "\"Złącza/Złączka PE 1-zaciskowa.svg\": { width: 206, height: 611 },"
+    },
+    {
+      "line": 80,
+      "content": "\"Złącza/Złączka PE 2-zaciskowa.svg\": { width: 396, height: 611 },"
+    },
+    {
+      "line": 81,
+      "content": "\"Złącza/Złączka PE 3-zaciskowa.svg\": { width: 585, height: 612 },"
+    },
+    {
+      "line": 185,
+      "content": "categoryEnum !== \"Złącza\";"
+    }
+  ],
+  "src\\lib\\modules\\moduleHeuristics.ts": [
+    {
+      "line": 16,
+      "content": ".replace(/ł/g, \"l\")"
+    },
+    {
+      "line": 17,
+      "content": ".replace(/Ł/g, \"L\")"
+    }
+  ],
+  "src\\lib\\modules\\svgAsset.ts": [
+    {
+      "line": 187,
+      "content": "const hideCoverStyle = `<style>#Oslona, [id=\"Oslona\"], #Osłona, [id=\"Osłona\"] { visibility: hidden; }</style>`;"
+    }
+  ],
+  "src\\lib\\modules\\svgTerminalCache.ts": [
+    {
+      "line": 9,
+      "content": "rRatio?: number; // 0.0 - 1.0 (względem szerokości)"
+    }
+  ],
+  "src\\lib\\modules\\terminals\\getTerminalBlockFallbackTerminals.ts": [
+    {
+      "line": 67,
+      "content": "let cols = 7; // Domyślnie 7 pinów"
+    },
+    {
+      "line": 75,
+      "content": "const yRatios = [0.38, 0.56, 0.73, 0.91]; // Domyślne dla innych bloków 4x"
+    }
+  ],
+  "src\\lib\\modules\\terminals\\terminalHelpers.ts": [
+    {
+      "line": 14,
+      "content": ".replace(/ł/g, \"l\")"
+    },
+    {
+      "line": 45,
+      "content": "if (ratio < 0.15) return 1; // Bardzo wąski (np. terminal block 0.5 modułu)"
+    },
+    {
+      "line": 46,
+      "content": "if (ratio < 0.3) return 1;  // 1 moduł"
+    },
+    {
+      "line": 47,
+      "content": "if (ratio < 0.55) return 2; // 2 moduły"
+    },
+    {
+      "line": 48,
+      "content": "if (ratio < 0.75) return 3; // 3 moduły"
+    },
+    {
+      "line": 49,
+      "content": "return 4;                   // 4 moduły"
+    }
+  ],
+  "src\\lib\\pdfDocumentation.ts": [
+    {
+      "line": 20,
+      "content": "{ id: \"title-page\", label: \"Strona główna\" },"
+    },
+    {
+      "line": 23,
+      "content": "{ id: \"circuit-list\", label: \"Lista obwodów\" },"
+    },
+    {
+      "line": 25,
+      "content": "{ id: \"din-rail-connections\", label: \"Rozdzielnica połączenia\" },"
+    },
+    {
+      "line": 26,
+      "content": "{ id: \"schematic\", label: \"Schemat obwodów\" },"
+    },
+    {
+      "line": 39,
+      "content": "return \"Lista obwodów\";"
+    },
+    {
+      "line": 43,
+      "content": "return \"Rozdzielnica połączenia\";"
+    },
+    {
+      "line": 45,
+      "content": "return \"Schemat obwodów\";"
+    },
+    {
+      "line": 51,
+      "content": "return \"Strona główna\";"
+    }
+  ],
+  "src\\lib\\phaseDistribution\\phaseBalanceRows.ts": [
+    {
+      "line": 20,
+      "content": "circuitName: symbol.circuitName || symbol.label || symbol.type || \"Obwód\","
+    }
+  ],
+  "src\\lib\\poleCount.ts": [
+    {
+      "line": 33,
+      "content": ".replace(/Ł/g, \"L\")"
+    }
+  ],
+  "src\\lib\\projectFile.ts": [
+    {
+      "line": 58,
+      "content": "throw new Error(\"Brak wymaganych pól metadata/symbols\");"
+    },
+    {
+      "line": 453,
+      "content": "const message = error instanceof Error ? error.message : \"Nieznany błąd\";"
+    },
+    {
+      "line": 454,
+      "content": "throw new Error(`Nie można otworzyć pliku: ${message}`, { cause: error });"
+    },
+    {
+      "line": 467,
+      "content": "const message = error instanceof Error ? error.message : \"Nieznany błąd\";"
+    },
+    {
+      "line": 468,
+      "content": "throw new Error(`Nie można otworzyć pliku: ${message}`, { cause: error });"
+    },
+    {
+      "line": 504,
+      "content": "const message = error instanceof Error ? error.message : \"Nieznany błąd\";"
+    },
+    {
+      "line": 505,
+      "content": "throw new Error(`Nie można zapisać pliku: ${message}`, { cause: error });"
+    }
+  ],
+  "src\\lib\\projectMetadata.ts": [
+    {
+      "line": 26,
+      "content": "\"Montaż rozdzielnicy głównej\","
+    },
+    {
+      "line": 27,
+      "content": "\"Układanie przewodów i osprzętu\","
+    },
+    {
+      "line": 28,
+      "content": "\"Pomiary ochrony przeciwporażeniowej\","
+    },
+    {
+      "line": 32,
+      "content": "\"Tabela zbiorcza pomiarów\","
+    },
+    {
+      "line": 36,
+      "content": "\"Lista obwodów\","
+    },
+    {
+      "line": 50,
+      "content": "\"tabela zbiorcza\": \"Tabela zbiorcza pomiarów\","
+    },
+    {
+      "line": 51,
+      "content": "\"tabela zbiorcza pomiarow\": \"Tabela zbiorcza pomiarów\","
+    },
+    {
+      "line": 63,
+      "content": "\"lista obwodow\": \"Lista obwodów\","
+    },
+    {
+      "line": 78,
+      "content": ".replace(/ł/g, \"l\")"
+    }
+  ],
+  "src\\lib\\routing\\wireRoutingEngine.ts": [
+    {
+      "line": 9,
+      "content": "points?: Point[];         // Tablica wyklikanych przez użytkownika punktów (narożników)"
+    },
+    {
+      "line": 10,
+      "content": "isDrawing?: boolean;      // Flaga: true, jeśli użytkownik jest w trakcie rysowania przewodu"
+    },
+    {
+      "line": 11,
+      "content": "mousePos?: Point | null;  // Aktualna pozycja kursora (używana do wykrywania kierunku podczas rysowania)"
+    },
+    {
+      "line": 12,
+      "content": "exitOffset?: number;      // Długość \"sztywnego\" wyjścia z zacisku (domyślnie 40px)"
+    },
+    {
+      "line": 14,
+      "content": "toExitOffset?: number;    // Specyficzny exitOffset dla końca"
+    },
+    {
+      "line": 19,
+      "content": "customRadius?: number;    // Promień zaokrąglenia rogów"
+    },
+    {
+      "line": 26,
+      "content": "fromVisualInset?: number; // O ile px przewód ma zostać 'skrócony' wizualnie przy starcie"
+    },
+    {
+      "line": 27,
+      "content": "toVisualInset?: number;   // O ile px przewód ma zostać 'skrócony' wizualnie przy końcu"
+    },
+    {
+      "line": 46,
+      "content": "axis: 'x' // Wyjście poziome (w lewo lub w prawo)"
+    },
+    {
+      "line": 52,
+      "content": "axis: 'y' // Wyjście pionowe (w górę lub w dół)"
+    }
+  ],
+  "src\\lib\\schematic\\renderers\\schematicDeviceRenderer.ts": [
+    {
+      "line": 39,
+      "content": "(text.includes(\"przelacznik\") || text.includes(\"przełącznik\")) &&"
+    },
+    {
+      "line": 40,
+      "content": "(text.includes(\"siec\") || text.includes(\"sieć\"));"
+    }
+  ],
+  "src\\lib\\schematic\\renderers\\schematicTableRenderer.ts": [
+    {
+      "line": 51,
+      "content": "[Y_ROW_CIRCUIT, \"Obwód\"],"
+    },
+    {
+      "line": 55,
+      "content": "[Y_ROW_CABLE_SPEC, \"Przekrój\"],"
+    },
+    {
+      "line": 56,
+      "content": "[Y_ROW_CABLE_LENGTH, \"Długość\"],"
+    },
+    {
+      "line": 221,
+      "content": ".replace(/ł/g, \"l\")"
+    }
+  ],
+  "src\\lib\\schematic\\renderers\\schematicWireRenderer.ts": [
+    {
+      "line": 385,
+      "content": "items.push({ sym: \"FR\", desc: \"Wyłącznik główny\", clr: COLORS.fr });"
+    },
+    {
+      "line": 388,
+      "content": "items.push({ sym: \"RCD\", desc: \"Wyłącznik różnicowoprądowy\", clr: COLORS.rcd });"
+    },
+    {
+      "line": 391,
+      "content": "items.push({ sym: \"MCB\", desc: \"Wyłącznik nadprądowy\", clr: COLORS.wire });"
+    },
+    {
+      "line": 394,
+      "content": "items.push({ sym: \"SPD\", desc: \"Ogranicznik przepięć\", clr: COLORS.spd });"
+    }
+  ],
+  "src\\lib\\schematic\\schematicGraphBuilder.ts": [
+    {
+      "line": 95,
+      "content": "circuitName: fr.circuitName || \"Zasilanie główne\","
+    },
+    {
+      "line": 100,
+      "content": "protection: standaloneTopSwitch.label || \"Przełącznik sieci\","
+    },
+    {
+      "line": 175,
+      "content": "protection: sw.label || \"Przełącznik sieci\","
+    },
+    {
+      "line": 255,
+      "content": "protection: sw.label || \"Przełącznik sieci\","
+    },
+    {
+      "line": 293,
+      "content": "protection: groupTopSwitch.label || \"Przełącznik sieci\","
+    },
+    {
+      "line": 342,
+      "content": "protection: sw.label || \"Przełącznik sieci\","
+    },
+    {
+      "line": 380,
+      "content": "if (isRcd(symbol) && isThreePhaseRcdHead(symbol)) { // Było isFixedThreePhaseRcdSymbol ale isThreePhaseRcdHead służy w tym samym celu"
+    }
+  ],
+  "src\\lib\\validation\\rcdTypeRecommendation.ts": [
+    {
+      "line": 71,
+      "content": "\"Odbiornik może generować składową stałą lub prądy upływu wysokiej częstotliwości.\","
+    },
+    {
+      "line": 87,
+      "content": "\"Odbiornik z napędem lub elektroniką mocy zwykle wymaga RCD lepiej odpornego na prądy mieszane.\","
+    },
+    {
+      "line": 103,
+      "content": "\"Odbiornik elektroniczny nie powinien być chroniony wyłącznikiem RCD typu AC.\","
+    }
+  ],
+  "src\\lib\\validation\\rules\\val-001-phase-imbalance.ts": [
+    {
+      "line": 23,
+      "content": "message: `Asymetria obciążenia faz: ${phaseLoads.imbalancePercent.toFixed(1)}%`,"
+    }
+  ],
+  "src\\lib\\validation\\rules\\val-002-cable-safety.ts": [
+    {
+      "line": 53,
+      "content": "message: `Przeciążenie przewodu w obwodzie \"${symbol.circuitName || symbol.label || symbol.id}\"`,"
+    },
+    {
+      "line": 54,
+      "content": "details: `Prąd: ${current.toFixed(1)}A, maksymalny prąd przewodu ${symbol.cableCrossSection}mm2: ${maxCableCurrent}A`,"
+    },
+    {
+      "line": 64,
+      "content": "details: `Zabezpieczenie: ${protectionRating}A, przewód ${symbol.cableCrossSection}mm2: ${maxCableCurrent}A`,"
+    },
+    {
+      "line": 77,
+      "content": "message: `Zbyt duży spadek napięcia w obwodzie \"${symbol.circuitName || symbol.label}\"`,"
+    },
+    {
+      "line": 78,
+      "content": "details: `Spadek: ${voltageDropPercent.toFixed(1)}%, limit: ${limit}% (długość: ${symbol.cableLength}m, przekrój: ${symbol.cableCrossSection}mm2)`,"
+    }
+  ],
+  "src\\lib\\validation\\rules\\val-005-protection-mismatch.ts": [
+    {
+      "line": 34,
+      "content": "message: `Zabezpieczenie ${protectionRating}A przekracza ochronę kabla ${symbol.cableCrossSection}mm² w obwodzie \"${symbol.circuitName || symbol.label}\"`,"
+    },
+    {
+      "line": 35,
+      "content": "details: `Dopuszczalne maksimum dla kabla ${symbol.cableCrossSection}mm² to ${safeLimit}A (1,45 × ${maxCableCurrent}A). Zmniejsz zabezpieczenie lub zwiększ przekrój.`,"
+    }
+  ],
+  "src\\lib\\validation\\rules\\val-006-no-rcd.ts": [
+    {
+      "line": 34,
+      "content": "message: `Obwód \"${symbol.circuitName || symbol.label}\" bez ochrony RCD`,"
+    },
+    {
+      "line": 35,
+      "content": "details: \"Obwód nie jest chroniony przez wyłącznik RCD.\","
+    }
+  ],
+  "src\\lib\\validation\\rules\\val-007-main-overload.ts": [
+    {
+      "line": 41,
+      "content": "message: \"Przeciążenie zabezpieczenia głównego\","
+    },
+    {
+      "line": 42,
+      "content": "details: `Największy prąd fazowy: ${maxPhaseCurrent.toFixed(1)}A, znamionowy prąd główny (konfiguracja): ${configuredMainBreakerA}A. ${currentDetails}`,"
+    },
+    {
+      "line": 56,
+      "content": "message: \"Przeciążenie wyłącznika głównego\","
+    },
+    {
+      "line": 57,
+      "content": "details: `Największy prąd fazowy: ${maxPhaseCurrent.toFixed(1)}A, znamionowy prąd FR: ${mainRating}A. ${currentDetails}`,"
+    }
+  ],
+  "src\\lib\\validation\\rules\\val-008-rcd-overload.ts": [
+    {
+      "line": 32,
+      "content": "message: `RCD ${rcd.rcdRatedCurrent}A przeciążony (suma zabezpieczeń ${totalCurrent}A) w obwodzie \"${rcd.label || rcd.id}\"`,"
+    },
+    {
+      "line": 33,
+      "content": "details: `Suma prądów zabezpieczeń obwodów podrzędnych: ${totalCurrent}A, prąd znamionowy RCD: ${rcd.rcdRatedCurrent}A. Rozdziel obwody lub wymień RCD na wyższy prąd.`,"
+    }
+  ],
+  "src\\lib\\validation\\rules\\val-009-rcd-hierarchy.ts": [
+    {
+      "line": 28,
+      "content": "message: \"Błąd hierarchii RCD\","
+    },
+    {
+      "line": 29,
+      "content": "details: `Wyłącznik RCD \"${rcd.label || rcd.id}\" ma większy prąd różnicowy (${rcd.rcdResidualCurrent}mA) niż wyłącznik nadrzędny (${parentRcd.rcdResidualCurrent}mA).`,"
+    }
+  ],
+  "src\\lib\\validation\\rules\\val-010-rcd-phase.ts": [
+    {
+      "line": 38,
+      "content": "message: `Niezgodność faz obwodu z RCD \"${rcd.label || rcd.id}\"`,"
+    },
+    {
+      "line": 39,
+      "content": "details: `RCD jednofazowy jest przypisany do ${rcdPhase ?? \"nieznanej fazy\"}, a obwód \"${symbol.circuitName || symbol.label || symbol.id}\" ma fazę ${symbol.phase || \"brak\"}.`,"
+    }
+  ],
+  "src\\lib\\validation\\rules\\val-011-rcd-type.ts": [
+    {
+      "line": 42,
+      "content": "message: `Typ RCD może być niedopasowany do odbiornika \"${symbol.circuitName || symbol.label || symbol.id}\"`,"
+    }
+  ],
+  "src\\lib\\validation\\rules\\val-012-rcbo-parameters.ts": [
+    {
+      "line": 30,
+      "content": "message: `Brak członu nadprądowego RCBO w obwodzie \"${symbol.circuitName || symbol.label || symbol.id}\"`,"
+    },
+    {
+      "line": 31,
+      "content": "details: \"RCBO powinien mieć określoną charakterystykę i prąd zabezpieczenia, np. B16 albo C16.\","
+    },
+    {
+      "line": 40,
+      "content": "message: `Brak prądu różnicowego RCBO w obwodzie \"${symbol.circuitName || symbol.label || symbol.id}\"`,"
+    },
+    {
+      "line": 41,
+      "content": "details: \"RCBO powinien mieć określony prąd różnicowy, np. 30mA.\","
+    },
+    {
+      "line": 51,
+      "content": "details: \"RCBO powinien mieć określony typ części różnicowoprądowej, np. A, F albo B.\","
+    },
+    {
+      "line": 60,
+      "content": "message: `Człon nadprądowy RCBO przekracza prąd znamionowy aparatu w obwodzie \"${symbol.circuitName || symbol.label || symbol.id}\"`,"
+    },
+    {
+      "line": 61,
+      "content": "details: `Zabezpieczenie: ${protectionRating}A, prąd znamionowy RCBO: ${symbol.rcdRatedCurrent}A.`,"
+    },
+    {
+      "line": 70,
+      "content": "message: `Wysoki prąd różnicowy RCBO w obwodzie \"${symbol.circuitName || symbol.label || symbol.id}\"`,"
+    },
+    {
+      "line": 71,
+      "content": "details: `Dla obwodów gniazdowych i oświetleniowych typowo stosuje się ochronę dodatkową 30mA. Aktualnie: ${symbol.rcdResidualCurrent}mA.`,"
+    }
+  ],
+  "src\\lib\\validation\\rules\\val-015-cable-data.ts": [
+    {
+      "line": 27,
+      "content": "details: \"Podaj przekrój przewodu, aby walidacja obciążalności i spadku napięcia była wiarygodna.\","
+    },
+    {
+      "line": 34,
+      "content": "message: `Nietypowy przekrój przewodu w obwodzie \"${symbol.circuitName || symbol.label || symbol.id}\"`,"
+    },
+    {
+      "line": 35,
+      "content": "details: `Przekrój ${symbol.cableCrossSection}mm2 nie występuje w tabeli obciążalności używanej przez program.`,"
+    },
+    {
+      "line": 44,
+      "content": "message: `Brak długości przewodu w obwodzie \"${symbol.circuitName || symbol.label || symbol.id}\"`,"
+    },
+    {
+      "line": 45,
+      "content": "details: \"Podaj długość przewodu, aby program mógł sprawdzić spadek napięcia.\","
+    },
+    {
+      "line": 59,
+      "content": "message: `Przekrój przewodu może być zbyt mały dla obwodu \"${symbol.circuitName || symbol.label || symbol.id}\"`,"
+    },
+    {
+      "line": 60,
+      "content": "details: `Typ obwodu: ${symbol.circuitType}, przekrój: ${symbol.cableCrossSection}mm2, typowe minimum: ${minimumCrossSection}mm2.`,"
+    }
+  ],
+  "src\\lib\\validation\\rules\\val-018-circuit-documentation.ts": [
+    {
+      "line": 37,
+      "content": "? \"Obwód gniazdowy/oświetleniowy — nazwa wymagana w dokumentacji powykonawczej.\""
+    },
+    {
+      "line": 38,
+      "content": ": \"Nazwa obwodu poprawia czytelność zestawień, schematu i dokumentacji PDF.\","
+    },
+    {
+      "line": 50,
+      "content": "? \"Obwód gniazdowy/oświetleniowy — lokalizacja (pomieszczenie) wymagana.\""
+    },
+    {
+      "line": 51,
+      "content": ": \"Lokalizacja pomaga jednoznacznie powiązać obwód z pomieszczeniem lub odbiornikiem.\","
+    },
+    {
+      "line": 61,
+      "content": "details: \"Bez mocy program nie może wiarygodnie policzyć obciążenia faz, prądu i spadku napięcia.\","
+    },
+    {
+      "line": 70,
+      "content": "message: `Brak zabezpieczenia nadprądowego w obwodzie \"${displayName}\"`,"
+    },
+    {
+      "line": 71,
+      "content": "details: \"Podaj charakterystykę i prąd zabezpieczenia, np. B10, B16 albo C16.\","
+    }
+  ],
+  "src\\lib\\validation\\rules\\val-022-rcd-selectivity.ts": [
+    {
+      "line": 31,
+      "content": "message: \"Możliwy brak selektywności RCD\","
+    },
+    {
+      "line": 32,
+      "content": "details: `RCD nadrzędny \"${parentRcd.label || parentRcd.id}\" ma ${parentRcd.rcdResidualCurrent}mA, a podrzędny \"${rcd.label || rcd.id}\" ma ${rcd.rcdResidualCurrent}mA. Dla kaskady zwykle oczekuje się wyraźnie większego progu nadrzędnego.`,"
+    }
+  ],
+  "src\\lib\\validation\\rules\\val-023-main-coordination.ts": [
+    {
+      "line": 45,
+      "content": "message: `Możliwy brak koordynacji zabezpieczenia głównego z obwodem \"${branch.symbol.circuitName || branch.symbol.label || branch.symbol.id}\"`,"
+    },
+    {
+      "line": 46,
+      "content": "details: `Zabezpieczenie obwodu: ${branch.rating}A, zabezpieczenie główne: ${main.rating}A. Zabezpieczenie obwodu nie powinno być równe lub większe od nadrzędnego bez świadomego doboru selektywności.`,"
+    }
+  ],
+  "src\\lib\\validation\\validationEditTargets.ts": [
+    {
+      "line": 11,
+      "content": "return { fieldKey: \"Phase\", label: \"Edytuj fazę\" };"
+    },
+    {
+      "line": 16,
+      "content": "return { fieldKey: \"CableCrossSection\", label: \"Edytuj przekrój\" };"
+    },
+    {
+      "line": 18,
+      "content": "return { fieldKey: \"CableLength\", label: \"Edytuj długość\" };"
+    },
+    {
+      "line": 20,
+      "content": "return { fieldKey: \"CircuitName\", label: \"Edytuj nazwę\" };"
+    },
+    {
+      "line": 22,
+      "content": "return { fieldKey: \"Location\", label: \"Edytuj lokalizację\" };"
+    },
+    {
+      "line": 44,
+      "content": ".replace(/ł/g, \"l\")"
+    },
+    {
+      "line": 45,
+      "content": ".replace(/Ł/g, \"L\")"
+    }
+  ],
+  "src\\lib\\validation\\validationHelpers.ts": [
+    {
+      "line": 73,
+      "content": ".replace(/ł/g, \"l\")"
+    },
+    {
+      "line": 74,
+      "content": ".replace(/Ł/g, \"L\")"
+    }
+  ],
+  "src\\lib\\validation\\validationPresentation.ts": [
+    {
+      "line": 54,
+      "content": "title: symbol ? buildSymbolGroupTitle(symbol) : symbolId ? \"Obwód / aparat bez oznaczenia\" : \"Projekt\","
+    },
+    {
+      "line": 107,
+      "content": "if (errors > 0) parts.push(`${errors} bł.`);"
+    },
+    {
+      "line": 124,
+      "content": "return \"Obwód / aparat bez oznaczenia\";"
+    }
+  ],
+  "src\\lib\\validation\\validationRuleDescriptions.ts": [
+    {
+      "line": 31,
+      "content": "description: \"Sprawdza czy obciążenie L1/L2/L3 nie różni się o więcej niż próg asymetrii (domyślnie 30%).\","
+    },
+    {
+      "line": 32,
+      "content": "normRef: \"Polska praktyka inżynierska; PN-HD 60364 nie pinna konkretnej wartości.\","
+    },
+    {
+      "line": 33,
+      "content": "remediation: \"Kliknij zakładkę Bilans → przycisk «Zastosuj bilans» aby przenieść obwody na mniej obciążone fazy.\","
+    },
+    {
+      "line": 36,
+      "content": "description: \"Sprawdza czy prąd obwodu nie przekracza dopuszczalnej obciążalności kabla.\","
+    },
+    {
+      "line": 37,
+      "content": "normRef: \"IEC 60364 — dobór kabla do zabezpieczenia.\","
+    },
+    {
+      "line": 38,
+      "content": "remediation: \"Zwiększ przekrój kabla albo zmniejsz zabezpieczenie obwodu. Kliknij obwód → Edytuj zabezpieczenie lub przekrój.\","
+    },
+    {
+      "line": 41,
+      "content": "description: \"Sprawdza czy zabezpieczenie nadprądowe nie jest większe niż obciążalność kabla (poza margines 1,45×).\","
+    },
+    {
+      "line": 43,
+      "content": "remediation: \"Zmniejsz zabezpieczenie lub zwiększ przekrój kabla. Kliknij obwód → Edytuj.\","
+    },
+    {
+      "line": 46,
+      "content": "description: \"Sprawdza czy spadek napięcia na kablu mieści się w limicie (3% dla oświetlenia, 5% dla gniazd i siły).\","
+    },
+    {
+      "line": 48,
+      "content": "remediation: \"Zwiększ przekrój kabla lub skróć obwód. Kliknij obwód → Edytuj przekrój lub długość.\","
+    },
+    {
+      "line": 51,
+      "content": "description: \"Sprawdza czy zabezpieczenie nie jest tak duże, że kabel jest bez ochrony przy przeciążeniu (próg 1,45 × obciążalność).\","
+    },
+    {
+      "line": 53,
+      "content": "remediation: \"Dopasuj zabezpieczenie do przekroju kabla — zmniejsz prąd zabezpieczenia lub zwiększ przekrój.\","
+    },
+    {
+      "line": 56,
+      "content": "description: \"Sprawdza czy obwód (gniazdo, oświetlenie) ma przypisany RCD.\","
+    },
+    {
+      "line": 58,
+      "content": "remediation: \"Dodaj RCD 30 mA przed tym obwodem lub przypisz obwód do istniejącego RCD. Zakładka «Zarządzanie RCD».\","
+    },
+    {
+      "line": 61,
+      "content": "description: \"Sprawdza czy największy prąd fazowy nie przekracza znamionowego prądu FR lub zabezpieczenia głównego.\","
+    },
+    {
+      "line": 62,
+      "content": "normRef: \"IEC 60364 — dobór zabezpieczenia głównego.\","
+    },
+    {
+      "line": 63,
+      "content": "remediation: \"Zmniejsz obciążenie fazy (przenieś obwody do innej fazy w zakładce Bilans) lub wymień FR na wyższy prąd.\","
+    },
+    {
+      "line": 66,
+      "content": "description: \"Sprawdza czy suma znamionowych prądów zabezpieczeń obwodów nie przekracza prądu znamionowego RCD (podejście konserwatywne — bez współczynnika jednoczesności).\","
+    },
+    {
+      "line": 67,
+      "content": "remediation: \"Rozdziel obwody na dwa RCD lub wymień RCD na wyższy prąd znamionowy.\","
+    },
+    {
+      "line": 70,
+      "content": "description: \"Sprawdza czy podrzędny RCD nie ma większego prądu różnicowego niż nadrzędny (naruszona selektywność kaskady).\","
+    },
+    {
+      "line": 71,
+      "content": "remediation: \"Wymień jeden z RCD tak, aby podrzędny miał mniejszy lub równy prąd różnicowy niż nadrzędny.\","
+    },
+    {
+      "line": 74,
+      "content": "description: \"Sprawdza czy obwód 1-fazowy pod 1-fazowym RCD jest na tej samej fazie co RCD.\","
+    },
+    {
+      "line": 75,
+      "content": "remediation: \"Przypisz obwód do tej samej fazy co RCD. Kliknij obwód → Edytuj fazę.\","
+    },
+    {
+      "line": 78,
+      "content": "description: \"Sprawdza czy typ RCD (AC/A/F/B) jest wystarczający dla typu odbiornika (PV → B, pompa ciepła → F/B, indukcja → A).\","
+    },
+    {
+      "line": 79,
+      "content": "remediation: \"Wymień RCD na typ zalecany dla tego odbiornika (typ A dla indukcji, F/B dla pompy ciepła, B dla PV/EV).\","
+    },
+    {
+      "line": 82,
+      "content": "description: \"Informuje o brakujących parametrach RCBO (zabezpieczenie nadprądowe, prąd różnicowy, typ RCD).\","
+    },
+    {
+      "line": 83,
+      "content": "remediation: \"Kliknij obwód → Edytuj zabezpieczenie / typ RCD / prąd różnicowy.\","
+    },
+    {
+      "line": 86,
+      "content": "description: \"Sprawdza czy zabezpieczenie nadprądowe RCBO nie przekracza jego prądu znamionowego.\","
+    },
+    {
+      "line": 87,
+      "content": "remediation: \"Dopasuj zabezpieczenie nadprądowe do prądu znamionowego RCBO.\","
+    },
+    {
+      "line": 90,
+      "content": "description: \"Sprawdza czy prąd różnicowy RCBO w obwodzie wymagającym ochrony dodatkowej nie jest większy niż 30 mA.\","
+    },
+    {
+      "line": 92,
+      "content": "remediation: \"Wymień RCBO na wersję 30 mA.\","
+    },
+    {
+      "line": 95,
+      "content": "description: \"Informuje o brakującym przekroju kabla albo przekroju spoza tabeli obciążalności.\","
+    },
+    {
+      "line": 96,
+      "content": "remediation: \"Kliknij obwód → Edytuj przekrój kabla.\","
+    },
+    {
+      "line": 99,
+      "content": "description: \"Informuje o brakującej długości kabla (potrzebna do obliczenia spadku napięcia).\","
+    },
+    {
+      "line": 100,
+      "content": "remediation: \"Kliknij obwód → Edytuj długość kabla.\","
+    },
+    {
+      "line": 103,
+      "content": "description: \"Informuje o przekroju kabla poniżej typowego minimum dla danego typu obwodu (np. gniazdo < 2,5 mm²).\","
+    },
+    {
+      "line": 104,
+      "content": "remediation: \"Rozważ zwiększenie przekroju kabla do typowego minimum (2,5 mm² dla gniazd, 1,5 mm² dla oświetlenia).\","
+    },
+    {
+      "line": 107,
+      "content": "description: \"Informuje o brakującej nazwie obwodu (dla czytelności dokumentacji).\","
+    },
+    {
+      "line": 108,
+      "content": "remediation: \"Kliknij obwód → Edytuj nazwę obwodu.\","
+    },
+    {
+      "line": 111,
+      "content": "description: \"Informuje o brakującej lokalizacji obwodu.\","
+    },
+    {
+      "line": 112,
+      "content": "remediation: \"Kliknij obwód → Edytuj lokalizację.\","
+    },
+    {
+      "line": 115,
+      "content": "description: \"Ostrzega o brakującej mocy obwodu (potrzebna do obliczeń bilansu, prądu i spadku napięcia).\","
+    },
+    {
+      "line": 116,
+      "content": "remediation: \"Kliknij obwód → Edytuj moc (W).\","
+    },
+    {
+      "line": 119,
+      "content": "description: \"Ostrzega o brakującym zabezpieczeniu nadprądowym obwodu (np. B16, C20).\","
+    },
+    {
+      "line": 120,
+      "content": "remediation: \"Kliknij obwód → Edytuj zabezpieczenie (np. B16, C20).\","
+    },
+    {
+      "line": 123,
+      "content": "description: \"Ostrzega gdy prąd różnicowy RCD nadrzędnego jest mniejszy niż 3× podrzędnego (brak selektywności kaskady).\","
+    },
+    {
+      "line": 124,
+      "content": "remediation: \"Wymień RCD nadrzędny na wyższy prąd różnicowy (np. 300 mA → 30 mA w kaskadzie).\","
+    },
+    {
+      "line": 127,
+      "content": "description: \"Ostrzega gdy zabezpieczenie obwodu jest równe lub większe od zabezpieczenia głównego (brak koordynacji selektywnej).\","
+    },
+    {
+      "line": 128,
+      "content": "remediation: \"Zmniejsz zabezpieczenie obwodu poniżej zabezpieczenia głównego (np. FR 63A → MCB max 40A).\","
+    }
+  ],
+  "src\\types\\symbolItem.ts": [
+    {
+      "line": 23,
+      "content": "| \"Złącza\""
+    },
+    {
+      "line": 260,
+      "content": ".replace(/ł/g, \"l\")"
+    },
+    {
+      "line": 416,
+      "content": "return \"Złącza\";"
+    }
+  ]
+}

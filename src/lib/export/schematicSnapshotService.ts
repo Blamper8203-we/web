@@ -34,7 +34,7 @@ export async function exportSchematicToDataURL(symbols: SymbolItem[], metadata?:
     return dataUrls;
   }
 
-  const scale = 2; // Wyższa rozdzielczość (2x) dla druku wektorowego/PDF
+  const scale = 3; // Zwiększona rozdzielczość (3x) dla żyletowej jakości (PDF/druk)
   const renderablePages = filterEmptySchematicPages(layout);
 
   for (const page of renderablePages) {

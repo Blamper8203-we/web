@@ -31,8 +31,8 @@ export async function exportToPdf(
 
   const [schematicImages, dinRailWithWiresSvg, dinRailWithoutWiresSvg] = await Promise.all([
     exportSchematicToDataURL(symbols, effectiveMetadata),
-    exportDinRailToDataURLWithOptions(symbols, rail, { drawConnections: true, scale: 3 }, connections),
-    exportDinRailToDataURLWithOptions(symbols, rail, { drawConnections: false, scale: 3 }, connections),
+    exportDinRailToDataURLWithOptions(symbols, rail, { drawConnections: true, scale: 4 }, connections),
+    exportDinRailToDataURLWithOptions(symbols, rail, { drawConnections: false, scale: 4 }, connections),
   ]);
 
   const documentNode = createElement(PdfProtocolDocument, {

@@ -4,6 +4,7 @@ import {
   buildVisibleCircuitGroups,
   countHiddenCircuitRows,
 } from "../lib/circuitRows";
+import { EmptyState } from "./EmptyState";
 import "./CircuitListPage.css";
 
 type CircuitListPageProps = {
@@ -78,36 +79,62 @@ export function CircuitListPage({ rows }: CircuitListPageProps) {
                 <span>{t("auto.przekrjmm2_436", "Przekrój [mm2]")}</span>
               </div>
 
-              {groups.map((group) => (
-                <section key={group.location} className="cl-group">
-                  <header className="cl-group__header">{group.location}</header>
-                  {group.rcdGroups.map((rcdGroup) => (
-                    <div key={rcdGroup.id} className="cl-rcd-group">
-                      {rcdGroup.rcd && (
-                        <div className="cl-rcd-header">
-                          <span className="cl-rcd-badge">{rcdGroup.rcd.displayProtection || rcdGroup.rcd.protectionType || "RCD"}</span>
-                          <span className="cl-rcd-label">{rcdGroup.rcd.label || "Zabezpieczenie grupowe"}</span>
-                          <span className="cl-rcd-phase">({rcdGroup.rcd.phase || "-"})</span>
-                        </div>
-                      )}
-                      <div className="cl-rcd-children">
-                        {rcdGroup.rows.map((row) => (
-                          <div key={row.id} className={`cl-row ${rcdGroup.rcd ? "cl-row--nested" : ""}`}>
-                            <span>{row.referenceDesignation || "-"}</span>
-                            <span>{row.label || "-"}</span>
-                            <span className="cl-cell-center"><span className="cl-chip cl-chip--phase">{row.phase || "-"}</span></span>
-                            <span className="cl-cell-center"><span className="cl-chip cl-chip--protection">{row.displayProtection || row.protectionType || "-"}</span></span>
-                            <span className="cl-circuit-name">{row.circuitName || "-"}</span>
-                            <span>{formatNumber(row.powerW)}</span>
-                            <span>{formatNumber(row.cableLength)}</span>
-                            <span>{formatNumber(row.cableCrossSection)}</span>
+              {visibleCount === 0 ? (
+                <EmptyState
+                  icon="list"
+                  title={t("app.circuitList.emptyState.title", "Lista obwodów jest pusta")}
+                  description={t("app.circuitList.emptyState.desc", "Dodaj moduły z zabezpieczeniami (jak wyłączniki nadprądowe) na szynie DIN w pierwszej zakładce, aby automatycznie utworzyć listę obwodów.")}
+                  style={{ minHeight: "400px" }}
+                />
+              ) : (
+                groups.map((group) => (
+                  <section key={group.location} className="cl-group">
+                    {group.location && (
+                      <h3 className="cl-location-header">{group.location}</h3>
+                    )}
+
+                    {group.rcdGroups.map((rcdGroup) => (
+                      <div key={rcdGroup.id} className="cl-rcd-group">
+                        {rcdGroup.rcd && (
+                          <div className="cl-rcd-header">
+                            <span className="cl-designation">{rcdGroup.rcd.referenceDesignation}</span>
+                            <span className="cl-label">{rcdGroup.rcd.label}</span>
+                            <span className="cl-phase cl-phase--group">
+                              {t("auto.grupa_576", "Grupa")}
+                            </span>
+                            <span className="cl-protection">
+                              {rcdGroup.rcd.displayProtection}
+                            </span>
+                            <span className="cl-circuit-name" style={{ color: "#FF5E5E" }}>
+                              {rcdGroup.rcd.circuitName}
+                            </span>
+                            <span>—</span>
+                            <span>—</span>
+                            <span>—</span>
                           </div>
-                        ))}
+                        )}
+
+                        <div className="cl-rows">
+                          {rcdGroup.rows.map((row) => (
+                            <div key={row.id} className="cl-row">
+                              <span className="cl-designation">{row.referenceDesignation}</span>
+                              <span className="cl-label">{row.label}</span>
+                              <span className={`cl-phase cl-phase--${row.phase}`}>
+                                {row.phase}
+                              </span>
+                              <span className="cl-protection">{row.displayProtection}</span>
+                              <span className="cl-circuit-name">{row.circuitName || "-"}</span>
+                              <span>{formatNumber(row.powerW)}</span>
+                              <span>{formatNumber(row.cableLength)}</span>
+                              <span>{formatNumber(row.cableCrossSection)}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </section>
-              ))}
+                    ))}
+                  </section>
+                ))
+              )}
             </div>
           </div>
         </section>

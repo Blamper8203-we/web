@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>DINBoard — porównanie 4 kierunków redesignu PDF</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Serif:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:wght@400;600;700&family=Spectral:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-app: #e8e8e6;
+    --bg-page: #ffffff;
+  }
+
+  body {
+    background: var(--bg-app);
+    font-family: 'Inter', sans-serif;
+    color: #14171e;
+    padding: 32px 24px 80px;
+    line-height: 1.5;
+  }
+
+  .intro {
+    max-width: 1200px;
+    margin: 0 auto 32px;
+    padding: 24px 28px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #d4d4d2;
+  }
+  .intro h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .intro p { font-size: 14px; color: #3a4256; margin-top: 6px; }
+  .intro .meta { font-size: 12px; color: #7c7a72; margin-top: 10px; font-family: 'JetBrains Mono', monospace; }
+
+  .grid {
+    max-width: 1480px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+
+  .design {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .design-label {
+    background: white;
+    padding: 14px 18px;
+    border-radius: 6px;
+    border: 1px solid #d4d4d2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .design-label .name { font-weight: 700; font-size: 15px; }
+  .design-label .tag {
+    font-size: 11px;
+    color: #7c7a72;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .design-label .verdict {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .design-label .verdict.current { background: #fef3c7; color: #92400e; }
+  .design-label .verdict.recommend { background: #dcfce7; color: #15803d; }
+
+  /* ─────────────────────────────────────────────────────────────────────
+     A4 page mock — A4 = 210 × 297 mm. Aspect 1:1.414
+     We render at scale where width = 600px → height = 848px
+     Landscape = 848 × 600
+     ───────────────────────────────────────────────────────────────────── */
+  .a4-portrait {
+    width: 100%;
+    aspect-ratio: 210 / 297;
+    background: var(--bg-page);
+    box-shadow: 0 2px 14px rgba(0,0,0,0.10), 0 1px 3px rgba(0,0,0,0.05);
+    overflow: hidden;
+    position: relative;
+  }
+  .a4-landscape {
+    width: 100%;
+    aspect-ratio: 297 / 210;
+    background: var(--bg-page);
+    box-shadow: 0 2px 14px rgba(0,0,0,0.10), 0 1px 3px rgba(0,0,0,0.05);
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ═════════════════════════════════════════════════════════════════════
+     STYLE 0 — AKTUALNY (to co macie teraz)
+     Navy + uppercase + eyebrow + Linear-inspired
+     ═════════════════════════════════════════════════════════════════════ */
+  .style-0 .page-content {
+    padding: 28px 36px 36px;
+    font-family: Arial, sans-serif;
+    font-size: 9px;
+    color: #0F172A;
+    height: 100%;
+    position: relative;
+  }
+  .style-0 .top-bar {
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: #2563EB;
+  }
+  .style-0 .header {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    margin-bottom: 22px;
+    border-bottom: 0.75px solid #0F172A;
+  }
+  .style-0 .eyebrow {
+    font-size: 7px; font-weight: bold; color: #2563EB;
+    text-transform: uppercase; letter-spacing: 1.4px; margin-bottom: 4px;
+  }
+  .style-0 .page-title {
+    font-size: 18px; font-weight: bold; color: #0F172A;
+    text-transform: uppercase; letter-spacing: 0.6px; line-height: 1.2;
+  }
+  .style-0 .page-subtitle {
+    font-size: 8.5px; color: #64748B; margin-top: 3px;
+  }
+  .style-0 .meta-label {
+    font-size: 7px; color: #94A3B8; text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 2px;
+  }
+  .style-0 .meta-value { font-size: 9px; font-weight: bold; color: #0F172A; }
+  .style-0 .hero {
+    text-align: center;
+    margin-bottom: 28px; margin-top: 8px; padding: 24px 16px;
+    background: #F4F7FB;
+    border-radius: 4px;
+    border-left: 4px solid #2563EB;
+  }
+  .style-0 .hero-title {
+    font-size: 24px; font-weight: bold; color: #1D4ED8;
+    text-transform: uppercase; letter-spacing: 1.5px;
+  }
+  .style-0 .hero-sub {
+    font-size: 10px; color: #334155; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-top: 8px;
+  }
+  .style-0 .section-heading {
+    display: flex; align-items: baseline;
+    margin-top: 18px; margin-bottom: 12px; padding-bottom: 6px;
+    border-bottom: 0.5px solid #E2E8F0;
+  }
+  .style-0 .section-number {
+    font-size: 9px; font-weight: bold; color: #2563EB;
+    margin-right: 10px; letter-spacing: 1.2px;
+  }
+  .style-0 .section-title {
+    font-size: 10px; font-weight: bold; color: #0F172A;
+    text-transform: uppercase; letter-spacing: 1.4px;
+  }
+  .style-0 .data-row {
+    display: flex; align-items: baseline;
+    padding: 5px 0; border-bottom: 0.5px solid #E2E8F0;
+  }
+  .style-0 .data-label {
+    font-size: 8.5px; font-weight: bold; color: #334155;
+    text-transform: uppercase; letter-spacing: 0.6px; width: 110px;
+  }
+  .style-0 .data-value { font-size: 10px; color: #0F172A; font-weight: bold; flex: 1; }
+  .style-0 .footer {
+    position: absolute; bottom: 16px; left: 36px; right: 36px;
+    display: flex; justify-content: space-between;
+    font-size: 7px; color: #94A3B8;
+    border-top: 0.5px solid #E2E8F0; padding-top: 8px;
+  }
+  /* Table on landscape page */
+  .style-0 .tbl-header {
+    display: flex; background: #2563EB; color: white;
+  }
+  .style-0 .tbl-header > div {
+    padding: 7px 6px; font-size: 7.5px; font-weight: bold;
+    text-transform: uppercase; letter-spacing: 0.8px;
+  }
+  .style-0 .tbl-row {
+    display: flex; border-bottom: 0.5px solid #E2E8F0;
+  }
+  .style-0 .tbl-row:nth-child(even) { background: #F8FAFC; }
+  .style-0 .tbl-row > div {
+    padding: 6px 6px; font-size: 8px;
+    display: flex; align-items: center;
+  }
+  .style-0 .landscape-wrap { padding: 24px 32px 32px; height: 100%; font-family: Arial, sans-serif; font-size: 9px; color: #0F172A; position: relative; }
+
+  /* ═════════════════════════════════════════════════════════════════════
+     STYLE 1 — POLSKA DOKUMENTACJA INŻYNIERSKA (klasyczny)
+     Black + grayscale + thin black borders + formal title block
+     Closer to traditional AutoCAD / polskie protokoły pomiarów
+     ═════════════════════════════════════════════════════════════════════ */
+  .style-1 { background: #fafafa; }
+  .style-1 .page-content {
+    padding: 24px 28px;
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-size: 10px;
+    color: #1a1a1a;
+    height: 100%;
+    position: relative;
+  }
+  /* Title block — thick outer border + thin inner divisions, like AutoCAD */
+  .style-1 .title-block {
+    border: 1.5px solid #1a1a1a;
+    margin-bottom: 24px;
+  }
+  .style-1 .title-block-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid #1a1a1a;
+  }
+  .style-1 .title-block-row:last-child { border-bottom: none; }
+  .style-1 .title-block-cell {
+    padding: 8px 12px;
+    border-right: 1px solid #1a1a1a;
+  }
+  .style-1 .title-block-cell:last-child { border-right: none; }
+  .style-1 .title-block-cell.full { grid-column: 1 / -1; }
+  .style-1 .tb-label {
+    font-size: 7px; color: #4a4a4a;
+    text-transform: uppercase; letter-spacing: 0.8px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    margin-bottom: 3px;
+  }
+  .style-1 .tb-value {
+    font-size: 11px; font-weight: 600;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .style-1 .tb-value.large {
+    font-size: 14px; font-weight: 700;
+  }
+  .style-1 h1.doc-title {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 16px 0 8px;
+    letter-spacing: 0.5px;
+  }
+  .style-1 .doc-subtitle {
+    text-align: center;
+    font-size: 10px;
+    font-style: italic;
+    color: #4a4a4a;
+    margin-bottom: 24px;
+  }
+  .style-1 h2.section {
+    font-size: 12px;
+    font-weight: 700;
+    margin: 22px 0 10px;
+    padding: 4px 0;
+    border-bottom: 1px solid #1a1a1a;
+  }
+  .style-1 .section-num {
+    display: inline-block;
+    margin-right: 8px;
+    font-weight: 700;
+  }
+  .style-1 .data-grid {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 0;
+  }
+  .style-1 .data-grid > div {
+    padding: 5px 8px;
+    border-bottom: 0.5px solid #c4c4c4;
+    font-size: 10px;
+  }
+  .style-1 .data-grid > div:nth-child(odd) {
+    font-weight: 600;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 9px;
+  }
+  .style-1 .signature-block {
+    margin-top: 32px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .style-1 .sig-slot {
+    border-top: 1px solid #1a1a1a;
+    padding-top: 4px;
+  }
+  .style-1 .sig-name { font-size: 10px; font-weight: 600; }
+  .style-1 .sig-role {
+    font-size: 8px; color: #4a4a4a;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    margin-top: 2px;
+  }
+  .style-1 .footer-min {
+    position: absolute; bottom: 14px; left: 28px; right: 28px;
+    font-size: 8px; color: #4a4a4a;
+    display: flex; justify-content: space-between;
+    font-family: 'IBM Plex Sans', sans-serif;
+    border-top: 0.5px solid #c4c4c4; padding-top: 6px;
+  }
+  /* Landscape table */
+  .style-1 .landscape-wrap { padding: 22px 28px 28px; height: 100%; font-size: 9px; color: #1a1a1a; position: relative; }
+  .style-1 .tbl { border: 1px solid #1a1a1a; width: 100%; border-collapse: collapse; }
+  .style-1 .tbl-h {
+    background: #1a1a1a; color: white;
+    font-size: 8px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    padding: 6px 6px;
+    text-align: left;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .style-1 .tbl-h.c { text-align: center; }
+  .style-1 .tbl-cell {
+    font-size: 8.5px; padding: 5px 6px;
+    border-bottom: 0.5px solid #c4c4c4;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .style-1 .tbl-cell.c { text-align: center; }
+  .style-1 .land-title {
+    font-size: 14px; font-weight: 700;
+    border-bottom: 1px solid #1a1a1a; padding-bottom: 6px;
+    margin-bottom: 14px;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .style-1 .land-title small {
+    font-size: 9px; font-weight: 400; color: #4a4a4a; font-style: italic;
+  }
+
+  /* ═════════════════════════════════════════════════════════════════════
+     STYLE 2 — NOWOCZESNY INŻYNIER
+     Clean geometric, single accent color, no SaaS gimmicks
+     Less decorative chrome — engineering-focused
+     ═════════════════════════════════════════════════════════════════════ */
+  .style-2 .page-content {
+    padding: 28px 32px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 10px;
+    color: #14171e;
+    height: 100%;
+    position: relative;
+  }
+  .style-2 .top-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #14171e;
+    padding-bottom: 12px;
+    margin-bottom: 28px;
+  }
+  .style-2 .top-strip .brand {
+    font-weight: 700; font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+  .style-2 .top-strip .brand .accent { color: #c43e2c; }
+  .style-2 .top-strip .meta {
+    font-size: 9px; color: #5a6068;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .style-2 h1.hero {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 8px;
+    color: #14171e;
+    letter-spacing: -0.01em;
+  }
+  .style-2 h1.hero .sub {
+    display: block; font-size: 13px; font-weight: 400;
+    color: #5a6068; margin-top: 6px; letter-spacing: 0;
+  }
+  .style-2 .accent-block {
+    width: 32px; height: 4px;
+    background: #c43e2c;
+    margin-bottom: 22px;
+  }
+  .style-2 h2.section {
+    font-size: 13px; font-weight: 700;
+    color: #14171e;
+    margin: 22px 0 10px;
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  .style-2 h2.section .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: #c43e2c; font-weight: 500;
+  }
+  .style-2 .field-list {
+    border-top: 1px solid #e4e4e4;
+  }
+  .style-2 .field-list .row {
+    display: grid; grid-template-columns: 180px 1fr;
+    padding: 7px 0;
+    border-bottom: 1px solid #e4e4e4;
+  }
+  .style-2 .field-list .row .lbl {
+    font-size: 9px; color: #5a6068; font-weight: 500;
+  }
+  .style-2 .field-list .row .val {
+    font-size: 10px; font-weight: 600; color: #14171e;
+  }
+  .style-2 .scope-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-top: 12px;
+    border-top: 1px solid #e4e4e4;
+  }
+  .style-2 .scope-grid > div {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e4e4e4;
+    border-right: 1px solid #e4e4e4;
+    font-size: 9.5px;
+  }
+  .style-2 .scope-grid > div:nth-child(2n) { border-right: none; }
+  .style-2 .scope-grid .lbl {
+    font-size: 8px; color: #5a6068; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    margin-bottom: 6px;
+  }
+  .style-2 .scope-grid .item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 3px 0;
+  }
+  .style-2 .cb {
+    width: 11px; height: 11px;
+    border: 1.5px solid #c43e2c;
+    background: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; color: #c43e2c; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .style-2 .signature-block {
+    margin-top: 24px;
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+  }
+  .style-2 .sig-slot .line {
+    border-bottom: 1px solid #14171e;
+    height: 28px;
+    margin-bottom: 4px;
+  }
+  .style-2 .sig-slot .lbl {
+    font-size: 8px; color: #5a6068;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+  .style-2 .footer-min {
+    position: absolute; bottom: 16px; left: 32px; right: 32px;
+    font-size: 8px; color: #5a6068;
+    display: flex; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  /* Landscape table */
+  .style-2 .landscape-wrap { padding: 22px 28px 28px; height: 100%; font-size: 9px; color: #14171e; position: relative; }
+  .style-2 .land-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-bottom: 10px; margin-bottom: 14px;
+    border-bottom: 2px solid #14171e;
+  }
+  .style-2 .land-head h2 { font-size: 16px; font-weight: 700; }
+  .style-2 .land-head .sub { font-size: 10px; color: #5a6068; }
+  .style-2 table.tbl { width: 100%; border-collapse: collapse; }
+  .style-2 table.tbl th {
+    text-align: left;
+    font-size: 8.5px; font-weight: 700;
+    padding: 7px 8px;
+    background: #14171e; color: white;
+    border-right: 1px solid #2a2e36;
+  }
+  .style-2 table.tbl th:last-child { border-right: none; }
+  .style-2 table.tbl td {
+    font-size: 9px; padding: 6px 8px;
+    border-bottom: 1px solid #e4e4e4;
+  }
+  .style-2 table.tbl tr:nth-child(even) { background: #fafafa; }
+
+  /* ═════════════════════════════════════════════════════════════════════
+     STYLE 3 — HERITAGE TECHNICAL
+     Warm cream + serif headlines + rule-based layout
+     Classical European engineering aesthetic
+     ═════════════════════════════════════════════════════════════════════ */
+  .style-3 { background: #f7f3ec; }
+  .style-3 .page-content {
+    padding: 32px 36px;
+    font-family: 'Source Serif 4', 'Spectral', Georgia, serif;
+    font-size: 10px;
+    color: #2a2418;
+    height: 100%;
+    position: relative;
+    background: #fbf8f1;
+  }
+  .style-3 .corner-frame {
+    position: absolute; top: 18px; left: 18px; right: 18px; bottom: 18px;
+    border: 0.75px solid #5a4a32;
+    pointer-events: none;
+  }
+  .style-3 .corner-frame::before,
+  .style-3 .corner-frame::after {
+    content: ""; position: absolute;
+    background: #5a4a32;
+  }
+  .style-3 .head-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-bottom: 10px;
+    border-bottom: 2px double #5a4a32;
+    margin-bottom: 22px;
+  }
+  .style-3 .head-strip .brand {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 8px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 2px;
+    color: #5a4a32;
+  }
+  .style-3 .head-strip .doc-id {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 9px; color: #5a4a32;
+  }
+  .style-3 .head-strip .doc-id .nr {
+    font-weight: 700; color: #2a2418;
+  }
+  .style-3 h1.hero {
+    text-align: center;
+    font-family: 'Spectral', Georgia, serif;
+    font-size: 24px;
+    font-weight: 500;
+    color: #2a2418;
+    margin: 16px 0 6px;
+    letter-spacing: 0.02em;
+  }
+  .style-3 .hero-rule {
+    width: 60px; height: 1px;
+    background: #5a4a32;
+    margin: 0 auto 14px;
+  }
+  .style-3 .hero-sub {
+    text-align: center;
+    font-style: italic;
+    font-size: 11px;
+    color: #5a4a32;
+    margin-bottom: 26px;
+  }
+  .style-3 h2.section {
+    font-family: 'Spectral', Georgia, serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #2a2418;
+    margin: 22px 0 10px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #5a4a32;
+    font-style: italic;
+  }
+  .style-3 h2.section .num {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-style: normal;
+    font-weight: 700;
+    color: #5a4a32;
+    margin-right: 8px;
+  }
+  .style-3 .field-list {
+    border-top: 1px solid #d4c9b0;
+  }
+  .style-3 .field-list .row {
+    display: grid; grid-template-columns: 160px 1fr;
+    padding: 6px 0;
+    border-bottom: 1px solid #d4c9b0;
+  }
+  .style-3 .field-list .row .lbl {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 8.5px; color: #5a4a32;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    font-weight: 600;
+  }
+  .style-3 .field-list .row .val {
+    font-size: 10.5px; color: #2a2418;
+  }
+  .style-3 .scope-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-top: 12px;
+  }
+  .style-3 .scope-grid > div {
+    border: 0.75px solid #d4c9b0;
+    padding: 10px 14px;
+    background: rgba(212, 201, 176, 0.08);
+  }
+  .style-3 .scope-grid .lbl {
+    font-family: 'Spectral', serif;
+    font-size: 11px; font-weight: 600;
+    color: #2a2418;
+    margin-bottom: 8px;
+    font-style: italic;
+  }
+  .style-3 .scope-grid .item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 3px 0;
+    font-size: 9.5px;
+  }
+  .style-3 .cb {
+    width: 10px; height: 10px;
+    border: 1px solid #5a4a32;
+    background: #fbf8f1;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; color: #5a4a32;
+    flex-shrink: 0;
+  }
+  .style-3 .signature-block {
+    margin-top: 28px;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 28px;
+  }
+  .style-3 .sig-slot .line {
+    border-bottom: 1px solid #5a4a32;
+    height: 32px;
+    margin-bottom: 4px;
+  }
+  .style-3 .sig-slot .lbl {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 8px; color: #5a4a32;
+    text-transform: uppercase; letter-spacing: 0.8px;
+    font-weight: 600;
+  }
+  .style-3 .footer-min {
+    position: absolute; bottom: 24px; left: 36px; right: 36px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 8px; color: #5a4a32;
+    display: flex; justify-content: space-between;
+  }
+  /* Landscape table */
+  .style-3 .landscape-wrap { padding: 24px 30px 30px; height: 100%; font-size: 9px; color: #2a2418; position: relative; background: #fbf8f1; }
+  .style-3 .land-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-bottom: 10px; margin-bottom: 14px;
+    border-bottom: 2px double #5a4a32;
+  }
+  .style-3 .land-head h2 {
+    font-family: 'Spectral', serif;
+    font-size: 17px; font-weight: 500; font-style: italic;
+    color: #2a2418;
+  }
+  .style-3 .land-head .sub {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 9px; color: #5a4a32;
+  }
+  .style-3 table.tbl { width: 100%; border-collapse: collapse; border: 0.75px solid #5a4a32; }
+  .style-3 table.tbl th {
+    text-align: left;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 8px; font-weight: 700;
+    padding: 6px 8px;
+    background: rgba(212, 201, 176, 0.3);
+    color: #2a2418;
+    border-bottom: 0.75px solid #5a4a32;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .style-3 table.tbl td {
+    font-size: 9px; padding: 5px 8px;
+    border-bottom: 0.5px solid #d4c9b0;
+  }
+
+  /* ═════════════════════════════════════════════════════════════════════
+     STYLE 4 — STEEL & AMBER (nowoczesny inżynierski · akcent ciepły)
+     Slate ink + amber accent. Industrial / control panel feel.
+     ═════════════════════════════════════════════════════════════════════ */
+  .style-4 .page-content {
+    padding: 28px 32px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 10px;
+    color: #1f2937;
+    height: 100%;
+    position: relative;
+  }
+  .style-4 .top-strip {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 12px; margin-bottom: 24px;
+    border-bottom: 2px solid #1f2937;
+  }
+  .style-4 .top-strip .brand {
+    font-weight: 700; font-size: 11px; letter-spacing: 0.05em;
+  }
+  .style-4 .top-strip .brand .a { color: #d97706; }
+  .style-4 .top-strip .meta {
+    font-size: 9px; color: #6b7280;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .style-4 .rule-amber {
+    width: 56px; height: 3px;
+    background: #d97706;
+    margin-bottom: 18px;
+  }
+  .style-4 h1.hero {
+    font-size: 26px; font-weight: 700;
+    line-height: 1.15; margin-bottom: 4px;
+    color: #1f2937;
+    letter-spacing: -0.01em;
+  }
+  .style-4 h1.hero .sub {
+    display: block; font-size: 12px; font-weight: 400;
+    color: #6b7280; margin-top: 4px;
+  }
+  .style-4 h2.section {
+    font-size: 13px; font-weight: 700;
+    color: #1f2937; margin: 22px 0 10px;
+    display: flex; align-items: baseline; gap: 10px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .style-4 h2.section .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: #d97706; font-weight: 700;
+    background: #fef3c7; padding: 2px 6px;
+  }
+  .style-4 .field-list {
+    border-top: 1px solid #e5e7eb;
+  }
+  .style-4 .field-list .row {
+    display: grid; grid-template-columns: 180px 1fr;
+    padding: 6px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .style-4 .field-list .row .lbl {
+    font-size: 8.5px; color: #6b7280; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .style-4 .field-list .row .val {
+    font-size: 10px; font-weight: 600; color: #1f2937;
+  }
+  .style-4 .scope-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-top: 8px;
+    border: 1px solid #e5e7eb;
+  }
+  .style-4 .scope-grid > div {
+    padding: 10px 12px;
+    border-right: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .style-4 .scope-grid > div:nth-child(2n) { border-right: none; }
+  .style-4 .scope-grid .lbl {
+    font-size: 8px; color: #d97706; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    margin-bottom: 6px;
+  }
+  .style-4 .scope-grid .item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 3px 0;
+    font-size: 9.5px;
+  }
+  .style-4 .cb {
+    width: 11px; height: 11px;
+    border: 1.5px solid #d97706;
+    background: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; color: #d97706; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .style-4 .signature-block {
+    margin-top: 24px;
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+  }
+  .style-4 .sig-slot .line {
+    border-bottom: 1.5px solid #1f2937;
+    height: 28px;
+    margin-bottom: 4px;
+  }
+  .style-4 .sig-slot .lbl {
+    font-size: 8px; color: #6b7280;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+  .style-4 .footer-min {
+    position: absolute; bottom: 16px; left: 32px; right: 32px;
+    font-size: 8px; color: #6b7280;
+    display: flex; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .style-4 .landscape-wrap { padding: 22px 28px 28px; height: 100%; font-size: 9px; color: #1f2937; position: relative; }
+  .style-4 .land-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-bottom: 10px; margin-bottom: 14px;
+    border-bottom: 2px solid #1f2937;
+  }
+  .style-4 .land-head h2 { font-size: 16px; font-weight: 700; }
+  .style-4 .land-head .sub { font-size: 10px; color: #6b7280; }
+  .style-4 table.tbl { width: 100%; border-collapse: collapse; }
+  .style-4 table.tbl th {
+    text-align: left;
+    font-size: 8.5px; font-weight: 700;
+    padding: 7px 8px;
+    background: #1f2937; color: white;
+    border-right: 1px solid #374151;
+  }
+  .style-4 table.tbl th:last-child { border-right: none; }
+  .style-4 table.tbl th .acc { color: #fbbf24; margin-right: 4px; }
+  .style-4 table.tbl td {
+    font-size: 9px; padding: 6px 8px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .style-4 table.tbl tr:nth-child(even) { background: #fffbeb; }
+
+  /* ═════════════════════════════════════════════════════════════════════
+     STYLE 5 — GRAPHITE & TEAL (Siemens/ABB vibe · premium industrial)
+     ═════════════════════════════════════════════════════════════════════ */
+  .style-5 .page-content {
+    padding: 28px 32px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 10px;
+    color: #111827;
+    height: 100%;
+    position: relative;
+  }
+  .style-5 .top-strip {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 8px; margin-bottom: 4px;
+  }
+  .style-5 .top-strip .brand {
+    font-weight: 700; font-size: 11px; letter-spacing: 0.05em;
+    color: #111827;
+  }
+  .style-5 .top-strip .meta {
+    font-size: 9px; color: #6b7280;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .style-5 .top-rule {
+    height: 4px;
+    background: linear-gradient(to right, #111827 70%, #0e7490 70%);
+    margin-bottom: 22px;
+  }
+  .style-5 h1.hero {
+    font-size: 28px; font-weight: 700;
+    line-height: 1.1; margin-bottom: 6px;
+    color: #111827;
+    letter-spacing: -0.015em;
+  }
+  .style-5 h1.hero .sub {
+    display: block; font-size: 12px; font-weight: 400;
+    color: #0e7490; margin-top: 6px;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .style-5 h2.section {
+    font-size: 12px; font-weight: 700;
+    color: #111827; margin: 22px 0 10px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #111827;
+    text-transform: uppercase; letter-spacing: 1.2px;
+  }
+  .style-5 h2.section .num {
+    font-family: 'JetBrains Mono', monospace;
+    color: #0e7490; margin-right: 8px;
+    letter-spacing: 0;
+  }
+  .style-5 .field-list {
+    border-top: 1px solid #e5e7eb;
+  }
+  .style-5 .field-list .row {
+    display: grid; grid-template-columns: 180px 1fr;
+    padding: 7px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .style-5 .field-list .row .lbl {
+    font-size: 8.5px; color: #6b7280; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.6px;
+  }
+  .style-5 .field-list .row .val {
+    font-size: 10px; font-weight: 600; color: #111827;
+  }
+  .style-5 .scope-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 8px;
+  }
+  .style-5 .scope-grid > div {
+    border-left: 3px solid #0e7490;
+    padding: 8px 12px;
+    background: #f9fafb;
+  }
+  .style-5 .scope-grid .lbl {
+    font-size: 8.5px; color: #0e7490; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.8px;
+    margin-bottom: 6px;
+  }
+  .style-5 .scope-grid .item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 3px 0;
+    font-size: 9.5px;
+  }
+  .style-5 .cb {
+    width: 11px; height: 11px;
+    border: 1.5px solid #111827;
+    background: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; color: #111827; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .style-5 .signature-block {
+    margin-top: 26px;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 28px;
+  }
+  .style-5 .sig-slot .line {
+    border-bottom: 1px solid #111827;
+    height: 28px; margin-bottom: 4px;
+  }
+  .style-5 .sig-slot .lbl {
+    font-size: 8px; color: #6b7280;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+  .style-5 .footer-min {
+    position: absolute; bottom: 16px; left: 32px; right: 32px;
+    font-size: 8px; color: #6b7280;
+    display: flex; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .style-5 .landscape-wrap { padding: 22px 28px 28px; height: 100%; font-size: 9px; color: #111827; position: relative; }
+  .style-5 .land-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-bottom: 8px; margin-bottom: 14px;
+    border-bottom: 4px solid #111827;
+    position: relative;
+  }
+  .style-5 .land-head::after {
+    content: ""; position: absolute; bottom: -4px; left: 0; right: 30%;
+    height: 4px; background: #0e7490;
+  }
+  .style-5 .land-head h2 {
+    font-size: 16px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.2px;
+  }
+  .style-5 .land-head .sub { font-size: 10px; color: #6b7280; }
+  .style-5 table.tbl { width: 100%; border-collapse: collapse; }
+  .style-5 table.tbl thead th {
+    text-align: left;
+    font-size: 8.5px; font-weight: 700;
+    padding: 8px;
+    background: #111827; color: white;
+    border-right: 1px solid #1f2937;
+    border-bottom: 3px solid #0e7490;
+  }
+  .style-5 table.tbl thead th:last-child { border-right: none; }
+  .style-5 table.tbl td {
+    font-size: 9px; padding: 6px 8px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .style-5 table.tbl tbody tr:hover { background: #f0fdfa; }
+
+  /* ═════════════════════════════════════════════════════════════════════
+     STYLE 6 — CARBON & SIGNAL RED (Schneider Electric / Phoenix Contact)
+     ═════════════════════════════════════════════════════════════════════ */
+  .style-6 .page-content {
+    padding: 28px 32px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 10px;
+    color: #0a0a0a;
+    height: 100%;
+    position: relative;
+  }
+  .style-6 .top-strip {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 14px; margin-bottom: 24px;
+    background: #0a0a0a; color: white;
+  }
+  .style-6 .top-strip .brand {
+    font-weight: 700; font-size: 11px;
+    letter-spacing: 0.1em;
+  }
+  .style-6 .top-strip .brand .r { color: #dc2626; }
+  .style-6 .top-strip .meta {
+    font-size: 9px;
+    font-family: 'JetBrains Mono', monospace;
+    opacity: 0.85;
+  }
+  .style-6 h1.hero {
+    font-size: 30px; font-weight: 700;
+    line-height: 1.05; margin-bottom: 8px;
+    color: #0a0a0a;
+    letter-spacing: -0.02em;
+  }
+  .style-6 h1.hero .sub {
+    display: block; font-size: 11px; font-weight: 500;
+    color: #dc2626; margin-top: 4px;
+    text-transform: uppercase; letter-spacing: 1.5px;
+  }
+  .style-6 h2.section {
+    font-size: 13px; font-weight: 700;
+    color: #0a0a0a; margin: 22px 0 10px;
+    padding-left: 10px;
+    border-left: 4px solid #dc2626;
+    line-height: 1.1;
+  }
+  .style-6 h2.section .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: #dc2626;
+    margin-right: 6px; letter-spacing: 0;
+  }
+  .style-6 .field-list {
+    border-top: 1px solid #e5e5e5;
+  }
+  .style-6 .field-list .row {
+    display: grid; grid-template-columns: 180px 1fr;
+    padding: 7px 0;
+    border-bottom: 1px solid #e5e5e5;
+  }
+  .style-6 .field-list .row .lbl {
+    font-size: 8.5px; color: #525252; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.6px;
+  }
+  .style-6 .field-list .row .val {
+    font-size: 10px; font-weight: 600; color: #0a0a0a;
+  }
+  .style-6 .scope-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-top: 8px;
+    border: 1px solid #0a0a0a;
+  }
+  .style-6 .scope-grid > div {
+    padding: 10px 12px;
+    border-right: 1px solid #0a0a0a;
+  }
+  .style-6 .scope-grid > div:nth-child(2n) { border-right: none; }
+  .style-6 .scope-grid .lbl {
+    font-size: 8.5px; color: #0a0a0a; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #e5e5e5;
+    margin-bottom: 6px;
+  }
+  .style-6 .scope-grid .item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 3px 0;
+    font-size: 9.5px;
+  }
+  .style-6 .cb {
+    width: 11px; height: 11px;
+    border: 1.5px solid #0a0a0a;
+    background: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; color: #dc2626; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .style-6 .signature-block {
+    margin-top: 26px;
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+  }
+  .style-6 .sig-slot .line {
+    border-bottom: 1px solid #0a0a0a;
+    height: 28px; margin-bottom: 4px;
+  }
+  .style-6 .sig-slot .lbl {
+    font-size: 8px; color: #525252;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+  .style-6 .footer-min {
+    position: absolute; bottom: 16px; left: 32px; right: 32px;
+    font-size: 8px; color: #525252;
+    display: flex; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    padding-top: 8px;
+    border-top: 2px solid #0a0a0a;
+  }
+  .style-6 .landscape-wrap { padding: 22px 28px 28px; height: 100%; font-size: 9px; color: #0a0a0a; position: relative; }
+  .style-6 .land-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-bottom: 8px; margin-bottom: 14px;
+    background: #0a0a0a; color: white;
+    padding: 10px 14px;
+    margin-left: -28px; margin-right: -28px;
+  }
+  .style-6 .land-head h2 {
+    font-size: 14px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.5px;
+  }
+  .style-6 .land-head h2 .r { color: #dc2626; }
+  .style-6 .land-head .sub {
+    font-size: 9px;
+    font-family: 'JetBrains Mono', monospace;
+    opacity: 0.85;
+  }
+  .style-6 table.tbl { width: 100%; border-collapse: collapse; margin-top: 14px; }
+  .style-6 table.tbl th {
+    text-align: left;
+    font-size: 8.5px; font-weight: 700;
+    padding: 8px;
+    background: #0a0a0a; color: white;
+    border-right: 1px solid #262626;
+  }
+  .style-6 table.tbl th:last-child { border-right: none; }
+  .style-6 table.tbl td {
+    font-size: 9px; padding: 6px 8px;
+    border-bottom: 1px solid #e5e5e5;
+  }
+  .style-6 table.tbl td:first-child {
+    border-left: 3px solid #dc2626;
+    font-weight: 700;
+  }
+
+  /* ═════════════════════════════════════════════════════════════════════
+     STYLE 7 — BLUEPRINT (biały + techniczny błękit · CAD drawing vibe)
+     ═════════════════════════════════════════════════════════════════════ */
+  .style-7 .page-content {
+    padding: 28px 36px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 10px;
+    color: #1e293b;
+    height: 100%;
+    position: relative;
+  }
+  .style-7 .top-strip {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 14px; margin: -28px -36px 22px;
+    border-top: 2px solid #1e40af;
+    border-bottom: 0.5px solid #1e40af;
+    background: #eff6ff;
+  }
+  .style-7 .top-strip .brand {
+    font-weight: 700; font-size: 11px;
+    letter-spacing: 0.08em; color: #1e40af;
+  }
+  .style-7 .top-strip .meta {
+    font-size: 9px; color: #475569;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .style-7 .frame-marks {
+    position: absolute; top: 14px; left: 14px;
+    width: 16px; height: 16px;
+    border-left: 1px solid #1e40af;
+    border-top: 1px solid #1e40af;
+  }
+  .style-7 .frame-marks.tr { left: auto; right: 14px; border-left: none; border-right: 1px solid #1e40af; }
+  .style-7 .frame-marks.bl { top: auto; bottom: 14px; border-top: none; border-bottom: 1px solid #1e40af; }
+  .style-7 .frame-marks.br { top: auto; left: auto; bottom: 14px; right: 14px; border: none; border-right: 1px solid #1e40af; border-bottom: 1px solid #1e40af; }
+  .style-7 h1.hero {
+    font-size: 24px; font-weight: 700;
+    line-height: 1.15; margin-bottom: 4px;
+    color: #1e293b;
+    letter-spacing: -0.005em;
+  }
+  .style-7 h1.hero .sub {
+    display: block; font-size: 11px; font-weight: 400;
+    color: #1e40af; margin-top: 4px;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .style-7 .blueprint-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #1e40af; color: white;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px; font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .style-7 h2.section {
+    font-size: 11px; font-weight: 700;
+    color: #1e293b; margin: 20px 0 10px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #1e40af;
+    text-transform: uppercase; letter-spacing: 1.2px;
+  }
+  .style-7 h2.section .num {
+    font-family: 'JetBrains Mono', monospace;
+    color: white; background: #1e40af;
+    padding: 1px 6px; margin-right: 8px;
+    font-size: 9px;
+    letter-spacing: 0;
+  }
+  .style-7 .field-list {
+    border-top: 1px solid #cbd5e1;
+  }
+  .style-7 .field-list .row {
+    display: grid; grid-template-columns: 180px 1fr;
+    padding: 5px 8px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .style-7 .field-list .row:nth-child(even) { background: #f8fafc; }
+  .style-7 .field-list .row .lbl {
+    font-size: 8.5px; color: #475569; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .style-7 .field-list .row .val {
+    font-size: 10px; font-weight: 600; color: #1e293b;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .style-7 .scope-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .style-7 .scope-grid > div {
+    border: 1px solid #1e40af;
+    padding: 8px 12px;
+  }
+  .style-7 .scope-grid .lbl {
+    font-size: 8px; color: white; font-weight: 700;
+    background: #1e40af;
+    padding: 2px 6px;
+    text-transform: uppercase; letter-spacing: 1px;
+    display: inline-block;
+    margin-bottom: 6px;
+  }
+  .style-7 .scope-grid .item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 3px 0;
+    font-size: 9.5px;
+  }
+  .style-7 .cb {
+    width: 10px; height: 10px;
+    border: 1px solid #1e40af;
+    background: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; color: #1e40af; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .style-7 .signature-block {
+    margin-top: 26px;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 28px;
+  }
+  .style-7 .sig-slot .line {
+    border-bottom: 1px solid #1e293b;
+    height: 28px; margin-bottom: 4px;
+  }
+  .style-7 .sig-slot .lbl {
+    font-size: 8px; color: #475569;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+  .style-7 .footer-min {
+    position: absolute; bottom: 16px; left: 36px; right: 36px;
+    font-size: 8px; color: #475569;
+    display: flex; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    padding-top: 6px;
+    border-top: 1px solid #cbd5e1;
+  }
+  .style-7 .landscape-wrap { padding: 22px 32px 28px; height: 100%; font-size: 9px; color: #1e293b; position: relative; }
+  .style-7 .land-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 8px 14px; margin: 0 -32px 14px;
+    background: #eff6ff;
+    border-top: 2px solid #1e40af;
+    border-bottom: 0.5px solid #1e40af;
+  }
+  .style-7 .land-head h2 {
+    font-size: 14px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.2px;
+    color: #1e40af;
+  }
+  .style-7 .land-head .sub {
+    font-size: 9px; color: #475569;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .style-7 table.tbl { width: 100%; border-collapse: collapse; border: 1px solid #1e40af; }
+  .style-7 table.tbl th {
+    text-align: left;
+    font-size: 8.5px; font-weight: 700;
+    padding: 7px 8px;
+    background: #1e40af; color: white;
+    text-transform: uppercase; letter-spacing: 0.6px;
+  }
+  .style-7 table.tbl td {
+    font-size: 9px; padding: 5px 8px;
+    border-bottom: 0.5px solid #e2e8f0;
+    border-right: 0.5px solid #e2e8f0;
+  }
+  .style-7 table.tbl td:last-child { border-right: none; }
+  .style-7 table.tbl tbody tr:nth-child(even) { background: #f8fafc; }
+
+  /* Common for circuit list landscape — table cells alignment */
+  .c { text-align: center; }
+  .b { font-weight: 700; }
+  .muted { color: #5a6068; }
+  .small { font-size: 7.5px; }
+
+  /* ═════════════════════════════════════════════════════════════════════
+     STYLE 8 — ENGINEERING HIERARCHY DONE RIGHT
+     Eyebrow + tracked UPPERCASE used SPARINGLY — only for top-level page
+     hierarchy and table headers. Data stays in regular case.
+     ═════════════════════════════════════════════════════════════════════ */
+  .style-8 .page-content {
+    padding: 28px 32px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 10px;
+    color: #1f2937;
+    height: 100%;
+    position: relative;
+  }
+  /* Top brand strip — minimal, eyebrow-style */
+  .style-8 .top-strip {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 22px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #1f2937;
+  }
+  .style-8 .top-strip .brand {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 8px; font-weight: 700;
+    color: #1f2937;
+    text-transform: uppercase;
+    letter-spacing: 1.6px;          /* classic eyebrow tracking — generous */
+  }
+  .style-8 .top-strip .brand .a { color: #d97706; }
+  .style-8 .top-strip .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8.5px; color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;          /* meta also tracked but tighter */
+  }
+  /* Hero — eyebrow + title pair (classic newspaper hierarchy) */
+  .style-8 .hero-eyebrow {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 8px; font-weight: 700;
+    color: #d97706;
+    text-transform: uppercase;
+    letter-spacing: 1.8px;          /* even more generous on hero eyebrow */
+    margin-bottom: 8px;
+  }
+  .style-8 h1.hero {
+    font-size: 28px; font-weight: 700;
+    line-height: 1.1; margin-bottom: 6px;
+    color: #1f2937;
+    letter-spacing: -0.015em;        /* tight on big lowercase text */
+  }
+  .style-8 h1.hero .sub {
+    display: block; font-size: 12px; font-weight: 400;
+    color: #6b7280; margin-top: 6px;
+    letter-spacing: 0;               /* subtitle in regular case, no tracking */
+  }
+  /* Section headings — used SPARINGLY, one per page section, no eyebrow stack */
+  .style-8 h2.section {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 10px; font-weight: 700;
+    color: #1f2937;
+    margin: 22px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 0.75px solid #1f2937;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;          /* tight tracking on section title only */
+  }
+  .style-8 h2.section .num {
+    font-family: 'JetBrains Mono', monospace;
+    color: #d97706; margin-right: 10px;
+    letter-spacing: 0;
+  }
+  /* Inline labels — regular case, NO uppercase, NO tracking. This is the key change. */
+  .style-8 .field-list {
+    border-top: 1px solid #e5e7eb;
+  }
+  .style-8 .field-list .row {
+    display: grid; grid-template-columns: 180px 1fr;
+    padding: 7px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .style-8 .field-list .row .lbl {
+    font-size: 9.5px; color: #4b5563; font-weight: 500;
+    /* NO uppercase. NO letter-spacing. Just sentence-case muted text. */
+  }
+  .style-8 .field-list .row .val {
+    font-size: 10.5px; font-weight: 600; color: #1f2937;
+  }
+  /* Scope grid — section labels in regular case */
+  .style-8 .scope-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-top: 8px;
+    border-top: 1px solid #e5e7eb;
+  }
+  .style-8 .scope-grid > div {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e5e7eb;
+    border-right: 1px solid #e5e7eb;
+  }
+  .style-8 .scope-grid > div:nth-child(2n) { border-right: none; }
+  .style-8 .scope-grid .lbl {
+    font-size: 11px; font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 8px;
+    /* Regular case for group labels — natural reading */
+  }
+  .style-8 .scope-grid .item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 3px 0;
+    font-size: 9.5px;
+  }
+  .style-8 .cb {
+    width: 11px; height: 11px;
+    border: 1.5px solid #1f2937;
+    background: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; color: #1f2937; font-weight: 700;
+    flex-shrink: 0;
+  }
+  /* Signature block — labels in regular case */
+  .style-8 .signature-block {
+    margin-top: 26px;
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+  }
+  .style-8 .sig-slot .line {
+    border-bottom: 1px solid #1f2937;
+    height: 28px; margin-bottom: 4px;
+  }
+  .style-8 .sig-slot .lbl {
+    font-size: 8.5px; color: #6b7280;
+    font-weight: 600;
+    /* NO uppercase, NO tracking */
+  }
+  /* Footer — tracked uppercase, appropriate here (chrome) */
+  .style-8 .footer-min {
+    position: absolute; bottom: 16px; left: 32px; right: 32px;
+    font-size: 7.5px; color: #6b7280;
+    display: flex; justify-content: space-between;
+    font-family: 'IBM Plex Sans', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;            /* tracked uppercase OK in footer (small chrome) */
+  }
+  /* Landscape: same principles — eyebrow at top, table headers tracked */
+  .style-8 .landscape-wrap { padding: 22px 28px 28px; height: 100%; font-size: 9px; color: #1f2937; position: relative; }
+  .style-8 .land-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-bottom: 12px; margin-bottom: 18px;
+    border-bottom: 1px solid #1f2937;
+  }
+  .style-8 .land-head .eyebrow {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 7.5px; font-weight: 700;
+    color: #d97706;
+    text-transform: uppercase;
+    letter-spacing: 1.8px;
+    margin-bottom: 4px;
+    display: block;
+  }
+  .style-8 .land-head h2 {
+    font-size: 22px; font-weight: 700;
+    color: #1f2937;
+    line-height: 1.1;
+  }
+  .style-8 .land-head .sub { font-size: 9.5px; color: #6b7280; }
+  .style-8 table.tbl { width: 100%; border-collapse: collapse; }
+  .style-8 table.tbl th {
+    text-align: left;
+    font-size: 7.5px; font-weight: 700;
+    padding: 8px;
+    background: #1f2937; color: white;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;          /* table headers — tracked uppercase, appropriate */
+  }
+  .style-8 table.tbl td {
+    font-size: 9.5px; padding: 6px 8px;
+    border-bottom: 1px solid #e5e7eb;
+    /* Data cells: regular case, no tracking */
+  }
+  .style-8 table.tbl tr:nth-child(even) { background: #fafafa; }
+
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>DINBoard — porównanie 9 kierunków redesignu PDF</h1>
+  <p>Poniżej ta sama treść (strona tytułowa + lista obwodów) w dziewięciu wariantach stylistycznych.
+     Styl <strong>0</strong> to to co macie teraz — kontrast baseline.
+     Style <strong>1–3</strong> — trzy różne charaktery (klasyczny, nowoczesny, książkowy).
+     Style <strong>4–7</strong> — cztery warianty w duchu "nowoczesny inżynierski" z różnym akcentem (bursztyn / turkus / czerwień / błękit).
+     Styl <strong>8</strong> — demonstracja, że <strong>eyebrow + tracked UPPERCASE można użyć poprawnie</strong> — tylko tam gdzie służy hierarchii (górny brand strip, hero title, nagłówki tabel), a dane i etykiety inline zostają w normalnej wielkości liter. To jest odpowiedź na pytanie "a gdyby dodać eyebrow + letter-spacing?" — tak, tylko z umiarem.</p>
+  <p style="margin-top: 10px;">Wybierz ten, który najbliżej Twojego wyobrażenia o "profesjonalnej dokumentacji inżynierskiej per PN-HD 60364".
+     Jak wybierzesz — wdrożę go w <code>pdfStyles.ts</code> i 11 komponentach stron.</p>
+  <div class="meta">TREŚĆ: Oświadczenie Wykonawcy / Lista obwodów · projekt "12/2026" · adres · inwestor · zakres · 10 obwodów</div>
+</div>
+
+<div class="grid">
+
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       STYLE 8 — ENGINEERING HIERARCHY (eyebrow + tracking USED RIGHT)
+       ═══════════════════════════════════════════════════════════════════ -->
+  <div class="design">
+    <div class="design-label">
+      <div>
+        <div class="name">STYL 8 — Engineering Hierarchy</div>
+        <div class="tag">eyebrow + tracking UŻYTE DOBRZE · hierarchy gdzie służy</div>
+      </div>
+      <div class="verdict">NOWY</div>
+    </div>
+
+    <!-- Portrait: title page -->
+    <div class="a4-portrait style-8">
+      <div class="page-content">
+        <div class="top-strip">
+          <div class="brand">DINBoard<span class="a"> · </span>Dokumentacja odbiorcza</div>
+          <div class="meta">Protokół 12/2026 · 2026-07-03</div>
+        </div>
+
+        <div class="hero-eyebrow">Dokument · PN-HD 60364</div>
+        <h1 class="hero">
+          Protokół odbiorczy instalacji elektrycznej
+          <span class="sub">Budynek mieszkalny jednorodzinny · ul. Polna 15, Warszawa</span>
+        </h1>
+
+        <h2 class="section"><span class="num">01</span>Informacje o obiekcie</h2>
+        <div class="field-list">
+          <div class="row"><span class="lbl">Rodzaj obiektu</span><span class="val">Budynek mieszkalny jednorodzinny</span></div>
+          <div class="row"><span class="lbl">Adres obiektu</span><span class="val">ul. Polna 15, 00-001 Warszawa</span></div>
+          <div class="row"><span class="lbl">Inwestor</span><span class="val">Jan Kowalski</span></div>
+          <div class="row"><span class="lbl">Wykonawca</span><span class="val">EL-PROJEKT Sp. z o.o.</span></div>
+          <div class="row"><span class="lbl">Nr uprawnień SEP</span><span class="val">E-1234/2024</span></div>
+          <div class="row"><span class="lbl">Data dokumentacji</span><span class="val">2026-07-03</span></div>
+        </div>
+
+        <h2 class="section"><span class="num">02</span>Zakres prac i załączniki</h2>
+        <div class="scope-grid">
+          <div>
+            <div class="lbl">Zakres prac</div>
+            <div class="item"><div class="cb">✓</div><span>Sprawdzenie ochrony przeciwporażeniowej</span></div>
+            <div class="item"><div class="cb">✓</div><span>Badanie rezystancji izolacji</span></div>
+            <div class="item"><div class="cb">✓</div><span>Sprawdzenie wyłączników RCD</span></div>
+            <div class="item"><div class="cb">✓</div><span>Pomiary ochrony dodatkowej</span></div>
+          </div>
+          <div>
+            <div class="lbl">Załączniki do protokołu</div>
+            <div class="item"><div class="cb">✓</div><span>Schemat rozdzielnicy</span></div>
+            <div class="item"><div class="cb">✓</div><span>Lista obwodów</span></div>
+            <div class="item"><div class="cb">✓</div><span>Schemat ideowy</span></div>
+            <div class="item"><div class="cb">✓</div><span>Protokoły pomiarowe</span></div>
+          </div>
+        </div>
+
+        <h2 class="section"><span class="num">03</span>Podpisy</h2>
+        <div class="signature-block">
+          <div class="sig-slot"><div class="line"></div><div class="lbl">Wykonawca · uprawnienia SEP</div></div>
+          <div class="sig-slot"><div class="line"></div><div class="lbl">Inwestor</div></div>
+          <div class="sig-slot"><div class="line"></div><div class="lbl">Data i pieczęć</div></div>
+        </div>
+
+        <div class="footer-min">
+          <span>PN-HD 60364 · DINBoard</span>
+          <span>1 / 8</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Landscape: circuit list -->
+    <div class="a4-landscape style-8">
+      <div class="landscape-wrap">
+        <div class="land-head">
+          <div>
+            <span class="eyebrow">Arkusz · Lista obwodów</span>
+            <h2>Obwody elektryczne — budynek mieszkalny</h2>
+          </div>
+          <span class="sub">2026-07-03 · Arkusz 1 z 1 · Protokół 12/2026</span>
+        </div>
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th style="width: 4%;">Lp.</th>
+              <th style="width: 8%;">Ozn.</th>
+              <th style="width: 20%;">Nazwa obwodu</th>
+              <th style="width: 13%;">Lokalizacja</th>
+              <th style="width: 7%;">Faza</th>
+              <th style="width: 12%;">Zabezp.</th>
+              <th style="width: 14%;">RCD</th>
+              <th style="width: 8%;">Przewód</th>
+              <th style="width: 7%;">Dł. [m]</th>
+              <th style="width: 7%;">Moc [W]</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td style="width: 4%;">1</td><td style="width: 8%;">F1</td><td style="width: 20%;">Oświetlenie parter</td><td style="width: 13%;">Parter</td><td style="width: 7%;">L1</td><td style="width: 12%;">B10A</td><td style="width: 14%;">RCD-1 30mA</td><td style="width: 8%;">3×1.5 mm²</td><td style="width: 7%;">42</td><td style="width: 7%;">880</td></tr>
+            <tr><td>2</td><td>F2</td><td>Gniazda parter</td><td>Parter</td><td>L1</td><td>B16A</td><td>RCD-1 30mA</td><td>3×2.5 mm²</td><td>38</td><td>2300</td></tr>
+            <tr><td>3</td><td>F3</td><td>Kuchnia – gniazda</td><td>Kuchnia</td><td>L2</td><td>B20A</td><td>RCD-1 30mA</td><td>3×4 mm²</td><td>28</td><td>3680</td></tr>
+            <tr><td>4</td><td>F4</td><td>Łazienka – gniazda</td><td>Łazienka</td><td>L2</td><td>B16A</td><td>RCD-2 30mA</td><td>3×2.5 mm²</td><td>22</td><td>1840</td></tr>
+            <tr><td>5</td><td>F5</td><td>Oświetlenie piętro</td><td>Piętro</td><td>L3</td><td>B10A</td><td>RCD-2 30mA</td><td>3×1.5 mm²</td><td>36</td><td>720</td></tr>
+            <tr><td>6</td><td>F6</td><td>Gniazda piętro</td><td>Piętro</td><td>L3</td><td>B16A</td><td>RCD-2 30mA</td><td>3×2.5 mm²</td><td>31</td><td>1840</td></tr>
+            <tr><td>7</td><td>F7</td><td>Pralka</td><td>Łazienka</td><td>L1</td><td>B16A</td><td>RCD-2 30mA</td><td>3×2.5 mm²</td><td>14</td><td>2300</td></tr>
+            <tr><td>8</td><td>F8</td><td>Suszarka</td><td>Łazienka</td><td>L1</td><td>B16A</td><td>RCD-2 30mA</td><td>3×2.5 mm²</td><td>15</td><td>2300</td></tr>
+            <tr><td>9</td><td>F9</td><td>Zmywarka</td><td>Kuchnia</td><td>L2</td><td>B16A</td><td>RCD-1 30mA</td><td>3×2.5 mm²</td><td>12</td><td>2200</td></tr>
+            <tr><td>10</td><td>F10</td><td>Bojler</td><td>Kotłownia</td><td>L3</td><td>B20A</td><td>RCD-1 30mA</td><td>3×4 mm²</td><td>18</td><td>3000</td></tr>
+          </tbody>
+        </table>
+        <div class="footer-min">
+          <span>PN-HD 60364 · DINBoard</span>
+          <span>3 / 8</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="max-width: 1200px; margin: 48px auto 0; padding: 24px 28px; background: white; border-radius: 8px; border: 1px solid #d4d4d2;">
+  <h3 style="font-size: 16px; margin-bottom: 10px;">Który wybrać?</h3>
+  <p style="font-size: 13px; color: #3a4256; margin-bottom: 8px;"><strong>Styl 0 (obecny)</strong> — Linear/Stripe SaaS. Wygląda jak panel aplikacji, nie jak dokument inżynierski. Mój werdykt: nie pasuje.</p>
+  <p style="font-size: 13px; color: #3a4256; margin-bottom: 8px;"><strong>Styl 1 (Polska Dokumentacja Inżynierska)</strong> — klasyczny title-block w stylu AutoCAD/PN. Zero koloru poza czernią, formalny układ. Najbliżej tego co polski elektryk widzi w prawdziwej dokumentacji odbiorczej.</p>
+  <p style="font-size: 13px; color: #3a4256; margin-bottom: 8px;"><strong>Styl 2 (Nowoczesny Inżynier)</strong> — czysty, minimalistyczny, jeden akcent (czerwień). Mniej konserwatywny, ale wciąż profesjonalny. Dla kogoś kto chce "nowocześnie ale bez SaaS-owych tricków".</p>
+  <p style="font-size: 13px; color: #3a4256; margin-bottom: 8px;"><strong>Styl 3 (Heritage Technical)</strong> — ciepły krem + serif. Najbardziej "książkowy" z całej czwórki. Elegancki, ale może być zbyt dekoracyjny dla dokumentacji technicznej.</p>
+
+  <p style="font-size: 13px; color: #3a4256; margin: 14px 0 8px; padding-top: 12px; border-top: 1px solid #e4e4e4;"><strong style="color: #14171e;">Warianty w duchu "nowoczesny inżynierski" (4–7):</strong></p>
+  <p style="font-size: 13px; color: #3a4256; margin-bottom: 8px;"><strong>Styl 4 (Steel &amp; Amber)</strong> — slate + ciepły bursztyn. Najbardziej "ciepły" z tej czwórki. Kojarzy się ze sterownikami przemysłowymi, panelami HMI, automatyką. Numeracja sekcji w bursztynowych "chipach".</p>
+  <p style="font-size: 13px; color: #3a4256; margin-bottom: 8px;"><strong>Styl 5 (Graphite &amp; Teal)</strong> — grafit + turkus. Klimat Siemens / ABB / Eaton. Bardzo "inżynierski", z podwójnym paskiem na górze i tealowym akcentem pod nagłówkiem tabeli. Wyróżnia się klasą.</p>
+  <p style="font-size: 13px; color: #3a4256; margin-bottom: 8px;"><strong>Styl 6 (Carbon &amp; Signal Red)</strong> — czerń + sygnałowa czerwień. Klimat Schneider Electric / Phoenix Contact / Eaton. Najbardziej agresywny, ale bardzo "safety-conscious" (czerwony akcent na lewej krawędzi pierwszej kolumny tabeli).</p>
+  <p style="font-size: 13px; color: #3a4256; margin-bottom: 8px;"><strong>Styl 7 (Blueprint)</strong> — biały + klasyczny błękit rysunkowy. Klimat CAD / rysunek techniczny. Najbardziej "rysunkowy" z całej dziewiątki, wartości w polach są monospace (jak wymiary na rysunku). Nagłówki w jasnoniebieskim tle.</p>
+
+  <p style="font-size: 13px; color: #3a4256; margin: 14px 0 8px; padding-top: 12px; border-top: 1px solid #e4e4e4;"><strong style="color: #14171e;">Demonstracja: "a gdyby dodać eyebrow + letter-spacing?" (styl 8):</strong></p>
+  <p style="font-size: 13px; color: #3a4256; margin-bottom: 8px;"><strong>Styl 8 (Engineering Hierarchy)</strong> — odpowiedź na pytanie czy eyebrow + tracked UPPERCASE pasuje do dokumentacji inżynierskiej. Tak — ale tylko tam gdzie służy hierarchii. W tym stylu eyebrow + tracking jest na: brand stripie u góry, hero title (jako "Dokument · PN-HD 60364"), nagłówkach sekcji (uppercase z 1.2px trackingiem) i nagłówkach tabel. <strong>Dane i etykiety inline zostają w normalnej wielkości liter</strong> — "Rodzaj obiektu" nie jest krzyczane jako "RODZAJ OBIEKTU". To jest różnica między "użyciem techniki" a "oblepieniem dokumentu micro-typografią".</p>
+
+  <p style="font-size: 13px; color: #14171e; margin-top: 14px; padding-top: 14px; border-top: 1px solid #e4e4e4;">
+    <strong>Zaktualizowana rekomendacja:</strong> z dziewięciu wariantów trzy są teraz poważnymi kandydatami, w zależności od tego co chcesz żeby klient/inspektor czuł patrząc na dokument:
+  </p>
+  <p style="font-size: 13px; color: #14171e; margin-top: 6px;"><strong>→ Styl 1 (Polska Dokumentacja Inżynierska)</strong> — jeśli chcesz "protokół jak za starych dobrych czasów", formalnie i konserwatywnie. Bezpieczny wybór.</p>
+  <p style="font-size: 13px; color: #14171e; margin-top: 6px;"><strong>→ Styl 8 (Engineering Hierarchy)</strong> — jeśli chcesz żeby dokument wyglądał nowocześnie ale z szacunkiem do typografii. Hierarchia zrobiona profesjonalnie, nie marketingowo. To by była moja rekomendacja gdybym miał wybrać "nowoczesny, który nie wstydzi się być dokumentem".</p>
+  <p style="font-size: 13px; color: #14171e; margin-top: 6px;"><strong>→ Styl 5 (Graphite &amp; Teal)</strong> — jeśli chcesz czysto nowoczesny, zero eyebrow, pełna kontrola nad każdym akcentem. Bardziej "design tool" niż "dokument".</p>
+</div>
+
+</body>
+</html>

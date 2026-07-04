@@ -433,7 +433,7 @@
         "signatureSlot": "miejsce na pieczęć / podpis",
         "checkedBy": "Sprawdził (Wykonawca/Elektryk)",
         "sepSignature": "Podpis osoby z uprawnieniami SEP",
-        "pageInfo": "Strona {{pageNumber}} z {{totalPages}} • Dokument wygenerowany cyfrowo • Zgodny z normą PN-HD 60364"
+        "pageInfo": "Strona {{pageNumber}} z {{totalPages}}"
       },
       "docContentPage": {
         "title": "Dokumentacja projektu",
@@ -750,6 +750,8 @@
   "app.powerBalance.statusOk": "Bilans mieści się w mocy przyłączeniowej",
   "app.powerBalance.statusCritical": "Przekroczono moc przyłączeniową",
   "app.powerBalance.phaseBalanceTitle": "BILANS FAZ",
+  "app.tools.phaseBalance.noDistributionFound": "Nie znaleziono propozycji balansu. Sprawdź, czy obwody posiadają odpowiednią moc i czy nie są już podłączone.",
+  "pdf.measurementProtocols.unifiedSubtitle": "Parametry pętli zwarcia, izolacji i ciągłości",
   "app.powerBalance.cosPhiTooltip": "Współczynnik mocy użyty do przeliczenia prądu z mocy zainstalowanej",
   "app.powerBalance.phaseImbalance": "Asymetria faz",
   "app.powerBalance.circuitTableTitle": "OBCIĄŻENIA OBWODÓW",
@@ -920,7 +922,7 @@
   "pdf.circuitList.colLength": "Dł. [m]",
   "pdf.circuitList.colPower": "Moc",
   "pdf.circuitList.empty": "Brak obwodów do pokazania.",
-  "pdf.footer.pageInfo": "Strona {{pageNumber}} z {{totalPages}} • Dokument wygenerowany cyfrowo • Zgodny z normą PN-HD 60364",
+  "pdf.footer.pageInfo": "Strona {{pageNumber}} z {{totalPages}}",
   "Rozdzielnica główna RG-1": "Rozdzielnica główna RG-1",
   "pdf.docContentPage.title": "Zawartość dokumentacji",
   "pdf.docContentPage.subtitle": "Opis poszczególnych arkuszy (Spis Treści)",

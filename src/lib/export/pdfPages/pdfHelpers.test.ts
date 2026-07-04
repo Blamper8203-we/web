@@ -153,23 +153,23 @@ describe("countPdfPages", () => {
   // WHY: `createEmptyProjectMetadata()` seeds `measurementProtocols.unifiedRows`
   // with 15 placeholder rows (LOOP_ROW_COUNT) and `rcdRows` with 6 — the PDF
   // renders both sections even for an "empty" project. Pin the baseline:
-  //   1 (title) + 1 (summary) + 0 (no symbols → no circuit list)
+  //   2 (title) + 1 (toc) + 1 (summary) + 0 (no symbols → no circuit list)
   //   + 3 (15 unified rows / UNIFIED_ROWS_PER_PAGE=7) + 1 (RCD, single page)
-  //   + 0 (no schematic, no DIN rail in this call) = 6
-  it("returns 6 for an empty project (title + summary + 3 unified + 1 RCD)", () => {
+  //   + 0 (no schematic, no DIN rail in this call) = 7
+  it("returns 8 for an empty project (title + toc + summary + 3 unified + 1 RCD)", () => {
     const total = countPdfPages(createEmptyProjectMetadata(), []);
-    expect(total).toBe(6);
+    expect(total).toBe(8);
   });
 
   it("counts both DIN rail pages (wires-off + wires-on) — Bug B regression", () => {
     // WHY: pdfExportService always renders BOTH the wires-off and wires-on
     // DIN rail snapshots as separate A4 pages. The UI footer must match.
-    // 6 (empty project baseline) + 2 DIN rail pages = 8.
+    // 7 (empty project baseline) + 2 DIN rail pages = 9.
     const total = countPdfPages(createEmptyProjectMetadata(), [], {
       dinRailImages: ["<svg wires-on/>"],
       dinRailWithoutWiresImages: ["<svg wires-off/>"],
     });
-    expect(total).toBe(8);
+    expect(total).toBe(10);
   });
 
   it("excludes empty circuit-list and unified sections from the total", () => {
@@ -185,8 +185,8 @@ describe("countPdfPages", () => {
       },
     };
     const total = countPdfPages(metadata, []);
-    // title + summary only = 2 (no DIN rail, no schematic, no protocol rows).
-    expect(total).toBe(2);
+    // title (2 pages) + toc + summary only = 4 (no DIN rail, no schematic, no protocol rows).
+    expect(total).toBe(4);
   });
 
   it("chunks circuit-list rows by CIRCUIT_LIST_ROWS_PER_PAGE (10)", () => {
@@ -220,9 +220,9 @@ describe("countPdfPages", () => {
         unifiedRows: [],
       },
     };
-    // 1 (title) + 1 (summary) + 0 (no RCD) = 2
+    // 2 (title) + 1 (toc) + 1 (summary) + 0 (no RCD) = 4
     const withoutRcd = countPdfPages(baseMetadata, []);
-    expect(withoutRcd).toBe(2);
+    expect(withoutRcd).toBe(4);
 
     const withRcd = countPdfPages(
       {
@@ -246,12 +246,12 @@ describe("countPdfPages", () => {
       },
       [],
     );
-    // + 1 RCD page = 3
-    expect(withRcd).toBe(3);
+    // + 1 RCD page = 5
+    expect(withRcd).toBe(5);
   });
 
   it("counts one schematic page per image in the array", () => {
-    // 2 (title + summary) + 3 schematic + 0 unified/rcd when explicitly cleared = 5
+    // 3 (title + summary) + 3 schematic + 0 unified/rcd when explicitly cleared = 6
     const metadata = {
       ...createEmptyProjectMetadata(),
       measurementProtocols: {
@@ -263,7 +263,7 @@ describe("countPdfPages", () => {
     const total = countPdfPages(metadata, [], {
       schematicImages: ["a", "b", "c"],
     });
-    expect(total).toBe(5);
+    expect(total).toBe(7);
   });
 
   it("respects previewOnly: din-rail (single-section rendering)", () => {

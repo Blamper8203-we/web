@@ -2,7 +2,7 @@ import { Page, Text, View } from "@react-pdf/renderer";
 import i18next from "i18next";
 const t = i18next.t.bind(i18next);
 import type { ProjectMetadata } from "../../../types/projectMetadata";
-import { pdfStyles as styles } from "./pdfStyles";
+import { pdfStyles as styles, palette } from "./pdfStyles";
 
 /**
  * WHY a separate page (not folded into TitlePage):
@@ -48,7 +48,7 @@ export function PdfDocumentationContentPage({
     .filter((entry) => entry.text.length > 0);
 
   return (
-    <Page size="A4" style={styles.page}>
+    <Page id="documentation-content" size="A4" style={styles.page}>
       <View style={styles.pageTopBar} fixed />
 
       <View style={styles.pageHeader}>
@@ -80,7 +80,7 @@ export function PdfDocumentationContentPage({
               </View>
               <View style={{ marginBottom: 16 }}>
                 {text.split("\n").map((line, lineIdx) => (
-                  <Text key={lineIdx} style={[styles.dataValue, { fontSize: 9.5, fontWeight: "normal", lineHeight: 1.6, color: "#334155" }]}>
+                  <Text key={lineIdx} style={[styles.dataValue, { fontSize: 9.5, fontWeight: "normal", lineHeight: 1.6, color: palette.inkSecondary }]}>
                     {line.length > 0 ? line : " "}
                   </Text>
                 ))}

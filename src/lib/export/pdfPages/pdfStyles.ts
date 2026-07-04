@@ -1,65 +1,106 @@
 import { Font, StyleSheet } from "@react-pdf/renderer";
 
 // =============================================================================
-//  DINBoard PDF Design Tokens
+//  DINBoard PDF Design Tokens — "Engineering Hierarchy" (Style 8)
 // =============================================================================
 //
-//  Style: "Modern Technical Documentation"
-//  Inspiration: Linear / Stripe Docs / Notion Reports — restrained, professional,
-//  prints beautifully on A4 (mono or color), ages well.
+//  Style: "Engineering Hierarchy Done Right"
+//  Inspiration: Siemens S7 manuals, ABB drive datasheets, Phoenix Contact
+//  catalogues — professional industrial documentation where hierarchy is
+//  created with Restrained Eyebrow + Tracked UPPERCASE on structural labels,
+//  but DATA and inline labels stay in regular case for readability.
 //
-//  Design rules:
-//    1. ONE accent color (navy #1E3A5F) — never on body text, never on bg
-//       fills except: section rules, table headers, navy top bar, accent bars
-//       on callouts/statements.
-//    2. NO card-itis — sections separated by whitespace + numbered markers,
-//       not by bordered boxes. Cards only where content is genuinely discrete
-//       (e.g. RCD grouping where the boundary is semantic).
-//    3. Hairline borders — borders are #E2E8F0 (1pt) by default. Navy borders
-//       only on table top edges and the page top bar.
-//    4. Vertical type rhythm — labels uppercase tracked; values regular case.
-//    5. Footer page info uses muted slate (#94A3B8) — never gray-500.
+//  Design rules (per AGENTS.md "PDF is part of engineering deliverable"):
+//    1. ONE accent color (warm amber #d97706) — used SPARINGLY for hierarchy
+//       cues (page top bar, eyebrow text, section numbers, protocol pill).
+//       Never on body text, never on data values.
+//    2. UPPERCASE + letter-spacing ONLY on STRUCTURAL labels (brand strip,
+//       section titles, table headers, footer chrome). DATA labels stay in
+//       sentence case — "Rodzaj obiektu" not "RODZAJ OBIEKTU".
+//    3. Hairline borders — borders are #E5E7EB (0.5–0.75pt) by default. Ink
+//       (#1F2937) only on table top edges, page top bar, signature lines.
+//    4. Vertical type rhythm — section numbers mono + amber, labels muted
+//       gray, values dark slate + bold. Hero titles: regular case, tight
+//       tracking (negative letter-spacing on big text).
+//    5. Footer chrome uses tracked UPPERCASE small caps (intentional
+//       typographic micro-detail — same as Siemens datasheet footers).
 // =============================================================================
 
 export const A4_PREVIEW_PADDING = 42.5;
 
-// Aria is a system-safe Arial-equivalent; we still register the TTF explicitly
-// because @react-pdf/renderer needs the font in its own registry.
+// IBM Plex Sans — primary type family for the PDF. Sans-serif designed by
+// IBM for engineering/technical content (paired with Plex Mono for chrome).
+// TTF files bundled under public/fonts/. SIL Open Font License 1.1 — see
+// public/fonts/IBMPlexSans-OFL.txt for the full license text and copyright
+// notice ("Plex" is a Reserved Font Name; we use the family as-shipped).
+Font.register({
+  family: "IBM Plex Sans",
+  fonts: [
+    { src: "/fonts/IBMPlexSans-Regular.ttf" },
+    { src: "/fonts/IBMPlexSans-Bold.ttf", fontWeight: "bold" },
+    { src: "/fonts/IBMPlexSans-Italic.ttf", fontStyle: "italic" },
+    { src: "/fonts/IBMPlexSans-BoldItalic.ttf", fontWeight: "bold", fontStyle: "italic" },
+  ],
+});
+
+// IBM Plex Mono — for technical chrome (section numbers, numeric protocol
+// codes). Same license as Plex Sans — see public/fonts/IBMPlexMono-OFL.txt.
+Font.register({
+  family: "IBM Plex Mono",
+  fonts: [
+    { src: "/fonts/IBMPlexMono-Regular.ttf" },
+    { src: "/fonts/IBMPlexMono-Bold.ttf", fontWeight: "bold" },
+  ],
+});
+
+// Arial TTF is kept as a defensive fallback in case the Plex Sans TTF fails
+// to load in a constrained environment (e.g. headless renderer without
+// internet — though our TTF is bundled locally, network policy can still
+// block it on some CI runners). @react-pdf/renderer falls back automatically
+// if the registered family isn't found.
 Font.register({
   family: "Arial",
   fonts: [
     { src: "/fonts/arial.ttf" },
     { src: "/fonts/arialbd.ttf", fontWeight: "bold" },
     { src: "/fonts/ariali.ttf", fontStyle: "italic" },
-    {
-      src: "/fonts/arialbi.ttf",
-      fontWeight: "bold",
-      fontStyle: "italic",
-    },
+    { src: "/fonts/arialbi.ttf", fontWeight: "bold", fontStyle: "italic" },
   ],
 });
 
 // Reusable color constants — exported so page components can use them for
 // inline overrides without re-typing hex.
 export const palette = {
-  brand: "#1E3A5F",          // DINBoard navy — primary accent
-  brandStrong: "#2D5078",    // hover / active / section emphasis
-  brandSubtle: "#F1F4F9",    // very light tint for accent backgrounds
-  ink: "#0F172A",            // primary text — slate-900
-  inkSecondary: "#334155",   // secondary text — slate-700
-  inkTertiary: "#64748B",    // tertiary text — slate-500
-  inkMuted: "#94A3B8",       // captions / footer — slate-400
-  inkInverse: "#FFFFFF",
-  pageBg: "#FAF9F6",         // warm off-white paper
-  rowAltBg: "#F8FAFC",       // alternating row tint
-  hairline: "#E2E8F0",       // 1pt borders — slate-200
-  border: "#CBD5E1",         // default borders — slate-300
-  borderStrong: "#94A3B8",   // emphasized borders — slate-400
-  success: "#047857",        // emerald-700 — assessment "Pozytywna"
-  warning: "#B45309",        // amber-700
-  danger: "#B91C1C",         // red-700
-  info: "#1E3A5F",           // = brand
-  infoTint: "#EFF4FA",       // light blue tint for Riso columns
+  // Accent — crisp corporate teal, professional and modern
+  accent: "#0d9488",          // teal-600 — page top bar, eyebrow, section numbers
+  accentStrong: "#0f766e",    // teal-700 — pressed/hover/focus state
+  accentSubtle: "#f0fdfa",    // teal-50 — very light tinted backgrounds
+
+  // Backward-compat aliases
+  brand: "#0d9488",
+  brandStrong: "#0f766e",
+  brandSubtle: "#f0fdfa",
+
+  // Ink hierarchy — clean slate
+  ink: "#0f172a",             // slate-900 — primary text + table header bg
+  inkSecondary: "#334155",    // slate-700
+  inkTertiary: "#64748b",     // slate-500 — inline labels (regular case)
+  inkMuted: "#94a3b8",        // slate-400 — page footer text
+  inkInverse: "#ffffff",
+
+  // Surfaces
+  pageBg: "#ffffff",
+  rowAltBg: "#f8fafc",        // slate-50 — very subtle zebra
+  hairline: "#e2e8f0",        // slate-200 — default border
+  border: "#cbd5e1",          // slate-300
+  borderStrong: "#94a3b8",    // slate-400
+
+  // Status (kept semantic, no brand-color pollution)
+  success: "#059669",         // emerald-600 — measurement pass
+  warning: "#d97706",         // amber-600 — measurement warning
+  danger: "#dc2626",          // red-600 — measurement fail
+  info: "#0d9488",            // alias for accent (kept for backward compat)
+  infoTint: "#f0fdfa",        // alias for accentSubtle
 };
 
 export const pdfStyles = StyleSheet.create({
@@ -69,35 +110,35 @@ export const pdfStyles = StyleSheet.create({
   page: {
     padding: 36,
     paddingTop: 28,
-    fontFamily: "Arial",
+    fontFamily: "IBM Plex Sans",
     color: palette.ink,
     backgroundColor: palette.pageBg,
-    fontSize: 9,
-    lineHeight: 1.45,
+    fontSize: 10,
+    lineHeight: 1.5,
   },
   landscapePage: {
     padding: 32,
     paddingTop: 24,
-    fontFamily: "Arial",
+    fontFamily: "IBM Plex Sans",
     color: palette.ink,
     backgroundColor: palette.pageBg,
-    fontSize: 9,
-    lineHeight: 1.45,
+    fontSize: 10,
+    lineHeight: 1.5,
   },
   titlePage: {
     paddingHorizontal: 36,
     paddingTop: 28,
     paddingBottom: 32,
-    fontFamily: "Arial",
+    fontFamily: "IBM Plex Sans",
     color: palette.ink,
     backgroundColor: palette.pageBg,
-    fontSize: 9,
-    lineHeight: 1.45,
+    fontSize: 10,
+    lineHeight: 1.5,
   },
   previewA4Page: { padding: A4_PREVIEW_PADDING },
 
   // ─────────────────────────────────────────────────────────────────────
-  // PAGE TOP BAR (3pt navy stripe at top of every page)
+  // PAGE TOP BAR — Thin 3px amber line at the very top edge of the page
   // ─────────────────────────────────────────────────────────────────────
   pageTopBar: {
     position: "absolute",
@@ -105,12 +146,11 @@ export const pdfStyles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 3,
-    backgroundColor: palette.brand,
+    backgroundColor: palette.accent,
   },
 
   // ─────────────────────────────────────────────────────────────────────
-  // PAGE HEADER (replaces heavy border-b-2-dark pattern)
-  // title-block left | meta right; separated by hairline rule under
+  // PAGE HEADER — Clean, minimalist white header separated by a single dark line
   // ─────────────────────────────────────────────────────────────────────
   pageHeader: {
     display: "flex",
@@ -119,90 +159,139 @@ export const pdfStyles = StyleSheet.create({
     alignItems: "flex-start",
     paddingBottom: 14,
     marginBottom: 22,
-    borderBottomWidth: 0.75,
+    borderBottomWidth: 1,
     borderBottomColor: palette.ink,
     borderBottomStyle: "solid",
   },
   pageHeaderLeft: { display: "flex", flexDirection: "row", alignItems: "center", flex: 1 },
   pageHeaderRight: { display: "flex", flexDirection: "column", alignItems: "flex-end", maxWidth: "32%" },
 
-  // Eyebrow tag — small uppercase tracked label above the page title
+  // Eyebrow tag — small uppercase tracked accent label above titles.
+  // (Only place where uppercase + tracking is OK at small sizes — it serves
+  // hierarchy, not decoration. See PdfTitlePage for paired hero eyebrow.)
   eyebrow: {
-    fontSize: 7,
+    fontSize: 7.5,
     fontWeight: "bold",
-    color: palette.brand,
+    color: palette.accent,
     textTransform: "uppercase",
-    letterSpacing: 1.4,
+    letterSpacing: 1.6,
     marginBottom: 4,
   },
 
-  // Page H1 — the main title of the page
+  // Page H1 — big regular-case title (NO uppercase, tight tracking).
+  // This is the key visual change: hero titles no longer shout.
   pageTitle: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: "bold",
     color: palette.ink,
-    textTransform: "uppercase",
-    letterSpacing: 0.6,
-    lineHeight: 1.2,
+    letterSpacing: -0.5,
+    lineHeight: 1.15,
   },
 
-  // Subtitle — muted description under page title
-  pageSubtitle: {
+  // Page brand — single-line identity in page header left block.
+  pageBrand: {
+    fontSize: 12,
+    fontWeight: "bold",
+    color: palette.ink,
+    letterSpacing: 0,
+  },
+  // Page brand sub — small norm reference under brand line.
+  pageBrandSub: {
     fontSize: 8.5,
     color: palette.inkTertiary,
-    marginTop: 3,
+    marginTop: 2,
+    letterSpacing: 0.2,
   },
 
-  // Meta on the right side of header (date / object)
-  metaLabel: {
-    fontSize: 7,
-    color: palette.inkMuted,
+  // Page header right block — compact one-line metadata.
+  pageHeaderRightLine: {
+    fontSize: 10,
+    color: palette.ink,
+    fontWeight: "bold",
+    textAlign: "right",
+  },
+  pageHeaderRightLabel: {
+    fontSize: 8,
+    fontWeight: "bold",
+    color: palette.inkTertiary,
     textTransform: "uppercase",
-    letterSpacing: 1,
-    marginBottom: 2,
+    letterSpacing: 1.2,
+  },
+  pageHeaderRightValue: {
+    fontSize: 10,
+    fontWeight: "bold",
+    color: palette.ink,
+  },
+  pageHeaderRightSep: {
+    fontSize: 10,
+    color: palette.inkTertiary,
+    fontWeight: "normal",
+  },
+
+  // Subtitle — muted regular-case description under page title.
+  pageSubtitle: {
+    fontSize: 10,
+    color: palette.inkTertiary,
+    marginTop: 4,
+    lineHeight: 1.45,
+  },
+
+  // Meta on the right side of header (date / object).
+  // Tracked UPPERCASE small label = chrome, OK here.
+  metaLabel: {
+    fontSize: 7.5,
+    color: palette.inkTertiary,
+    textTransform: "uppercase",
+    letterSpacing: 1.2,
+    marginBottom: 3,
+    fontWeight: "bold",
   },
   metaValue: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: "bold",
     color: palette.ink,
   },
   metaValueSubtle: {
-    fontSize: 8.5,
+    fontSize: 9.5,
     color: palette.inkSecondary,
   },
 
   // ─────────────────────────────────────────────────────────────────────
-  // SECTION HEADING — numbered marker + title + thin rule
-  // replaces gray-100 pillbox pattern
+  // SECTION HEADING — amber mono number + UPPERCASE title + ink hairline.
+  // WHY: tighter margins than previous version (18/8 instead of 22/12)
+  // to keep 3 sections + statement + signatures on one A4 page.
   // ─────────────────────────────────────────────────────────────────────
   sectionHeading: {
     display: "flex",
     flexDirection: "row",
     alignItems: "baseline",
-    marginTop: 18,
-    marginBottom: 12,
-    paddingBottom: 6,
-    borderBottomWidth: 0.5,
-    borderBottomColor: palette.hairline,
+    marginTop: 12,
+    marginBottom: 4,
+    paddingBottom: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: palette.accent,
     borderBottomStyle: "solid",
   },
   sectionNumber: {
-    fontSize: 9,
+    fontFamily: "IBM Plex Mono",
+    fontSize: 10,
     fontWeight: "bold",
-    color: palette.brand,
-    marginRight: 10,
-    letterSpacing: 1.2,
+    color: palette.accent,
+    marginRight: 12,
+    letterSpacing: 0,
   },
   sectionTitle: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "bold",
     color: palette.ink,
     textTransform: "uppercase",
-    letterSpacing: 1.4,
+    letterSpacing: 1.2,
   },
 
   // ─────────────────────────────────────────────────────────────────────
-  // DATA LAYOUT — label : value pairs (replaces bordered cards)
+  // DATA LAYOUT — KEY CHANGE: labels in SENTENCE case, no tracking.
+  // This is the single biggest typographic shift from the previous design —
+  // "Rodzaj obiektu" now reads as a label, not as a shout.
   // ─────────────────────────────────────────────────────────────────────
   dataRow: {
     display: "flex",
@@ -221,14 +310,13 @@ export const pdfStyles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   dataLabel: {
-    fontSize: 8.5,
-    fontWeight: "bold",
-    color: palette.inkSecondary,
-    textTransform: "uppercase",
-    letterSpacing: 0.6,
+    fontSize: 9.5,
+    fontWeight: "normal",
+    color: palette.inkTertiary,
+    // NO textTransform. NO letterSpacing. Just sentence-case muted text.
   },
   dataValue: {
-    fontSize: 10,
+    fontSize: 10.5,
     color: palette.ink,
     fontWeight: "bold",
   },
@@ -239,42 +327,44 @@ export const pdfStyles = StyleSheet.create({
   },
 
   // ─────────────────────────────────────────────────────────────────────
-  // TWO-COLUMN DATA GRID — replaces card grids for scope / attachments /
-  // contractor / license blocks
+  // TWO-COLUMN DATA GRID
   // ─────────────────────────────────────────────────────────────────────
   twoColGrid: {
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 18,
+    marginBottom: 12,
   },
   twoColGridItem: { width: "48%" },
   threeColGrid: { display: "flex", flexDirection: "row", justifyContent: "space-between" },
   threeColGridItem: { width: "31%" },
 
   // ─────────────────────────────────────────────────────────────────────
-  // STATEMENT BLOCK — left accent bar + generous padding (replaces card)
+  // STATEMENT BLOCK — light amber tint + amber left bar (was navy).
+  // WHY: tighter padding than the previous version so the statement fits
+  // comfortably above the signature row on a single A4 page (no overflow).
   // ─────────────────────────────────────────────────────────────────────
   statementBlock: {
-    paddingLeft: 16,
-    paddingRight: 16,
-    paddingVertical: 14,
-    marginVertical: 18,
+    paddingLeft: 14,
+    paddingRight: 14,
+    paddingTop: 10,
+    paddingBottom: 10,
+    marginVertical: 14,
     borderLeftWidth: 3,
-    borderLeftColor: palette.brand,
+    borderLeftColor: palette.accent,
     borderLeftStyle: "solid",
-    backgroundColor: palette.brandSubtle,
+    backgroundColor: palette.accentSubtle,
   },
   statementTitle: {
-    fontSize: 8,
+    fontSize: 7.5,
     fontWeight: "bold",
-    color: palette.brand,
+    color: palette.accent,
     textTransform: "uppercase",
     letterSpacing: 1.6,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   statementBody: {
-    fontSize: 9.5,
+    fontSize: 9,
     color: palette.inkSecondary,
     lineHeight: 1.55,
   },
@@ -287,23 +377,23 @@ export const pdfStyles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-end",
-    paddingTop: 20,
-    marginTop: 20,
+    paddingTop: 22,
+    marginTop: 22,
     borderTopWidth: 0.5,
     borderTopColor: palette.hairline,
     borderTopStyle: "solid",
   },
   signatureSlot: {
-    width: 160,
+    width: 150,
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
   },
   signatureLine: {
     width: "100%",
-    height: 36,
+    height: 44,
     borderBottomWidth: 0.75,
-    borderBottomColor: palette.inkMuted,
+    borderBottomColor: palette.ink,
     borderBottomStyle: "solid",
     display: "flex",
     justifyContent: "center",
@@ -312,7 +402,7 @@ export const pdfStyles = StyleSheet.create({
   },
   signatureStampSlot: {
     width: "100%",
-    height: 56,
+    height: 44,
     borderWidth: 0.5,
     borderColor: palette.border,
     borderStyle: "dashed",
@@ -323,30 +413,29 @@ export const pdfStyles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   signatureLabel: {
-    fontSize: 7.5,
+    fontSize: 8.5,
     fontWeight: "bold",
     color: palette.ink,
-    textTransform: "uppercase",
-    letterSpacing: 1,
     marginTop: 6,
     textAlign: "center",
   },
   signatureSubLabel: {
-    fontSize: 6.5,
-    color: palette.inkMuted,
+    fontSize: 7,
+    color: palette.inkTertiary,
     marginTop: 2,
     textAlign: "center",
   },
 
   // ─────────────────────────────────────────────────────────────────────
-  // CHECKBOX — slim, navy border, navy check
+  // CHECKBOX — slim, ink border, ink check (was navy → now ink for less
+  // visual noise; amber is reserved for hierarchy)
   // ─────────────────────────────────────────────────────────────────────
   checkboxContainer: {
     width: 12,
     height: 12,
     borderRadius: 2,
     borderWidth: 0.75,
-    borderColor: palette.brand,
+    borderColor: palette.ink,
     borderStyle: "solid",
     backgroundColor: palette.inkInverse,
     display: "flex",
@@ -355,46 +444,48 @@ export const pdfStyles = StyleSheet.create({
     marginRight: 8,
   },
   checkboxChecked: {
-    color: palette.brand,
+    color: palette.ink,
     fontSize: 9,
     fontWeight: "bold",
     lineHeight: 1,
   },
 
   // ─────────────────────────────────────────────────────────────────────
-  // TABLE — navy header, alternating rows, no vertical lines
+  // TABLE — Minimalist Swiss Design. No dark headers, clean hairlines.
   // ─────────────────────────────────────────────────────────────────────
   table: {
-    borderTopWidth: 1.5,
-    borderTopColor: palette.brand,
+    borderTopWidth: 2,
+    borderTopColor: palette.ink,
     borderTopStyle: "solid",
-    marginBottom: 12,
+    marginBottom: 16,
   },
   tableHeaderRow: {
     display: "flex",
     flexDirection: "row",
-    backgroundColor: palette.brand,
-    color: palette.inkInverse,
+    backgroundColor: palette.pageBg,
+    borderBottomWidth: 1,
+    borderBottomColor: palette.ink,
+    borderBottomStyle: "solid",
   },
   tableHeaderCell: {
     paddingHorizontal: 6,
-    paddingVertical: 7,
+    paddingVertical: 8,
     fontSize: 7.5,
     fontWeight: "bold",
     textTransform: "uppercase",
-    letterSpacing: 0.8,
-    color: palette.inkInverse,
+    letterSpacing: 1.0,
+    color: palette.ink,
     display: "flex",
     alignItems: "center",
   },
   tableHeaderCellCenter: {
     paddingHorizontal: 6,
-    paddingVertical: 7,
+    paddingVertical: 8,
     fontSize: 7.5,
     fontWeight: "bold",
     textTransform: "uppercase",
-    letterSpacing: 0.8,
-    color: palette.inkInverse,
+    letterSpacing: 1.0,
+    color: palette.ink,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -403,7 +494,7 @@ export const pdfStyles = StyleSheet.create({
   tableBodyRow: {
     display: "flex",
     flexDirection: "row",
-    backgroundColor: palette.inkInverse,
+    backgroundColor: palette.pageBg,
     borderBottomWidth: 0.5,
     borderBottomColor: palette.hairline,
     borderBottomStyle: "solid",
@@ -411,7 +502,7 @@ export const pdfStyles = StyleSheet.create({
   tableBodyRowAlt: {
     display: "flex",
     flexDirection: "row",
-    backgroundColor: palette.rowAltBg,
+    backgroundColor: palette.pageBg, // No zebra striping in minimal design
     borderBottomWidth: 0.5,
     borderBottomColor: palette.hairline,
     borderBottomStyle: "solid",
@@ -419,7 +510,7 @@ export const pdfStyles = StyleSheet.create({
   tableCell: {
     paddingHorizontal: 6,
     paddingVertical: 6,
-    fontSize: 8.5,
+    fontSize: 9,
     color: palette.ink,
     display: "flex",
     alignItems: "center",
@@ -427,7 +518,7 @@ export const pdfStyles = StyleSheet.create({
   tableCellCenter: {
     paddingHorizontal: 6,
     paddingVertical: 6,
-    fontSize: 8.5,
+    fontSize: 9,
     color: palette.ink,
     display: "flex",
     alignItems: "center",
@@ -437,7 +528,7 @@ export const pdfStyles = StyleSheet.create({
   tableCellMuted: {
     paddingHorizontal: 6,
     paddingVertical: 6,
-    fontSize: 8.5,
+    fontSize: 9,
     color: palette.inkTertiary,
     display: "flex",
     alignItems: "center",
@@ -445,7 +536,7 @@ export const pdfStyles = StyleSheet.create({
   tableCellMutedCenter: {
     paddingHorizontal: 6,
     paddingVertical: 6,
-    fontSize: 8.5,
+    fontSize: 9,
     color: palette.inkTertiary,
     display: "flex",
     alignItems: "center",
@@ -455,7 +546,7 @@ export const pdfStyles = StyleSheet.create({
   tableCellEmphasis: {
     paddingHorizontal: 6,
     paddingVertical: 6,
-    fontSize: 8.5,
+    fontSize: 9,
     color: palette.ink,
     fontWeight: "bold",
     display: "flex",
@@ -464,7 +555,7 @@ export const pdfStyles = StyleSheet.create({
   tableCellEmphasisCenter: {
     paddingHorizontal: 6,
     paddingVertical: 6,
-    fontSize: 8.5,
+    fontSize: 9,
     color: palette.ink,
     fontWeight: "bold",
     display: "flex",
@@ -475,7 +566,7 @@ export const pdfStyles = StyleSheet.create({
   tableCellIndex: {
     paddingHorizontal: 6,
     paddingVertical: 6,
-    fontSize: 8.5,
+    fontSize: 9,
     color: palette.inkTertiary,
     fontWeight: "bold",
     display: "flex",
@@ -487,7 +578,7 @@ export const pdfStyles = StyleSheet.create({
   tableCellInfo: {
     paddingHorizontal: 4,
     paddingVertical: 6,
-    fontSize: 8.5,
+    fontSize: 9,
     color: palette.ink,
     fontWeight: "bold",
     display: "flex",
@@ -496,11 +587,11 @@ export const pdfStyles = StyleSheet.create({
     textAlign: "center",
     backgroundColor: palette.infoTint,
   },
-  // Success-coloured assessment
+  // Success-coloured assessment (measurement pass)
   tableCellSuccess: {
     paddingHorizontal: 6,
     paddingVertical: 6,
-    fontSize: 8.5,
+    fontSize: 9,
     color: palette.success,
     fontWeight: "bold",
     display: "flex",
@@ -510,10 +601,10 @@ export const pdfStyles = StyleSheet.create({
   },
 
   // ─────────────────────────────────────────────────────────────────────
-  // PROTOCOL NUMBER PILL — small navy filled chip
+  // PROTOCOL NUMBER PILL — small amber filled chip
   // ─────────────────────────────────────────────────────────────────────
   protocolNumberPill: {
-    backgroundColor: palette.brand,
+    backgroundColor: palette.accent,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 2,
@@ -527,33 +618,33 @@ export const pdfStyles = StyleSheet.create({
   },
 
   // ─────────────────────────────────────────────────────────────────────
-  // CALLOUT — for documentation sections
+  // CALLOUT — for documentation sections (light amber tint + amber left bar)
   // ─────────────────────────────────────────────────────────────────────
   callout: {
     paddingVertical: 12,
     paddingHorizontal: 14,
     marginBottom: 12,
-    backgroundColor: palette.brandSubtle,
+    backgroundColor: palette.accentSubtle,
     borderLeftWidth: 3,
-    borderLeftColor: palette.brand,
+    borderLeftColor: palette.accent,
     borderLeftStyle: "solid",
   },
   calloutTitle: {
-    fontSize: 7.5,
+    fontSize: 8,
     fontWeight: "bold",
-    color: palette.brand,
+    color: palette.accent,
     textTransform: "uppercase",
-    letterSpacing: 1.4,
+    letterSpacing: 1.6,
     marginBottom: 6,
   },
   calloutBody: {
-    fontSize: 9.5,
+    fontSize: 10,
     color: palette.inkSecondary,
-    lineHeight: 1.55,
+    lineHeight: 1.6,
   },
 
   // ─────────────────────────────────────────────────────────────────────
-  // FOOTER (page-fixed band)
+  // FOOTER (page-fixed band) — tracked UPPERCASE small chrome
   // ─────────────────────────────────────────────────────────────────────
   pageFooter: {
     position: "absolute",
@@ -570,8 +661,8 @@ export const pdfStyles = StyleSheet.create({
     alignItems: "center",
   },
   pageFooterText: {
-    fontSize: 6.5,
-    color: palette.inkMuted,
+    fontSize: 7.5,
+    color: palette.inkTertiary,
     textTransform: "uppercase",
     letterSpacing: 1.2,
   },
@@ -627,7 +718,7 @@ export const pdfStyles = StyleSheet.create({
   pb4: { paddingBottom: 16 },
 
   // Typography helpers (use the semantic names in new code)
-  textXs: { fontSize: 7.5 },
+  textXs: { fontSize: 8 },
   textSm: { fontSize: 9 },
   textBase: { fontSize: 10.5 },
   textLg: { fontSize: 14 },
@@ -644,14 +735,14 @@ export const pdfStyles = StyleSheet.create({
   italic: { fontStyle: "italic" },
   uppercase: { textTransform: "uppercase" },
 
-  // Color helpers (slate palette + brand)
+  // Color helpers (slate palette + accent)
   textWhite: { color: palette.inkInverse },
   textInk: { color: palette.ink },
   textInkSecondary: { color: palette.inkSecondary },
   textInkTertiary: { color: palette.inkTertiary },
   textInkMuted: { color: palette.inkMuted },
-  textBrand: { color: palette.brand },
-  textBrandStrong: { color: palette.brandStrong },
+  textBrand: { color: palette.accent },
+  textBrandStrong: { color: palette.accentStrong },
   textSuccess: { color: palette.success },
   textWarning: { color: palette.warning },
   textDanger: { color: palette.danger },
@@ -659,8 +750,8 @@ export const pdfStyles = StyleSheet.create({
   // Surfaces
   bgWhite: { backgroundColor: palette.inkInverse },
   bgRowAlt: { backgroundColor: palette.rowAltBg },
-  bgBrand: { backgroundColor: palette.brand },
-  bgBrandSubtle: { backgroundColor: palette.brandSubtle },
+  bgBrand: { backgroundColor: palette.accent },
+  bgBrandSubtle: { backgroundColor: palette.accentSubtle },
   bgPage: { backgroundColor: palette.pageBg },
 
   // Logo

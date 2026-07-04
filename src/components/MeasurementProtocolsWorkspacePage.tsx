@@ -12,6 +12,7 @@ import {
   countPdfPages,
   formatDisplayDate,
 } from "../lib/export/pdfPages/pdfHelpers";
+import { hasDocumentationContent } from "../lib/export/pdfPages/PdfDocumentationContentPage";
 import { usePdfWorkspace } from "./PdfWorkspaceShell";
 import { useTranslation } from "react-i18next";
 import { translateDefaultProjectText } from "../lib/projectMetadata";
@@ -44,7 +45,7 @@ export function MeasurementProtocolsWorkspacePage() {
     pdfPreviewTab: activeTab,
     connections,
   } = usePdfWorkspace();
-  
+
   const [dinRailPreviewUrl, setDinRailPreviewUrl] = useState<string | null>(null);
   const [dinRailPreviewError, setDinRailPreviewError] = useState<string | null>(null);
   const [dinRailRetryCounter, setDinRailRetryCounter] = useState(0);
@@ -73,8 +74,8 @@ export function MeasurementProtocolsWorkspacePage() {
         // Portrait preview mirrors the PDF (A4 portrait, rail horizontal). The cap
         // 800×1130 px ≈ 210mm × 297mm at 96 dpi.
         const options = activeTab === "din-rail"
-          ? { drawConnections: false, scale: 2 }
-          : { drawConnections: true, scale: 2 };
+          ? { drawConnections: false, scale: 4 }
+          : { drawConnections: true, scale: 4 };
         const svgs = await exportDinRailToDataURLWithOptions(symbols, rail, options, connections);
         if (isCancelled) {
           return;
@@ -187,7 +188,7 @@ export function MeasurementProtocolsWorkspacePage() {
   const protocolYear = new Date(displayDate).getFullYear() || new Date().getFullYear();
   const protocolNumber = metadata.projectNumber?.trim()
     ? `${metadata.projectNumber.trim()} / ${protocolYear}`
-    : `....... / ${protocolYear}`;
+    : `— / ${protocolYear}`;
   const objectType = metadata.titlePageObjectType ? translateDefaultProjectText(metadata.titlePageObjectType, t) : translateDefaultProjectText("Budynek jednorodzinny / Lokal mieszkalny", t);
   const stampText = metadata.contractorSignature || "PIECZĘĆ WYKONAWCY";
 
@@ -215,9 +216,10 @@ export function MeasurementProtocolsWorkspacePage() {
   // `countPdfPages` uses. We can't read the index *out of* `countPdfPages`
   // (it only returns the total), but we can recompute it from inputs that we
   // already have here, so the page numbers stay consistent with the total.
-  // The first two pages are always the title page and the project summary.
+  // The first pages are: title page (2 pages), TOC (1 page), project summary (1 page),
+  // and optionally the documentation content page (1 page).
   const titlePageIndex = 1;
-  const circuitListStartPage = 3;
+  const circuitListStartPage = 5 + (hasDocumentationContent(metadata) ? 1 : 0);
   const unifiedStartPage = circuitListStartPage + circuitListPages.length;
   const rcdPageIndex = unifiedStartPage + unifiedPages.length;
   const schematicStartPage = rcdPageIndex + ((protocols.rcdRows?.length ?? 0) > 0 ? 1 : 0);

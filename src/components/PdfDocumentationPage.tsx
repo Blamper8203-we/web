@@ -389,7 +389,7 @@ export function PdfDocumentationPage() {
                   <p className="pd-help-text">
                     {t("app.pdfDocumentationPage.editor.titlePage.workScopeHelp")}
                   </p>
-                  <label className="pd-checkbox">
+                  <label className="pd-editor-checkbox">
                     <input
                       type="checkbox"
                       checked={metadata.titlePageUseManualWorkScopeCheckboxes}

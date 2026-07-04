@@ -1,8 +1,14 @@
-import { Page, Text, View } from "@react-pdf/renderer";
+
 import type { CircuitListTableRow } from "../../circuitRows";
-import { pdfStyles as styles, palette } from "./pdfStyles";
 import { EMPTY_FIELD_PLACEHOLDER } from "./pdfHelpers";
 import i18next from "i18next";
+import { Text, View } from "@react-pdf/renderer";
+import { palette } from "./pdfStyles";
+import {
+  PdfPage, PdfHeader, PdfFooter, PdfSection,
+  PdfTable, PdfTableHeaderRow, PdfTableHeaderCell, PdfTableBodyRow, PdfTableCell
+} from "../pdfComponents";
+
 const t = i18next.t.bind(i18next);
 
 interface PdfCircuitListPageProps {
@@ -21,90 +27,87 @@ export function PdfCircuitListPage({
   fallbackObjectName,
 }: PdfCircuitListPageProps) {
   return (
-    <Page size="A4" orientation="landscape" style={[styles.landscapePage, styles.previewA4Page]}>
-      <View style={styles.pageTopBar} fixed />
-
-      <View style={styles.pageHeader}>
-        <View style={styles.pageHeaderLeft}>
+    <PdfPage id={chunkIdx === 0 ? "circuit-list" : undefined} orientation="landscape" variant="preview">
+      <PdfHeader
+        brandText={t("pdf.circuitList.badge", "Lista obwodów")}
+        brandSubText=""
+        rightContent={
           <View>
-            <Text style={styles.eyebrow}>{t("pdf.circuitList.badge", "Lista obwodów")}</Text>
-            <Text style={styles.pageTitle}>{t("pdf.circuitList.title", "Lista obwodów elektrycznych")}</Text>
-            <Text style={styles.pageSubtitle}>
+            <View style={{ marginBottom: 4 }}>
+              <Text style={{ fontSize: 7.5, color: palette.inkTertiary, textTransform: "uppercase", letterSpacing: 1.2, fontWeight: "bold", textAlign: "right" }}>{t("pdf.circuitList.date", "Data")}</Text>
+              <Text style={{ fontSize: 10, fontWeight: "bold", color: palette.ink, textAlign: "right" }}>{displayDate}</Text>
+            </View>
+            <View style={{ marginTop: 8 }}>
+              <Text style={{ fontSize: 7.5, color: palette.inkTertiary, textTransform: "uppercase", letterSpacing: 1.2, fontWeight: "bold", textAlign: "right" }}>{t("pdf.circuitList.object", "Obiekt")}</Text>
+              <Text style={{ fontSize: 8.5, fontWeight: "bold", color: palette.ink, textAlign: "right" }}>{fallbackObjectName}</Text>
+            </View>
+          </View>
+        }
+        rightLineText={
+          <Text>
+            <Text style={{ fontSize: 22, fontWeight: "bold", color: palette.ink, letterSpacing: -0.4, lineHeight: 1.15 }}>
+              {t("pdf.circuitList.title", "Lista obwodów elektrycznych")}
+            </Text>
+            {"\n"}
+            <Text style={{ fontSize: 10, color: palette.inkMuted, marginTop: 4 }}>
               {t("pdf.circuitList.sheet", { current: chunkIdx + 1, total: totalChunks, defaultValue: `Arkusz ${chunkIdx + 1} z ${totalChunks}` })}
             </Text>
-          </View>
-        </View>
-        <View style={styles.pageHeaderRight}>
-          <Text style={[styles.metaLabel, { alignSelf: "flex-end" }]}>{t("pdf.circuitList.date", "Data")}</Text>
-          <Text style={styles.metaValue}>{displayDate}</Text>
-          <Text style={[styles.metaLabel, { marginTop: 8, alignSelf: "flex-end" }]}>{t("pdf.circuitList.object", "Obiekt")}</Text>
-          <Text style={[styles.metaValue, { fontSize: 8.5 }]}>{fallbackObjectName}</Text>
-        </View>
-      </View>
+          </Text>
+        }
+      />
 
-      {/* Single section — table is the content */}
-      <View style={styles.sectionHeading}>
-        <Text style={styles.sectionNumber}>01</Text>
-        <Text style={styles.sectionTitle}>
-          {chunkIdx === 0
-            ? t("pdf.circuitList.section1", "Lista obwodów")
-            : t("pdf.circuitList.section1Continued", `Lista obwodów · arkusz ${chunkIdx + 1}`)}
-        </Text>
-      </View>
+      <PdfSection
+        number="01"
+        title={chunkIdx === 0
+          ? t("pdf.circuitList.section1", "Lista obwodów")
+          : t("pdf.circuitList.section1Continued", `Lista obwodów · arkusz ${chunkIdx + 1}`)
+        }
+      >
+        <PdfTable>
+          <PdfTableHeaderRow>
+            <PdfTableHeaderCell width="4%" align="center">{t("pdf.circuitList.colIndex", "Lp.")}</PdfTableHeaderCell>
+            <PdfTableHeaderCell width="8%" align="center">{t("pdf.circuitList.colId", "Ozn.")}</PdfTableHeaderCell>
+            <PdfTableHeaderCell width="20%">{t("pdf.circuitList.colDesc", "Nazwa obwodu")}</PdfTableHeaderCell>
+            <PdfTableHeaderCell width="13%">{t("pdf.circuitList.colLocation", "Lokalizacja")}</PdfTableHeaderCell>
+            <PdfTableHeaderCell width="7%" align="center">{t("pdf.circuitList.colPhase", "Faza")}</PdfTableHeaderCell>
+            <PdfTableHeaderCell width="12%" align="center">{t("pdf.circuitList.colProt", "Zabezp.")}</PdfTableHeaderCell>
+            <PdfTableHeaderCell width="14%">{t("pdf.circuitList.colRcd", "RCD")}</PdfTableHeaderCell>
+            <PdfTableHeaderCell width="8%" align="center">{t("pdf.circuitList.colCable", "Przewód")}</PdfTableHeaderCell>
+            <PdfTableHeaderCell width="7%" align="center">{t("pdf.circuitList.colLength", "Dł. [m]")}</PdfTableHeaderCell>
+            <PdfTableHeaderCell width="7%" align="center">{t("pdf.circuitList.colPower", "Moc [W]")}</PdfTableHeaderCell>
+          </PdfTableHeaderRow>
 
-      <View style={styles.table}>
-        {/* Header row */}
-        <View style={styles.tableHeaderRow}>
-          <View style={[styles.tableHeaderCellCenter, { width: "4%" }]}><Text>{t("pdf.circuitList.colIndex", "Lp.")}</Text></View>
-          <View style={[styles.tableHeaderCellCenter, { width: "8%" }]}><Text>{t("pdf.circuitList.colId", "Ozn.")}</Text></View>
-          <View style={[styles.tableHeaderCell, { width: "20%" }]}><Text>{t("pdf.circuitList.colDesc", "Nazwa obwodu")}</Text></View>
-          <View style={[styles.tableHeaderCell, { width: "13%" }]}><Text>{t("pdf.circuitList.colLocation", "Lokalizacja")}</Text></View>
-          <View style={[styles.tableHeaderCellCenter, { width: "7%" }]}><Text>{t("pdf.circuitList.colPhase", "Faza")}</Text></View>
-          <View style={[styles.tableHeaderCellCenter, { width: "12%" }]}><Text>{t("pdf.circuitList.colProt", "Zabezp.")}</Text></View>
-          <View style={[styles.tableHeaderCell, { width: "14%" }]}><Text>{t("pdf.circuitList.colRcd", "RCD")}</Text></View>
-          <View style={[styles.tableHeaderCellCenter, { width: "8%" }]}><Text>{t("pdf.circuitList.colCable", "Przewód")}</Text></View>
-          <View style={[styles.tableHeaderCellCenter, { width: "7%" }]}><Text>{t("pdf.circuitList.colLength", "Dł. [m]")}</Text></View>
-          <View style={[styles.tableHeaderCellCenter, { width: "7%" }]}><Text>{t("pdf.circuitList.colPower", "Moc [W]")}</Text></View>
-        </View>
+          {chunk.map(({ index, location, rcdLabel, rcdProtection, row }, rowIdx) => (
+            <PdfTableBodyRow key={row.id} isAlt={rowIdx % 2 !== 0}>
+              <PdfTableCell width="4%" variant="index">{index}</PdfTableCell>
+              <PdfTableCell width="8%" align="center" variant="emphasis">{row.referenceDesignation || EMPTY_FIELD_PLACEHOLDER}</PdfTableCell>
+              <PdfTableCell width="20%" variant="emphasis">{row.circuitName || row.label || EMPTY_FIELD_PLACEHOLDER}</PdfTableCell>
+              <PdfTableCell width="13%" variant="muted">{location || row.displayLocation || EMPTY_FIELD_PLACEHOLDER}</PdfTableCell>
+              <PdfTableCell width="7%" align="center">{row.phase || EMPTY_FIELD_PLACEHOLDER}</PdfTableCell>
+              <PdfTableCell width="12%" align="center" variant="emphasis">{row.displayProtection || row.protectionType || EMPTY_FIELD_PLACEHOLDER}</PdfTableCell>
+              <PdfTableCell width="14%">
+                <View style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                  <Text style={{ fontSize: 8.5, fontWeight: "bold", color: palette.ink }}>{rcdLabel || EMPTY_FIELD_PLACEHOLDER}</Text>
+                  {rcdProtection && <Text style={{ fontSize: 7.5, color: palette.inkTertiary, marginTop: 1 }}>{rcdProtection}</Text>}
+                </View>
+              </PdfTableCell>
+              <PdfTableCell width="8%" align="center">{row.cableCrossSection ? `${row.cableCrossSection} mm²` : EMPTY_FIELD_PLACEHOLDER}</PdfTableCell>
+              <PdfTableCell width="7%" align="center">{row.cableLength || EMPTY_FIELD_PLACEHOLDER}</PdfTableCell>
+              <PdfTableCell width="7%" align="center">{row.powerW || EMPTY_FIELD_PLACEHOLDER}</PdfTableCell>
+            </PdfTableBodyRow>
+          ))}
 
-        {/* Body rows */}
-        {chunk.map(({ index, location, rcdLabel, rcdProtection, row }, rowIdx) => {
-          const rowStyle = rowIdx % 2 === 0 ? styles.tableBodyRow : styles.tableBodyRowAlt;
-          return (
-            <View style={rowStyle} key={row.id}>
-              <View style={[styles.tableCellIndex, { width: "4%" }]}><Text>{index}</Text></View>
-              <View style={[styles.tableCellEmphasisCenter, { width: "8%" }]}><Text>{row.referenceDesignation || EMPTY_FIELD_PLACEHOLDER}</Text></View>
-              <View style={[styles.tableCellEmphasis, { width: "20%" }]}><Text>{row.circuitName || row.label || EMPTY_FIELD_PLACEHOLDER}</Text></View>
-              <View style={[styles.tableCellMuted, { width: "13%" }]}><Text>{location || row.displayLocation || EMPTY_FIELD_PLACEHOLDER}</Text></View>
-              <View style={[styles.tableCellCenter, { width: "7%" }]}><Text>{row.phase || EMPTY_FIELD_PLACEHOLDER}</Text></View>
-              <View style={[styles.tableCellEmphasisCenter, { width: "12%" }]}><Text>{row.displayProtection || row.protectionType || EMPTY_FIELD_PLACEHOLDER}</Text></View>
-              <View style={[styles.tableCell, { width: "14%", flexDirection: "column", alignItems: "flex-start", justifyContent: "center" }]}>
-                <Text style={{ fontSize: 8.5, fontWeight: "bold" }}>{rcdLabel || EMPTY_FIELD_PLACEHOLDER}</Text>
-                {rcdProtection ? <Text style={{ fontSize: 7.5, color: palette.inkTertiary, marginTop: 1 }}>{rcdProtection}</Text> : null}
-              </View>
-              <View style={[styles.tableCellCenter, { width: "8%" }]}><Text>{row.cableCrossSection ? `${row.cableCrossSection} mm²` : EMPTY_FIELD_PLACEHOLDER}</Text></View>
-              <View style={[styles.tableCellCenter, { width: "7%" }]}><Text>{row.cableLength || EMPTY_FIELD_PLACEHOLDER}</Text></View>
-              <View style={[styles.tableCellCenter, { width: "7%" }]}><Text>{row.powerW || EMPTY_FIELD_PLACEHOLDER}</Text></View>
-            </View>
-          );
-        })}
+          {chunk.length === 0 && (
+            <PdfTableBodyRow>
+              <PdfTableCell width="100%" align="center" variant="muted" style={{ paddingTop: 24, paddingBottom: 24 }}>
+                {t("pdf.circuitList.empty", "Brak obwodów do pokazania.")}
+              </PdfTableCell>
+            </PdfTableBodyRow>
+          )}
+        </PdfTable>
+      </PdfSection>
 
-        {chunk.length === 0 && (
-          <View style={[styles.tableBodyRow, { paddingVertical: 24, justifyContent: "center" }]}>
-            <View style={{ width: "100%", alignItems: "center" }}>
-              <Text style={[styles.dataValueMuted, { fontSize: 9 }]}>{t("pdf.circuitList.empty", "Brak obwodów do pokazania.")}</Text>
-            </View>
-          </View>
-        )}
-      </View>
-
-      <View style={styles.pageFooter} fixed>
-        <Text style={styles.pageFooterText}>{t("pdf.footer.normLabel", "PN-HD 60364 • dokument wygenerowany cyfrowo")}</Text>
-        <Text
-          style={styles.pageFooterText}
-          render={({ pageNumber, totalPages }) => t("pdf.footer.pageInfo", { pageNumber, totalPages, defaultValue: `${pageNumber} / ${totalPages}` })}
-        />
-      </View>
-    </Page>
+      <PdfFooter leftText={t("pdf.footer.normLabel", "PN-HD 60364 • dokument wygenerowany cyfrowo")} />
+    </PdfPage>
   );
 }
