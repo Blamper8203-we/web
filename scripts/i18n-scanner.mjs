@@ -48,7 +48,7 @@ async function scan() {
                 const text = match[1].trim();
                 if (text && text.length > 1 && /[A-Za-z0-9ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/.test(text)) {
                     // Wyklucz same liczby, operatory itp
-                    if (!/^[0-9\s.,\-+*\/%=\[\]()]+$/.test(text)) {
+                    if (!/^[0-9\s.,\-+*/%=[\]()]+$/.test(text)) {
                         fileResults.push({ line: i + 1, type: 'jsx-text', text });
                     }
                 }

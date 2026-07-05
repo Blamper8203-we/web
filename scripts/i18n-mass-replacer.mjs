@@ -22,7 +22,7 @@ async function run() {
             let line = lines[lineIdx];
             if (!line) return;
             // Odfiltruj stringi, które nie są tekstem językowym
-            if (/^[0-9\s.,\-+*\/%=\[\]()><|&]+$/.test(item.text)) return; 
+            if (/^[0-9\s.,\-+*/%=[\]()><|&]+$/.test(item.text)) return; 
             if (item.text.length < 2) return;
             if (item.text.includes("||") || item.text.includes("&&") || item.text.includes("===") || item.text.includes("Promise") || item.text.includes("event: React")) return;
             if (item.text === "230V" || item.text === "400V" || item.text === "1-fazowe" || item.text === "3-fazowe" || item.text.endsWith("A") || item.text === "kW") return;

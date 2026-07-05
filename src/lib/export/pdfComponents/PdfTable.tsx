@@ -28,12 +28,12 @@ export function PdfTableBodyRow({ children, isAlt }: { children: ReactNode; isAl
 }
 
 export function PdfTableCell({ children, width, align = "left", variant = "normal", style }: { children?: ReactNode; width?: string | number; align?: "left" | "center"; variant?: "normal" | "muted" | "emphasis" | "index" | "success"; style?: any }) {
-  let cellStyle = styles.tableCell;
-  if (variant === "muted") cellStyle = align === "center" ? styles.tableCellMutedCenter : styles.tableCellMuted;
-  else if (variant === "emphasis") cellStyle = align === "center" ? styles.tableCellEmphasisCenter : styles.tableCellEmphasis;
-  else if (variant === "index") cellStyle = styles.tableCellIndex;
-  else if (variant === "success") cellStyle = styles.tableCellSuccess;
-  else cellStyle = align === "center" ? styles.tableCellCenter : styles.tableCell;
+  const cellStyle =
+    variant === "muted" ? (align === "center" ? styles.tableCellMutedCenter : styles.tableCellMuted) :
+    variant === "emphasis" ? (align === "center" ? styles.tableCellEmphasisCenter : styles.tableCellEmphasis) :
+    variant === "index" ? styles.tableCellIndex :
+    variant === "success" ? styles.tableCellSuccess :
+    align === "center" ? styles.tableCellCenter : styles.tableCell;
 
   return (
     <View style={[cellStyle, { width }, style]}>
