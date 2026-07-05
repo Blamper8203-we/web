@@ -462,7 +462,7 @@ export const pdfStyles = StyleSheet.create({
   tableHeaderRow: {
     display: "flex",
     flexDirection: "row",
-    backgroundColor: palette.pageBg,
+    backgroundColor: palette.ink,
     borderBottomWidth: 1,
     borderBottomColor: palette.ink,
     borderBottomStyle: "solid",
@@ -474,9 +474,10 @@ export const pdfStyles = StyleSheet.create({
     fontWeight: "bold",
     textTransform: "uppercase",
     letterSpacing: 1.0,
-    color: palette.ink,
+    color: palette.inkInverse,
     display: "flex",
     alignItems: "center",
+    flexShrink: 0,
   },
   tableHeaderCellCenter: {
     paddingHorizontal: 6,
@@ -485,11 +486,12 @@ export const pdfStyles = StyleSheet.create({
     fontWeight: "bold",
     textTransform: "uppercase",
     letterSpacing: 1.0,
-    color: palette.ink,
+    color: palette.inkInverse,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     textAlign: "center",
+    flexShrink: 0,
   },
   tableBodyRow: {
     display: "flex",
@@ -514,6 +516,7 @@ export const pdfStyles = StyleSheet.create({
     color: palette.ink,
     display: "flex",
     alignItems: "center",
+    flexShrink: 0,
   },
   tableCellCenter: {
     paddingHorizontal: 6,
@@ -524,6 +527,7 @@ export const pdfStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     textAlign: "center",
+    flexShrink: 0,
   },
   tableCellMuted: {
     paddingHorizontal: 6,
@@ -532,6 +536,7 @@ export const pdfStyles = StyleSheet.create({
     color: palette.inkTertiary,
     display: "flex",
     alignItems: "center",
+    flexShrink: 0,
   },
   tableCellMutedCenter: {
     paddingHorizontal: 6,
@@ -542,6 +547,7 @@ export const pdfStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     textAlign: "center",
+    flexShrink: 0,
   },
   tableCellEmphasis: {
     paddingHorizontal: 6,
@@ -551,6 +557,7 @@ export const pdfStyles = StyleSheet.create({
     fontWeight: "bold",
     display: "flex",
     alignItems: "center",
+    flexShrink: 0,
   },
   tableCellEmphasisCenter: {
     paddingHorizontal: 6,
@@ -562,6 +569,7 @@ export const pdfStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     textAlign: "center",
+    flexShrink: 0,
   },
   tableCellIndex: {
     paddingHorizontal: 6,
@@ -573,6 +581,7 @@ export const pdfStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     textAlign: "center",
+    flexShrink: 0,
   },
   // For Riso group of 3 sub-columns under merged header
   tableCellInfo: {
@@ -586,6 +595,7 @@ export const pdfStyles = StyleSheet.create({
     justifyContent: "center",
     textAlign: "center",
     backgroundColor: palette.infoTint,
+    flexShrink: 0,
   },
   // Success-coloured assessment (measurement pass)
   tableCellSuccess: {

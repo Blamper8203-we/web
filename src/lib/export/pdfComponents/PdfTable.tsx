@@ -16,7 +16,11 @@ export function PdfTableHeaderRow({ children, isSubHeader }: { children: ReactNo
 
 export function PdfTableHeaderCell({ children, width, align = "left", style }: { children?: ReactNode; width?: string | number; align?: "left" | "center"; style?: any }) {
   const cellStyle = align === "center" ? styles.tableHeaderCellCenter : styles.tableHeaderCell;
-  return <View style={[cellStyle, { width }, style]}><Text>{children}</Text></View>;
+  return (
+    <View style={[cellStyle, { width }, style]}>
+      {typeof children === "string" || typeof children === "number" ? <Text>{children}</Text> : children}
+    </View>
+  );
 }
 
 export function PdfTableBodyRow({ children, isAlt }: { children: ReactNode; isAlt?: boolean }) {

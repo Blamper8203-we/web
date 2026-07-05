@@ -41,27 +41,21 @@ export function PdfUnifiedTablePage({
       variant="preview"
     >
       <PdfHeader
-        rightLineText={
+        eyebrow={t("pdf.unifiedTable.badge", "Tabela zbiorcza")}
+        title={
           <Text>
-            <Text style={{ fontSize: 22, fontWeight: "bold", color: palette.ink, letterSpacing: -0.4, lineHeight: 1.15 }}>
-              {t("pdf.shared.protocolNrPrefix", "Protokół Pomiarów Nr ")}
-              <Text style={{ color: palette.accent }}>{chunkProtocolNumberLabel}</Text>
-            </Text>
-            {"\n"}
-            <Text style={{ fontSize: 10, color: palette.inkMuted, marginTop: 4 }}>
-              {t("pdf.unifiedTable.title", "Zbiorcze wyniki pomiarów pętli zwarcia i rezystancji izolacji")}
-            </Text>
+            {t("pdf.shared.protocolNrPrefix", "Protokół Pomiarów Nr ")}
+            <Text style={{ backgroundColor: palette.rowAltBg, padding: "2px 6px", borderRadius: 4 }}>{chunkProtocolNumberLabel}</Text>
           </Text>
         }
-        brandText={t("pdf.unifiedTable.badge", "Tabela zbiorcza")}
-        brandSubText=""
+        subtitle={t("pdf.unifiedTable.title", "Zbiorcze wyniki pomiarów pętli zwarcia i rezystancji izolacji")}
         rightContent={
           <View>
-            <View style={{ marginBottom: 4 }}>
+            <View style={{ marginBottom: 6 }}>
               <Text style={{ fontSize: 7.5, color: palette.inkTertiary, textTransform: "uppercase", letterSpacing: 1.2, fontWeight: "bold", textAlign: "right" }}>{t("pdf.unifiedTable.date", "Data pomiarów")}</Text>
               <Text style={{ fontSize: 10, fontWeight: "bold", color: palette.ink, textAlign: "right" }}>{displayDate}</Text>
             </View>
-            <View style={{ marginTop: 8 }}>
+            <View>
               <Text style={{ fontSize: 7.5, color: palette.inkTertiary, textTransform: "uppercase", letterSpacing: 1.2, fontWeight: "bold", textAlign: "right" }}>{t("pdf.unifiedTable.object", "Obiekt")}</Text>
               <Text style={{ fontSize: 8.5, fontWeight: "bold", color: palette.ink, textAlign: "right" }}>{fallbackObjectName}</Text>
             </View>
@@ -113,35 +107,32 @@ export function PdfUnifiedTablePage({
             </PdfTableHeaderCell>
             <PdfTableHeaderCell width="12%" align="center">{t("pdf.unifiedTable.colResult", "Ocena")}</PdfTableHeaderCell>
           </PdfTableHeaderRow>
-          <PdfTableHeaderRow isSubHeader>
-            <PdfTableHeaderCell width="4%" align="center" />
-            <PdfTableHeaderCell width="20%" />
-            <PdfTableHeaderCell width="12%" />
-            <PdfTableHeaderCell width="8%" align="center" />
-            <PdfTableHeaderCell width="22%" align="center" style={{ paddingTop: 5, paddingBottom: 5 }}>
+          <PdfTableHeaderRow>
+            <PdfTableHeaderCell width="44%" style={{ paddingVertical: 5 }}>{" "}</PdfTableHeaderCell>
+            <PdfTableHeaderCell width="22%" align="center" style={{ padding: 0, backgroundColor: palette.inkSecondary }}>
               <View style={{ display: "flex", flexDirection: "row", flex: 1, width: "100%" }}>
-                <View style={{ flex: 1, alignItems: "center", borderRightWidth: 0.5, borderRightColor: palette.hairline, borderRightStyle: "solid" }}>
-                  <Text style={{ fontSize: 7, fontWeight: "bold", color: palette.ink, textTransform: "uppercase", letterSpacing: 0.6 }}>{t("pdf.unifiedTable.colLN", "L-N")}</Text>
+                <View style={{ flex: 1, alignItems: "center", borderRightWidth: 0.5, borderRightColor: palette.hairline, borderRightStyle: "solid", paddingVertical: 5 }}>
+                  <Text style={{ fontSize: 7, fontWeight: "bold", color: palette.inkInverse, textTransform: "uppercase", letterSpacing: 0.6 }}>{t("pdf.unifiedTable.colLN", "L-N")}</Text>
                 </View>
-                <View style={{ flex: 1, alignItems: "center", borderRightWidth: 0.5, borderRightColor: palette.hairline, borderRightStyle: "solid" }}>
-                  <Text style={{ fontSize: 7, fontWeight: "bold", color: palette.ink, textTransform: "uppercase", letterSpacing: 0.6 }}>{t("pdf.unifiedTable.colLPE", "L-PE")}</Text>
+                <View style={{ flex: 1, alignItems: "center", borderRightWidth: 0.5, borderRightColor: palette.hairline, borderRightStyle: "solid", paddingVertical: 5 }}>
+                  <Text style={{ fontSize: 7, fontWeight: "bold", color: palette.inkInverse, textTransform: "uppercase", letterSpacing: 0.6 }}>{t("pdf.unifiedTable.colLPE", "L-PE")}</Text>
                 </View>
-                <View style={{ flex: 1, alignItems: "center" }}>
-                  <Text style={{ fontSize: 7, fontWeight: "bold", color: palette.ink, textTransform: "uppercase", letterSpacing: 0.6 }}>{t("pdf.unifiedTable.colNPE", "N-PE")}</Text>
+                <View style={{ flex: 1, alignItems: "center", paddingVertical: 5 }}>
+                  <Text style={{ fontSize: 7, fontWeight: "bold", color: palette.inkInverse, textTransform: "uppercase", letterSpacing: 0.6 }}>{t("pdf.unifiedTable.colNPE", "N-PE")}</Text>
                 </View>
               </View>
             </PdfTableHeaderCell>
-            <PdfTableHeaderCell width="22%" align="center" style={{ paddingTop: 5, paddingBottom: 5 }}>
+            <PdfTableHeaderCell width="22%" align="center" style={{ padding: 0, backgroundColor: palette.inkSecondary }}>
               <View style={{ display: "flex", flexDirection: "row", flex: 1, width: "100%" }}>
-                <View style={{ flex: 1, alignItems: "center", borderRightWidth: 0.5, borderRightColor: palette.hairline, borderRightStyle: "solid" }}>
-                  <Text style={{ fontSize: 7, fontWeight: "bold", color: palette.ink, textTransform: "uppercase", letterSpacing: 0.6 }}>{t("pdf.unifiedTable.colZs", "Zs [Ω]")}</Text>
+                <View style={{ flex: 1, alignItems: "center", borderRightWidth: 0.5, borderRightColor: palette.hairline, borderRightStyle: "solid", paddingVertical: 5 }}>
+                  <Text style={{ fontSize: 7, fontWeight: "bold", color: palette.inkInverse, textTransform: "uppercase", letterSpacing: 0.6 }}>{t("pdf.unifiedTable.colZs", "Zs [Ω]")}</Text>
                 </View>
-                <View style={{ flex: 1, alignItems: "center" }}>
-                  <Text style={{ fontSize: 7, fontWeight: "bold", color: palette.ink, textTransform: "uppercase", letterSpacing: 0.6 }}>{t("pdf.unifiedTable.colZadm", "Zadm [Ω]")}</Text>
+                <View style={{ flex: 1, alignItems: "center", paddingVertical: 5 }}>
+                  <Text style={{ fontSize: 7, fontWeight: "bold", color: palette.inkInverse, textTransform: "uppercase", letterSpacing: 0.6 }}>{t("pdf.unifiedTable.colZadm", "Zadm [Ω]")}</Text>
                 </View>
               </View>
             </PdfTableHeaderCell>
-            <PdfTableHeaderCell width="12%" align="center" />
+            <PdfTableHeaderCell width="12%" align="center" style={{ paddingVertical: 5 }}>{" "}</PdfTableHeaderCell>
           </PdfTableHeaderRow>
           {chunk.map((row, index) => (
             <PdfTableBodyRow key={index} isAlt={index % 2 !== 0}>

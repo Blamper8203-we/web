@@ -28,6 +28,9 @@ export function PdfPage({ children, orientation = "portrait", variant = "standar
 
 export interface PdfHeaderProps {
   logoDataUrl?: string | null;
+  eyebrow?: string | ReactNode;
+  title?: string | ReactNode;
+  subtitle?: string | ReactNode;
   brandText?: string;
   brandSubText?: string;
   rightLineText?: string | ReactNode;
@@ -38,6 +41,9 @@ export interface PdfHeaderProps {
 
 export function PdfHeader({
   logoDataUrl,
+  eyebrow,
+  title,
+  subtitle,
   brandText,
   brandSubText,
   rightLineText,
@@ -53,8 +59,16 @@ export function PdfHeader({
           </View>
         ) : null}
         <View>
-          <Text style={styles.pageBrand}>{brandText || t("pdf.titlePage.brand", "DINBOARD · Dokumentacja odbiorcza")}</Text>
-          <Text style={styles.pageBrandSub}>{brandSubText || t("pdf.titlePage.brandSub", "PN-HD 60364-6 · Arkusz 6")}</Text>
+          {eyebrow && <Text style={styles.eyebrow}>{eyebrow}</Text>}
+          {title && <Text style={styles.pageTitle}>{title}</Text>}
+          {subtitle && <Text style={styles.pageSubtitle}>{subtitle}</Text>}
+          
+          {(brandText !== undefined || (!title && !eyebrow)) && (
+            <Text style={styles.pageBrand}>{brandText || t("pdf.titlePage.brand", "DINBOARD · Dokumentacja odbiorcza")}</Text>
+          )}
+          {(brandSubText !== undefined || (!title && !eyebrow)) && (
+            <Text style={styles.pageBrandSub}>{brandSubText || t("pdf.titlePage.brandSub", "PN-HD 60364-6 · Arkusz 6")}</Text>
+          )}
         </View>
       </View>
       <View style={styles.pageHeaderRight}>

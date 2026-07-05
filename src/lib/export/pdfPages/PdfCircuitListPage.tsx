@@ -29,30 +29,20 @@ export function PdfCircuitListPage({
   return (
     <PdfPage id={chunkIdx === 0 ? "circuit-list" : undefined} orientation="landscape" variant="preview">
       <PdfHeader
-        brandText={t("pdf.circuitList.badge", "Lista obwodów")}
-        brandSubText=""
+        eyebrow={t("pdf.circuitList.badge", "Lista obwodów")}
+        title={t("pdf.circuitList.title", "Zestawienie obwodów instalacji elektrycznej")}
+        subtitle={t("pdf.circuitList.sheet", { current: chunkIdx + 1, total: totalChunks, defaultValue: `Arkusz ${chunkIdx + 1} z ${totalChunks} • dane z aktualnej rozdzielnicy` })}
         rightContent={
           <View>
-            <View style={{ marginBottom: 4 }}>
+            <View style={{ marginBottom: 6 }}>
               <Text style={{ fontSize: 7.5, color: palette.inkTertiary, textTransform: "uppercase", letterSpacing: 1.2, fontWeight: "bold", textAlign: "right" }}>{t("pdf.circuitList.date", "Data")}</Text>
               <Text style={{ fontSize: 10, fontWeight: "bold", color: palette.ink, textAlign: "right" }}>{displayDate}</Text>
             </View>
-            <View style={{ marginTop: 8 }}>
+            <View>
               <Text style={{ fontSize: 7.5, color: palette.inkTertiary, textTransform: "uppercase", letterSpacing: 1.2, fontWeight: "bold", textAlign: "right" }}>{t("pdf.circuitList.object", "Obiekt")}</Text>
               <Text style={{ fontSize: 8.5, fontWeight: "bold", color: palette.ink, textAlign: "right" }}>{fallbackObjectName}</Text>
             </View>
           </View>
-        }
-        rightLineText={
-          <Text>
-            <Text style={{ fontSize: 22, fontWeight: "bold", color: palette.ink, letterSpacing: -0.4, lineHeight: 1.15 }}>
-              {t("pdf.circuitList.title", "Lista obwodów elektrycznych")}
-            </Text>
-            {"\n"}
-            <Text style={{ fontSize: 10, color: palette.inkMuted, marginTop: 4 }}>
-              {t("pdf.circuitList.sheet", { current: chunkIdx + 1, total: totalChunks, defaultValue: `Arkusz ${chunkIdx + 1} z ${totalChunks}` })}
-            </Text>
-          </Text>
         }
       />
 

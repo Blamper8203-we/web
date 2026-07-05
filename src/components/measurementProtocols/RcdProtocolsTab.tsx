@@ -29,8 +29,8 @@ export function RcdProtocolsTab({
   totalUiPages,
 }: RcdProtocolsTabProps) {
   const { t } = useTranslation();
-  const pageHeader = createHeaderForPage(protocols.rcdGroundHeader, 0, 1);
-  const protocolNumberLabel = formatProtocolNumberLabel(pageHeader.headerTitle);
+  const originalTitle = protocols.rcdGroundHeader?.headerTitle || "Protokół Nr 04 / 2026";
+  const protocolNumberLabel = formatProtocolNumberLabel(originalTitle);
   const rowsPage = protocols.rcdRows || [];
   const absoluteIndexBase = 0;
 
@@ -47,7 +47,9 @@ export function RcdProtocolsTab({
               {t("pdf.shared.protocolNrPrefix", "Protokół Pomiarów Nr ")}
               <span className="pd-protocol-pill" style={{ marginLeft: 6, display: "inline-block" }}>{protocolNumberLabel}</span>
             </div>
-            <div className="pd-page-subtitle">{t("pdf.rcd.subtitle", "Test wyłączników różnicowoprądowych RCD i pomiar rezystancji uziemienia")}</div>
+            <div className="pd-page-subtitle">
+              {t("pdf.rcd.subtitle", "Test wyłączników różnicowoprądowych RCD i pomiar rezystancji uziemienia")}
+            </div>
           </div>
         </div>
         <div className="pd-page-header-right">

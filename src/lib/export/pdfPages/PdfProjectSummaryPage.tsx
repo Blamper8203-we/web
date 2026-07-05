@@ -28,8 +28,8 @@ export function PdfProjectSummaryPage({
   return (
     <PdfPage id="summary">
       <PdfHeader
-        brandText={t("pdf.projectSummary.title", "Podsumowanie projektu")}
-        brandSubText={t("pdf.projectSummary.subtitle", "Grupowanie RCD → MCB oraz statystyki instalacji")}
+        title={t("pdf.projectSummary.title", "Podsumowanie projektu")}
+        subtitle={t("pdf.projectSummary.subtitle", "Grupowanie RCD → MCB oraz statystyki instalacji")}
         rightContent={
           <View style={{ marginBottom: 4 }}>
             <Text style={{ fontSize: 7.5, color: "#6b7280", textTransform: "uppercase", letterSpacing: 1.2, fontWeight: "bold", textAlign: "right" }}>{t("pdf.projectSummary.date", "Data")}</Text>

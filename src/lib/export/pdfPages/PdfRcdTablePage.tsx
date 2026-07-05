@@ -30,31 +30,25 @@ export function PdfRcdTablePage({
   return (
     <PdfPage id="rcd" variant="title">
       <PdfHeader
-        brandText={t("pdf.rcdTable.badge", "RCD i uziemienie")}
-        brandSubText=""
+        eyebrow={t("pdf.rcdTable.badge", "RCD i uziemienie")}
+        title={
+          <Text>
+            {t("pdf.shared.protocolNrPrefix", "Protokół Pomiarów Nr ")}
+            <Text style={{ backgroundColor: palette.rowAltBg, padding: "2px 6px", borderRadius: 4 }}>{rcdProtocolNumberLabel}</Text>
+          </Text>
+        }
+        subtitle={t("pdf.rcdTable.title", "Test wyłączników różnicowoprądowych RCD i pomiar rezystancji uziemienia")}
         rightContent={
           <View>
-            <View style={{ marginBottom: 4 }}>
+            <View style={{ marginBottom: 6 }}>
               <Text style={{ fontSize: 7.5, color: palette.inkTertiary, textTransform: "uppercase", letterSpacing: 1.2, fontWeight: "bold", textAlign: "right" }}>{t("pdf.rcdTable.date", "Data pomiarów")}</Text>
               <Text style={{ fontSize: 10, fontWeight: "bold", color: palette.ink, textAlign: "right" }}>{displayDate}</Text>
             </View>
-            <View style={{ marginTop: 8 }}>
+            <View>
               <Text style={{ fontSize: 7.5, color: palette.inkTertiary, textTransform: "uppercase", letterSpacing: 1.2, fontWeight: "bold", textAlign: "right" }}>{t("pdf.rcdTable.object", "Obiekt")}</Text>
               <Text style={{ fontSize: 8.5, fontWeight: "bold", color: palette.ink, textAlign: "right" }}>{fallbackObjectName}</Text>
             </View>
           </View>
-        }
-        rightLineText={
-          <Text>
-            <Text style={{ fontSize: 22, fontWeight: "bold", color: palette.ink, letterSpacing: -0.4, lineHeight: 1.15 }}>
-              {t("pdf.shared.protocolNrPrefix", "Protokół Pomiarów Nr ")}
-              <Text style={{ color: palette.accent }}>{rcdProtocolNumberLabel}</Text>
-            </Text>
-            {"\n"}
-            <Text style={{ fontSize: 10, color: palette.inkMuted, marginTop: 4 }}>
-              {t("pdf.rcdTable.title", "Test wyłączników różnicowoprądowych RCD i pomiar rezystancji uziemienia")}
-            </Text>
-          </Text>
         }
       />
 

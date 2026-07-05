@@ -37,8 +37,8 @@ export function UnifiedProtocolsTab({
         const pageOffset = pageIndex * UNIFIED_ROWS_PER_PAGE;
         const isFirstPage = pageIndex === 0;
         const isLastPage = pageIndex === unifiedPages.length - 1;
-        const pageHeader = createHeaderForPage(protocols.unifiedHeader, pageIndex, unifiedPages.length);
-        const protocolNumberLabel = formatProtocolNumberLabel(pageHeader.headerTitle);
+        const originalTitle = protocols.unifiedHeader?.headerTitle || "Protokół Nr 01 / 2026";
+        const protocolNumberLabel = formatProtocolNumberLabel(originalTitle);
 
         return (
           <div className="a4-page a4-page--landscape" key={`unified-page-${pageIndex}`}>
@@ -53,7 +53,12 @@ export function UnifiedProtocolsTab({
                     {t("pdf.shared.protocolNrPrefix", "Protokół Pomiarów Nr ")}
                     <span className="pd-protocol-pill" style={{ marginLeft: 6, display: "inline-block" }}>{protocolNumberLabel}</span>
                   </div>
-                  <div className="pd-page-subtitle">{t("pdf.unified.subtitle", "Zbiorcze wyniki pomiarów pętli zwarcia i rezystancji izolacji")}</div>
+                  <div className="pd-page-subtitle">
+                    {isFirstPage
+                      ? t("pdf.unified.subtitle", "Zbiorcze wyniki pomiarów pętli zwarcia i rezystancji izolacji")
+                      : t("pdf.unified.subtitleContinued", "Zbiorcze wyniki pomiarów pętli zwarcia i rezystancji izolacji · arkusz {{page}}", { page: pageIndex + 1 })
+                    }
+                  </div>
                 </div>
               </div>
               <div className="pd-page-header-right">
