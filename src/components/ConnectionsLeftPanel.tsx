@@ -1,5 +1,4 @@
 import { useTranslation } from "react-i18next";
-import { t } from "i18next";
 import type { WireColor, WireType, RoutingMode, FerruleColor } from "../types/connectionItem";
 import { DEFAULT_CUSTOM_RADIUS } from "../lib/connections/connectionsLogic";
 
@@ -24,30 +23,30 @@ interface ConnectionsLeftPanelProps {
 }
 
 const WIRE_COLORS: Array<{ value: WireColor; label: string; hex: string }> = [
-  { value: "black", label: t("auto.czarnyl_904", "Czarny (L)"), hex: "#111827" },
-  { value: "brown", label: t("auto.brzowyl_276", "Brązowy (L)"), hex: "#78350f" },
-  { value: "grey", label: t("auto.szaryl_195", "Szary (L)"), hex: "#6b7280" },
-  { value: "blue", label: t("auto.niebieskin_721", "Niebieski (N)"), hex: "#3b82f6" },
-  { value: "green-yellow", label: t("auto.tozielonype_827", "Żółto-Zielony (PE)"), hex: "repeating-linear-gradient(45deg, #eab308, #eab308 10px, #22c55e 10px, #22c55e 20px)" },
-  { value: "red", label: t("auto.czerwonysterowa_853", "Czerwony (Sterowanie)"), hex: "#ef4444" },
+  { value: "black", label: "Czarny (L)", hex: "#111827" },
+  { value: "brown", label: "Brązowy (L)", hex: "#78350f" },
+  { value: "grey", label: "Szary (L)", hex: "#6b7280" },
+  { value: "blue", label: "Niebieski (N)", hex: "#3b82f6" },
+  { value: "green-yellow", label: "Żółto-Zielony (PE)", hex: "repeating-linear-gradient(45deg, #eab308, #eab308 10px, #22c55e 10px, #22c55e 20px)" },
+  { value: "red", label: "Czerwony (Sterowanie)", hex: "#ef4444" },
 ];
 
 const FERRULE_COLORS: Array<{ value: FerruleColor; label: string; hex: string }> = [
   { value: "none", label: "Brak", hex: "transparent" },
-  { value: "auto", label: t("auto.autodin_817", "Auto (DIN)"), hex: "linear-gradient(45deg, #171717, #1d4ed8, #b91c1c)" },
-  { value: "white", label: t("auto.biaa_258", "Biała"), hex: "#dddddd" },
+  { value: "auto", label: "Auto (DIN)", hex: "linear-gradient(45deg, #171717, #1d4ed8, #b91c1c)" },
+  { value: "white", label: "Biała", hex: "#dddddd" },
   { value: "grey", label: "Szara", hex: "#666666" },
   { value: "red", label: "Czerwona", hex: "#b91c1c" },
   { value: "blue", label: "Niebieska", hex: "#1d4ed8" },
-  { value: "yellow", label: t("auto.ta_615", "Żółta"), hex: "#eab308" },
+  { value: "yellow", label: "Żółta", hex: "#eab308" },
   { value: "black", label: "Czarna", hex: "#171717" },
-  { value: "brown", label: t("auto.brzowa_643", "Brązowa"), hex: "#6b3410" },
+  { value: "brown", label: "Brązowa", hex: "#6b3410" },
 ];
 
 const WIRE_CROSS_SECTIONS = [1.5, 2.5, 4.0, 6.0, 10.0, 16.0];
 
 const WIRE_TYPES: Array<{ value: WireType; label: string }> = [
-  { value: "LgY", label: t("auto.linkalgy_581", "Linka (LgY)") },
+  { value: "LgY", label: "Linka (LgY)" },
 ];
 
 export function ConnectionsLeftPanel({
@@ -87,7 +86,7 @@ export function ConnectionsLeftPanel({
   const handleDeleteSelected = () => {
     if (!selectedConnection || !connections || !onConnectionsChange) return;
     const nextConnections = connections.filter((conn) => conn.id !== selectedConnection.id);
-    onConnectionsChange(nextConnections, t("app.connectionsLeftPanel.deleteAction", "Usunięcie przewodu"), t("app.connectionsLeftPanel.deleteStatus", "Usunięto zaznaczone połączenie"));
+    onConnectionsChange(nextConnections, "Usunięcie przewodu", "Usunięto zaznaczone połączenie");
   };
 
   return (
@@ -96,10 +95,10 @@ export function ConnectionsLeftPanel({
       {/* NAGŁÓWEK PANELU (TRYB PRZEWODNIKA) */}
       <div style={{ display: "flex", flexDirection: "column", gap: "4px", paddingBottom: "16px", borderBottom: "1px solid var(--panel-border)" }}>
         <h2 style={{ fontSize: "16px", fontWeight: 700, color: "var(--text-main)", margin: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-          {t("app.connectionsLeftPanel.modeTitle", "Tryb przewodnika")}
+          {"Tryb przewodnika"}
         </h2>
         <p style={{ fontSize: "11px", color: "var(--text-secondary)", margin: 0 }}>
-          {t("app.connectionsLeftPanel.modeDesc", "Konfiguracja okablowania i połączeń szyny DIN")}
+          {"Konfiguracja okablowania i połączeń szyny DIN"}
         </p>
       </div>
 
@@ -107,16 +106,16 @@ export function ConnectionsLeftPanel({
       {selectedConnection && (
         <div className="sidebar-section" style={{ background: "rgba(59, 130, 246, 0.05)", padding: "12px", borderRadius: "8px", border: "1px solid rgba(59, 130, 246, 0.2)" }}>
           <h3 className="section-title" style={{ fontSize: "14px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--accent-primary)", marginBottom: "12px" }}>
-            {t("app.connectionsLeftPanel.selectedTitle", "Zaznaczony przewód")}
+            {"Zaznaczony przewód"}
           </h3>
           <p style={{ fontSize: "11px", color: "var(--text-secondary)", marginBottom: "16px" }}>
-            {t("app.connectionsLeftPanel.selectedDesc", "Zmieniasz właściwości wyłącznie dla wybranego przewodu.")}
+            {"Zmieniasz właściwości wyłącznie dla wybranego przewodu."}
           </p>
 
           {/* Promień zagięcia (dla zaznaczonego) */}
           <div style={{ marginBottom: "12px" }}>
             <label style={{ display: "block", fontSize: "12px", fontWeight: 600, marginBottom: "6px", color: "var(--text-main)" }}>
-              {t("app.connectionsLeftPanel.radiusLabel", "Promień zagięcia (Radius)")}
+              {"Promień zagięcia (Radius)"}
             </label>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <input
@@ -158,7 +157,7 @@ export function ConnectionsLeftPanel({
                 transition: "all 0.2s"
               }}
             >
-              {t("app.connectionsLeftPanel.deleteButton", "Usuń przewód")}
+              {"Usuń przewód"}
             </button>
           </div>
           
@@ -169,10 +168,10 @@ export function ConnectionsLeftPanel({
       {/* SEKCJA USTAWIEN DOMYSLNYCH */}
       <div className="sidebar-section">
         <h3 className="section-title" style={{ fontSize: "14px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--accent-primary)", marginBottom: "12px" }}>
-          {t("app.connectionsLeftPanel.newWireTitle", "Ustawienia nowego przewodu")}
+          {"Ustawienia nowego przewodu"}
         </h3>
         <p style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "16px" }}>
-          {t("app.connectionsLeftPanel.newWireDesc", "Wybierz domyślne parametry. Nowo narysowane połączenia będą tworzone z tymi właściwościami.")}
+          {"Wybierz domyślne parametry. Nowo narysowane połączenia będą tworzone z tymi właściwościami."}
         </p>
       </div>
 
@@ -181,7 +180,7 @@ export function ConnectionsLeftPanel({
       {/* Kolor przewodu */}
       <div className="sidebar-section">
         <label style={{ display: "block", fontSize: "12px", fontWeight: 600, marginBottom: "8px", color: "var(--text-main)" }}>
-          {t("app.connectionsLeftPanel.wireColorLabel", "Kolor izolacji")}
+          {"Kolor izolacji"}
         </label>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
           {WIRE_COLORS.map((color) => {
@@ -218,7 +217,7 @@ export function ConnectionsLeftPanel({
                   }}
                 />
                 <span style={{ fontSize: "10px", color: "var(--text-main)", textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>
-                  {color.value === "green-yellow" ? t("app.connectionsLeftPanel.wireColors.peShort", "Żół-Ziel") : localizedLabel.split(" ")[0]}
+                  {color.value === "green-yellow" ? "Żół-Ziel" : localizedLabel.split(" ")[0]}
                 </span>
               </button>
             );
@@ -231,7 +230,7 @@ export function ConnectionsLeftPanel({
       {/* Kolor tulejki */}
       <div className="sidebar-section">
         <label style={{ display: "block", fontSize: "12px", fontWeight: 600, marginBottom: "8px", color: "var(--text-main)" }}>
-          {t("app.connectionsLeftPanel.ferruleColorLabel", "Kolor tulejki (LgY)")}
+          {"Kolor tulejki (LgY)"}
         </label>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
           {FERRULE_COLORS.map((color) => {
@@ -284,7 +283,7 @@ export function ConnectionsLeftPanel({
       {/* Przekrój przewodu */}
       <div className="sidebar-section">
         <label style={{ display: "block", fontSize: "12px", fontWeight: 600, marginBottom: "8px", color: "var(--text-main)" }}>
-          {t("app.connectionsLeftPanel.crossSectionLabel", "Przekrój poprzeczny")}
+          {"Przekrój poprzeczny"}
         </label>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
           {WIRE_CROSS_SECTIONS.map((size) => {
@@ -318,7 +317,7 @@ export function ConnectionsLeftPanel({
       {/* Typ przewodu */}
       <div className="sidebar-section">
         <label style={{ display: "block", fontSize: "12px", fontWeight: 600, marginBottom: "8px", color: "var(--text-main)" }}>
-          {t("app.connectionsLeftPanel.wireTypeLabel", "Typ przewodnika")}
+          {"Typ przewodnika"}
         </label>
         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
           {WIRE_TYPES.map((type) => {

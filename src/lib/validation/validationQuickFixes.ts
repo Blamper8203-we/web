@@ -1,4 +1,3 @@
-import { t } from "i18next";
 
 import { createDefaultSymbolItem, type SymbolItem } from "../../types/symbolItem";
 import type { ValidationMessage } from "./electricalValidationService";
@@ -30,7 +29,7 @@ export function getValidationQuickFixesForMessage(
   if ((message.code === "VAL-012" || message.code === "VAL-021") && !hasProtectionRating(symbol.protectionType)) {
     fixes.push({
       id: "set-protection-b16",
-      label: t("auto.ustawb16_777", "Ustaw B16"),
+      label: "Ustaw B16",
       symbolId: symbol.id,
     });
   }
@@ -39,7 +38,7 @@ export function getValidationQuickFixesForMessage(
     if (message.code === "VAL-012" && symbol.rcdRatedCurrent <= 0) {
       fixes.push({
         id: "set-rcbo-rated-40a",
-        label: t("auto.ustaw40a_681", "Ustaw 40A"),
+        label: "Ustaw 40A",
         symbolId: symbol.id,
       });
     }
@@ -47,7 +46,7 @@ export function getValidationQuickFixesForMessage(
     if ((message.code === "VAL-012" && symbol.rcdResidualCurrent <= 0) || message.code === "VAL-014") {
       fixes.push({
         id: "set-rcbo-residual-30ma",
-        label: t("auto.ustaw30ma_73", "Ustaw 30mA"),
+        label: "Ustaw 30mA",
         symbolId: symbol.id,
       });
     }
@@ -55,7 +54,7 @@ export function getValidationQuickFixesForMessage(
     if (message.code === "VAL-012" && symbol.rcdType.trim().length === 0) {
       fixes.push({
         id: "set-rcbo-type-a",
-        label: t("auto.ustawtypa_303", "Ustaw typ A"),
+        label: "Ustaw typ A",
         symbolId: symbol.id,
       });
     }

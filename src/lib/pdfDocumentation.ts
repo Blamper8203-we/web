@@ -1,4 +1,3 @@
-import { t } from "i18next";
 import type {
   MeasurementProtocolHeaderSettings,
   ProjectMetadata,
@@ -35,19 +34,19 @@ export function getPdfDocumentationTabs(): Array<{
 export function getProtocolLabel(tab: PdfDocumentationPreviewTab): string {
   switch (tab) {
     case "circuit-list":
-      return t("pdf.tabs.circuit-list", "Lista obwodów");
+      return "Lista obwodów";
     case "din-rail":
-      return t("pdf.tabs.din-rail", "Rozdzielnica elektryczna");
+      return "Rozdzielnica elektryczna";
     case "din-rail-connections":
-      return t("pdf.tabs.din-rail-connections", "Rozdzielnica połączenia");
+      return "Rozdzielnica połączenia";
     case "schematic":
-      return t("pdf.tabs.schematic", "Schemat obwodów");
+      return "Schemat obwodów";
     case "unified":
-      return t("pdf.tabs.unified", "Tabela zbiorcza");
+      return "Tabela zbiorcza";
     case "rcd-ground":
-      return t("pdf.tabs.rcd-ground", "RCD i uziemienie");
+      return "RCD i uziemienie";
     default:
-      return t("pdf.tabs.title-page", "Strona główna");
+      return "Strona główna";
   }
 }
 

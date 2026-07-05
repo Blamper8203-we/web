@@ -1,4 +1,3 @@
-import { t } from "i18next";
 import type { ProjectFileData } from "./projectFile";
 import type { SymbolItem } from "../types/symbolItem";
 import type { ConnectionItem } from "../types/connectionItem";
@@ -83,7 +82,7 @@ function validateUniqueSymbolIds(
     if (!symbol.id) {
       messages.push({
         code: "SEM-001",
-        message: t("auto.symbolbezidenty_925", "Symbol bez identyfikatora"),
+        message: "Symbol bez identyfikatora",
         details: "Kazdy symbol musi miec niepuste id.",
         severity: "Error",
       });
@@ -113,7 +112,7 @@ function validateUniqueConnectionIds(
     if (!conn.id) {
       messages.push({
         code: "SEM-003",
-        message: t("auto.polaczeniebezid_353", "Polaczenie bez identyfikatora"),
+        message: "Polaczenie bez identyfikatora",
         details: "Kazde polaczenie musi miec niepuste id.",
         severity: "Error",
       });
