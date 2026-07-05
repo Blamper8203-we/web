@@ -172,6 +172,7 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
   },
   build: {
+    chunkSizeWarningLimit: 800,
     rollupOptions: {
       output: {
         manualChunks(id) {
