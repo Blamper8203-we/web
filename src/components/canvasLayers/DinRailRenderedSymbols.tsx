@@ -86,23 +86,25 @@ export function DinRailRenderedSymbols({
             style={{ pointerEvents: "none" }}
           />
           {/* Reference designation / Name indicator (Floating text below the module, matching main workspace) */}
-          <text
-            x={symbol.width / 2}
-            y={labelY}
-            textAnchor="middle"
-            dominantBaseline="text-before-edge"
-            fill="#f8fafc"
-            fontSize={labelFontSize}
-            fontWeight={700}
-            fontFamily="Segoe UI, Arial, sans-serif"
-            style={{
-              pointerEvents: "none",
-              textShadow: "0 0 1px #111827, 0 0 3px #111827, 0 0 5px #111827",
-              userSelect: "none"
-            }}
-          >
-            {symbol.referenceDesignation || symbol.label || "Aparat"}
-          </text>
+          {(!symbol.moduleRef?.includes("Listwa PE") || symbol.parameters["manualReferenceDesignation"] === "true") && (
+            <text
+              x={symbol.width / 2}
+              y={labelY}
+              textAnchor="middle"
+              dominantBaseline="text-before-edge"
+              fill="#f8fafc"
+              fontSize={labelFontSize}
+              fontWeight={700}
+              fontFamily="Segoe UI, Arial, sans-serif"
+              style={{
+                pointerEvents: "none",
+                textShadow: "0 0 1px #111827, 0 0 3px #111827, 0 0 5px #111827",
+                userSelect: "none"
+              }}
+            >
+              {symbol.referenceDesignation || symbol.label || "Aparat"}
+            </text>
+          )}
         </g>
         );
       })}

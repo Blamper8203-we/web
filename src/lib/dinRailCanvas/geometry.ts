@@ -98,6 +98,10 @@ export function getSymbolDesignationLabel(
   // For terminal blocks and distribution blocks, use the pre-computed displayModuleNumber
   // which contains the correct prefix (N1, PE1, BL1, X1)
   if (isAuxiliaryNonCircuitSymbol(symbol)) {
+    // Hide default white designation for Listwa PE because it already has it baked into the SVG.
+    if (!isManualDesignation && symbol.moduleRef?.includes("Listwa PE")) {
+      return "";
+    }
     return symbol.displayModuleNumber || manualDesignation;
   }
 
