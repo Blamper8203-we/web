@@ -142,6 +142,8 @@ export function getCircuitEditFields(symbol: SymbolItem, t: TFunction, symbols?:
       return createDistributionBlockFields(symbol, t);
     case "socket":
       return createSocketFields(symbol, getPoleCount(symbol), locationOptions, t);
+    case "other":
+      return createOtherFields(symbol, getPoleCount(symbol), locationOptions, t);
     default:
       return createMcbFields(symbol, getPoleCount(symbol), locationOptions, t);
   }
@@ -408,6 +410,15 @@ function createSocketFields(
     textField("Location", t("app.circuitEdit.fields.location"), symbol.location, t("app.circuitEdit.fields.placeholder.location"), locationOptions),
     comboField("Phase", t("app.circuitEdit.fields.phase"), getDisplayPhase(symbol.phase), getPhaseOptions(poleCount)),
     numberField("CableCrossSection", t("app.circuitEdit.fields.cableCrossSection"), symbol.cableCrossSection, t("app.circuitEdit.fields.placeholder.cableCrossSection")),
+  ];
+}
+
+function createOtherFields(symbol: SymbolItem, poleCount: ModulePoleCount, locationOptions: string[], t: TFunction): CircuitEditFieldDefinition[] {
+  return [
+    textField("ReferenceDesignation", t("app.circuitEdit.fields.designation"), getManualReferenceDesignation(symbol)),
+    textField("CircuitName", t("app.circuitEdit.fields.circuitName"), symbol.circuitName, t("app.circuitEdit.fields.placeholder.circuitName")),
+    textField("Location", t("app.circuitEdit.fields.location"), symbol.location, t("app.circuitEdit.fields.placeholder.location"), locationOptions),
+    comboField("Phase", t("app.circuitEdit.fields.phase"), getDisplayPhase(symbol.phase), getPhaseOptions(poleCount)),
   ];
 }
 

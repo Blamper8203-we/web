@@ -678,6 +678,7 @@ export async function exportDinRailToSvg(
   });
 
   for (const { symbol, baseDataUri } of normalSymbols) {
+    parts.push(`<rect x="${symbol.x}" y="${symbol.y}" width="${symbol.width}" height="${symbol.height}" fill="white" rx="2" ry="2"/>`);
     parts.push(`<image href="${baseDataUri}" x="${symbol.x}" y="${symbol.y}" width="${symbol.width}" height="${symbol.height}"/>`);
   }
 

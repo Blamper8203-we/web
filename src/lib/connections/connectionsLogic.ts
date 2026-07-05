@@ -24,6 +24,9 @@ export const FERRULE_COLORS_MAP: Record<string, { hex: string; highlight: string
 };
 
 export const WIRE_THICKNESS_MAP: Record<number, number> = {
+  0.5: 25,
+  0.75: 28,
+  1.0: 30,
   1.5: 35,
   2.5: 40,
   4: 45,
@@ -48,7 +51,10 @@ export interface DefaultWireSettings {
 }
 
 export function getAutoFerruleColor(crossSection: number): FerruleColor {
-  if (crossSection <= 1.5) return "black";
+  if (crossSection === 0.5) return "white";
+  if (crossSection === 0.75) return "grey";
+  if (crossSection === 1.0) return "red";
+  if (crossSection === 1.5) return "black";
   if (crossSection === 2.5) return "blue";
   if (crossSection === 4.0) return "grey";
   if (crossSection === 6.0) return "yellow";
@@ -74,6 +80,14 @@ export function getFerruleLength(deviceKind: string | undefined, moduleRef: stri
   const normalizedRef = (moduleRef || "").toLowerCase().replace(/\\/g, "/");
   if (normalizedRef.includes("listwy do rozdzielnicy")) {
     return 50;  // very short for horizontal terminal blocks
+  }
+
+  if (normalizedRef.includes("ampio mserv-4s")) {
+    return 40;  // very short for this specific module
+  }
+
+  if (normalizedRef.includes("smart home") || normalizedRef.includes("przelacznik sieci") || normalizedRef.includes("przelacznik siec")) {
+    return 80;  // half of regular length
   }
 
   if (deviceKind === "terminalBlock") {

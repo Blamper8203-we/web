@@ -3,6 +3,7 @@ import { FerruleGraphic } from "./FerruleGraphic";
 import { isDistributionBlockSymbol, type SymbolItem } from "../../types/symbolItem";
 import { WIRE_THICKNESS_MAP } from "../../lib/dinRailCanvas/constants";
 import { getSymbolTerminals } from "../../lib/modules/moduleTerminals";
+import { getFerruleLength } from "../../lib/connections/connectionsLogic";
 import type { DefaultWireSettings } from "../../lib/connections/connectionsLogic";
 import type { DrawingState, HoveredHotspot } from "../../hooks/connections/useConnectionsDrawing";
 
@@ -75,7 +76,7 @@ export function DinRailFerrulesGroup({
                 return s?.deviceKind === "phaseIndicator" || (s?.moduleRef || "").toLowerCase().includes("zabezpieczajacy") || (s?.moduleRef || "").toLowerCase().includes("zabezpieczenia");
               })()}
               customOffset={fromIsDist ? 10 : w.fromHS.visualInset}
-              customLength={fromIsDist ? 80 : undefined}
+              customLength={getFerruleLength(fromSymbolForFerrule?.deviceKind, fromSymbolForFerrule?.moduleRef)}
             />
           );
         }
@@ -101,7 +102,7 @@ export function DinRailFerrulesGroup({
                 return s?.deviceKind === "phaseIndicator" || (s?.moduleRef || "").toLowerCase().includes("zabezpieczajacy") || (s?.moduleRef || "").toLowerCase().includes("zabezpieczenia");
               })()}
               customOffset={toIsDist ? 10 : w.toHS.visualInset}
-              customLength={toIsDist ? 80 : undefined}
+              customLength={getFerruleLength(toSymbolForFerrule?.deviceKind, toSymbolForFerrule?.moduleRef)}
             />
           );
         }
@@ -137,8 +138,7 @@ export function DinRailFerrulesGroup({
           customLength={(() => {
             const s = symbols.find(sym => sym.id === drawingState.startSymbolId);
             if (!s) return undefined;
-            const isDist = isDistributionBlockSymbol(s);
-            return isDist ? 40 : undefined;
+            return getFerruleLength(s.deviceKind, s.moduleRef);
           })()}
         />
       )}
@@ -170,8 +170,7 @@ export function DinRailFerrulesGroup({
           customLength={(() => {
             const s = symbols.find(sym => sym.id === hoveredHotspot.symbolId);
             if (!s) return undefined;
-            const isDist = isDistributionBlockSymbol(s);
-            return isDist ? 40 : undefined;
+            return getFerruleLength(s.deviceKind, s.moduleRef);
           })()}
         />
       )}

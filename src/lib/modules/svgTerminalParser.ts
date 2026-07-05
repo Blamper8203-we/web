@@ -76,6 +76,7 @@ export async function parseSvgForTerminals(urlOrRawSvg: string, moduleRef: strin
     }
 
     const groups: CachedTerminalGroup[] = [];
+    const usedCircles = new Set<Element>();
 
     // Szukamy elementów <g> z id pasującym do "Grupa L1", "Grupa N", itp.
     const allGroups = Array.from(svgRoot.querySelectorAll("g"));
@@ -91,8 +92,10 @@ export async function parseSvgForTerminals(urlOrRawSvg: string, moduleRef: strin
         // Znajdźmy wszystkie kółka wewnątrz grupy
         const circles = Array.from(g.querySelectorAll("circle"));
         if (circles.length > 0) {
+          circles.forEach(c => usedCircles.add(c));
           const parsedCircles = circles.map(c => {
             return {
+              id: c.getAttribute("id") || c.getAttribute("serif:id") || "",
               cx: parseFloat(c.getAttribute("cx") || "0"),
               cy: parseFloat(c.getAttribute("cy") || "0"),
               r: parseFloat(c.getAttribute("r") || "0")
@@ -109,7 +112,7 @@ export async function parseSvgForTerminals(urlOrRawSvg: string, moduleRef: strin
             const rRatio = c.r > 0 ? c.r / vbWidth : undefined;
 
             return {
-              name: `${prefix}-${index + 1}`,
+              name: c.id || `${prefix}-${index + 1}`,
               xRatio,
               yRatio,
               rRatio
@@ -123,6 +126,62 @@ export async function parseSvgForTerminals(urlOrRawSvg: string, moduleRef: strin
             terminals
           });
         }
+      }
+    }
+
+    // Dodatkowa heurystyka: szukamy kółek poza grupami, które mają id sugerujące terminal
+    // np. "IN1", "OUT-2", "PE", "L1"
+    const standaloneCircles = Array.from(svgRoot.querySelectorAll("circle")).filter(c => !usedCircles.has(c));
+    const standaloneByPrefix: Record<string, any[]> = {};
+    
+    for (const c of standaloneCircles) {
+      const id = c.getAttribute("id") || c.getAttribute("serif:id") || "";
+      // Matchuje np. IN1, OUT2, L1, PE, N. Ignoruje np. "Terminal-1" żeby nie psuć fallbacków (np. GSU)
+      const match = id.match(/^(IN|OUT|L\d?|N|PE)[-\s_]?(\d*)$/i);
+      if (match) {
+        const prefix = match[1].toUpperCase();
+        if (!standaloneByPrefix[prefix]) {
+          standaloneByPrefix[prefix] = [];
+        }
+        standaloneByPrefix[prefix].push({
+          id,
+          cx: parseFloat(c.getAttribute("cx") || "0"),
+          cy: parseFloat(c.getAttribute("cy") || "0"),
+          r: parseFloat(c.getAttribute("r") || "0")
+        });
+      }
+    }
+
+    for (const prefix of Object.keys(standaloneByPrefix)) {
+      const circles = standaloneByPrefix[prefix].filter((c: any) => !isNaN(c.cx) && !isNaN(c.cy));
+      if (circles.length > 0) {
+        circles.sort((a: any, b: any) => a.cx - b.cx);
+
+        let group = groups.find(g => g.prefix === prefix);
+        if (!group) {
+          group = {
+            prefix,
+            viewBoxWidth: vbWidth,
+            viewBoxHeight: vbHeight,
+            terminals: []
+          };
+          groups.push(group);
+        }
+
+        const newTerminals = circles.map((c: any, index: number) => {
+          const xRatio = (c.cx - vbX) / vbWidth;
+          const yRatio = (c.cy - vbY) / vbHeight;
+          const rRatio = c.r > 0 ? c.r / vbWidth : undefined;
+
+          return {
+            name: c.id || `${prefix}-${group!.terminals.length + index + 1}`,
+            xRatio,
+            yRatio,
+            rRatio
+          };
+        });
+
+        group.terminals.push(...newTerminals);
       }
     }
 

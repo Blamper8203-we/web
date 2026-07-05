@@ -5,7 +5,7 @@ import { ProjectPropertiesPage } from "./ProjectPropertiesPage";
 import { ConnectionsLeftPanel } from "./ConnectionsLeftPanel";
 import "./LeftPanel.css";
 import { getPaletteTemplateDimensions, type PaletteGroup } from "../lib/modules/moduleCatalog";
-import { getPaletteIconName, getPaletteDescription, createPaletteDragPreview, type SheetType } from "../lib/appHelpers";
+import { getPaletteIconName, getPaletteDescription, startCustomDragLayer, type SheetType } from "../lib/appHelpers";
 import type { ProjectMetadata } from "../types/projectMetadata";
 import { type DefaultWireSettings } from "../lib/connections/connectionsLogic";
 import type { ConnectionItem } from "../types/connectionItem";
@@ -107,7 +107,9 @@ export function AppLeftPanel({
                   type="button"
                   onClick={() => setActivePaletteGroupTitle(group.title)}
                 >
-                  {t(`moduleCategory.${group.title}`, group.title === "Controls" ? "Kontrolki faz" : group.title)}
+                  {group.title === "Smart Home" && <AppIcon name="sparkles" size={14} className="palette-tab-icon" />}
+                  <span>{t(`moduleCategory.${group.title}`, group.title === "Controls" ? "Kontrolki faz" : group.title)}</span>
+                  {group.title === "Smart Home" && <span className="palette-tab-badge">Nowe</span>}
                 </button>
               ))}
             </div>
@@ -142,18 +144,15 @@ export function AppLeftPanel({
                       const moduleDimensions = getPaletteTemplateDimensions(item);
                       const zoomScale = activeSheet === "sheet1" ? 0.2 : 1;
                       const previewNode = event.currentTarget.querySelector(".palette-item-visual");
-                      const dragPreview = createPaletteDragPreview(
+                      event.dataTransfer.effectAllowed = "copy";
+                      event.dataTransfer.setData("application/x-dinboard-palette", item.templateId);
+                      event.dataTransfer.setData("text/plain", item.templateId);
+                      startCustomDragLayer(
+                        event.nativeEvent,
                         previewNode instanceof HTMLElement ? previewNode : null,
                         moduleDimensions.width * zoomScale,
                         moduleDimensions.height * zoomScale,
                       );
-                      event.dataTransfer.effectAllowed = "copy";
-                      event.dataTransfer.setData("application/x-dinboard-palette", item.templateId);
-                      event.dataTransfer.setData("text/plain", item.templateId);
-                      if (dragPreview) {
-                        event.dataTransfer.setDragImage(dragPreview, Math.round((moduleDimensions.width * zoomScale) / 2), Math.round((moduleDimensions.height * zoomScale) / 2));
-                        window.setTimeout(() => dragPreview.remove(), 0);
-                      }
                     }}
                   >
                     {(() => {

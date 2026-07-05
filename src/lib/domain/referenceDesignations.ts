@@ -10,6 +10,10 @@ export function getReferencePrefix(template: PaletteTemplate): string {
     return "WS";
   }
 
+  if (template.category === "Smart Home") {
+    return "HOME";
+  }
+
   switch (template.deviceKind) {
     case "fr":
       return "QS";

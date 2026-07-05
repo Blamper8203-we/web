@@ -542,6 +542,10 @@ function resolveDesignation(symbol: SymbolItem, automaticDesignation: string): s
     return symbol.referenceDesignation.trim();
   }
 
+  if (symbol.deviceKind === "other" && symbol.referenceDesignation.trim().length > 0) {
+    return symbol.referenceDesignation.trim();
+  }
+
   return automaticDesignation;
 }
 
@@ -578,5 +582,6 @@ function getParam(symbol: SymbolItem, key: string, defaultValue = ""): string {
 }
 
 function formatNumber(value: number): string {
-  return Number.isInteger(value) ? String(value) : value.toFixed(1).replace(/\.0$/, "");
+  if (Number.isInteger(value)) return String(value);
+  return value.toFixed(2).replace(/\.?0+$/, "");
 }

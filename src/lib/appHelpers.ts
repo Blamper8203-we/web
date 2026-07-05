@@ -50,40 +50,126 @@ export function createDragPreviewAssetSource(visualNode: HTMLElement | null): st
   return null;
 }
 
-export function createPaletteDragPreview(
+// WHY: The native setDragImage API always applies browser-imposed opacity
+// (~70% in Chrome, ~80% Firefox), making the drag preview look faded.
+// A custom drag layer creates a fixed-position overlay that follows the
+// cursor via document dragover events, giving full control over appearance.
+// The native drag ghost is hidden by a 1×1 transparent canvas.
+
+let activeDragLayer: HTMLDivElement | null = null;
+
+function cloneVisualContent(visualNode: HTMLElement): HTMLElement | null {
+  const canvas = visualNode.querySelector("canvas");
+  if (canvas instanceof HTMLCanvasElement) {
+    try {
+      const newCanvas = document.createElement("canvas");
+      newCanvas.width = canvas.width;
+      newCanvas.height = canvas.height;
+      const ctx = newCanvas.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(canvas, 0, 0);
+      }
+      return newCanvas;
+    } catch {
+      // Fall through
+    }
+  }
+
+  const img = visualNode.querySelector("img");
+  if (img instanceof HTMLImageElement) {
+    return img.cloneNode(true) as HTMLImageElement;
+  }
+
+  const svg = visualNode.querySelector("svg");
+  if (svg instanceof SVGElement) {
+    return svg.cloneNode(true) as HTMLElement;
+  }
+
+  return null;
+}
+
+export function startCustomDragLayer(
+  event: DragEvent,
   visualNode: HTMLElement | null,
   width: number,
   height: number,
-): HTMLDivElement | null {
-  const source = createDragPreviewAssetSource(visualNode);
-  if (!source) {
-    return null;
+): void {
+  cleanupCustomDragLayer();
+
+  if (!visualNode) return;
+
+  const clonedContent = cloneVisualContent(visualNode);
+  if (!clonedContent) return;
+
+  const w = Math.max(1, Math.round(width));
+  const h = Math.max(1, Math.round(height));
+  const halfW = Math.round(w / 2);
+  const halfH = Math.round(h / 2);
+
+  const layer = document.createElement("div");
+  layer.style.position = "fixed";
+  layer.style.left = `${event.clientX - halfW}px`;
+  layer.style.top = `${event.clientY - halfH}px`;
+  layer.style.width = `${w}px`;
+  layer.style.height = `${h}px`;
+  layer.style.display = "grid";
+  layer.style.placeItems = "center";
+  layer.style.pointerEvents = "none";
+  layer.style.zIndex = "9999";
+  layer.style.opacity = "0.9";
+
+  clonedContent.style.display = "block";
+  clonedContent.style.width = "100%";
+  clonedContent.style.height = "100%";
+  clonedContent.style.objectFit = "contain";
+  clonedContent.style.pointerEvents = "none";
+  if ("draggable" in clonedContent) {
+    (clonedContent as HTMLImageElement).draggable = false;
   }
 
-  const preview = document.createElement("div");
-  preview.style.position = "fixed";
-  preview.style.left = "-10000px";
-  preview.style.top = "-10000px";
-  preview.style.width = `${Math.max(1, Math.round(width))}px`;
-  preview.style.height = `${Math.max(1, Math.round(height))}px`;
-  preview.style.display = "grid";
-  preview.style.placeItems = "center";
-  preview.style.pointerEvents = "none";
-  preview.style.background = "transparent";
-  preview.style.zIndex = "9999";
+  layer.appendChild(clonedContent);
+  document.body.appendChild(layer);
+  activeDragLayer = layer;
 
-  const image = document.createElement("img");
-  image.src = source;
-  image.draggable = false;
-  image.style.display = "block";
-  image.style.width = "100%";
-  image.style.height = "100%";
-  image.style.objectFit = "contain";
-  image.style.pointerEvents = "none";
+  // Track cursor position
+  const onDragOver = (e: DragEvent) => {
+    if (activeDragLayer && e.clientX > 0 && e.clientY > 0) {
+      activeDragLayer.style.left = `${e.clientX - halfW}px`;
+      activeDragLayer.style.top = `${e.clientY - halfH}px`;
+    }
+  };
 
-  preview.appendChild(image);
-  document.body.appendChild(preview);
-  return preview;
+  const cleanup = () => {
+    cleanupCustomDragLayer();
+    document.removeEventListener("dragover", onDragOver);
+    document.removeEventListener("dragend", cleanup);
+    document.removeEventListener("drop", cleanup);
+  };
+
+  document.addEventListener("dragover", onDragOver);
+  document.addEventListener("dragend", cleanup);
+  document.addEventListener("drop", cleanup);
+
+  // Hide native drag ghost: setDragImage requires the element in the DOM
+  const emptyGhost = document.createElement("canvas");
+  emptyGhost.width = 1;
+  emptyGhost.height = 1;
+  emptyGhost.style.position = "fixed";
+  emptyGhost.style.left = "-10000px";
+  emptyGhost.style.top = "-10000px";
+  emptyGhost.style.opacity = "0.01";
+  document.body.appendChild(emptyGhost);
+  if (event.dataTransfer) {
+    event.dataTransfer.setDragImage(emptyGhost, 0, 0);
+  }
+  window.setTimeout(() => emptyGhost.remove(), 0);
+}
+
+export function cleanupCustomDragLayer(): void {
+  if (activeDragLayer) {
+    activeDragLayer.remove();
+    activeDragLayer = null;
+  }
 }
 
 export function isEditableShortcutTarget(target: EventTarget | null): boolean {

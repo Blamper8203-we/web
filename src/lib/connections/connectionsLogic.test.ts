@@ -13,8 +13,10 @@ import {
 } from "./connectionsLogic";
 
 describe("connectionsLogic - getAutoFerruleColor", () => {
-  it("returns 'black' for cross-section <= 1.5", () => {
-    expect(getAutoFerruleColor(1.0)).toBe("black");
+  it("returns correct color for cross-sections <= 1.5", () => {
+    expect(getAutoFerruleColor(0.5)).toBe("white");
+    expect(getAutoFerruleColor(0.75)).toBe("grey");
+    expect(getAutoFerruleColor(1.0)).toBe("red");
     expect(getAutoFerruleColor(1.5)).toBe("black");
   });
 
@@ -92,6 +94,11 @@ describe("connectionsLogic - getFerruleLength", () => {
   it("returns 90 even when deviceKind is unusual, if moduleRef marks it as Złączka", () => {
     // Złączka detection is based on moduleRef, not deviceKind
     expect(getFerruleLength("other", "złączka-5pin")).toBe(90);
+  });
+
+  it("returns 40 for AMPIO MSERV-4S module and 80 for other smart home modules", () => {
+    expect(getFerruleLength("other", "Smart Home/AMPIO MSERV-4S.svg")).toBe(40);
+    expect(getFerruleLength("other", "Smart Home/OTHER_MODULE.svg")).toBe(80);
   });
 });
 

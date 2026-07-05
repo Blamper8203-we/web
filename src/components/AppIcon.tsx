@@ -37,7 +37,8 @@ export type AppIconName =
   | "zoomOut"
   | "menu"
   | "feedback"
-  | "coffee";
+  | "coffee"
+  | "sparkles";
 
 type AppIconProps = SVGProps<SVGSVGElement> & {
   name: AppIconName;
@@ -90,6 +91,7 @@ const paths: Record<AppIconName, string[]> = {
   menu: ["M3 12h18", "M3 6h18", "M3 18h18"],
   feedback: ["M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-12.7 8.19 8.19 0 0 1 4.9 1.7L21 3.5v8.5Z"],
   coffee: ["M17 8h1a4 4 0 1 1 0 8h-1", "M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z", "M6 2v2", "M10 2v2", "M14 2v2"],
+  sparkles: ["M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z", "M20 3v4", "M22 5h-4", "M4 17v2", "M5 18H3"],
 };
 
 export function AppIcon({ name, size = 16, className, ...props }: AppIconProps) {

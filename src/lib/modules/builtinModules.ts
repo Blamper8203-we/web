@@ -384,6 +384,19 @@ export const currentModuleEntries: ModuleEntry[] = [
     customWidth: svg300DpiPx(585),
     customHeight: svg300DpiPx(612),
   },
+  {
+    templateId: "ampio-mserv-4s",
+    code: "AMPIO MSERV-4S",
+    label: "AMPIO MSERV-4S",
+    type: "Smart Home",
+    category: "Smart Home",
+    deviceKind: "other",
+    phase: "L1+L2+L3",
+    modules: 9,
+    moduleRef: "Smart Home/AMPIO MSERV-4S.svg",
+    customWidth: Math.round(160 * MODULE_PX_PER_MM),
+    customHeight: Math.round(110.2 * MODULE_PX_PER_MM),
+  },
 ];
 
 export const groupOrder = [
@@ -398,6 +411,7 @@ export const groupOrder = [
   "Inne",
   "Listwy zaciskowe",
   "Złącza",
+  "Smart Home",
   "Listwy do rozdzielnicy",
   "GSU",
 ];

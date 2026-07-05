@@ -23,7 +23,9 @@ export function useSvgTerminalsPreloader(symbols: SymbolItem[]) {
                                 visualPath.toLowerCase().includes("blok rozdzielczy") ||
                                 sym.type?.toLowerCase().includes("przełącznik sieci") ||
                                 ref.toLowerCase().includes("przelacznik sieci") ||
-                                ref.toLowerCase().includes("przelacznik siec");
+                                ref.toLowerCase().includes("przelacznik siec") ||
+                                sym.type?.toLowerCase().includes("smart home") ||
+                                ref.toLowerCase().includes("smart home");
                                 
         if (isTerminalBlock) {
           if (!svgTerminalCache.get(ref) && !svgTerminalCache.isLoading(ref)) {

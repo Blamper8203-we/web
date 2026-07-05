@@ -87,6 +87,11 @@
 }
 
 .palette-tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   min-width: 56px;
   min-height: 36px;
   padding: 8px 12px;
@@ -108,6 +113,26 @@
   color: var(--accent-primary-hover);
   border-color: var(--accent-primary);
   background: var(--accent-primary-soft);
+}
+
+.palette-tab-icon {
+  color: #f59e0b; /* amber-500 */
+}
+
+.palette-tab-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #10b981; /* emerald-500 */
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 5px rgba(16, 185, 129, 0.3);
+  pointer-events: none;
 }
 
 .palette-group-header {

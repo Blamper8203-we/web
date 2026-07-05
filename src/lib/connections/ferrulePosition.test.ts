@@ -180,6 +180,11 @@ describe("ferrule + wire consistency — testProject.dinboard", () => {
       const length = getFerruleLength(rcd!.deviceKind, rcd!.moduleRef);
       expect(length).toBe(160);
     });
+
+    it("smart home modules: getFerruleLength returns 80 (or 40 for AMPIO)", () => {
+      const lengthAmpio = getFerruleLength("other", "Smart Home/AMPIO MSERV-4S.svg");
+      expect(lengthAmpio).toBe(40);
+    });
   });
 
   describe("isTerminalZlaczka disambiguation (Złączka vs Rozłącznik)", () => {

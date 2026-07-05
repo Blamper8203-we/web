@@ -176,6 +176,7 @@ export function getPaletteDescription(template: PaletteTemplate): string {
     phaseText = `${poleCount}P`;
   } else if (
     template.category === "Blok rozdzielczy" ||
+    template.category === "Smart Home" ||
     template.deviceKind === "fr" ||
     template.deviceKind === "spd" ||
     template.deviceKind === "phaseIndicator"

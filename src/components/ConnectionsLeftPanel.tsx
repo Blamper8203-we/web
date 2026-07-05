@@ -43,7 +43,7 @@ const FERRULE_COLORS: Array<{ value: FerruleColor; label: string; hex: string }>
   { value: "brown", label: "Brązowa", hex: "#6b3410" },
 ];
 
-const WIRE_CROSS_SECTIONS = [1.5, 2.5, 4.0, 6.0, 10.0, 16.0];
+const WIRE_CROSS_SECTIONS = [0.5, 0.75, 1.0, 1.5, 2.5, 4.0, 6.0, 10.0, 16.0];
 
 const WIRE_TYPES: Array<{ value: WireType; label: string }> = [
   { value: "LgY", label: "Linka (LgY)" },
@@ -305,7 +305,7 @@ export function ConnectionsLeftPanel({
                   transition: "all 0.15s ease",
                 }}
               >
-                {size.toFixed(1)} mm²
+                {Number.isInteger(size) ? size.toFixed(1) : size} mm²
               </button>
             );
           })}
