@@ -608,6 +608,7 @@ export const pdfStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     textAlign: "center",
+    flexShrink: 0,
   },
 
   // ─────────────────────────────────────────────────────────────────────

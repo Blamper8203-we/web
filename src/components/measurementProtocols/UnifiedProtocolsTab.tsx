@@ -1,6 +1,5 @@
 import type { MeasurementProtocolsData, MeasurementUnifiedProtocolRow } from "../../types/projectMetadata";
 import { UNIFIED_ROWS_PER_PAGE, formatProtocolNumberLabel } from "../../lib/export/pdfPages/pdfHelpers";
-import { createHeaderForPage } from "../../lib/measurementProtocolHelpers";
 import { PageFooter } from "./ProtocolShared";
 import { useTranslation } from "react-i18next";
 

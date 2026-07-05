@@ -1,6 +1,5 @@
 import type { MeasurementProtocolsData } from "../../types/projectMetadata";
 import { formatProtocolNumberLabel } from "../../lib/export/pdfPages/pdfHelpers";
-import { createHeaderForPage } from "../../lib/measurementProtocolHelpers";
 import { PageFooter } from "./ProtocolShared";
 import { useTranslation } from "react-i18next";
 
