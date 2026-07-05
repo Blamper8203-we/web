@@ -12,7 +12,7 @@ const filesToUpdate = [
 for (const relPath of filesToUpdate) {
   const fullPath = path.resolve(relPath);
   if (fs.existsSync(fullPath)) {
-    let content = fs.readFileSync(fullPath, 'utf8');
+    const content = fs.readFileSync(fullPath, 'utf8');
     const newContent = content.replace(/"app\.pdf\./g, '"pdf.');
     
     if (content !== newContent) {

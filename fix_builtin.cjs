@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const fs = require('fs');
 let c = fs.readFileSync('src/lib/modules/builtinModules.ts', 'utf8');
 

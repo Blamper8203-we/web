@@ -10,16 +10,16 @@ async function run() {
     for (const [file, items] of Object.entries(data)) {
         if (items.length === 0) continue;
         if (!file.endsWith('.tsx') || file.includes('.test.') || file.includes('legal')) continue;
-        let content = await fs.readFile(file, 'utf8');
-        let lines = content.split('\n');
-        let needsImport = !content.includes('useTranslation');
-        let hasTranslationHook = content.includes('const { t }');
+        const content = await fs.readFile(file, 'utf8');
+        const lines = content.split('\n');
+        const needsImport = !content.includes('useTranslation');
+        const hasTranslationHook = content.includes('const { t }');
 
         let modified = false;
 
         items.forEach(item => {
-            let lineIdx = item.line - 1;
-            let line = lines[lineIdx];
+            const lineIdx = item.line - 1;
+            const line = lines[lineIdx];
             if (!line) return;
             // Odfiltruj stringi, które nie są tekstem językowym
             if (/^[0-9\s.,\-+*/%=[\]()><|&]+$/.test(item.text)) return; 
@@ -28,7 +28,7 @@ async function run() {
             if (item.text === "230V" || item.text === "400V" || item.text === "1-fazowe" || item.text === "3-fazowe" || item.text.endsWith("A") || item.text === "kW") return;
             if (item.text === "ReferenceDesignation" || item.text === "Label" || item.text.includes("console.log") || item.text === "before" || item.text === "after") return;
 
-            let key = slugify(item.text);
+            const key = slugify(item.text);
             
             if (item.type === 'jsx-text' && line.includes(`>${item.text}<`)) {
                 lines[lineIdx] = line.replace(`>${item.text}<`, `>{t("${key}", "${item.text}")}<`);

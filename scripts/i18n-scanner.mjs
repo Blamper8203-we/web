@@ -32,7 +32,7 @@ async function scan() {
         const content = await fs.readFile(file, 'utf-8');
         const lines = content.split('\n');
         
-        let fileResults = [];
+        const fileResults = [];
 
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];

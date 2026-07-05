@@ -29,6 +29,7 @@ export default tseslint.config(
       "src-tauri/**",
       "scripts/debug/**",
       "scratch/**",
+      ".gemini/**",
       "test-artifacts/**",
       "public/**",  // SVG assety, nie TS
       ".harness/**",

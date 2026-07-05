@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { AppIcon } from "./AppIcon";
 import "./OnboardingOverlay.css";
@@ -34,19 +34,19 @@ export function OnboardingOverlay({ onFinish }: OnboardingOverlayProps) {
     }
   ];
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
       onFinish();
     }
-  };
+  }, [currentStep, steps.length, onFinish]);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
-  };
+  }, [currentStep]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -56,7 +56,7 @@ export function OnboardingOverlay({ onFinish }: OnboardingOverlayProps) {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentStep, onFinish]);
+  }, [handleNext, handlePrev, onFinish]);
 
   return (
     <div className="onboarding-backdrop" onMouseDown={(e) => {
