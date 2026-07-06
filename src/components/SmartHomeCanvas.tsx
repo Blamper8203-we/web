@@ -28,6 +28,7 @@ export interface SmartHomeSymbol {
   rotation?: number;
   /** Nazwa wyświetlana */
   label: string;
+  terminals?: { id: string; x: number; y: number; connected?: boolean }[];
 }
 
 interface ViewportState {
@@ -428,7 +429,6 @@ export function SmartHomeCanvas({
     const offsetX = viewport.panX % step;
     const offsetY = viewport.panY % step;
     const lineColor = "rgba(34, 197, 94, 0.06)";
-    const dotColor = "rgba(34, 197, 94, 0.12)";
 
     return {
       backgroundImage: [
@@ -586,7 +586,7 @@ export function SmartHomeCanvas({
                   dangerouslySetInnerHTML={{ __html: sym.svgContent }} 
                   style={{ width: "100%", height: "100%", pointerEvents: "none" }}
                 />
-                {sym.terminals && sym.terminals.map(t => {
+                {sym.terminals && sym.terminals.map((t: any) => {
                   const leftPct = (t.x / sym.width) * 100;
                   const topPct = (t.y / sym.height) * 100;
                   return (

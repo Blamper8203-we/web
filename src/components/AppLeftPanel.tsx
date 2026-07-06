@@ -75,7 +75,7 @@ export function AppLeftPanel({
             customWidth: sym.defaultWidth,
             customHeight: sym.defaultHeight,
             placeholderDefaults: {},
-          }) as PaletteTemplate),
+          }) as unknown as PaletteTemplate),
         },
       ]
     : paletteGroups;
