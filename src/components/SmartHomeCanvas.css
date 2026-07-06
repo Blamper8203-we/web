@@ -1,0 +1,267 @@
+/* ================================================================
+   Smart Home Schematic Canvas — CAD Classic Dark Theme
+   ================================================================
+   WHY: Osobny styl dla schematu smart home, wzorowany na AutoCAD
+   Classic dark. Tło #141414, siatka pomocnicza, zielone symbole.
+   ================================================================ */
+
+.smarthome-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.smarthome-workspace {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  /* WHY: Ciemne tło CAD classic (#141414) z delikatnym gradientem u góry
+     żeby dać poczucie głębi, jak w profesjonalnych narzędziach CAD */
+  background:
+    linear-gradient(180deg, rgba(34, 197, 94, 0.015), transparent 120px),
+    #141414;
+  overflow: hidden;
+}
+
+.smarthome-workspace.is-drop-target {
+  box-shadow: inset 0 0 0 2px rgba(34, 197, 94, 0.5);
+}
+
+/* ── Canvas ── */
+
+.smarthome-canvas-layer {
+  position: absolute;
+  inset: 0;
+  touch-action: none;
+  overscroll-behavior: contain;
+}
+
+/* ── Siatka CAD (background pattern) ── */
+
+.smarthome-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* WHY: Siatka jest generowana dynamicznie jako repeating-linear-gradient
+     w inline styles (zależy od zoom/pan), tu tylko bazowe właściwości */
+}
+
+/* ── Symbole SVG na canvas ── */
+
+.smarthome-symbol {
+  position: absolute;
+  cursor: grab;
+  user-select: none;
+  /* WHY: Delikatny cień żeby symbol wyróżniał się od tła siatki */
+  filter: drop-shadow(0 0 4px rgba(34, 197, 94, 0.08));
+  transition: filter 0.15s ease;
+}
+
+.smarthome-symbol:hover {
+  filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.2));
+}
+
+.smarthome-symbol.is-dragging {
+  cursor: grabbing;
+  opacity: 0.85;
+  filter: drop-shadow(0 0 12px rgba(34, 197, 94, 0.35));
+}
+
+.smarthome-symbol.is-selected {
+  outline: 1.5px solid #22c55e;
+  outline-offset: 4px;
+  filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.25));
+}
+
+.smarthome-symbol img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ── Empty state ── */
+
+.smarthome-empty-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+}
+
+.smarthome-empty-state-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: rgba(34, 197, 94, 0.06);
+  color: rgba(34, 197, 94, 0.4);
+}
+
+.smarthome-empty-state strong {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.smarthome-empty-state span {
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+  max-width: 360px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Zoom dock (reusing schematic pattern) ── */
+
+.smarthome-zoom-dock {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(20, 20, 20, 0.92);
+  border: 1px solid rgba(34, 197, 94, 0.15);
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+}
+
+.smarthome-zoom-dock button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: rgba(34, 197, 94, 0.6);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.smarthome-zoom-dock button:hover {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+
+.smarthome-zoom-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(34, 197, 94, 0.5);
+  background: rgba(34, 197, 94, 0.05);
+  border: 1px solid rgba(34, 197, 94, 0.1);
+  border-radius: 4px;
+}
+
+/* ── Crosshair cursor for canvas ── */
+
+.smarthome-workspace .smarthome-canvas-layer {
+  cursor: crosshair;
+}
+
+/* ── Coordinate display (bottom-left) ── */
+
+.smarthome-coords {
+  position: absolute;
+  bottom: 8px;
+  left: 12px;
+  z-index: 10;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-family: "Consolas", "Courier New", monospace;
+  font-weight: 500;
+  color: rgba(34, 197, 94, 0.45);
+  background: rgba(20, 20, 20, 0.8);
+  border: 1px solid rgba(34, 197, 94, 0.1);
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.smarthome-coord-display {
+  background: #141414;
+  border: 1px solid #22c55e;
+  color: #22c55e;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 13px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Rotation HUD ── */
+
+.smarthome-rotation-hud {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 140px;
+  height: 140px;
+  margin-top: -70px;
+  margin-left: -70px;
+  pointer-events: none;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.smarthome-rotation-hud .rotation-circle {
+  position: absolute;
+  inset: 0;
+  border: 1px dashed rgba(34, 197, 94, 0.4);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(34,197,94,0.02) 0%, transparent 60%);
+}
+
+.smarthome-rotation-hud .rotation-line {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 70px;
+  height: 2px;
+  background-color: #22c55e;
+  transform-origin: left center;
+  box-shadow: 0 0 4px rgba(34, 197, 94, 0.8);
+}
+
+.smarthome-rotation-hud .rotation-line::after {
+  content: "";
+  position: absolute;
+  right: -2px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #22c55e;
+}
+
+.smarthome-rotation-hud .rotation-badge {
+  position: absolute;
+  bottom: -30px;
+  background: #141414;
+  border: 1px solid #22c55e;
+  color: #22c55e;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 14px;
+  font-weight: bold;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+}

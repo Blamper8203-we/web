@@ -40,6 +40,7 @@ import { safeGetItemSync } from "../lib/storageService";
 import { useAppPersistence, type AppUiTheme, UI_THEME_STORAGE_KEY } from "../hooks/app/useAppPersistence";
 import { useAppEventBindings } from "../hooks/app/useAppEventBindings";
 import { useUnsavedChangesFlow } from "../hooks/app/useUnsavedChangesFlow";
+import type { SmartHomeSymbol } from "./SmartHomeCanvas";
 
 export function loadUiTheme(): AppUiTheme {
   try {
@@ -87,6 +88,10 @@ export function AppWorkspace({
     symbolId: string;
     fieldKey: string;
   } | null>(null);
+
+  // WHY: Smart Home symbols live in separate state from DIN rail symbols.
+  // In Phase 1, they are managed independently. Phase 3 may link them.
+  const [smartHomeSymbols, setSmartHomeSymbols] = useState<SmartHomeSymbol[]>([]);
 
   const showTemporaryStatus = useCallback((message: string, timeoutMs = 3500) => {
     setSaveStatus(message);
@@ -408,6 +413,8 @@ export function AppWorkspace({
           selectedConnectionId,
           onConnectionSelect: setSelectedConnectionId,
           currentWireSettings,
+          smartHomeSymbols,
+          onSmartHomeSymbolsChange: setSmartHomeSymbols,
         }}
         rightPanelProps={{
           activeRightTab: sheetPanel.activeRightTab,

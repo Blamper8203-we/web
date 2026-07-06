@@ -22,6 +22,7 @@ export function AppSheetTabs({ activeSheet, onChangeSheet, showLeftPanel, onOpen
     { sheet: "sheet1", icon: "grid", label: t("app.viewMenu.sheet1", "Rozdzielnica") },
     { sheet: "sheet1_connections", icon: "busbar", label: t("app.viewMenu.sheet1_connections", "Połączenia") },
     { sheet: "sheet2", icon: "fileTree", label: t("app.viewMenu.sheet2", "Schemat obwodów") },
+    { sheet: "sheet5_smarthome", icon: "smarthome", label: t("app.viewMenu.sheet5_smarthome", "Schemat Smart Home") },
     { sheet: "sheet3", icon: "list", label: t("app.viewMenu.sheet3", "Lista obwodów") },
     { sheet: "sheet4", icon: "pdf", label: t("app.viewMenu.sheet4", "Dokumentacja PDF") },
   ];

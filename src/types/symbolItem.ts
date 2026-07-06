@@ -354,7 +354,8 @@ export function isAuxiliaryNonCircuitSymbol(symbol: Partial<SymbolBase>): boolea
     isDistributionBlockSymbol(symbol) ||
     value.includes("busbar") ||
     value.includes("szyna laczeniowa") ||
-    value.includes("szyna zbiorcza")
+    value.includes("szyna zbiorcza") ||
+    value.includes("smart home")
   );
 }
 

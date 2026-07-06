@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Warstwa_2" data-name="Warstwa 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1075.25 735.25">
+  <g id="cad-symbol-svg">
+    <g>
+      <rect x="34.25" y="1" width="210" height="320" style="fill: #141414; stroke: #22c55e; stroke-width: 2px;"/>
+      <text transform="translate(121.92 31)" style="fill: #fff; font-family: Arial-BoldMT, Arial; font-size: 13px; font-weight: 700; isolation: isolate;"><tspan x="0" y="0">-K1:</tspan><tspan x="25.28" y="0" style="letter-spacing: -.04em;">A</tspan></text>
+      <text transform="translate(101.24 49)" style="fill: #8b9bb4; font-family: ArialMT, Arial; font-size: 9px; isolation: isolate;"><tspan x="0" y="0">ZASILANIE &amp; CAN</tspan></text>
+      <g>
+        <line x1="4.25" y1="91" x2="34.25" y2="91" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="4.25" cy="91" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(49.25 95)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">POWER SUPP</tspan><tspan x="74.57" y="0" style="letter-spacing: -.07em;">L</tspan><tspan x="79.87" y="0" style="letter-spacing: -.02em;">Y</tspan><tspan x="87.01" y="0" xml:space="preserve"> : 1</tspan></text>
+      </g>
+      <g>
+        <line x1="4.25" y1="123" x2="34.25" y2="123" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="4.25" cy="123" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(49.25 127)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">POWER SUPP</tspan><tspan x="74.57" y="0" style="letter-spacing: -.07em;">L</tspan><tspan x="79.87" y="0" style="letter-spacing: -.02em;">Y</tspan><tspan x="87.01" y="0" xml:space="preserve"> : 2</tspan></text>
+      </g>
+      <g>
+        <line x1="4.25" y1="155" x2="34.25" y2="155" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="4.25" cy="155" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(49.25 159)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">POWER SUPP</tspan><tspan x="74.57" y="0" style="letter-spacing: -.07em;">L</tspan><tspan x="79.87" y="0" style="letter-spacing: -.02em;">Y</tspan><tspan x="87.01" y="0" xml:space="preserve"> : -</tspan></text>
+      </g>
+      <g>
+        <line x1="4.25" y1="187" x2="34.25" y2="187" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="4.25" cy="187" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(49.25 191)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">CAN BUS : H</tspan></text>
+      </g>
+      <g>
+        <line x1="4.25" y1="219" x2="34.25" y2="219" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="4.25" cy="219" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(49.25 223)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">CAN BUS : </tspan><tspan x="58.07" y="0" style="letter-spacing: -.04em;">L</tspan></text>
+      </g>
+      <g>
+        <line x1="4.25" y1="251" x2="34.25" y2="251" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="4.25" cy="251" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(49.25 255)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">CAN BUS : +</tspan></text>
+      </g>
+      <g>
+        <line x1="4.25" y1="283" x2="34.25" y2="283" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="4.25" cy="283" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(49.25 287)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">CAN BUS : -</tspan></text>
+      </g>
+    </g>
+    <g>
+      <rect x="34.25" y="361" width="210" height="340" style="fill: #141414; stroke: #22c55e; stroke-width: 2px;"/>
+      <text transform="translate(121.92 391)" style="fill: #fff; font-family: Arial-BoldMT, Arial; font-size: 13px; font-weight: 700; isolation: isolate;"><tspan x="0" y="0">-K1:B</tspan></text>
+      <text transform="translate(106.75 409)" style="fill: #8b9bb4; font-family: ArialMT, Arial; font-size: 9px; isolation: isolate;"><tspan x="0" y="0">KOMUNIKACJ</tspan><tspan x="59.01" y="0" style="letter-spacing: -.06em;">A</tspan></text>
+      <g>
+        <line x1="4.25" y1="441" x2="34.25" y2="441" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="4.25" cy="441" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(49.25 445)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">1-WIRE : 1W</tspan></text>
+      </g>
+      <g>
+        <line x1="4.25" y1="475" x2="34.25" y2="475" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="4.25" cy="475" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(49.25 479)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">1-WIRE : GND</tspan></text>
+      </g>
+      <g>
+        <line x1="4.25" y1="509" x2="34.25" y2="509" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="4.25" cy="509" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(49.25 513)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">RS-232 :</tspan><tspan x="43.41" y="0" style="letter-spacing: -.02em;"> </tspan><tspan x="46.27" y="0">TX</tspan></text>
+      </g>
+      <g>
+        <line x1="4.25" y1="543" x2="34.25" y2="543" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="4.25" cy="543" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(49.25 547)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">RS-232 : RX</tspan></text>
+      </g>
+      <g>
+        <line x1="4.25" y1="577" x2="34.25" y2="577" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="4.25" cy="577" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(49.25 581)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">RS-232 : COM</tspan></text>
+      </g>
+      <g>
+        <line x1="4.25" y1="611" x2="34.25" y2="611" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="4.25" cy="611" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(49.25 615)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">O</tspan><tspan x="8.56" y="0" style="letter-spacing: -.04em;">W</tspan><tspan x="18.53" y="0" style="letter-spacing: -.06em;">A</tspan><tspan x="25.26" y="0" xml:space="preserve"> : D</tspan></text>
+      </g>
+      <g>
+        <line x1="4.25" y1="645" x2="34.25" y2="645" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="4.25" cy="645" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(49.25 649)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">O</tspan><tspan x="8.56" y="0" style="letter-spacing: -.04em;">W</tspan><tspan x="18.53" y="0" style="letter-spacing: -.06em;">A</tspan><tspan x="25.26" y="0" xml:space="preserve"> : GND</tspan></text>
+      </g>
+    </g>
+    <g>
+      <rect x="304.25" y="1" width="220" height="700" style="fill: #141414; stroke: #22c55e; stroke-width: 2px;"/>
+      <text transform="translate(396.92 31)" style="fill: #fff; font-family: Arial-BoldMT, Arial; font-size: 13px; font-weight: 700; isolation: isolate;"><tspan x="0" y="0">-K1:C</tspan></text>
+      <text transform="translate(366.49 49)" style="fill: #8b9bb4; font-family: ArialMT, Arial; font-size: 9px; isolation: isolate;"><tspan x="0" y="0">WEJŚCI</tspan><tspan x="34" y="0" style="letter-spacing: -.06em;">A</tspan><tspan x="39.51" y="0" xml:space="preserve"> STERUJĄCE</tspan></text>
+      <g>
+        <line x1="274.25" y1="81" x2="304.25" y2="81" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="274.25" cy="81" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(319.25 85)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">IN 1</tspan></text>
+      </g>
+      <g>
+        <line x1="274.25" y1="119" x2="304.25" y2="119" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="274.25" cy="119" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(319.25 123)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">IN 2</tspan></text>
+      </g>
+      <g>
+        <line x1="274.25" y1="157" x2="304.25" y2="157" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="274.25" cy="157" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(319.25 161)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">IN 3</tspan></text>
+      </g>
+      <g>
+        <line x1="274.25" y1="195" x2="304.25" y2="195" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="274.25" cy="195" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(319.25 199)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">IN 4</tspan></text>
+      </g>
+      <g>
+        <line x1="274.25" y1="233" x2="304.25" y2="233" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="274.25" cy="233" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(319.25 237)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">IN 5</tspan></text>
+      </g>
+      <g>
+        <line x1="274.25" y1="271" x2="304.25" y2="271" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="274.25" cy="271" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(319.25 275)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">IN 6</tspan></text>
+      </g>
+      <g>
+        <line x1="274.25" y1="309" x2="304.25" y2="309" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="274.25" cy="309" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(319.25 313)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">IN 7</tspan></text>
+      </g>
+      <g>
+        <line x1="274.25" y1="347" x2="304.25" y2="347" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="274.25" cy="347" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(319.25 351)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">IN 8</tspan></text>
+      </g>
+      <g>
+        <line x1="274.25" y1="385" x2="304.25" y2="385" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="274.25" cy="385" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(319.25 389)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">IN 9</tspan></text>
+      </g>
+      <g>
+        <line x1="274.25" y1="423" x2="304.25" y2="423" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="274.25" cy="423" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(319.25 427)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">IN 10</tspan></text>
+      </g>
+      <g>
+        <line x1="274.25" y1="461" x2="304.25" y2="461" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="274.25" cy="461" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(319.25 465)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">IN </tspan><tspan x="14.06" y="0" style="letter-spacing: -.07em;">1</tspan><tspan x="19.36" y="0">1</tspan></text>
+      </g>
+      <g>
+        <line x1="274.25" y1="499" x2="304.25" y2="499" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="274.25" cy="499" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(319.25 503)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">IN 12</tspan></text>
+      </g>
+      <g>
+        <line x1="274.25" y1="537" x2="304.25" y2="537" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="274.25" cy="537" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(319.25 541)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">IN 13</tspan></text>
+      </g>
+      <g>
+        <line x1="274.25" y1="575" x2="304.25" y2="575" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="274.25" cy="575" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(319.25 579)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">IN 14</tspan></text>
+      </g>
+      <g>
+        <line x1="274.25" y1="613" x2="304.25" y2="613" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="274.25" cy="613" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(319.25 617)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">IN 15</tspan></text>
+        <line x1="319.25" y1="605" x2="349.25" y2="605" style="fill: none; stroke: #fff; stroke-width: 1.2px;"/>
+      </g>
+      <g>
+        <line x1="274.25" y1="651" x2="304.25" y2="651" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="274.25" cy="651" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(319.25 655)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">IN GND</tspan></text>
+      </g>
+    </g>
+    <g>
+      <rect x="584.25" y="1" width="490" height="520" style="fill: #141414; stroke: #22c55e; stroke-width: 2px;"/>
+      <text transform="translate(813.03 22.16)" style="fill: #fff; font-family: Arial-BoldMT, Arial; font-size: 13px; font-weight: 700; isolation: isolate;"><tspan x="0" y="0">-K1:D</tspan></text>
+      <text transform="translate(767.1 40.16)" style="fill: #8b9bb4; font-family: ArialMT, Arial; font-size: 9px; isolation: isolate;"><tspan x="0" y="0">PRZEKAŹNIKI (NO / MAX 10A)</tspan></text>
+      <g>
+        <g>
+          <line x1="554.25" y1="17.56" x2="584.25" y2="17.56" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <circle cx="554.25" cy="17.56" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <text transform="translate(599.25 21.56)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">R</tspan><tspan x="7.94" y="0" style="letter-spacing: -.04em;">L</tspan><tspan x="13.65" y="0" xml:space="preserve"> 1 :</tspan><tspan x="28.94" y="0" xml:space="preserve" style="letter-spacing: -.06em;"> A</tspan></text>
+        </g>
+        <g>
+          <line x1="554.25" y1="37.56" x2="584.25" y2="37.56" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <circle cx="554.25" cy="37.56" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <text transform="translate(599.25 41.56)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">R</tspan><tspan x="7.94" y="0" style="letter-spacing: -.04em;">L</tspan><tspan x="13.65" y="0" xml:space="preserve"> 1 : B</tspan></text>
+        </g>
+        <g>
+          <line x1="934.25" y1="17.56" x2="964.25" y2="17.56" style="fill: none; stroke: #eab308; stroke-width: 1.5px;"/>
+          <line x1="964.25" y1="17.56" x2="994.25" y2="5.56" style="fill: none; stroke: #eab308; stroke-width: 2px;"/>
+          <line x1="994.25" y1="17.56" x2="1024.25" y2="17.56" style="fill: none; stroke: #eab308; stroke-width: 1.5px;"/>
+          <circle cx="964.25" cy="17.56" r="2.5" style="fill: #eab308;"/>
+          <circle cx="994.25" cy="17.56" r="2.5" style="fill: #eab308;"/>
+          <line x1="979.25" y1="12.56" x2="979.25" y2="37.56" style="fill: none; stroke: #8b9bb4; stroke-dasharray: 3 3;"/>
+          <rect x="964.25" y="37.56" width="30" height="15" style="fill: none; stroke: #8b9bb4;"/>
+          <line x1="964.25" y1="37.56" x2="994.25" y2="52.56" style="fill: none; stroke: #8b9bb4;"/>
+        </g>
+      </g>
+      <g>
+        <line x1="594.25" y1="66.13" x2="1064.25" y2="66.13" style="fill: none; stroke: #223022; stroke-dasharray: 2 2;"/>
+        <g>
+          <line x1="554.25" y1="68.13" x2="584.25" y2="68.13" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <circle cx="554.25" cy="68.13" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <text transform="translate(599.25 72.13)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">R</tspan><tspan x="7.94" y="0" style="letter-spacing: -.04em;">L</tspan><tspan x="13.65" y="0" xml:space="preserve"> 2 :</tspan><tspan x="28.94" y="0" xml:space="preserve" style="letter-spacing: -.06em;"> A</tspan></text>
+        </g>
+        <g>
+          <line x1="554.25" y1="88.13" x2="584.25" y2="88.13" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <circle cx="554.25" cy="88.13" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <text transform="translate(599.25 92.13)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">R</tspan><tspan x="7.94" y="0" style="letter-spacing: -.04em;">L</tspan><tspan x="13.65" y="0" xml:space="preserve"> 2 : B</tspan></text>
+        </g>
+        <g>
+          <line x1="934.25" y1="68.13" x2="964.25" y2="68.13" style="fill: none; stroke: #eab308; stroke-width: 1.5px;"/>
+          <line x1="964.25" y1="68.13" x2="994.25" y2="56.13" style="fill: none; stroke: #eab308; stroke-width: 2px;"/>
+          <line x1="994.25" y1="68.13" x2="1024.25" y2="68.13" style="fill: none; stroke: #eab308; stroke-width: 1.5px;"/>
+          <circle cx="964.25" cy="68.13" r="2.5" style="fill: #eab308;"/>
+          <circle cx="994.25" cy="68.13" r="2.5" style="fill: #eab308;"/>
+          <line x1="979.25" y1="63.13" x2="979.25" y2="88.13" style="fill: none; stroke: #8b9bb4; stroke-dasharray: 3 3;"/>
+          <rect x="964.25" y="88.13" width="30" height="15" style="fill: none; stroke: #8b9bb4;"/>
+          <line x1="964.25" y1="88.13" x2="994.25" y2="103.13" style="fill: none; stroke: #8b9bb4;"/>
+        </g>
+      </g>
+      <g>
+        <line x1="594.25" y1="117.06" x2="1064.25" y2="117.06" style="fill: none; stroke: #223022; stroke-dasharray: 2 2;"/>
+        <g>
+          <line x1="554.25" y1="119.06" x2="584.25" y2="119.06" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <circle cx="554.25" cy="119.06" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <text transform="translate(599.25 123.06)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">R</tspan><tspan x="7.94" y="0" style="letter-spacing: -.04em;">L</tspan><tspan x="13.65" y="0" xml:space="preserve"> 3 :</tspan><tspan x="28.94" y="0" xml:space="preserve" style="letter-spacing: -.06em;"> A</tspan></text>
+        </g>
+        <g>
+          <line x1="554.25" y1="139.06" x2="584.25" y2="139.06" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <circle cx="554.25" cy="139.06" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <text transform="translate(599.25 143.06)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">R</tspan><tspan x="7.94" y="0" style="letter-spacing: -.04em;">L</tspan><tspan x="13.65" y="0" xml:space="preserve"> 3 : B</tspan></text>
+        </g>
+        <g>
+          <line x1="934.25" y1="119.06" x2="964.25" y2="119.06" style="fill: none; stroke: #eab308; stroke-width: 1.5px;"/>
+          <line x1="964.25" y1="119.06" x2="994.25" y2="107.06" style="fill: none; stroke: #eab308; stroke-width: 2px;"/>
+          <line x1="994.25" y1="119.06" x2="1024.25" y2="119.06" style="fill: none; stroke: #eab308; stroke-width: 1.5px;"/>
+          <circle cx="964.25" cy="119.06" r="2.5" style="fill: #eab308;"/>
+          <circle cx="994.25" cy="119.06" r="2.5" style="fill: #eab308;"/>
+          <line x1="979.25" y1="114.06" x2="979.25" y2="139.06" style="fill: none; stroke: #8b9bb4; stroke-dasharray: 3 3;"/>
+          <rect x="964.25" y="139.06" width="30" height="15" style="fill: none; stroke: #8b9bb4;"/>
+          <line x1="964.25" y1="139.06" x2="994.25" y2="154.06" style="fill: none; stroke: #8b9bb4;"/>
+        </g>
+      </g>
+      <g>
+        <line x1="594.25" y1="167.5" x2="1064.25" y2="167.5" style="fill: none; stroke: #223022; stroke-dasharray: 2 2;"/>
+        <g>
+          <line x1="554.25" y1="169.5" x2="584.25" y2="169.5" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <circle cx="554.25" cy="169.5" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <text transform="translate(599.25 173.5)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">R</tspan><tspan x="7.94" y="0" style="letter-spacing: -.04em;">L</tspan><tspan x="13.65" y="0" xml:space="preserve"> 4 :</tspan><tspan x="28.94" y="0" xml:space="preserve" style="letter-spacing: -.06em;"> A</tspan></text>
+        </g>
+        <g>
+          <line x1="554.25" y1="189.5" x2="584.25" y2="189.5" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <circle cx="554.25" cy="189.5" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <text transform="translate(599.25 193.5)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">R</tspan><tspan x="7.94" y="0" style="letter-spacing: -.04em;">L</tspan><tspan x="13.65" y="0" xml:space="preserve"> 4 : B</tspan></text>
+        </g>
+        <g>
+          <line x1="934.25" y1="169.5" x2="964.25" y2="169.5" style="fill: none; stroke: #eab308; stroke-width: 1.5px;"/>
+          <line x1="964.25" y1="169.5" x2="994.25" y2="157.5" style="fill: none; stroke: #eab308; stroke-width: 2px;"/>
+          <line x1="994.25" y1="169.5" x2="1024.25" y2="169.5" style="fill: none; stroke: #eab308; stroke-width: 1.5px;"/>
+          <circle cx="964.25" cy="169.5" r="2.5" style="fill: #eab308;"/>
+          <circle cx="994.25" cy="169.5" r="2.5" style="fill: #eab308;"/>
+          <line x1="979.25" y1="164.5" x2="979.25" y2="189.5" style="fill: none; stroke: #8b9bb4; stroke-dasharray: 3 3;"/>
+          <rect x="964.25" y="189.5" width="30" height="15" style="fill: none; stroke: #8b9bb4;"/>
+          <line x1="964.25" y1="189.5" x2="994.25" y2="204.5" style="fill: none; stroke: #8b9bb4;"/>
+        </g>
+      </g>
+      <g>
+        <line x1="594.25" y1="218" x2="1064.25" y2="218" style="fill: none; stroke: #223022; stroke-dasharray: 2 2;"/>
+        <g>
+          <line x1="554.25" y1="220" x2="584.25" y2="220" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <circle cx="554.25" cy="220" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <text transform="translate(599.25 224)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">R</tspan><tspan x="7.94" y="0" style="letter-spacing: -.04em;">L</tspan><tspan x="13.65" y="0" xml:space="preserve"> 5 :</tspan><tspan x="28.94" y="0" xml:space="preserve" style="letter-spacing: -.06em;"> A</tspan></text>
+        </g>
+        <g>
+          <line x1="554.25" y1="240" x2="584.25" y2="240" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <circle cx="554.25" cy="240" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <text transform="translate(599.25 244)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">R</tspan><tspan x="7.94" y="0" style="letter-spacing: -.04em;">L</tspan><tspan x="13.65" y="0" xml:space="preserve"> 5 : B</tspan></text>
+        </g>
+        <g>
+          <line x1="934.25" y1="220" x2="964.25" y2="220" style="fill: none; stroke: #eab308; stroke-width: 1.5px;"/>
+          <line x1="964.25" y1="220" x2="994.25" y2="208" style="fill: none; stroke: #eab308; stroke-width: 2px;"/>
+          <line x1="994.25" y1="220" x2="1024.25" y2="220" style="fill: none; stroke: #eab308; stroke-width: 1.5px;"/>
+          <circle cx="964.25" cy="220" r="2.5" style="fill: #eab308;"/>
+          <circle cx="994.25" cy="220" r="2.5" style="fill: #eab308;"/>
+          <line x1="979.25" y1="215" x2="979.25" y2="240" style="fill: none; stroke: #8b9bb4; stroke-dasharray: 3 3;"/>
+          <rect x="964.25" y="240" width="30" height="15" style="fill: none; stroke: #8b9bb4;"/>
+          <line x1="964.25" y1="240" x2="994.25" y2="255" style="fill: none; stroke: #8b9bb4;"/>
+        </g>
+      </g>
+      <g>
+        <line x1="594.25" y1="268.5" x2="1064.25" y2="268.5" style="fill: none; stroke: #223022; stroke-dasharray: 2 2;"/>
+        <g>
+          <line x1="554.25" y1="270.5" x2="584.25" y2="270.5" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <circle cx="554.25" cy="270.5" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <text transform="translate(599.25 274.5)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">R</tspan><tspan x="7.94" y="0" style="letter-spacing: -.04em;">L</tspan><tspan x="13.65" y="0" xml:space="preserve"> 6 :</tspan><tspan x="28.94" y="0" xml:space="preserve" style="letter-spacing: -.06em;"> A</tspan></text>
+        </g>
+        <g>
+          <line x1="554.25" y1="290.5" x2="584.25" y2="290.5" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <circle cx="554.25" cy="290.5" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <text transform="translate(599.25 294.5)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">R</tspan><tspan x="7.94" y="0" style="letter-spacing: -.04em;">L</tspan><tspan x="13.65" y="0" xml:space="preserve"> 6 : B</tspan></text>
+        </g>
+        <g>
+          <line x1="934.25" y1="270.5" x2="964.25" y2="270.5" style="fill: none; stroke: #eab308; stroke-width: 1.5px;"/>
+          <line x1="964.25" y1="270.5" x2="994.25" y2="258.5" style="fill: none; stroke: #eab308; stroke-width: 2px;"/>
+          <line x1="994.25" y1="270.5" x2="1024.25" y2="270.5" style="fill: none; stroke: #eab308; stroke-width: 1.5px;"/>
+          <circle cx="964.25" cy="270.5" r="2.5" style="fill: #eab308;"/>
+          <circle cx="994.25" cy="270.5" r="2.5" style="fill: #eab308;"/>
+          <line x1="979.25" y1="265.5" x2="979.25" y2="290.5" style="fill: none; stroke: #8b9bb4; stroke-dasharray: 3 3;"/>
+          <rect x="964.25" y="290.5" width="30" height="15" style="fill: none; stroke: #8b9bb4;"/>
+          <line x1="964.25" y1="290.5" x2="994.25" y2="305.5" style="fill: none; stroke: #8b9bb4;"/>
+        </g>
+      </g>
+      <g>
+        <line x1="594.25" y1="319" x2="1064.25" y2="319" style="fill: none; stroke: #223022; stroke-dasharray: 2 2;"/>
+        <g>
+          <line x1="554.25" y1="321" x2="584.25" y2="321" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <circle cx="554.25" cy="321" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <text transform="translate(599.25 325)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">R</tspan><tspan x="7.94" y="0" style="letter-spacing: -.04em;">L</tspan><tspan x="13.65" y="0" xml:space="preserve"> 7 :</tspan><tspan x="28.94" y="0" xml:space="preserve" style="letter-spacing: -.06em;"> A</tspan></text>
+        </g>
+        <g>
+          <line x1="554.25" y1="341" x2="584.25" y2="341" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <circle cx="554.25" cy="341" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <text transform="translate(599.25 345)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">R</tspan><tspan x="7.94" y="0" style="letter-spacing: -.04em;">L</tspan><tspan x="13.65" y="0" xml:space="preserve"> 7 : B</tspan></text>
+        </g>
+        <g>
+          <line x1="934.25" y1="321" x2="964.25" y2="321" style="fill: none; stroke: #eab308; stroke-width: 1.5px;"/>
+          <line x1="964.25" y1="321" x2="994.25" y2="309" style="fill: none; stroke: #eab308; stroke-width: 2px;"/>
+          <line x1="994.25" y1="321" x2="1024.25" y2="321" style="fill: none; stroke: #eab308; stroke-width: 1.5px;"/>
+          <circle cx="964.25" cy="321" r="2.5" style="fill: #eab308;"/>
+          <circle cx="994.25" cy="321" r="2.5" style="fill: #eab308;"/>
+          <line x1="979.25" y1="316" x2="979.25" y2="341" style="fill: none; stroke: #8b9bb4; stroke-dasharray: 3 3;"/>
+          <rect x="964.25" y="341" width="30" height="15" style="fill: none; stroke: #8b9bb4;"/>
+          <line x1="964.25" y1="341" x2="994.25" y2="356" style="fill: none; stroke: #8b9bb4;"/>
+        </g>
+      </g>
+      <g>
+        <line x1="594.25" y1="370" x2="1064.25" y2="370" style="fill: none; stroke: #223022; stroke-dasharray: 2 2;"/>
+        <g>
+          <line x1="554.25" y1="372" x2="584.25" y2="372" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <circle cx="554.25" cy="372" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <text transform="translate(599.25 376)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">R</tspan><tspan x="7.94" y="0" style="letter-spacing: -.04em;">L</tspan><tspan x="13.65" y="0" xml:space="preserve"> 8 :</tspan><tspan x="28.94" y="0" xml:space="preserve" style="letter-spacing: -.06em;"> A</tspan></text>
+        </g>
+        <g>
+          <line x1="554.25" y1="392" x2="584.25" y2="392" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <circle cx="554.25" cy="392" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <text transform="translate(599.25 396)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">R</tspan><tspan x="7.94" y="0" style="letter-spacing: -.04em;">L</tspan><tspan x="13.65" y="0" xml:space="preserve"> 8 : B</tspan></text>
+        </g>
+        <g>
+          <line x1="934.25" y1="372" x2="964.25" y2="372" style="fill: none; stroke: #eab308; stroke-width: 1.5px;"/>
+          <line x1="964.25" y1="372" x2="994.25" y2="360" style="fill: none; stroke: #eab308; stroke-width: 2px;"/>
+          <line x1="994.25" y1="372" x2="1024.25" y2="372" style="fill: none; stroke: #eab308; stroke-width: 1.5px;"/>
+          <circle cx="964.25" cy="372" r="2.5" style="fill: #eab308;"/>
+          <circle cx="994.25" cy="372" r="2.5" style="fill: #eab308;"/>
+          <line x1="979.25" y1="367" x2="979.25" y2="392" style="fill: none; stroke: #8b9bb4; stroke-dasharray: 3 3;"/>
+          <rect x="964.25" y="392" width="30" height="15" style="fill: none; stroke: #8b9bb4;"/>
+          <line x1="964.25" y1="392" x2="994.25" y2="407" style="fill: none; stroke: #8b9bb4;"/>
+        </g>
+      </g>
+      <g>
+        <line x1="594.25" y1="421.19" x2="1064.25" y2="421.19" style="fill: none; stroke: #223022; stroke-dasharray: 2 2;"/>
+        <g>
+          <line x1="554.25" y1="423.19" x2="584.25" y2="423.19" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <circle cx="554.25" cy="423.19" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <text transform="translate(599.25 427.19)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">R</tspan><tspan x="7.94" y="0" style="letter-spacing: -.04em;">L</tspan><tspan x="13.65" y="0" xml:space="preserve"> 9 :</tspan><tspan x="28.94" y="0" xml:space="preserve" style="letter-spacing: -.06em;"> A</tspan></text>
+        </g>
+        <g>
+          <line x1="554.25" y1="443.19" x2="584.25" y2="443.19" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <circle cx="554.25" cy="443.19" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <text transform="translate(599.25 447.19)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">R</tspan><tspan x="7.94" y="0" style="letter-spacing: -.04em;">L</tspan><tspan x="13.65" y="0" xml:space="preserve"> 9 : B</tspan></text>
+        </g>
+        <g>
+          <line x1="934.25" y1="423.19" x2="964.25" y2="423.19" style="fill: none; stroke: #eab308; stroke-width: 1.5px;"/>
+          <line x1="964.25" y1="423.19" x2="994.25" y2="411.19" style="fill: none; stroke: #eab308; stroke-width: 2px;"/>
+          <line x1="994.25" y1="423.19" x2="1024.25" y2="423.19" style="fill: none; stroke: #eab308; stroke-width: 1.5px;"/>
+          <circle cx="964.25" cy="423.19" r="2.5" style="fill: #eab308;"/>
+          <circle cx="994.25" cy="423.19" r="2.5" style="fill: #eab308;"/>
+          <line x1="979.25" y1="418.19" x2="979.25" y2="443.19" style="fill: none; stroke: #8b9bb4; stroke-dasharray: 3 3;"/>
+          <rect x="964.25" y="443.19" width="30" height="15" style="fill: none; stroke: #8b9bb4;"/>
+          <line x1="964.25" y1="443.19" x2="994.25" y2="458.19" style="fill: none; stroke: #8b9bb4;"/>
+        </g>
+      </g>
+      <g>
+        <line x1="594.25" y1="471.78" x2="1064.25" y2="471.78" style="fill: none; stroke: #223022; stroke-dasharray: 2 2;"/>
+        <g>
+          <line x1="554.25" y1="473.78" x2="584.25" y2="473.78" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <circle cx="554.25" cy="473.78" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <text transform="translate(599.25 477.78)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">R</tspan><tspan x="7.94" y="0" style="letter-spacing: -.04em;">L</tspan><tspan x="13.65" y="0" xml:space="preserve"> 10 :</tspan><tspan x="35.06" y="0" xml:space="preserve" style="letter-spacing: -.06em;"> A</tspan></text>
+        </g>
+        <g>
+          <line x1="554.25" y1="493.78" x2="584.25" y2="493.78" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <circle cx="554.25" cy="493.78" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+          <text transform="translate(599.25 497.78)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">R</tspan><tspan x="7.94" y="0" style="letter-spacing: -.04em;">L</tspan><tspan x="13.65" y="0" xml:space="preserve"> 10 : B</tspan></text>
+        </g>
+        <g>
+          <line x1="934.25" y1="473.78" x2="964.25" y2="473.78" style="fill: none; stroke: #eab308; stroke-width: 1.5px;"/>
+          <line x1="964.25" y1="473.78" x2="994.25" y2="461.78" style="fill: none; stroke: #eab308; stroke-width: 2px;"/>
+          <line x1="994.25" y1="473.78" x2="1024.25" y2="473.78" style="fill: none; stroke: #eab308; stroke-width: 1.5px;"/>
+          <circle cx="964.25" cy="473.78" r="2.5" style="fill: #eab308;"/>
+          <circle cx="994.25" cy="473.78" r="2.5" style="fill: #eab308;"/>
+          <line x1="979.25" y1="468.78" x2="979.25" y2="493.78" style="fill: none; stroke: #8b9bb4; stroke-dasharray: 3 3;"/>
+          <rect x="964.25" y="493.78" width="30" height="15" style="fill: none; stroke: #8b9bb4;"/>
+          <line x1="964.25" y1="493.78" x2="994.25" y2="508.78" style="fill: none; stroke: #8b9bb4;"/>
+        </g>
+      </g>
+    </g>
+    <g>
+      <rect x="584.25" y="541" width="490" height="160" style="fill: #141414; stroke: #22c55e; stroke-width: 2px;"/>
+      <text transform="translate(812.28 566)" style="fill: #fff; font-family: Arial-BoldMT, Arial; font-size: 13px; font-weight: 700; isolation: isolate;"><tspan x="0" y="0">-K1:E</tspan></text>
+      <text transform="translate(736.33 583)" style="fill: #8b9bb4; font-family: ArialMT, Arial; font-size: 9px; isolation: isolate;"><tspan x="0" y="0">WYJŚCI</tspan><tspan x="34" y="0" style="letter-spacing: -.06em;">A</tspan><tspan x="39.51" y="0" xml:space="preserve"> OPEN COLLEC</tspan><tspan x="106.03" y="0" style="letter-spacing: -.02em;">T</tspan><tspan x="111.36" y="0">OR PWM (RGBW)</tspan></text>
+      <g>
+        <line x1="634.25" y1="701" x2="634.25" y2="731" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="634.25" cy="731" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(637.75 682.9) rotate(-90)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">OC : GND</tspan></text>
+      </g>
+      <g>
+        <line x1="712.25" y1="701" x2="712.25" y2="731" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="712.25" cy="731" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(715.75 682.37) rotate(-90)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">OC : 1</tspan></text>
+      </g>
+      <g>
+        <line x1="790.25" y1="701" x2="790.25" y2="731" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="790.25" cy="731" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(793.75 682.9) rotate(-90)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">OC : 2</tspan></text>
+      </g>
+      <g>
+        <line x1="868.25" y1="701" x2="868.25" y2="731" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="868.25" cy="731" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(871.75 683.43) rotate(-90)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">OC : 3</tspan></text>
+      </g>
+      <g>
+        <line x1="946.25" y1="701" x2="946.25" y2="731" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="946.25" cy="731" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(949.75 683.43) rotate(-90)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">OC : 4</tspan></text>
+      </g>
+      <g>
+        <line x1="1024.25" y1="701" x2="1024.25" y2="731" style="fill: none; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <circle cx="1024.25" cy="731" r="3.5" style="fill: #141414; stroke: #22c55e; stroke-width: 1.5px;"/>
+        <text transform="translate(1027.75 683.95) rotate(-90)" style="fill: #fff; font-family: ArialMT, Arial; font-size: 11px; isolation: isolate;"><tspan x="0" y="0">OC : GND</tspan></text>
+      </g>
+    </g>
+    <text style="fill: #ededed; font-family: MyriadPro-Regular, &apos;Myriad Pro&apos;; font-size: 12px;"><tspan x="159.98" y="253.69">+12V</tspan></text>
+    <text style="fill: #ededed; font-family: MyriadPro-Regular, &apos;Myriad Pro&apos;; font-size: 12px;"><tspan x="165.5" y="126.52">+12V</tspan></text>
+    <text style="fill: #ededed; font-family: MyriadPro-Regular, &apos;Myriad Pro&apos;; font-size: 12px;"><tspan x="165.98" y="95.4">+12V</tspan></text>
+    <text transform="translate(165.98 158.22)" style="fill: #ededed; font-family: MyriadPro-Regular, &apos;Myriad Pro&apos;; font-size: 12px;"><tspan x="0" y="0">GND</tspan></text>
+    <text transform="translate(160.98 286.5)" style="fill: #ededed; font-family: MyriadPro-Regular, &apos;Myriad Pro&apos;; font-size: 12px;"><tspan x="0" y="0">GND</tspan></text>
+  </g>
+</svg>

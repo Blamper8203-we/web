@@ -3,6 +3,7 @@ import { Suspense, lazy } from "react";
 import { AppIcon } from "./AppIcon";
 import { CircuitListPage } from "./CircuitListPage";
 import { SchematicCanvas } from "./SchematicCanvas";
+import type { SmartHomeSymbol } from "./SmartHomeCanvas";
 
 import type { SheetType, PaletteTemplate } from "../lib/appHelpers";
 import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
@@ -25,6 +26,11 @@ const DinRailCanvas = lazy(async () => {
 const DinRailConnectionsCanvas = lazy(async () => {
   const module = await import("./DinRailConnectionsCanvas");
   return { default: module.DinRailConnectionsCanvas };
+});
+
+const SmartHomeCanvas = lazy(async () => {
+  const module = await import("./SmartHomeCanvas");
+  return { default: module.SmartHomeCanvas };
 });
 
 export interface AppWorkspaceCanvasProps {
@@ -59,6 +65,8 @@ export interface AppWorkspaceCanvasProps {
   onConnectionSelect: (id: string | null) => void;
   currentWireSettings?: DefaultWireSettings;
   onRequestLeftPanelTab?: (tabName: string) => void;
+  smartHomeSymbols: SmartHomeSymbol[];
+  onSmartHomeSymbolsChange: (symbols: SmartHomeSymbol[]) => void;
 }
 
 export function AppWorkspaceCanvas({
@@ -93,6 +101,8 @@ export function AppWorkspaceCanvas({
   onConnectionSelect,
   currentWireSettings,
   onRequestLeftPanelTab,
+  smartHomeSymbols,
+  onSmartHomeSymbolsChange,
 }: AppWorkspaceCanvasProps) {
   const { t } = useTranslation();
   return (
@@ -214,6 +224,23 @@ export function AppWorkspaceCanvas({
 
       {activeSheet === "sheet3" && canShowSchematicAndCircuitList && (
         <CircuitListPage rows={circuitRows} />
+      )}
+
+      {activeSheet === "sheet5_smarthome" && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+          }}
+        >
+          <Suspense fallback={<div className="left-panel-empty"><strong>{t("auto.adowanieschemat_sh", "Ładowanie schematu Smart Home...")}</strong></div>}>
+            <SmartHomeCanvas
+              symbols={smartHomeSymbols}
+              onSymbolsChange={onSmartHomeSymbolsChange}
+              onZoomChange={setWorkspaceZoomPercent}
+            />
+          </Suspense>
+        </div>
       )}
 
     </div>

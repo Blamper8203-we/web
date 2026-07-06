@@ -3,7 +3,7 @@ import { DinRailConfig } from './schematic/dinRailGenerator';
 
 export type { PaletteTemplate };
 
-export type SheetType = "sheet1" | "sheet1_connections" | "sheet2" | "sheet3" | "sheet4";
+export type SheetType = "sheet1" | "sheet1_connections" | "sheet2" | "sheet3" | "sheet4" | "sheet5_smarthome";
 export type RightTab = "config" | "balance" | "validation" | "circuitEdit" | "pages";
 
 export const DEFAULT_DIN_RAIL_CONFIG: DinRailConfig = { rows: 1, modulesPerRow: 24 };

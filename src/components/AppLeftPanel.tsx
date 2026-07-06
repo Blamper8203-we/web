@@ -4,8 +4,9 @@ import { ModuleAssetPreview } from "./ModuleAssetPreview";
 import { ProjectPropertiesPage } from "./ProjectPropertiesPage";
 import { ConnectionsLeftPanel } from "./ConnectionsLeftPanel";
 import "./LeftPanel.css";
-import { getPaletteTemplateDimensions, type PaletteGroup } from "../lib/modules/moduleCatalog";
+import { getPaletteTemplateDimensions, type PaletteGroup, type PaletteTemplate } from "../lib/modules/moduleCatalog";
 import { getPaletteIconName, getPaletteDescription, startCustomDragLayer, type SheetType } from "../lib/appHelpers";
+import { CAD_SYMBOL_CATALOG } from "../lib/schematic/smartHomeCatalog";
 import type { ProjectMetadata } from "../types/projectMetadata";
 import { type DefaultWireSettings } from "../lib/connections/connectionsLogic";
 import type { ConnectionItem } from "../types/connectionItem";
@@ -55,10 +56,33 @@ export function AppLeftPanel({
   onConnectionsChange,
 }: AppLeftPanelProps) {
   const { t } = useTranslation();
-  const activePaletteGroup =
-    paletteGroups.find((g) => g.title === activePaletteGroupTitle) ??
-    paletteGroups[0] ??
-    { title: "", subtitle: "", items: [] };
+
+  const displayPaletteGroups = activeSheet === "sheet5_smarthome"
+    ? [
+        {
+          title: "Smart Home",
+          items: CAD_SYMBOL_CATALOG.map((sym) => ({
+            templateId: sym.id,
+            code: sym.label,
+            label: sym.label,
+            type: "cad",
+            category: "Smart Home",
+            deviceKind: "other",
+            phase: "none",
+            modules: 1,
+            moduleRef: "none",
+            assetPath: sym.sourceSvgPath,
+            customWidth: sym.defaultWidth,
+            customHeight: sym.defaultHeight,
+            placeholderDefaults: {},
+          }) as PaletteTemplate),
+        },
+      ]
+    : paletteGroups;
+
+  const displayActiveGroup = activeSheet === "sheet5_smarthome"
+    ? displayPaletteGroups[0]
+    : (paletteGroups.find((g) => g.title === activePaletteGroupTitle) ?? paletteGroups[0] ?? { title: "", subtitle: "", items: [] });
 
   return (
     <aside className="left-panel">
@@ -85,7 +109,7 @@ export function AppLeftPanel({
             <strong>{t("auto.listaobwodw_752", "Lista obwodów")}</strong>
           </div>
         )}
-        {activeSheet === "sheet1" && (
+        {(activeSheet === "sheet1" || activeSheet === "sheet5_smarthome") && (
           <div className="palette-browser">
             <div className="panel-title-strip" style={{ justifyContent: "space-between" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -100,12 +124,16 @@ export function AppLeftPanel({
             </div>
             <div className="panel-divider" />
             <div className="palette-tabs" aria-label={t("auto.kategoriemoduw_133", "Kategorie modułów")}>
-              {paletteGroups.map((group) => (
+              {displayPaletteGroups.map((group) => (
                 <button
-                  className={`palette-tab ${group.title === activePaletteGroup.title ? "active" : ""}`}
+                  className={`palette-tab ${group.title === displayActiveGroup.title ? "active" : ""}`}
                   key={group.title}
                   type="button"
-                  onClick={() => setActivePaletteGroupTitle(group.title)}
+                  onClick={() => {
+                    if (activeSheet !== "sheet5_smarthome") {
+                      setActivePaletteGroupTitle(group.title);
+                    }
+                  }}
                 >
                   {group.title === "Smart Home" && <AppIcon name="sparkles" size={14} className="palette-tab-icon" />}
                   <span>{t(`moduleCategory.${group.title}`, group.title === "Controls" ? "Kontrolki faz" : group.title)}</span>
@@ -113,21 +141,21 @@ export function AppLeftPanel({
                 </button>
               ))}
             </div>
-            <section className="palette-group" key={activePaletteGroup.title}>
+            <section className="palette-group" key={displayActiveGroup.title}>
               <div className="palette-group-header">
                 <span className="palette-group-header__icon">
                   <AppIcon name="module" size={15} />
                 </span>
                 <div>
-                  <strong>{t(`moduleCategory.${activePaletteGroup.title}`, activePaletteGroup.title === "Controls" ? "Kontrolki faz" : activePaletteGroup.title)}</strong>
+                  <strong>{t(`moduleCategory.${displayActiveGroup.title}`, displayActiveGroup.title === "Controls" ? "Kontrolki faz" : displayActiveGroup.title)}</strong>
                 </div>
-                <span className="palette-group-header__count">{activePaletteGroup.items.length}</span>
+                <span className="palette-group-header__count">{displayActiveGroup.items.length}</span>
               </div>
               <div className="palette-grid">
-                {activePaletteGroup.items.map((item) => (
+                {displayActiveGroup.items.map((item) => (
                   <div
                     className="palette-item"
-                    key={`${activePaletteGroup.title}-${item.code}`}
+                    key={`${displayActiveGroup.title}-${item.code}`}
                     draggable={true}
                     role="listitem"
                     onContextMenu={(event) => {
@@ -194,7 +222,7 @@ export function AppLeftPanel({
                 ))}
               </div>
             </section>
-            {!dinRail.isVisible && (
+            {!dinRail.isVisible && activeSheet !== "sheet5_smarthome" && (
               <button type="button" className="palette-blocker" onClick={handleOpenDinRailGenerator}>
                 <AppIcon name="validation" size={24} />
                 <strong>{t("auto.najpierwwygener_746", "Najpierw wygeneruj szynę DIN")}</strong>
