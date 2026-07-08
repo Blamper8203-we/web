@@ -26,7 +26,7 @@ export function LandingHeader() {
         <nav className="landing-header-nav">
           <a href="#funkcje">{t("auto.moliwoci_696", "Możliwości")}</a>
           <a href="#demo-sandbox">{t("auto.interfejs_389", "Interfejs")}</a>
-          <a href="#artykuly">{t("auto.bazawiedzy_212", "Baza wiedzy")}</a>
+          <a href="/poradniki">{t("auto.bazawiedzy_212", "Baza wiedzy")}</a>
           <a href="#faq">{t("auto.faq_502", "FAQ")}</a>
         </nav>
 

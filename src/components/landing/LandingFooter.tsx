@@ -21,6 +21,15 @@ export function LandingFooter({ onOpenFeedback }: LandingFooterProps) {
         </div>
 
         <div className="landing-footer-links">
+          <a href="/o-nas" className="landing-footer-link">
+            O nas
+          </a>
+          <a href="/poradniki" className="landing-footer-link">
+            Kompendium
+          </a>
+          <a href="/kontakt" className="landing-footer-link">
+            Kontakt
+          </a>
           <a href="/polityka-prywatnosci" className="landing-footer-link">
             {t("landing.footer.privacy")}
           </a>
@@ -28,7 +37,7 @@ export function LandingFooter({ onOpenFeedback }: LandingFooterProps) {
             {t("landing.footer.terms")}
           </a>
           <a onClick={onOpenFeedback} className="landing-footer-link" style={{ cursor: "pointer" }}>
-            {t("landing.footer.contact")}
+            Zgłoś błąd
           </a>
         </div>
 

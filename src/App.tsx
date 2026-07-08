@@ -15,6 +15,10 @@ import { PublicLandingPage } from "./components/PublicLandingPage";
 import { FeedbackModal } from "./components/FeedbackModal";
 import { PrivacyPolicy } from "./components/legal/PrivacyPolicy";
 import { TermsOfService } from "./components/legal/TermsOfService";
+import { ContactPage } from "./components/legal/ContactPage";
+import { AboutUsPage } from "./components/legal/AboutUsPage";
+import { BlogIndex } from "./components/blog/BlogIndex";
+import { ArticlePage } from "./components/blog/ArticlePage";
 import { CookieConsent } from "./components/CookieConsent";
 
 import "./App.css";
@@ -183,6 +187,10 @@ export const routes = [
       { path: "app", element: <AppRoute /> },
       { path: "polityka-prywatnosci", element: <PrivacyPolicy /> },
       { path: "regulamin", element: <TermsOfService /> },
+      { path: "kontakt", element: <ContactPage /> },
+      { path: "o-nas", element: <AboutUsPage /> },
+      { path: "poradniki", element: <BlogIndex /> },
+      { path: "poradniki/:slug", element: <ArticlePage /> },
     ],
   },
 ];

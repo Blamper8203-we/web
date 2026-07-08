@@ -397,6 +397,19 @@ export const currentModuleEntries: ModuleEntry[] = [
     customWidth: Math.round(160 * MODULE_PX_PER_MM),
     customHeight: Math.round(110.2 * MODULE_PX_PER_MM),
   },
+  {
+    templateId: "mean-well-hdr-100-12",
+    code: "MEAN WELL HDR-100-12",
+    label: "Zasilacz HDR-100-12",
+    type: "Zasilacz",
+    category: "Zasilacze",
+    deviceKind: "other",
+    phase: "L1",
+    modules: 4,
+    moduleRef: "Zasilacze/MEAN WELL HDR-100-12.svg",
+    customWidth: Math.round(70 * MODULE_PX_PER_MM),
+    customHeight: Math.round(90 * MODULE_PX_PER_MM),
+  },
 ];
 
 export const groupOrder = [
@@ -407,6 +420,7 @@ export const groupOrder = [
   "Blok rozdzielczy",
   "Przełączniki sieci",
   "Zabezpieczenia",
+  "Zasilacze",
   "Controls",
   "Inne",
   "Listwy zaciskowe",
