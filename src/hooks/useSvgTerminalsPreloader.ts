@@ -25,7 +25,10 @@ export function useSvgTerminalsPreloader(symbols: SymbolItem[]) {
                                 ref.toLowerCase().includes("przelacznik sieci") ||
                                 ref.toLowerCase().includes("przelacznik siec") ||
                                 sym.type?.toLowerCase().includes("smart home") ||
-                                ref.toLowerCase().includes("smart home");
+                                ref.toLowerCase().includes("smart home") ||
+                                sym.type?.toLowerCase().includes("zasilacz") ||
+                                ref.toLowerCase().includes("zasilacz") ||
+                                visualPath.toLowerCase().includes("zasilacz");
                                 
         if (isTerminalBlock) {
           if (!svgTerminalCache.get(ref) && !svgTerminalCache.isLoading(ref)) {

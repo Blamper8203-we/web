@@ -155,4 +155,13 @@ describe("isTerminalOrConnectorSymbol and isDistributionBlockSymbol", () => {
     });
     expect(isDistributionBlockSymbol(distBlockEN)).toBe(true);
   });
+
+  it("identifies power supplies (zasilacze) as auxiliary non-circuit symbols", () => {
+    const psu = createDefaultSymbolItem({
+      type: "Inne",
+      label: "Zasilacz HDR-100-12",
+      moduleRef: "Zasilacze/MEAN WELL HDR-100-12.svg",
+    });
+    expect(isAuxiliaryNonCircuitSymbol(psu)).toBe(true);
+  });
 });

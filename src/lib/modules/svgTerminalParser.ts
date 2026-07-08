@@ -129,25 +129,57 @@ export async function parseSvgForTerminals(urlOrRawSvg: string, moduleRef: strin
       }
     }
 
-    // Dodatkowa heurystyka: szukamy kółek poza grupami, które mają id sugerujące terminal
-    // np. "IN1", "OUT-2", "PE", "L1"
-    const standaloneCircles = Array.from(svgRoot.querySelectorAll("circle")).filter(c => !usedCircles.has(c));
+    // Dodatkowa heurystyka: szukamy kółek i elementów <use> poza grupami, które mają id sugerujące terminal
+    const standaloneElements = [
+      ...Array.from(svgRoot.querySelectorAll("circle")).filter(c => !usedCircles.has(c)),
+      ...Array.from(svgRoot.querySelectorAll("use")),
+      ...Array.from(svgRoot.querySelectorAll("rect"))
+    ];
+
     const standaloneByPrefix: Record<string, any[]> = {};
     
-    for (const c of standaloneCircles) {
-      const id = c.getAttribute("id") || c.getAttribute("serif:id") || "";
+    for (const el of standaloneElements) {
+      const id = el.getAttribute("id") || el.getAttribute("serif:id") || "";
+      
+      let prefix = "";
+      let isTerminalMatch = false;
+
       // Matchuje np. IN1, OUT2, L1, PE, N. Ignoruje np. "Terminal-1" żeby nie psuć fallbacków (np. GSU)
       const match = id.match(/^(IN|OUT|L\d?|N|PE)[-\s_]?(\d*)$/i);
       if (match) {
-        const prefix = match[1].toUpperCase();
+        prefix = match[1].toUpperCase();
+        isTerminalMatch = true;
+      } else {
+        // Obsługa warstw z Affinity: "terminal N", "terminal L", "terminal -V pin3", "terminal +V"
+        const termMatch = id.match(/^terminal[-\s_]*([+\-]?V|IN|OUT|L\d?|N|PE)(?:[-\s_]*pin)?(\d*)$/i);
+        if (termMatch) {
+          const rawPrefix = termMatch[1].toUpperCase();
+          prefix = (rawPrefix === "-V" || rawPrefix === "+V" || rawPrefix === "V") ? "OUT" : rawPrefix;
+          isTerminalMatch = true;
+        }
+      }
+
+      if (isTerminalMatch) {
+        let cx = 0, cy = 0, r = 0;
+        if (el.tagName.toLowerCase() === "circle") {
+          cx = parseFloat(el.getAttribute("cx") || "0");
+          cy = parseFloat(el.getAttribute("cy") || "0");
+          r = parseFloat(el.getAttribute("r") || "0");
+        } else {
+          const x = parseFloat(el.getAttribute("x") || "0");
+          const y = parseFloat(el.getAttribute("y") || "0");
+          const w = parseFloat(el.getAttribute("width") || "0");
+          const h = parseFloat(el.getAttribute("height") || "0");
+          cx = x + w / 2;
+          cy = y + h / 2;
+          r = Math.min(w, h) / 2;
+        }
+
         if (!standaloneByPrefix[prefix]) {
           standaloneByPrefix[prefix] = [];
         }
         standaloneByPrefix[prefix].push({
-          id,
-          cx: parseFloat(c.getAttribute("cx") || "0"),
-          cy: parseFloat(c.getAttribute("cy") || "0"),
-          r: parseFloat(c.getAttribute("r") || "0")
+          id, cx, cy, r
         });
       }
     }
@@ -156,6 +188,27 @@ export async function parseSvgForTerminals(urlOrRawSvg: string, moduleRef: strin
       const circles = standaloneByPrefix[prefix].filter((c: any) => !isNaN(c.cx) && !isNaN(c.cy));
       if (circles.length > 0) {
         circles.sort((a: any, b: any) => a.cx - b.cx);
+
+        // Deduplikacja nałożonych na siebie punktów (np. circle i use dla tego samego pinu)
+        const uniqueCircles: any[] = [];
+        for (const c of circles) {
+          const duplicate = uniqueCircles.find(uc => 
+            Math.abs(uc.cx - c.cx) < 5 && 
+            Math.abs(uc.cy - c.cy) < 5
+          );
+          if (!duplicate) {
+            uniqueCircles.push(c);
+          } else {
+            const isCurrentTerminal = c.id.toLowerCase().startsWith("terminal");
+            const isExistingTerminal = duplicate.id.toLowerCase().startsWith("terminal");
+            if (isExistingTerminal && !isCurrentTerminal) {
+              duplicate.id = c.id;
+              duplicate.cx = c.cx;
+              duplicate.cy = c.cy;
+              duplicate.r = c.r;
+            }
+          }
+        }
 
         let group = groups.find(g => g.prefix === prefix);
         if (!group) {
@@ -168,7 +221,7 @@ export async function parseSvgForTerminals(urlOrRawSvg: string, moduleRef: strin
           groups.push(group);
         }
 
-        const newTerminals = circles.map((c: any, index: number) => {
+        const newTerminals = uniqueCircles.map((c: any, index: number) => {
           const xRatio = (c.cx - vbX) / vbWidth;
           const yRatio = (c.cy - vbY) / vbHeight;
           const rRatio = c.r > 0 ? c.r / vbWidth : undefined;

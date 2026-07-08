@@ -226,3 +226,27 @@ describe("module catalog integrity", () => {
     expect(missingFiles.length).toBe(0);
   });
 });
+
+// @ts-expect-error -- bundler resolution does not type bare 'fs' import
+import { readFileSync } from "fs";
+
+describe("MEAN WELL HDR-100-12 terminals parsing", () => {
+  it("parses all 6 terminals from MEAN WELL HDR-100-12.svg", async () => {
+    // @ts-expect-error -- __dirname not defined in ESM but resolved by test environment config/bundler
+    const filePath = resolve(__dirname, "../../../public/assets/modules/Zasilacze/MEAN WELL HDR-100-12.svg");
+    const svgText = readFileSync(filePath, "utf-8");
+    const moduleRef = "Zasilacze/MEAN WELL HDR-100-12.svg";
+    
+    // Reset cache just in case
+    svgTerminalCache.set(moduleRef, undefined as any);
+    
+    await parseSvgForTerminals(svgText, moduleRef);
+    
+    const cached = svgTerminalCache.get(moduleRef);
+    expect(cached).toBeDefined();
+    console.log("Cached groups:", JSON.stringify(cached, null, 2));
+    
+    const totalTerminals = cached?.reduce((acc, g) => acc + g.terminals.length, 0) || 0;
+    expect(totalTerminals).toBe(6);
+  });
+});

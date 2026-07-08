@@ -355,7 +355,9 @@ export function isAuxiliaryNonCircuitSymbol(symbol: Partial<SymbolBase>): boolea
     value.includes("busbar") ||
     value.includes("szyna laczeniowa") ||
     value.includes("szyna zbiorcza") ||
-    value.includes("smart home")
+    value.includes("smart home") ||
+    value.includes("zasilacz") ||
+    value.includes("power supply")
   );
 }
 
