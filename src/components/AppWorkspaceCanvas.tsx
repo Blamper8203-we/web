@@ -3,7 +3,7 @@ import { Suspense, lazy } from "react";
 import { AppIcon } from "./AppIcon";
 import { CircuitListPage } from "./CircuitListPage";
 import { SchematicCanvas } from "./SchematicCanvas";
-import type { SmartHomeSymbol } from "./SmartHomeCanvas";
+import type { SmartHomeSymbol, SmartHomeConnection } from "./SmartHomeCanvas";
 
 import type { SheetType, PaletteTemplate } from "../lib/appHelpers";
 import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
@@ -67,6 +67,8 @@ export interface AppWorkspaceCanvasProps {
   onRequestLeftPanelTab?: (tabName: string) => void;
   smartHomeSymbols: SmartHomeSymbol[];
   onSmartHomeSymbolsChange: (symbols: SmartHomeSymbol[]) => void;
+  smartHomeConnections: SmartHomeConnection[];
+  onSmartHomeConnectionsChange: (connections: SmartHomeConnection[]) => void;
 }
 
 export function AppWorkspaceCanvas({
@@ -103,6 +105,8 @@ export function AppWorkspaceCanvas({
   onRequestLeftPanelTab,
   smartHomeSymbols,
   onSmartHomeSymbolsChange,
+  smartHomeConnections,
+  onSmartHomeConnectionsChange,
 }: AppWorkspaceCanvasProps) {
   const { t } = useTranslation();
   return (
@@ -237,6 +241,8 @@ export function AppWorkspaceCanvas({
             <SmartHomeCanvas
               symbols={smartHomeSymbols}
               onSymbolsChange={onSmartHomeSymbolsChange}
+              connections={smartHomeConnections}
+              onConnectionsChange={onSmartHomeConnectionsChange}
               onZoomChange={setWorkspaceZoomPercent}
             />
           </Suspense>

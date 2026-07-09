@@ -4,13 +4,16 @@ import { Outlet, useNavigate, useOutletContext, useRouteError } from "react-rout
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { Analytics } from "@vercel/analytics/react";
 import { Helmet } from "react-helmet-async";
+import { lazy, Suspense } from "react";
 
 import type { ProjectFileData } from "./lib/projectFile";
 import { openProjectFile } from "./lib/projectFile";
 import { initStorageService } from "./lib/storageService";
 import { reportRuntimeError } from "./lib/runtimeDiagnostics";
 
-import { AppWorkspace } from "./components/AppWorkspace";
+const AppWorkspace = lazy(() =>
+  import("./components/AppWorkspace").then((m) => ({ default: m.AppWorkspace }))
+);
 import { PublicLandingPage } from "./components/PublicLandingPage";
 import { FeedbackModal } from "./components/FeedbackModal";
 import { PrivacyPolicy } from "./components/legal/PrivacyPolicy";
@@ -138,11 +141,13 @@ function AppRoute() {
         <meta name="description" content={t("auto.edytorrozdzieln_802", "Edytor rozdzielnicy DINBoard — narzędzie do projektowania, nie strona publiczna.")} />
         <link rel="canonical" href="https://dinboard.pl/app" />
       </Helmet>
-      <AppWorkspace
-        initialAction={initialAction}
-        initialData={initialData}
-        onOpenFeedback={openFeedback}
-      />
+      <Suspense fallback={<div className="app-workspace-loading" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#888' }}>{t("auto.loading_editor", "Ładowanie edytora...")}</div>}>
+        <AppWorkspace
+          initialAction={initialAction}
+          initialData={initialData}
+          onOpenFeedback={openFeedback}
+        />
+      </Suspense>
     </>
   );
 }

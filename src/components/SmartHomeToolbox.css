@@ -1,0 +1,56 @@
+.smarthome-toolbox {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background-color: #f7f7f3;
+  border: 1px solid #c0c0c0;
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+  border-radius: 4px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 1000;
+  user-select: none;
+}
+
+.smarthome-toolbox-header {
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #333;
+  margin-bottom: 4px;
+  padding-left: 4px;
+  font-family: sans-serif;
+}
+
+.smarthome-toolbox-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 8px;
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  color: #333;
+  font-size: 14px;
+  font-family: sans-serif;
+  transition: background-color 0.1s, border-color 0.1s;
+  text-align: left;
+}
+
+.smarthome-toolbox-button:hover {
+  background-color: #e6e6e6;
+  border-color: #c0c0c0;
+}
+
+.smarthome-toolbox-button.active {
+  background-color: #e0ded0;
+  border-color: #a0a0a0;
+}
+
+.smarthome-toolbox-button svg {
+  width: 18px;
+  height: 18px;
+}

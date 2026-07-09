@@ -41,6 +41,10 @@ export function LandingSandboxPreview() {
                 alt={`DinBoard ${index + 1}`}
                 draggable={false}
                 className="landing-preview-image"
+                loading={index === 0 ? "eager" : "lazy"}
+                decoding="async"
+                width="1920"
+                height="1080"
               />
             </div>
           ))}

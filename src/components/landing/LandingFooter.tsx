@@ -12,7 +12,7 @@ export function LandingFooter({ onOpenFeedback }: LandingFooterProps) {
       <div className="landing-footer-container">
         <div className="landing-footer-brand">
           <div className="landing-footer-logo-wrapper">
-            <img src="/favicon-192.png" alt="DinBoard Logo" />
+            <img src="/favicon-192.png" alt="DinBoard Logo" width="48" height="48" loading="lazy" decoding="async" />
           </div>
           <div>
             <span className="landing-footer-title">{t("auto.dinboard_628", "DinBoard")}</span>
@@ -36,9 +36,9 @@ export function LandingFooter({ onOpenFeedback }: LandingFooterProps) {
           <a href="/regulamin" className="landing-footer-link">
             {t("landing.footer.terms")}
           </a>
-          <a onClick={onOpenFeedback} className="landing-footer-link" style={{ cursor: "pointer" }}>
+          <button onClick={onOpenFeedback} className="landing-footer-link" style={{ cursor: "pointer", background: "none", border: "none", padding: 0, font: "inherit" }}>
             Zgłoś błąd
-          </a>
+          </button>
         </div>
 
         <span className="landing-footer-copyright">{t("landing.footer.copyright")}</span>

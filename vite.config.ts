@@ -74,6 +74,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
+      injectRegister: "script-defer",
       includeAssets: ["favicon-192.png", "dinboard.svg"],
       manifest: {
         name: "DINBoard Web",
@@ -172,6 +173,7 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
   },
   build: {
+    sourcemap: true,
     chunkSizeWarningLimit: 800,
     rollupOptions: {
       output: {
