@@ -151,7 +151,7 @@ export async function parseSvgForTerminals(urlOrRawSvg: string, moduleRef: strin
         isTerminalMatch = true;
       } else {
         // Obsługa warstw z Affinity: "terminal N", "terminal L", "terminal -V pin3", "terminal +V"
-        const termMatch = id.match(/^terminal[-\s_]*([+\-]?V|IN|OUT|L\d?|N|PE)(?:[-\s_]*pin)?(\d*)$/i);
+        const termMatch = id.match(/^terminal[-\s_]*([+-]?V|IN|OUT|L\d?|N|PE)(?:[-\s_]*pin)?(\d*)$/i);
         if (termMatch) {
           const rawPrefix = termMatch[1].toUpperCase();
           prefix = (rawPrefix === "-V" || rawPrefix === "+V" || rawPrefix === "V") ? "OUT" : rawPrefix;

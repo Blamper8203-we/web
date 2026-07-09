@@ -3,7 +3,7 @@
  * the -K1:D block's terminal positions match expected invariants.
  */
 import { describe, it, expect, vi } from "vitest";
-// @ts-ignore
+// @ts-expect-error missing node types in global scope
 import { readFileSync } from "node:fs";
 
 describe("k1d_diagnostic", () => {

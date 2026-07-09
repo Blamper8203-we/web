@@ -183,6 +183,7 @@ export function SmartHomeCanvas({
       window.removeEventListener("keyup", handleKeyUp);
       window.removeEventListener("blur", handleBlur);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Zoom callback ──
@@ -359,7 +360,7 @@ export function SmartHomeCanvas({
 
       if (drawingConnection) {
         if (e.button === 0) {
-          let [wx, wy] = screenToWorld(e.clientX, e.clientY);
+          const [wx, wy] = screenToWorld(e.clientX, e.clientY);
           const snapped = getSnappedPos(wx, wy);
           setDrawingConnection(prev => prev ? { ...prev, points: [...prev.points, { x: Math.round(snapped.x), y: Math.round(snapped.y) }] } : null);
           return;
@@ -381,6 +382,7 @@ export function SmartHomeCanvas({
         (e.target as HTMLElement).setPointerCapture(e.pointerId);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [viewport.panX, viewport.panY, draggingSymbolId, isDraggingSelection, symbols, selectedSymbolIds, onSymbolsChange, screenToWorld, gridSnap, toolMode, drawingConnection],
   );
 
@@ -471,6 +473,7 @@ export function SmartHomeCanvas({
         );
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [isPanning, isDraggingSelection, selectionBox, screenToWorld, symbols, selectedSymbolIds, onSymbolsChange, gridSnap],
   );
 
@@ -639,7 +642,6 @@ export function SmartHomeCanvas({
         onDragLeave={handleDragLeave}
         onDrop={(e) => {
           e.preventDefault();
-          console.log("SMARTHOME DROP EVENT", e.dataTransfer.types);
           handleDrop(e);
         }}
       >
