@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 250">
+  <g id="Layer_1" data-name="Layer 1">
+    <!-- Main Box -->
+    <rect x="34.25" y="1" width="200" height="200" style="fill: #e6ddc5; stroke: #111111; stroke-width: 2px;"/>
+    
+    <!-- Title -->
+    <text transform="translate(134.25 30)" style="fill: #2067ad; font-family: ArialMT, Arial; font-size: 16px; font-weight: bold; text-anchor: middle;">
+      <tspan x="0" y="0">-G1</tspan>
+    </text>
+    
+    <!-- Subtitles -->
+    <text transform="translate(134.25 160)" style="fill: #333333; font-family: ArialMT, Arial; font-size: 12px; text-anchor: middle;">
+      <tspan x="0" y="0">HDR-100-12</tspan>
+    </text>
+    <text transform="translate(134.25 180)" style="fill: #333333; font-family: ArialMT, Arial; font-size: 10px; text-anchor: middle;">
+      <tspan x="0" y="0">ZASILACZ 12VDC 100W</tspan>
+    </text>
+
+    <!-- LEFT PINS (Input) -->
+    <!-- L -->
+    <line x1="4.25" y1="60" x2="34.25" y2="60" style="fill: none; stroke: #111111; stroke-width: 1.5px;"/>
+    <circle cx="4.25" cy="60" r="3.5" style="fill: #e6ddc5; stroke: #111111; stroke-width: 1.5px;"/>
+    <text transform="translate(45 64)" style="fill: #2067ad; font-family: ArialMT, Arial; font-size: 12px;">
+      <tspan x="0" y="0">L</tspan>
+    </text>
+
+    <!-- N -->
+    <line x1="4.25" y1="100" x2="34.25" y2="100" style="fill: none; stroke: #111111; stroke-width: 1.5px;"/>
+    <circle cx="4.25" cy="100" r="3.5" style="fill: #e6ddc5; stroke: #111111; stroke-width: 1.5px;"/>
+    <text transform="translate(45 104)" style="fill: #2067ad; font-family: ArialMT, Arial; font-size: 12px;">
+      <tspan x="0" y="0">N</tspan>
+    </text>
+
+    <!-- RIGHT PINS (Output) -->
+    <!-- +V (1) -->
+    <line x1="234.25" y1="60" x2="264.25" y2="60" style="fill: none; stroke: #111111; stroke-width: 1.5px;"/>
+    <circle cx="264.25" cy="60" r="3.5" style="fill: #e6ddc5; stroke: #111111; stroke-width: 1.5px;"/>
+    <text transform="translate(225 64)" style="fill: #2067ad; font-family: ArialMT, Arial; font-size: 12px; text-anchor: end;">
+      <tspan x="0" y="0">+V</tspan>
+    </text>
+
+    <!-- +V (2) -->
+    <line x1="234.25" y1="80" x2="264.25" y2="80" style="fill: none; stroke: #111111; stroke-width: 1.5px;"/>
+    <circle cx="264.25" cy="80" r="3.5" style="fill: #e6ddc5; stroke: #111111; stroke-width: 1.5px;"/>
+    <text transform="translate(225 84)" style="fill: #2067ad; font-family: ArialMT, Arial; font-size: 12px; text-anchor: end;">
+      <tspan x="0" y="0">+V</tspan>
+    </text>
+
+    <!-- -V (1) -->
+    <line x1="234.25" y1="120" x2="264.25" y2="120" style="fill: none; stroke: #111111; stroke-width: 1.5px;"/>
+    <circle cx="264.25" cy="120" r="3.5" style="fill: #e6ddc5; stroke: #111111; stroke-width: 1.5px;"/>
+    <text transform="translate(225 124)" style="fill: #2067ad; font-family: ArialMT, Arial; font-size: 12px; text-anchor: end;">
+      <tspan x="0" y="0">-V</tspan>
+    </text>
+
+    <!-- -V (2) -->
+    <line x1="234.25" y1="140" x2="264.25" y2="140" style="fill: none; stroke: #111111; stroke-width: 1.5px;"/>
+    <circle cx="264.25" cy="140" r="3.5" style="fill: #e6ddc5; stroke: #111111; stroke-width: 1.5px;"/>
+    <text transform="translate(225 144)" style="fill: #2067ad; font-family: ArialMT, Arial; font-size: 12px; text-anchor: end;">
+      <tspan x="0" y="0">-V</tspan>
+    </text>
+  </g>
+</svg>

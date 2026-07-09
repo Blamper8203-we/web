@@ -101,7 +101,7 @@ export function SmartHomeCanvas({
   const [isDropTarget, setIsDropTarget] = useState(false);
 
   const [toolMode, setToolMode] = useState<ToolMode>("select");
-  const [gridSnap, setGridSnap] = useState(false);
+  const [gridSnap, setGridSnap] = useState(true);
   const [orthoMode, setOrthoMode] = useState(false);
   const [objectSnap, setObjectSnap] = useState(false);
 
@@ -684,12 +684,13 @@ export function SmartHomeCanvas({
             onClick={() => setShowHelp(true)}
             style={{ 
               display: "flex", alignItems: "center", gap: 6,
-              padding: "8px 16px", background: "#141414", color: "#22c55e", 
-              border: "1px solid #22c55e", borderRadius: 4, cursor: "pointer", fontWeight: "bold",
-              boxShadow: "0 4px 6px rgba(0,0,0,0.4)"
+              padding: "6px 12px", background: "rgba(23, 27, 33, 0.85)", color: "var(--text-main)", 
+              border: "1px solid var(--menu-border)", borderRadius: "var(--radius-md)", cursor: "pointer", fontWeight: "600",
+              boxShadow: "var(--shadow-md)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+              fontSize: "var(--font-size-sm)", fontFamily: "var(--font-family)"
             }}
           >
-            <AppIcon name="help" size={16} /> Pomoc
+            <AppIcon name="help" size={16} color="var(--accent-green)" /> <span style={{color: "var(--accent-green)"}}>Pomoc</span>
           </button>
         </div>
 

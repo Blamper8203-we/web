@@ -57,6 +57,8 @@ export function AppLeftPanel({
 }: AppLeftPanelProps) {
   const { t } = useTranslation();
 
+  const filteredPaletteGroups = paletteGroups.filter(g => g.title !== "Smart Home");
+
   const displayPaletteGroups = activeSheet === "sheet5_smarthome"
     ? [
         {
@@ -78,11 +80,11 @@ export function AppLeftPanel({
           }) as unknown as PaletteTemplate),
         },
       ]
-    : paletteGroups;
+    : filteredPaletteGroups;
 
   const displayActiveGroup = activeSheet === "sheet5_smarthome"
     ? displayPaletteGroups[0]
-    : (paletteGroups.find((g) => g.title === activePaletteGroupTitle) ?? paletteGroups[0] ?? { title: "", subtitle: "", items: [] });
+    : (filteredPaletteGroups.find((g) => g.title === activePaletteGroupTitle) ?? filteredPaletteGroups[0] ?? { title: "", subtitle: "", items: [] });
 
   return (
     <aside className="left-panel">

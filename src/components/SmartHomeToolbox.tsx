@@ -71,8 +71,8 @@ export function SmartHomeToolbox({
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M3 3h18v18H3z M3 9h18 M3 15h18 M9 3v18 M15 3v18" />
-          {gridSnap && <circle cx="15" cy="15" r="2" fill="#2067ad" stroke="#2067ad" />}
-          {gridSnap && <circle cx="9" cy="9" r="2" fill="#2067ad" stroke="#2067ad" />}
+          {gridSnap && <circle cx="15" cy="15" r="2" fill="currentColor" stroke="currentColor" />}
+          {gridSnap && <circle cx="9" cy="9" r="2" fill="currentColor" stroke="currentColor" />}
         </svg>
         Grid Snap
       </button>
@@ -95,7 +95,7 @@ export function SmartHomeToolbox({
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M4 12v8h8M20 12v-8h-8" />
-          <circle cx="12" cy="12" r="3" fill={objectSnap ? "#2067ad" : "none"} stroke="currentColor" />
+          <circle cx="12" cy="12" r="3" fill={objectSnap ? "currentColor" : "none"} stroke="currentColor" />
         </svg>
         OSNAP
       </button>

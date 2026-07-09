@@ -32,6 +32,10 @@ export function AppSheetTabs({ activeSheet, onChangeSheet, showLeftPanel, onOpen
     if (tab.sheet === "sheet1_connections" && Capacitor.isNativePlatform()) {
       return false;
     }
+    // Wyłączamy zakładkę "Schemat Smart Home" na życzenie użytkownika
+    if (tab.sheet === "sheet5_smarthome") {
+      return false;
+    }
     return true;
   });
 
