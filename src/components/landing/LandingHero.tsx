@@ -73,7 +73,7 @@ export function LandingHero({ onOpenProjectFile, onOpenNewProject }: LandingHero
                   <i data-lucide="plus" className="landing-new-project-icon"></i>
                 </div>
 
-                <h3 className="landing-new-project-title">{t("landing.buttonNew", "Utwórz nowy projekt")}</h3>
+                <h2 className="landing-new-project-title">{t("landing.buttonNew", "Utwórz nowy projekt")}</h2>
                 <p className="landing-new-project-desc">{t("auto.rozpocznijproje_716", "Rozpocznij projektowanie czystej szyny DIN, konfiguruj fazy i wygeneruj schemat montażowy.")}</p>
 
                 <div className="landing-new-project-cta">
