@@ -3,12 +3,20 @@
    ================================================================ */
 
 .card {
-  padding: 10px;
+  padding: 12px;
   margin-bottom: 8px;
   background: var(--card-background);
-  border-radius: 8px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border-subtle);
   box-shadow: var(--shadow-sm);
+  transition: all var(--transition-smooth);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--panel-border-strong);
 }
 
 .card + .card { margin-top: 8px; }
@@ -98,21 +106,26 @@
   color: var(--text-secondary);
   background: var(--panel-background-alt);
   border: 1px solid var(--border-subtle);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   font-weight: 600;
+  transition: all var(--transition-smooth);
 }
 
 .palette-tab:hover {
   color: var(--text-main);
   border-color: var(--panel-border-strong);
   background: var(--hover-background);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 .palette-tab.active {
   color: var(--accent-primary-hover);
   border-color: var(--accent-primary);
   background: var(--accent-primary-soft);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 .palette-tab-icon {
@@ -242,28 +255,25 @@
   padding: 8px;
   background: var(--card-background);
   border: 1px solid var(--border-subtle);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   cursor: grab;
   user-select: none;
   touch-action: pan-y;
-  transition:
-    background var(--transition-fast),
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast),
-    transform var(--transition-fast);
+  transition: all var(--transition-smooth);
 }
 
 .palette-item:hover {
   background: var(--hover-background);
-  border-color: var(--state-info-border);
+  border-color: var(--accent-primary);
   box-shadow: var(--shadow-hover);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 
 .palette-item:active {
   cursor: grabbing;
   transform: translateY(1px);
+  box-shadow: var(--shadow-sm);
 }
 
 .palette-context-menu {

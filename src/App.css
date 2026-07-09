@@ -5,51 +5,53 @@
 
 :root {
   /* === TOKENS === */
-  --app-background: #20242a;
-  --panel-background: #14171c;
-  --panel-background-alt: #1b2027;
-  --panel-header-background: #11151a;
-  --toolbar-background: #101318;
-  --card-background: #181c22;
-  --menu-background: #171b21;
-  --menu-border: #303743;
-  --overlay-background: rgba(11, 13, 16, 0.92);
+  /* Premium Deep Slate / Zinc Theme */
+  --app-background: #0f1115;
+  --panel-background: rgba(20, 23, 28, 0.7);
+  --panel-background-alt: rgba(27, 32, 39, 0.75);
+  --panel-header-background: rgba(15, 17, 21, 0.85);
+  --toolbar-background: rgba(14, 16, 20, 0.85);
+  --card-background: rgba(24, 28, 34, 0.8);
+  --menu-background: rgba(22, 26, 31, 0.95);
+  --menu-border: rgba(48, 55, 67, 0.6);
+  --overlay-background: rgba(8, 10, 12, 0.94);
 
-  --panel-border: #29313b;
-  --panel-border-strong: #3a4654;
-  --border-subtle: rgba(57, 69, 84, 0.65);
-  --hover-background: rgba(255, 255, 255, 0.045);
+  --panel-border: rgba(41, 49, 59, 0.5);
+  --panel-border-strong: rgba(58, 70, 84, 0.7);
+  --border-subtle: rgba(57, 69, 84, 0.4);
+  --hover-background: rgba(255, 255, 255, 0.06);
   --active-background: rgba(30, 58, 95, 0.12);
   --focus-ring: rgba(74, 144, 247, 0.55);
-  --row-background: rgba(255, 255, 255, 0.018);
+  --row-background: rgba(255, 255, 255, 0.02);
   --row-background-hover: rgba(30, 58, 95, 0.07);
-  --table-header-background: #161b22;
+  --table-header-background: rgba(22, 27, 34, 0.8);
 
-  --text-main: #e8eaef;
-  --text-secondary: #9a9faa;
-  --text-tertiary: #5f636c;
+  --text-main: #f1f3f7;
+  --text-secondary: #a1a6b4;
+  --text-tertiary: #6c7280;
   --text-inverse: #ffffff;
 
+  /* Classic Industrial Accents */
   --accent-primary: #1e3a5f;
   --accent-primary-hover: #345580;
   --accent-primary-soft: rgba(30, 58, 95, 0.12);
   --accent-blue: var(--accent-primary);
-  --accent-red: #ef4444;
-  --accent-green: #22c993;
-  --accent-warning: #f59e0b;
+  --accent-red: #ff3b30;
+  --accent-green: #34c759;
+  --accent-warning: #ff9f0a;
   --accent-orange: var(--accent-warning);
-  --accent-yellow: #facc15;
+  --accent-yellow: #ffd60a;
   --state-info-soft: rgba(30, 58, 95, 0.12);
   --state-info-border: rgba(30, 58, 95, 0.45);
-  --state-success-soft: rgba(34, 201, 147, 0.1);
-  --state-success-border: rgba(34, 201, 147, 0.42);
-  --state-warning-soft: rgba(245, 158, 11, 0.1);
-  --state-warning-border: rgba(245, 158, 11, 0.45);
-  --state-danger-soft: rgba(239, 68, 68, 0.1);
-  --state-danger-border: rgba(239, 68, 68, 0.45);
-  --scrollbar-track: rgba(10, 11, 13, 0.5);
-  --scrollbar-thumb: rgba(160, 168, 180, 0.7);
-  --scrollbar-thumb-hover: rgba(200, 210, 220, 0.9);
+  --state-success-soft: rgba(52, 199, 89, 0.1);
+  --state-success-border: rgba(52, 199, 89, 0.42);
+  --state-warning-soft: rgba(255, 159, 10, 0.1);
+  --state-warning-border: rgba(255, 159, 10, 0.45);
+  --state-danger-soft: rgba(255, 59, 48, 0.1);
+  --state-danger-border: rgba(255, 59, 48, 0.45);
+  --scrollbar-track: rgba(10, 11, 13, 0.3);
+  --scrollbar-thumb: rgba(160, 168, 180, 0.5);
+  --scrollbar-thumb-hover: rgba(200, 210, 220, 0.8);
 
   --bg-panel: var(--panel-background);
   --bg-panel-alt: var(--panel-background-alt);
@@ -59,30 +61,35 @@
   --sheet-border: #c9ced6;
   --sheet-text: #1f2430;
   --sheet-muted: #616978;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.22), 0 1px 0 rgba(255, 255, 255, 0.025) inset;
-  --shadow-md: 0 8px 18px rgba(0, 0, 0, 0.22), 0 1px 0 rgba(255, 255, 255, 0.025) inset;
-  --shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.26), 0 0 0 1px rgba(30, 58, 95, 0.16);
+  
+  /* Smooth Shadows */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.05) inset;
+  --shadow-md: 0 10px 24px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.05) inset;
+  --shadow-hover: 0 16px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(30, 58, 95, 0.3);
   --card-shadow: var(--shadow-md);
-  --shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.52), 0 4px 14px rgba(0, 0, 0, 0.24);
+  --shadow-lg: 0 24px 48px rgba(0, 0, 0, 0.6), 0 4px 14px rgba(0, 0, 0, 0.3);
 
-  --font-family: "Roboto", "Segoe UI", system-ui, -apple-system, sans-serif;
-  --font-size-xs: 0.6875rem;
-  --font-size-sm: 0.75rem;
-  --font-size-md: 0.8125rem;
-  --font-size-base: 0.875rem;
-  --font-size-lg: 1rem;
+  /* Modern Font */
+  --font-family: "Outfit", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-size-xs: 0.7rem;
+  --font-size-sm: 0.78rem;
+  --font-size-md: 0.85rem;
+  --font-size-base: 0.9rem;
+  --font-size-lg: 1.05rem;
 
-  --radius-sm: 5px;
-  --radius-md: 7px;
-  --radius-lg: 10px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
 
+  /* Transitions */
   --transition-fast: 140ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 250ms cubic-bezier(0.25, 0.8, 0.25, 1);
 
   /* Layout dimensions */
-  --left-panel-width: 280px;
+  --left-panel-width: 290px;
   --right-panel-width: 320px;
-  --workspace-tabs-height: 57px;
-  --statusbar-height: 28px;
+  --workspace-tabs-height: 60px;
+  --statusbar-height: 30px;
 }
 
 /* ================================================================
