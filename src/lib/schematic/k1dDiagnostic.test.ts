@@ -37,9 +37,7 @@ describe("k1d_diagnostic", () => {
     // First 3 coil terminals (left side, NOT yellow)
     const coils = k1d.terminals.filter((t) => t.radius > 4).slice(0, 3);
     coils.forEach((t, i) => console.log(`  coil[${i}] x=${t.x} y=${t.y} r=${t.radius}`));
-    // First 3 yellow contact terminals (right side, smaller radius)
-    const yellows = k1d.terminals.filter((t) => t.radius < 4).slice(0, 3);
-    yellows.forEach((t, i) => console.log(`  yellow[${i}] x=${t.x} y=${t.y} r=${t.radius}`));
+    // Yellow contact terminals were removed per user request
 
     // INVARIANT: world terminal positions should be on world 20-grid
     for (const t of k1d.terminals) {
@@ -54,17 +52,7 @@ describe("k1d_diagnostic", () => {
       expect(coil.y % 20).toBe(0); // ON world 20-grid
     }
 
-    // INVARIANT: -K1:D should expose 40 terminals (10 channels × 4 each: A, B, contact-1, contact-2)
-    expect(k1d.terminals.length, "-K1:D should have 40 terminals (10 channels × 4)").toBe(40);
-
-    // INVARIANT: yellow contact terminals (r < 4) should be at worldX on grid
-    // (960 source - 592 minX) * 1.25 scale = 460 = 23 × 20 ✓
-    // (992 source - 592 minX) * 1.25 scale = 500 = 25 × 20 ✓
-    const yellowXs = new Set(yellows.map((t) => t.x));
-    for (const x of yellowXs) {
-      expect(x % 20).toBe(0);
-    }
-    expect(yellowXs.has(460), "left contact pins at world x = 460").toBe(true);
-    expect(yellowXs.has(500), "right contact pins at world x = 500").toBe(true);
+    // INVARIANT: -K1:D should expose 20 terminals (since internal relays were removed)
+    expect(k1d.terminals.length, "-K1:D should have 20 terminals").toBe(20);
   });
 });
