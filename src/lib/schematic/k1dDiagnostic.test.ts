@@ -3,6 +3,7 @@
  * the -K1:D block's terminal positions match expected invariants.
  */
 import { describe, it, expect, vi } from "vitest";
+// @ts-ignore
 import { readFileSync } from "node:fs";
 
 describe("k1d_diagnostic", () => {
@@ -27,6 +28,7 @@ describe("k1d_diagnostic", () => {
 
     // Find -K1:D by its label
     const k1d = blocks.find((b) => b.label && b.label.includes("-K1:D"));
+    if (!k1d) throw new Error("K1:D block not found");
     expect(k1d, "K1:D block should exist after parse").toBeTruthy();
     console.log(
       `k1d.originalX=${k1d.originalX} originalY=${k1d.originalY} w=${k1d.width} h=${k1d.height}`,
