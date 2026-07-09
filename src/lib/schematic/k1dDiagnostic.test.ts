@@ -9,7 +9,7 @@ import { readFileSync } from "node:fs";
 describe("k1d_diagnostic", () => {
   it("dumps the AMPIO MSERV-4S -K1:D block structure after real parseBlock", async () => {
     const svgText = readFileSync(
-      "public/assets/symbols/Smart Home/Symbol AMPIO MSERV-4S.svg",
+      "public/assets/symbols/Smart Home/Symbol AMPIO MSERV-4S_v4.svg",
       "utf-8",
     );
 
