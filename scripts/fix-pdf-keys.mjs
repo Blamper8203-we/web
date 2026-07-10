@@ -3,7 +3,6 @@ import path from 'path';
 
 const filesToUpdate = [
   'src/locales/pl/translation.json',
-  'src/locales/de/translation.json',
   'src/components/measurementProtocols/TitlePageTab.tsx',
   'src/components/measurementProtocols/RcdProtocolsTab.tsx',
   'src/components/measurementProtocols/UnifiedProtocolsTab.tsx'

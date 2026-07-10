@@ -39,16 +39,10 @@ replaceInFile(
 
 // 3. Zmiana w testach, jesli wystepuje ten ciag - ignoruje bo to tyczy sie weryfikacji. 
 
-// 4. Aktualizacja slowników de i pl
+// 4. Aktualizacja slownika pl
 const plPath = path.resolve('src/locales/pl/translation.json');
-const dePath = path.resolve('src/locales/de/translation.json');
 
 const plData = JSON.parse(fs.readFileSync(plPath, 'utf8'));
 if (!plData.pdf.shared) plData.pdf.shared = {};
 plData.pdf.shared.protocolNrPrefix = "Protokół Pomiarów Nr ";
 fs.writeFileSync(plPath, JSON.stringify(plData, null, 2), 'utf8');
-
-const deData = JSON.parse(fs.readFileSync(dePath, 'utf8'));
-if (!deData.pdf.shared) deData.pdf.shared = {};
-deData.pdf.shared.protocolNrPrefix = "Prüfprotokoll Nr. ";
-fs.writeFileSync(dePath, JSON.stringify(deData, null, 2), 'utf8');

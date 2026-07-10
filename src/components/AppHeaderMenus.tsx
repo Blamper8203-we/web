@@ -145,13 +145,6 @@ export function AppHeaderSettingsMenu({
           >
             Polski
           </button>
-          <button
-            type="button"
-            className={i18n.language === "de" ? "active" : ""}
-            onClick={() => { i18n.changeLanguage("de"); onClose(); }}
-          >
-            Deutsch
-          </button>
         </div>
       </div>
 
