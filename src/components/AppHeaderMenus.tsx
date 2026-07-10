@@ -128,27 +128,13 @@ export function AppHeaderSettingsMenu({
   onClose,
   onChangeUiTheme,
 }: AppHeaderSettingsMenuProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   return (
     <div
       className="flyout-menu settings-menu"
       onClick={(e) => e.stopPropagation()}
       onMouseDown={(e) => e.stopPropagation()}
     >
-      <span className="flyout-section">{t("app.settingsMenu.language", "Język")}</span>
-      <div className="flyout-card">
-        <div className="settings-segmented" role="group" aria-label={t("app.settingsMenu.language", "Język")}>
-          <button
-            type="button"
-            className={i18n.language === "pl" ? "active" : ""}
-            onClick={() => { i18n.changeLanguage("pl"); onClose(); }}
-          >
-            Polski
-          </button>
-        </div>
-      </div>
-
-      <span className="flyout-divider" />
       <span className="flyout-section">{t("app.settingsMenu.appearance")}</span>
       <div className="flyout-card">
         <div className="settings-row">

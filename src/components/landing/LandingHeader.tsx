@@ -1,10 +1,6 @@
 import { useTranslation } from "react-i18next";
 export function LandingHeader() {
-  const { t, i18n } = useTranslation();
-
-  const handleLanguageChange = (lang: string) => {
-    i18n.changeLanguage(lang);
-  };
+  const { t } = useTranslation();
 
   return (
     <header className="landing-header">
@@ -31,12 +27,6 @@ export function LandingHeader() {
         </nav>
 
         <div className="landing-header-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button
-            onClick={() => handleLanguageChange('pl')}
-            style={{ background: 'transparent', border: '1px solid #333', color: i18n.language === 'pl' ? '#f59e0b' : '#fff', cursor: 'pointer', padding: '4px 8px', borderRadius: '4px' }}
-          >
-            PL
-          </button>
           <a
             href="https://suppi.pl/dinboard"
             target="_blank"
