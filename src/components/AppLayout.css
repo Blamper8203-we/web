@@ -248,6 +248,10 @@ html.ui-theme-classic {
 /* WHY: tokeny dla frosted overlay/HUD — w ciemnym motywie to półprzezroczyste
    ciemne tło z białym obwodem, w jasnym półprzezroczyste białe z ciemnym. */
 :root {
+  /* WHY: color-scheme "dark" mówi przeglądarce żeby renderowała natywne
+     UI (scrollbary, <select> arrow, autofill) w dark variant. Bez tego
+     przeglądarka domyślnie używa light UI nawet w dark motywie strony. */
+  color-scheme: dark;
   --surface-elevated: rgba(19, 20, 22, 0.88);
   --surface-elevated-strong: rgba(26, 27, 30, 0.95);
   --surface-elevated-soft: rgba(23, 24, 28, 0.7);
@@ -268,6 +272,9 @@ html.ui-theme-classic {
 }
 .app-shell.ui-theme-classic,
 html.ui-theme-classic {
+  /* WHY: color-scheme "light" w jasnym motywie — spójność natywnych UI
+     przeglądarki (scrollbary, autofill) z motywem strony. */
+  color-scheme: light;
   --surface-elevated: rgba(255, 255, 255, 0.92);
   --surface-elevated-strong: rgba(255, 255, 255, 0.96);
   --surface-elevated-soft: rgba(255, 255, 255, 0.85);

@@ -30,6 +30,26 @@ select:focus {
 
 input::placeholder, textarea::placeholder { color: var(--text-tertiary); }
 
+/* WHY: natywny <select> w dark mode ma domyślnie białe opcje (bo OS/browser
+   styluje <option> poza naszym CSS, jeśli nic nie nadpiszemy). Globalny rule
+   w Forms.css pokrywa wszystkie 12 <select> w apce (FeedbackModal,
+   AppRightPanel, ImportedModulesDialog, SvgImportDialog, PowerBalancePage,
+   MobileFieldCircuitRow, ValidationPanel, CircuitEditPanel) zamiast fixować
+   każdy osobno. WHY-checked: poprawka nie wymaga zmian w komponentach. */
+option,
+optgroup {
+  background: var(--panel-background);
+  color: var(--text-main);
+}
+optgroup {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+option:checked {
+  background: var(--accent-primary-soft);
+  color: var(--accent-primary-hover);
+}
+
 label {
   display: block;
   margin-bottom: 2px;
