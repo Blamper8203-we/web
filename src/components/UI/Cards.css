@@ -215,7 +215,7 @@
   padding: 24px;
   text-align: center;
   color: var(--text-main);
-  background: rgba(14, 15, 17, 0.82);
+  background: var(--surface-elevated);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   border: 0;
@@ -225,7 +225,7 @@
 }
 
 .palette-blocker:hover {
-  background: rgba(14, 15, 17, 0.72);
+  background: var(--surface-elevated-soft);
 }
 
 .palette-blocker svg {

@@ -19,7 +19,7 @@
   margin: 0 0 8px;
   font-size: 13px;
   font-weight: 700;
-  color: #d9def8;
+  color: var(--text-main);
 }
 
 .help-dialog__section ul {
@@ -27,7 +27,7 @@
   padding-left: 18px;
   display: grid;
   gap: 6px;
-  color: #b5bdd6;
+  color: var(--text-secondary);
   font-size: 13px;
 }
 
@@ -35,9 +35,9 @@
   display: inline-block;
   padding: 1px 6px;
   border-radius: 6px;
-  border: 1px solid rgba(124, 135, 255, 0.35);
-  background: rgba(124, 135, 255, 0.16);
-  color: #f3f6ff;
+  border: 1px solid var(--state-info-border);
+  background: var(--state-info-soft);
+  color: var(--text-main);
   font-size: 12px;
   font-weight: 700;
 }

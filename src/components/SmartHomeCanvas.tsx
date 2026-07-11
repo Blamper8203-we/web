@@ -701,17 +701,17 @@ export function SmartHomeCanvas({
             background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center"
           }}>
             <div style={{
-              background: "#141414", border: "1px solid #22c55e", borderRadius: 8,
-              padding: 24, maxWidth: 500, color: "#fff", boxShadow: "0 8px 16px rgba(0,0,0,0.8)"
+              background: "var(--panel-background)", border: "1px solid #22c55e", borderRadius: 8,
+              padding: 24, maxWidth: 500, color: "var(--text-main)", boxShadow: "0 8px 16px rgba(0,0,0,0.8)"
             }}>
               <h3 style={{ margin: "0 0 16px 0", color: "#22c55e", fontSize: 20 }}>Instrukcja: Schemat Smart Home</h3>
-              <ul style={{ paddingLeft: 20, lineHeight: "1.6", color: "#e2e8f0" }}>
+              <ul style={{ paddingLeft: 20, lineHeight: "1.6", color: "var(--text-secondary)" }}>
                 <li><strong>Wstawianie bloków:</strong> Przeciągnij moduł z palety po lewej stronie i upuść na ekran. Aplikacja rozbije go na przesuwne, niezależne logicznie bloki.</li>
-                <li><strong>Zaznaczanie:</strong> Kliknij i przeciągnij po pustym tle (bez trzymania klawiszy), aby narysować ramkę (lasso) zaznaczającą wiele bloków. Przytrzymaj <kbd style={{background: "#333", padding: "2px 6px", borderRadius: 4}}>SHIFT</kbd> i klikaj w bloki, by dodać je do zaznaczenia.</li>
+                <li><strong>Zaznaczanie:</strong> Kliknij i przeciągnij po pustym tle (bez trzymania klawiszy), aby narysować ramkę (lasso) zaznaczającą wiele bloków. Przytrzymaj <kbd style={{background: "var(--row-background)", padding: "2px 6px", borderRadius: 4}}>SHIFT</kbd> i klikaj w bloki, by dodać je do zaznaczenia.</li>
                 <li><strong>Przesuwanie:</strong> Złap dowolny blok lewym przyciskiem myszy. Jeśli jest ich zaznaczonych więcej, przesuną się całą grupą.</li>
-                <li><strong>Obracanie:</strong> Zaznacz blok (lub grupę), przytrzymaj <kbd style={{background: "#333", padding: "2px 6px", borderRadius: 4}}>CTRL</kbd> i kręć rolką myszy. Z <kbd style={{background: "#333", padding: "2px 6px", borderRadius: 4}}>SHIFT</kbd> obrót jest precyzyjny (co 1° zamiast 15°).</li>
-                <li><strong>Usuwanie:</strong> Po zaznaczeniu modułów naciśnij <kbd style={{background: "#333", padding: "2px 6px", borderRadius: 4}}>Delete</kbd> lub <kbd style={{background: "#333", padding: "2px 6px", borderRadius: 4}}>Backspace</kbd>, by je usunąć.</li>
-                <li><strong>Widok (Pan/Zoom):</strong> Kręć kółkiem bez CTRL, aby przybliżać. Wciśnij środkowy przycisk myszy lub <kbd style={{background: "#333", padding: "2px 6px", borderRadius: 4}}>CTRL + Lewy Przycisk</kbd> aby przesuwać kamerę.</li>
+                <li><strong>Obracanie:</strong> Zaznacz blok (lub grupę), przytrzymaj <kbd style={{background: "var(--row-background)", padding: "2px 6px", borderRadius: 4}}>CTRL</kbd> i kręć rolką myszy. Z <kbd style={{background: "var(--row-background)", padding: "2px 6px", borderRadius: 4}}>SHIFT</kbd> obrót jest precyzyjny (co 1° zamiast 15°).</li>
+                <li><strong>Usuwanie:</strong> Po zaznaczeniu modułów naciśnij <kbd style={{background: "var(--row-background)", padding: "2px 6px", borderRadius: 4}}>Delete</kbd> lub <kbd style={{background: "var(--row-background)", padding: "2px 6px", borderRadius: 4}}>Backspace</kbd>, by je usunąć.</li>
+                <li><strong>Widok (Pan/Zoom):</strong> Kręć kółkiem bez CTRL, aby przybliżać. Wciśnij środkowy przycisk myszy lub <kbd style={{background: "var(--row-background)", padding: "2px 6px", borderRadius: 4}}>CTRL + Lewy Przycisk</kbd> aby przesuwać kamerę.</li>
               </ul>
               <button 
                 onClick={() => setShowHelp(false)}

@@ -1168,9 +1168,9 @@ label:hover .mp-delete-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(15, 23, 42, 0.88);
-  color: #f8fafc;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: var(--surface-elevated);
+  color: var(--text-main);
+  border: 1px solid var(--hud-border);
   border-radius: 999px;
   font-family: inherit;
   font-size: 12px;
@@ -1183,7 +1183,7 @@ label:hover .mp-delete-btn {
 }
 
 .pinch-zoom-reset:hover {
-  background: rgba(15, 23, 42, 0.96);
+  background: var(--surface-elevated-strong);
   transform: scale(1.04);
 }
 

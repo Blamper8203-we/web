@@ -136,13 +136,13 @@ export function DinRailGeneratorDialog({
 }: DinRailGeneratorDialogProps) {
   const { t } = useTranslation();
   return (
-    <div className="din-rail-dialog-backdrop" onMouseDown={onClose}>
+    <div className="din-rail-dialog-backdrop" onPointerDown={onClose}>
       <div
         className="din-rail-dialog"
         role="dialog"
         aria-modal="true"
         aria-label={t("auto.generatorszynyd_58", "Generator szyny DIN")}
-        onMouseDown={(event) => event.stopPropagation()}
+        onPointerDown={(event) => event.stopPropagation()}
       >
         <div className="din-rail-dialog-preview">
         <div className="din-rail-dialog-preview-canvas">

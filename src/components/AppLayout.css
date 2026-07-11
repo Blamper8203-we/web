@@ -31,12 +31,14 @@
   left: 0;
   z-index: 1000;
   width: 304px;
-  background: rgba(24, 25, 30, 0.92);
+  /* WHY: tokeny zamiast hardcoded rgba — w motywie jasnym (classic)
+     --menu-background to biały, a --menu-border to jasna linia. */
+  background: var(--menu-background);
   backdrop-filter: blur(16px) saturate(1.4);
   -webkit-backdrop-filter: blur(16px) saturate(1.4);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--menu-border);
   border-radius: 8px;
-  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-lg);
   padding: 4px;
   animation: flyout-enter 160ms cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -202,16 +204,112 @@
 }
 
 .app-shell.ui-theme-classic {
+  /* Shadows — subtelniejsze niż domyślne (zostawione jak było) */
   --shadow-sm: none;
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.28), 0 6px 20px rgba(0, 0, 0, 0.18);
-  --shadow-hover: 0 2px 8px rgba(0, 0, 0, 0.15);
-  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.28), 0 6px 20px rgba(0, 0, 0, 0.18);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.48), 0 2px 8px rgba(0, 0, 0, 0.24);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08), 0 6px 20px rgba(0, 0, 0, 0.06);
+  --shadow-hover: 0 2px 8px rgba(0, 0, 0, 0.12);
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 6px 20px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  /* WHY: jasny motyw = nadpisanie tokenów kolorów. Układ (gap, padding,
+     radius paneli) jest globalny i identyczny w obu motywach — różnią się
+     tylko kolory. Frame tła .main-content jest ustawiony wyżej w
+     MainContent.css na #e3e5e8. */
+  --app-background: #e3e5e8;
+  --panel-background: rgba(255, 255, 255, 0.92);
+  --panel-background-alt: rgba(245, 245, 247, 0.95);
+  --panel-header-background: rgba(248, 249, 251, 0.95);
+  --toolbar-background: rgba(248, 249, 251, 0.95);
+  --card-background: rgba(255, 255, 255, 0.95);
+  --menu-background: rgba(255, 255, 255, 0.98);
+  --menu-border: rgba(0, 0, 0, 0.08);
+  --overlay-background: rgba(0, 0, 0, 0.5);
+
+  --panel-border: rgba(0, 0, 0, 0.1);
+  --panel-border-strong: rgba(0, 0, 0, 0.18);
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --hover-background: rgba(0, 0, 0, 0.04);
+  --active-background: rgba(30, 58, 95, 0.08);
+  --row-background: rgba(0, 0, 0, 0.02);
+  --row-background-hover: rgba(30, 58, 95, 0.06);
+  --table-header-background: rgba(245, 245, 247, 0.9);
+
+  --text-main: #1a1d22;
+  --text-secondary: #4a4f57;
+  --text-tertiary: #6c7280;
+  --text-inverse: #ffffff;
+
+  --scrollbar-track: rgba(0, 0, 0, 0.04);
+  --scrollbar-thumb: rgba(0, 0, 0, 0.22);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.38);
+}
+
+/* WHY: tokeny dla frosted overlay/HUD — w ciemnym motywie to półprzezroczyste
+   ciemne tło z białym obwodem, w jasnym półprzezroczyste białe z ciemnym. */
+:root {
+  --surface-elevated: rgba(19, 20, 22, 0.88);
+  --surface-elevated-strong: rgba(26, 27, 30, 0.95);
+  --surface-elevated-soft: rgba(23, 24, 28, 0.7);
+  --surface-elevated-hover: rgba(30, 32, 38, 0.82);
+  --surface-elevated-button: rgba(31, 33, 38, 0.85);
+  --surface-elevated-button-hover: rgba(42, 46, 53, 0.9);
+  --hud-border: rgba(255, 255, 255, 0.06);
+  --hud-border-strong: rgba(255, 255, 255, 0.08);
+  --hud-tag-bg: rgba(255, 255, 255, 0.04);
+  --surface-fallback: #1e222b;
+  --surface-fallback-alt: #14171d;
+  --surface-fallback-border: #2c313c;
+
+  /* WHY: tło canvasów roboczych (szyna DIN, schemat). Jedno źródło prawdy
+     dla wszystkich powierzchni roboczych, zamiast hardcoded #0b0d10
+     w każdym pliku. */
+  --canvas-bg: #0b0d10;
+}
+.app-shell.ui-theme-classic {
+  --surface-elevated: rgba(255, 255, 255, 0.92);
+  --surface-elevated-strong: rgba(255, 255, 255, 0.96);
+  --surface-elevated-soft: rgba(255, 255, 255, 0.85);
+  --surface-elevated-hover: rgba(255, 255, 255, 0.95);
+  --surface-elevated-button: rgba(255, 255, 255, 0.9);
+  --surface-elevated-button-hover: rgba(255, 255, 255, 0.98);
+  --hud-border: rgba(0, 0, 0, 0.1);
+  --hud-border-strong: rgba(0, 0, 0, 0.14);
+  --hud-tag-bg: rgba(0, 0, 0, 0.04);
+  --surface-fallback: #ffffff;
+  --surface-fallback-alt: #f3f4f6;
+  --surface-fallback-border: var(--panel-border);
+  --canvas-bg: #ffffff;
 }
 
 .app-shell.ui-theme-classic .right-tab-btn.active,
 .app-shell.ui-theme-classic .pdf-right-panel-tab.active {
   box-shadow: none;
+}
+
+/* WHY: explicit overrides na wypadek gdyby tokeny nie kaskadowały do canvasu
+   (np. PWA Service Worker cache trzymał stary CSS). Jasne tło, ciemny tekst
+   — pasuje do jasnego motywu. */
+.app-shell.ui-theme-classic .workspace-hud {
+  background: #ffffff;
+  color: #1a1d22;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+.app-shell.ui-theme-classic .workspace-hud--top-right {
+  background: #ffffff;
+}
+.app-shell.ui-theme-classic .workspace-tool-btn {
+  background: #ffffff;
+  color: #1a1d22;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+.app-shell.ui-theme-classic .workspace-tool-btn:hover {
+  background: #f3f4f6;
+  color: #1a1d22;
+}
+.app-shell.ui-theme-classic .toolbar-center {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .accent-blue { color: var(--accent-blue) !important; }

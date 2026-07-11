@@ -49,50 +49,45 @@ export function DinRailPlaceholders({
         onPointerEnter={(e) => {
           const rect = e.currentTarget.querySelector("rect");
           if (rect) {
-            rect.style.stroke = "#94a3b8";
-            rect.style.fill = "rgba(30, 41, 59, 0.6)";
+            rect.setAttribute("data-hover", "1");
           }
         }}
         onPointerLeave={(e) => {
           const rect = e.currentTarget.querySelector("rect");
           if (rect) {
-            rect.style.stroke = "#475569";
-            rect.style.fill = "rgba(15, 23, 42, 0.4)";
+            rect.removeAttribute("data-hover");
           }
         }}
       >
         <rect
+          className="din-rail-listwy-placeholder-rect"
           width={rectWidth}
           height={rectHeight}
           rx={24}
-          fill="rgba(15, 23, 42, 0.4)"
-          stroke="#475569"
           strokeWidth={12}
           strokeDasharray="24 24"
-          style={{ transition: "all 0.2s" }}
         />
         <line
+          className="din-rail-listwy-placeholder-line"
           x1={0} y1={rectHeight / 2}
           x2={rectWidth} y2={rectHeight / 2}
-          stroke="#475569" strokeWidth={4} strokeDasharray="16 16"
-          style={{ pointerEvents: "none" }}
+          strokeWidth={4} strokeDasharray="16 16"
         />
         <line
+          className="din-rail-listwy-placeholder-line"
           x1={rectWidth / 2} y1={rectHeight / 2 - 50}
           x2={rectWidth / 2} y2={rectHeight / 2 + 50}
-          stroke="#475569" strokeWidth={4}
-          style={{ pointerEvents: "none" }}
+          strokeWidth={4}
         />
         <text
+          className="din-rail-listwy-placeholder-text"
           x={rectWidth / 2}
           y={rectHeight / 2 + 25}
           textAnchor="middle"
-          fill="#94a3b8"
           fontSize={label.length > 15 ? 40 : 80}
           fontWeight="bold"
           fontFamily="system-ui, sans-serif"
           letterSpacing={label.length > 15 ? 2 : 4}
-          style={{ textTransform: "uppercase", pointerEvents: "none" }}
         >
           {label}
         </text>

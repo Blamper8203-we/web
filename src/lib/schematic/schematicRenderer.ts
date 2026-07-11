@@ -31,6 +31,13 @@ export interface SchematicRenderOptions {
   selectedNodeIds?: string[];
   highlightNodeId?: string;
   metadata?: ProjectMetadata;
+  /**
+   * Kolor tła canvasu (obszar poza stronami A4). Domyślnie odczytywany z CSS
+   * variable `--canvas-bg` — dzięki temu canvas dopasowuje się do motywu
+   * (jasny → biały, ciemny → #0b0d10). Przy exportcie PDF przekazujemy "#ffffff"
+   * jawnie, żeby druk zawsze miał białe tło niezależnie od motywu.
+   */
+  backgroundColor?: string;
 }
 
 export { SCHEMATIC_BODY_Y_OFFSET };
@@ -42,7 +49,13 @@ export function renderSchematic(
 ): void {
   const { canvasWidth, canvasHeight, zoom, panX, panY, selectedNodeId, selectedNodeIds } = options;
 
-  ctx.fillStyle = "#171b22";
+  // WHY: domyślnie czytaj z CSS variable, żeby canvas reagował na motyw.
+  // W środowisku bez DOM (testy) wpadamy na fallback #0b0d10.
+  const cssVarBg = typeof document !== "undefined"
+    ? getComputedStyle(document.documentElement).getPropertyValue("--canvas-bg").trim()
+    : "";
+  const backgroundColor = options.backgroundColor ?? (cssVarBg || "#0b0d10");
+  ctx.fillStyle = backgroundColor;
   ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
   ctx.save();

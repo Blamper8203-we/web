@@ -142,6 +142,7 @@
       "appearance": "Wygląd",
       "theme": "Motyw aplikacji",
       "dark": "Ciemny",
+      "light": "Jasny",
       "style": "Styl UI",
       "shadows": "Z cieniami",
       "classic": "Klasyczny",

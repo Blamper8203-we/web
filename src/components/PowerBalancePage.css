@@ -329,7 +329,7 @@
 .pb-phase-card.black .pb-phase-label,
 .pb-phase-card.black .pb-phase-fill {
   background: #111111;
-  border: 1px solid #3a3f47;
+  border: 1px solid var(--panel-border);
 }
 
 .pb-phase-card.gray .pb-phase-label,
@@ -347,9 +347,9 @@
 .pb-phase-track {
   height: 7px;
   overflow: hidden;
-  border: 1px solid #3a3f47;
+  border: 1px solid var(--panel-border);
   border-radius: 4px;
-  background: #2a2e36;
+  background: var(--row-background);
 }
 
 .pb-phase-fill {
@@ -485,7 +485,7 @@
 
 .pb-phase-chip.l2 {
   background: #111111;
-  border-color: #3a3f47;
+  border-color: var(--panel-border);
 }
 
 .pb-phase-chip.l3 {

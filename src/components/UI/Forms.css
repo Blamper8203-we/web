@@ -24,7 +24,7 @@ input:focus,
 textarea:focus,
 select:focus {
   border-color: var(--accent-primary);
-  background: #1e2025;
+  background: var(--hover-background);
   box-shadow: 0 0 0 2px var(--accent-primary-soft);
 }
 

@@ -33,14 +33,14 @@ export function DinRailListwyPlaceholdersLayer({
     position: "absolute",
     width: `${rectWidth}px`,
     height: `${rectHeight}px`,
-    border: "12px dashed #475569",
+    border: "12px dashed var(--panel-border-strong)",
     borderRadius: "24px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     cursor: "pointer",
     pointerEvents: "auto",
-    backgroundColor: "rgba(15, 23, 42, 0.4)",
+    backgroundColor: "var(--surface-elevated-soft)",
     boxSizing: "border-box",
     transition: "border-color 0.2s, background-color 0.2s",
   };
@@ -48,7 +48,7 @@ export function DinRailListwyPlaceholdersLayer({
   const textStyle: CSSProperties = {
     fontSize: "80px",
     fontWeight: "bold",
-    color: "#94a3b8",
+    color: "var(--text-tertiary)",
     fontFamily: "system-ui, sans-serif",
     textTransform: "uppercase",
     letterSpacing: "4px",
@@ -61,12 +61,12 @@ export function DinRailListwyPlaceholdersLayer({
       style={{ ...baseStyle, left: `${x}px`, top: `${y}px` }}
       onClick={() => onRequestLeftPanelTab?.("Listwy do rozdzielnicy")}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = "#94a3b8";
-        e.currentTarget.style.backgroundColor = "rgba(30, 41, 59, 0.6)";
+        e.currentTarget.style.borderColor = "var(--accent-primary)";
+        e.currentTarget.style.backgroundColor = "var(--state-info-soft)";
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = "#475569";
-        e.currentTarget.style.backgroundColor = "rgba(15, 23, 42, 0.4)";
+        e.currentTarget.style.borderColor = "var(--panel-border-strong)";
+        e.currentTarget.style.backgroundColor = "var(--surface-elevated-soft)";
       }}
     >
       <span style={textStyle}>{t("auto.dodajlistwy_836", "DODAJ LISTWY")}</span>

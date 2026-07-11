@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import "./FeedbackModal.css";
 
@@ -12,6 +13,18 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  // WHY: modal jest renderowany w App.tsx obok <Outlet>, czyli POZA
+  // <main className="app-shell ui-theme-classic">. Bez portalu CSS variables
+  // motywu (zdefiniowane na .app-shell) nie kaskadują do modala i w jasnym
+  // motywie modal wygląda ciemno (dziedziczy :root = dark defaults).
+  // Portal do .app-shell naprawia kaskadę. Fallback do body dla landing page,
+  // gdzie .app-shell nie istnieje.
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const target = document.querySelector(".app-shell") as HTMLElement | null;
+    setPortalTarget(target ?? document.body);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,14 +57,16 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
     }
   };
 
-  return (
+  if (!portalTarget) return null;
+
+  return createPortal(
     <div className="feedback-modal-overlay" onClick={onClose}>
       <div className="feedback-modal" onClick={e => e.stopPropagation()}>
         <button className="feedback-modal-close" onClick={onClose} aria-label={t("app.feedbackModal.closeAria", "Zamknij")}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
         <h2 className="feedback-modal-title">{t("app.feedbackModal.title", "Zgłoś błąd lub pomysł")}</h2>
-        
+
         {status === "success" ? (
           <div className="feedback-modal-success">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#27ae60" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -69,21 +84,21 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
                 <option value="Inne">{t("app.feedbackModal.typeOther", "Pytanie / Inne")}</option>
               </select>
             </div>
-            
+
             <div className="feedback-modal-field">
               <label>{t("app.feedbackModal.emailLabel", "Twój e-mail (opcjonalnie)")}</label>
-              <input 
-                type="email" 
+              <input
+                type="email"
                 placeholder={t("app.feedbackModal.emailPlaceholder", "np. jan@kowalski.pl")}
                 value={email}
                 onChange={e => setEmail(e.target.value)}
               />
               <span className="feedback-modal-hint">{t("app.feedbackModal.emailHint", "Zostaw e-mail, jeśli chcesz otrzymać odpowiedź od autora.")}</span>
             </div>
-            
+
             <div className="feedback-modal-field">
               <label>{t("app.feedbackModal.messageLabel", "Treść wiadomości *")}</label>
-              <textarea 
+              <textarea
                 required
                 placeholder={t("app.feedbackModal.messagePlaceholder", "Opisz dokładnie swój problem lub pomysł...")}
                 rows={5}
@@ -91,14 +106,14 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
                 onChange={e => setMessage(e.target.value)}
               />
             </div>
-            
+
             {status === "error" && (
               <div className="feedback-modal-error">{t("app.feedbackModal.errorMsg", "Wystąpił błąd podczas wysyłania. Sprawdź połączenie z internetem.")}</div>
             )}
-            
-            <button 
-              type="submit" 
-              className="feedback-modal-submit" 
+
+            <button
+              type="submit"
+              className="feedback-modal-submit"
               disabled={status === "submitting"}
             >
               {status === "submitting" ? t("app.feedbackModal.btnSubmitting", "Wysyłanie...") : t("app.feedbackModal.btnSubmit", "Wyślij wiadomość")}
@@ -106,6 +121,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
           </form>
         )}
       </div>
-    </div>
+    </div>,
+    portalTarget
   );
 }

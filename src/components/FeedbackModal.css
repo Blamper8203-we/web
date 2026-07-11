@@ -19,8 +19,8 @@
 }
 
 .feedback-modal {
-  background: var(--surface-primary, #1e222b);
-  border: 1px solid var(--surface-border, #2c313c);
+  background: var(--panel-background);
+  border: 1px solid var(--panel-border);
   border-radius: 16px;
   width: 100%;
   max-width: 480px;
@@ -28,7 +28,7 @@
   position: relative;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
   animation: feedback-modal-slide-up 300ms cubic-bezier(0.16, 1, 0.3, 1);
-  color: #e8eaef;
+  color: var(--text-main);
 }
 
 @keyframes feedback-modal-slide-up {
@@ -42,7 +42,7 @@
   right: 16px;
   background: transparent;
   border: none;
-  color: #9a9faa;
+  color: var(--text-tertiary);
   cursor: pointer;
   padding: 8px;
   display: flex;
@@ -53,8 +53,8 @@
 }
 
 .feedback-modal-close:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: var(--hover-background);
+  color: var(--text-main);
 }
 
 .feedback-modal-title {
@@ -77,17 +77,17 @@
 .feedback-modal-field label {
   font-size: 14px;
   font-weight: 600;
-  color: #c9d1d9;
+  color: var(--text-secondary);
 }
 
 .feedback-modal-field select,
 .feedback-modal-field input,
 .feedback-modal-field textarea {
-  background: var(--surface-secondary, #14171d);
-  border: 1px solid var(--surface-border, #2c313c);
+  background: var(--panel-background-alt);
+  border: 1px solid var(--panel-border);
   border-radius: 8px;
   padding: 12px;
-  color: #fff;
+  color: var(--text-main);
   font-family: inherit;
   font-size: 14px;
   transition: border-color 0.2s;
@@ -97,12 +97,12 @@
 .feedback-modal-field input:focus,
 .feedback-modal-field textarea:focus {
   outline: none;
-  border-color: var(--accent-primary, #1e3a5f);
+  border-color: var(--accent-primary);
 }
 
 .feedback-modal-hint {
   font-size: 12px;
-  color: #7b8290;
+  color: var(--text-tertiary);
 }
 
 .feedback-modal-submit {
@@ -113,8 +113,8 @@
   padding: 0 24px;
   border-radius: 8px;
   border: none;
-  color: #fff;
-  background: var(--accent-primary, #1e3a5f);
+  color: var(--text-inverse);
+  background: var(--accent-primary);
   font-weight: 600;
   font-size: 15px;
   cursor: pointer;
@@ -123,24 +123,24 @@
 }
 
 .feedback-modal-submit:hover:not(:disabled) {
-  background: #1168cb;
+  background: var(--accent-primary-hover);
   transform: translateY(-1px);
 }
 
 .feedback-modal-submit:disabled {
-  background: #3e4c5e;
+  background: var(--panel-border-strong);
   cursor: not-allowed;
   box-shadow: none;
-  color: #9a9faa;
+  color: var(--text-tertiary);
 }
 
 .feedback-modal-error {
-  color: #e74c3c;
-  background: rgba(231, 76, 60, 0.1);
+  color: var(--accent-red);
+  background: var(--state-danger-soft);
   padding: 12px;
   border-radius: 8px;
   font-size: 14px;
-  border: 1px solid rgba(231, 76, 60, 0.2);
+  border: 1px solid var(--state-danger-border);
 }
 
 .feedback-modal-success {
@@ -158,12 +158,12 @@
 .feedback-modal-success h3 {
   margin: 0 0 12px 0;
   font-size: 20px;
-  color: #fff;
+  color: var(--text-main);
 }
 
 .feedback-modal-success p {
   margin: 0;
-  color: #9a9faa;
+  color: var(--text-secondary);
   line-height: 1.5;
   font-size: 15px;
 }

@@ -156,7 +156,10 @@
 }
 
 .pp-preview-sheet {
-  background: #0b0d10;
+  /* WHY: tło "pudełka" wokół białej kartki A4. W motywie ciemnym --app-background
+     jest ciemnoszary, więc kartka biała odbija. W jasnym --app-background jest
+     jasny szary, kartka nadal biała i odbija. Jedno rozwiązanie na oba motywy. */
+  background: var(--app-background);
 }
 
 .pp-sheet {

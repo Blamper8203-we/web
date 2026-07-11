@@ -8,15 +8,15 @@
 .about-dialog__name {
   font-size: 16px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-main);
 }
 
 .about-dialog__badge {
   padding: 2px 8px;
   font-size: 12px;
   font-weight: 700;
-  color: #cfd3da;
-  background: #1f2126;
-  border: 1px solid #2b2e35;
+  color: var(--text-secondary);
+  background: var(--panel-background-alt);
+  border: 1px solid var(--panel-border);
   border-radius: 999px;
 }

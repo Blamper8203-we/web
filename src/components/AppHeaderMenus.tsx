@@ -140,7 +140,9 @@ export function AppHeaderSettingsMenu({
         <div className="settings-row">
           <AppIcon name="theme" />
           <span>{t("app.settingsMenu.theme")}</span>
-          <strong>{t("app.settingsMenu.dark")}</strong>
+          {/* WHY: dynamiczny label — Klasyczny to teraz jasny motyw,
+              "Ciemny" / "Jasny" zależy od wybranego stylu. */}
+          <strong>{uiTheme === "classic" ? t("app.settingsMenu.light") : t("app.settingsMenu.dark")}</strong>
         </div>
         <div className="settings-segmented" role="group" aria-label={t("app.settingsMenu.style")}>
           <button

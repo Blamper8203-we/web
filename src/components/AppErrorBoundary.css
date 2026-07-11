@@ -3,10 +3,8 @@
   display: grid;
   place-items: center;
   padding: 24px;
-  color: #e8eaef;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 180px),
-    var(--app-background);
+  color: var(--text-main);
+  background: var(--app-background);
   font-family: Roboto, "Segoe UI", system-ui, sans-serif;
 }
 
@@ -40,7 +38,7 @@
 }
 
 .app-error-boundary__eyebrow {
-  color: #9a9faa;
+  color: var(--text-tertiary);
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -48,20 +46,20 @@
 
 .app-error-boundary h1 {
   margin: 0;
-  color: #ffffff;
+  color: var(--text-main);
   font-size: 24px;
   line-height: 1.2;
 }
 
 .app-error-boundary p {
   margin: 0;
-  color: #b5bac4;
+  color: var(--text-secondary);
   font-size: 14px;
   line-height: 1.55;
 }
 
 .app-error-boundary p.app-error-boundary__hint {
-  color: #9a9faa;
+  color: var(--text-tertiary);
   font-size: 13px;
 }
 
@@ -74,9 +72,9 @@
 .app-error-boundary__actions button {
   min-height: 38px;
   padding: 8px 14px;
-  color: #e8eaef;
-  background: #1f2126;
-  border: 1px solid #272a30;
+  color: var(--text-main);
+  background: var(--panel-background-alt);
+  border: 1px solid var(--panel-border);
   border-radius: 7px;
   font: inherit;
   font-weight: 700;
@@ -84,7 +82,7 @@
 }
 
 .app-error-boundary__actions .accent-btn {
-  color: #ffffff;
-  background: #1e3a5f;
-  border-color: #1e3a5f;
+  color: var(--text-inverse);
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
 }

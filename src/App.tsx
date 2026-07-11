@@ -10,7 +10,7 @@ import type { ProjectFileData } from "./lib/projectFile";
 import { openProjectFile } from "./lib/projectFile";
 import { initStorageService } from "./lib/storageService";
 import { reportRuntimeError } from "./lib/runtimeDiagnostics";
-
+import { useIsNativePlatform } from "./hooks/useViewport";
 const AppWorkspace = lazy(() =>
   import("./components/AppWorkspace").then((m) => ({ default: m.AppWorkspace }))
 );
@@ -47,6 +47,15 @@ export function AppLayout() {
   const [initialData, setInitialData] = useState<ProjectFileData | null>(null);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const navigate = useNavigate();
+  const isNative = useIsNativePlatform();
+
+  useEffect(() => {
+    if (isNative) {
+      document.documentElement.classList.add("is-native-platform");
+    } else {
+      document.documentElement.classList.remove("is-native-platform");
+    }
+  }, [isNative]);
 
   const handleOpenNewProject = useCallback(() => {
     setInitialAction("new");

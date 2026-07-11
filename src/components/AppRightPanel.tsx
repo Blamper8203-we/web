@@ -72,12 +72,12 @@ function SchematicPageThumbnail({
       <canvas
         ref={canvasRef}
         style={{
-          border: "1px solid #475569",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+          border: "1px solid var(--panel-border)",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
           backgroundColor: "#fff",
         }}
       />
-      <span style={{ color: "#fff", fontSize: "13px", fontWeight: 500 }}>
+      <span style={{ color: "var(--text-secondary)", fontSize: "13px", fontWeight: 500 }}>
         {page.pageIndex + 1}
       </span>
     </div>
@@ -322,7 +322,7 @@ export function AppRightPanel({
           )}
           </div>
           {activeSheet === "sheet2" && (
-            <div style={{ flex: "1 1 50%", borderTop: "1px solid #2e3238", overflowY: "auto", background: "#0B0B0D" }}>
+            <div style={{ flex: "1 1 50%", borderTop: "1px solid var(--panel-border)", overflowY: "auto", background: "var(--panel-background-alt)" }}>
               <SchematicPagesList symbols={symbols} metadata={metadata} onScrollToPage={onScrollToSchematicPage} />
             </div>
           )}

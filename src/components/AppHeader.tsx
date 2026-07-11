@@ -245,7 +245,7 @@ export function AppHeader({
           <button
             type="button"
             className="toolbar-menu-btn"
-            style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#e8eaef" }}
+            style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
             onClick={onOpenFeedback}
           >
             <AppIcon name="feedback" size={14} />

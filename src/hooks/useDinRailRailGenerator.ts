@@ -46,14 +46,14 @@ export interface UseDinRailRailGeneratorResult {
 export function useDinRailRailGenerator({
   railConfig,
   isRailVisible,
-  generatorRequest,
+  generatorRequest = 0,
   onGenerate,
 }: UseDinRailRailGeneratorArgs): UseDinRailRailGeneratorResult {
   const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
   const [draftConfig, setDraftConfig] = useState<DinRailConfig>(
     isRailVisible ? railConfig : DEFAULT_CONFIG,
   );
-  const [lastSeenRequest, setLastSeenRequest] = useState(generatorRequest);
+  const [lastSeenRequest, setLastSeenRequest] = useState(0);
 
   const openGenerator = useCallback(() => {
     setDraftConfig(isRailVisible ? railConfig : DEFAULT_CONFIG);

@@ -13,11 +13,24 @@
   display: grid;
   grid-template-columns: var(--left-panel-width) minmax(0, 1fr) var(--right-panel-width);
   grid-template-rows: var(--workspace-tabs-height) minmax(0, 1fr);
-  gap: 8px;
-  padding: 8px 8px 8px 64px;
   min-height: 0;
   overflow: hidden;
-  background: var(--app-background);
+  background: #1c1f24;
+  /* WHY: padding-left 64px to NIE martwy kod — to miejsce na .toolbar-center
+     (position:fixed, left:0) w AppHeader, czyli pionowy pasek narzędzi
+     (zoom, fit, itp.) przyklejony do lewej krawędzi viewportu. Bez tego
+     padding toolbar nachodziłby na lewy panel. */
+  padding: 8px 8px 8px 64px;
+  /* WHY: gap + padding tworzą widoczną przerwę (separator) między panelami
+     a la JetBrains/VSCode — bez tego panele "przyklejają się" do siebie
+     i do krawędzi ekranu. */
+  gap: 8px;
+}
+
+/* WHY: motyw "classic" (jasny) — jaśniejsze tło dla efektu ramki,
+   ale ten sam układ (gap, padding, radius) co w motywie ciemnym. */
+.app-shell.ui-theme-classic .main-content {
+  background: #e3e5e8;
 }
 
 .main-content.is-right-panel-hidden {
@@ -123,7 +136,6 @@
   }
 }
 
-/* Center canvas/workspace area */
 .canvas-area {
   position: relative;
   grid-column: 2;
@@ -131,8 +143,21 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: #0b0d10;
-  border-radius: var(--radius-lg);
+  background: var(--canvas-bg);
+  border-radius: var(--radius-md);
+}
+
+/* WHY: motyw "classic" (jasny) — canvas jako biała "karta" robocza,
+   spójna z resztą jasnych paneli. */
+.app-shell.ui-theme-classic .canvas-area {
+  background: #ffffff;
+}
+
+@media (max-width: 768px) {
+  /* Zwiększona specyficzność gwarantuje nadpisanie reguły bez media query */
+  .main-content .canvas-area {
+    grid-column: 1;
+  }
 }
 
 .pdf-workspace-shell {
@@ -140,9 +165,13 @@
   inset: 0;
   display: flex;
   flex-direction: column;
-  background: #0b0d10;
+  /* WHY: tło robocze canvasu. W motywie ciemnym ciemne (jak canvas),
+     w jasnym białe (var(--app-background) = #e3e5e8). */
+  background: var(--app-background);
   overflow: hidden;
 }
+
+/* (reguła .app-shell.ui-theme-classic .main-content jest wyżej w pliku) */
 
 .pdf-workspace-tabs {
   /* Domyślnie ukryty — na desktop tę rolę pełni prawy panel (pdf-right-panel-tab).

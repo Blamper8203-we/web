@@ -6,9 +6,7 @@
   position: relative;
   width: 100%;
   height: 100%;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 72px),
-    #0b0d10;
+  background: var(--canvas-bg);
   overflow: hidden;
 }
 
@@ -76,7 +74,7 @@
   background: var(--state-info-soft);
   border-radius: 4px;
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.25) inset,
+    0 0 0 1px var(--hud-border-strong) inset,
     0 0 10px rgba(30, 58, 95, 0.18);
 }
 
@@ -243,7 +241,7 @@
   line-height: 1;
   letter-spacing: 0.02em;
   white-space: nowrap;
-  background: rgba(10, 14, 24, 0.88);
+  background: var(--surface-elevated);
   border: 1px solid var(--state-info-border);
   border-radius: 5px;
   backdrop-filter: blur(4px);
@@ -363,5 +361,51 @@
   transform: translateX(-50%);
   pointer-events: none;
   white-space: nowrap;
+}
+
+/* ================================================================
+   "DODAJ LISTWY" SVG placeholders (używane w Connections view).
+   Style w CSS bo SVG atrybuty fill="..." / stroke="..." nie obsługują var().
+   ================================================================ */
+
+.din-rail-listwy-placeholder-rect {
+  fill: var(--surface-elevated-soft);
+  stroke: var(--panel-border-strong);
+  transition: all 0.2s;
+}
+
+.din-rail-listwy-placeholder-line {
+  stroke: var(--panel-border-strong);
+  pointer-events: none;
+}
+
+.din-rail-listwy-placeholder-text {
+  fill: var(--text-tertiary);
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+/* WHY: w motywie jasnym SVG atrybuty nie obsługują var() — przeniosłem
+   style do CSS. Hover togglujemy przez data-attribute (React inline
+   setAttribute na SVG), nie inline style. */
+.din-rail-listwy-placeholder-rect[data-hover="1"] {
+  stroke: var(--accent-primary);
+  fill: var(--state-info-soft);
+}
+
+/* WHY: identyczny styl jak HTML-owa wersja w DinRailListwyPlaceholdersLayer
+   (Szyna DIN) — 12px dashed + var(--panel-border-strong). Bez tego override
+   SVG-owe placeholdery w Połączeniach wyglądały inaczej niż w Szynie DIN. */
+.app-shell.ui-theme-classic .din-rail-listwy-placeholder-rect {
+  fill: #ffffff;
+  stroke: var(--panel-border-strong);
+}
+
+.app-shell.ui-theme-classic .din-rail-listwy-placeholder-line {
+  stroke: var(--panel-border-strong);
+}
+
+.app-shell.ui-theme-classic .din-rail-listwy-placeholder-text {
+  fill: var(--text-secondary);
 }
 

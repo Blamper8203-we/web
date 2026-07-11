@@ -150,4 +150,30 @@ body {
 /* Text utility classes (matching Avalonia Classes="secondary"/"tertiary") */
 .secondary { color: var(--text-secondary); }
 .tertiary { color: var(--text-tertiary); }
+
+/* ================================================================
+   Mobile App Overrides (Capacitor / Native feel)
+   ================================================================ */
+html.is-native-platform, html.is-native-platform body {
+  /* Disable text selection by default */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  
+  /* Disable tap highlight on touch devices */
+  -webkit-tap-highlight-color: transparent;
+  
+  /* Safe area insets for notches (iPhone, newer Androids) */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Allow selection in input fields and textareas */
+html.is-native-platform input, 
+html.is-native-platform textarea {
+  -webkit-user-select: auto;
+  user-select: auto;
+}
 

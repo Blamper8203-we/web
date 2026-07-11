@@ -153,19 +153,13 @@ html.is-mobile-viewport .desktop-only {
     overscroll-behavior: contain;
   }
 
-  .canvas-area {
-    grid-column: 1;
-    grid-row: 2;
-    min-height: 0;
-  }
-
   .left-panel {
     grid-column: 1;
     grid-row: 3;
     width: auto;
     height: auto;
     border-right: 0;
-    border-top: 1px solid var(--panel-border);
+    border-top: 0;
     display: flex;
   }
 

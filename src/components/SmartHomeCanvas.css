@@ -252,7 +252,7 @@
 .smarthome-rotation-hud .rotation-badge {
   position: absolute;
   bottom: -30px;
-  background: #141414;
+  background: var(--surface-elevated);
   border: 1px solid #22c55e;
   color: #22c55e;
   padding: 4px 10px;

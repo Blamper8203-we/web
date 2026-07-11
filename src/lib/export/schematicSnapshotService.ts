@@ -57,6 +57,10 @@ export async function exportSchematicToDataURL(symbols: SymbolItem[], metadata?:
       panY: -(page.yOffset * scale),
       activePageIndex: page.pageIndex,
       metadata,
+      // WHY: PDF/druk wymaga białego tła niezależnie od motywu UI. Bez tego
+      // explicit override renderer wziąłby --canvas-bg z aktualnego motywu
+      // (jasny → biały OK, ciemny → #0b0d10 → czarne marginesy w PDF).
+      backgroundColor: "#ffffff",
     });
 
     dataUrls.push(canvas.toDataURL("image/png", 1.0));

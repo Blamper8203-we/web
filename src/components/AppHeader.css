@@ -46,6 +46,11 @@
   z-index: 1000;
 }
 
+/* WHY: w motywie jasnym cień 0.4 wygląda zbyt agresywnie na jasnym tle. */
+.app-shell.ui-theme-classic .toolbar-center {
+  box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.12);
+}
+
 .toolbar-right {
   grid-column: 3;
   grid-row: 1;
