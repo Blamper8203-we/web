@@ -29,7 +29,8 @@
 
 /* WHY: motyw "classic" (jasny) — jaśniejsze tło dla efektu ramki,
    ale ten sam układ (gap, padding, radius) co w motywie ciemnym. */
-.app-shell.ui-theme-classic .main-content {
+.app-shell.ui-theme-classic .main-content,
+html.ui-theme-classic .main-content {
   background: #e3e5e8;
 }
 
@@ -149,7 +150,8 @@
 
 /* WHY: motyw "classic" (jasny) — canvas jako biała "karta" robocza,
    spójna z resztą jasnych paneli. */
-.app-shell.ui-theme-classic .canvas-area {
+.app-shell.ui-theme-classic .canvas-area,
+html.ui-theme-classic .canvas-area {
   background: #ffffff;
 }
 

@@ -396,16 +396,19 @@
 /* WHY: identyczny styl jak HTML-owa wersja w DinRailListwyPlaceholdersLayer
    (Szyna DIN) — 12px dashed + var(--panel-border-strong). Bez tego override
    SVG-owe placeholdery w Połączeniach wyglądały inaczej niż w Szynie DIN. */
-.app-shell.ui-theme-classic .din-rail-listwy-placeholder-rect {
+.app-shell.ui-theme-classic .din-rail-listwy-placeholder-rect,
+html.ui-theme-classic .din-rail-listwy-placeholder-rect {
   fill: #ffffff;
   stroke: var(--panel-border-strong);
 }
 
-.app-shell.ui-theme-classic .din-rail-listwy-placeholder-line {
+.app-shell.ui-theme-classic .din-rail-listwy-placeholder-line,
+html.ui-theme-classic .din-rail-listwy-placeholder-line {
   stroke: var(--panel-border-strong);
 }
 
-.app-shell.ui-theme-classic .din-rail-listwy-placeholder-text {
+.app-shell.ui-theme-classic .din-rail-listwy-placeholder-text,
+html.ui-theme-classic .din-rail-listwy-placeholder-text {
   fill: var(--text-secondary);
 }
 

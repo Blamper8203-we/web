@@ -106,6 +106,29 @@
         }
       })();
     </script>
+    <script>
+      // WHY: Eliminacja flasha ciemnego motywu po odświeżeniu strony.
+      // vite-react-ssg renderuje HTML z hardcoded `ui-theme-modern` (bo
+      // localStorage jest pusty podczas builda). useState(() => loadUiTheme())
+      // w AppWorkspace powinien to nadpisać, ale podczas hydration React
+      // trzyma SSG value jeśli nie ma wyraźnego sygnału. Efekt: użytkownik
+      // z ustawionym jasnym motywem po odświeżeniu widzi ciemną stronę.
+      // Fix: ustawiamy klasę motywu na <html> PRZED hydration — CSS
+      // (html.ui-theme-classic w AppLayout.css itd.) reaguje natychmiast.
+      // AppWorkspace nadal czyta localStorage przez lazy initializer
+      // i nadpisuje klasę na <main> — oba mechanizmy są spójne.
+      (function () {
+        try {
+          var saved = window.localStorage.getItem("dinboard.ui_theme");
+          if (saved === "classic" || saved === "modern") {
+            document.documentElement.classList.add("ui-theme-" + saved);
+          }
+        } catch (_error) {
+          // localStorage nie jest dostępny (np. private mode) → nie robimy nic,
+          // aplikacja zostanie w domyślnym ciemnym motywie.
+        }
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

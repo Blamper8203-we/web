@@ -265,7 +265,8 @@
      w każdym pliku. */
   --canvas-bg: #0b0d10;
 }
-.app-shell.ui-theme-classic {
+.app-shell.ui-theme-classic,
+html.ui-theme-classic {
   --surface-elevated: rgba(255, 255, 255, 0.92);
   --surface-elevated-strong: rgba(255, 255, 255, 0.96);
   --surface-elevated-soft: rgba(255, 255, 255, 0.85);
@@ -282,31 +283,38 @@
 }
 
 .app-shell.ui-theme-classic .right-tab-btn.active,
-.app-shell.ui-theme-classic .pdf-right-panel-tab.active {
+.app-shell.ui-theme-classic .pdf-right-panel-tab.active,
+html.ui-theme-classic .right-tab-btn.active,
+html.ui-theme-classic .pdf-right-panel-tab.active {
   box-shadow: none;
 }
 
 /* WHY: explicit overrides na wypadek gdyby tokeny nie kaskadowały do canvasu
    (np. PWA Service Worker cache trzymał stary CSS). Jasne tło, ciemny tekst
    — pasuje do jasnego motywu. */
-.app-shell.ui-theme-classic .workspace-hud {
+.app-shell.ui-theme-classic .workspace-hud,
+html.ui-theme-classic .workspace-hud {
   background: #ffffff;
   color: #1a1d22;
   border-color: rgba(0, 0, 0, 0.1);
 }
-.app-shell.ui-theme-classic .workspace-hud--top-right {
+.app-shell.ui-theme-classic .workspace-hud--top-right,
+html.ui-theme-classic .workspace-hud--top-right {
   background: #ffffff;
 }
-.app-shell.ui-theme-classic .workspace-tool-btn {
+.app-shell.ui-theme-classic .workspace-tool-btn,
+html.ui-theme-classic .workspace-tool-btn {
   background: #ffffff;
   color: #1a1d22;
   border-color: rgba(0, 0, 0, 0.1);
 }
-.app-shell.ui-theme-classic .workspace-tool-btn:hover {
+.app-shell.ui-theme-classic .workspace-tool-btn:hover,
+html.ui-theme-classic .workspace-tool-btn:hover {
   background: #f3f4f6;
   color: #1a1d22;
 }
-.app-shell.ui-theme-classic .toolbar-center {
+.app-shell.ui-theme-classic .toolbar-center,
+html.ui-theme-classic .toolbar-center {
   background: #ffffff;
   border-color: rgba(0, 0, 0, 0.1);
   box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.12);
