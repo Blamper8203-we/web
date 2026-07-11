@@ -53,7 +53,14 @@ export function useDinRailRailGenerator({
   const [draftConfig, setDraftConfig] = useState<DinRailConfig>(
     isRailVisible ? railConfig : DEFAULT_CONFIG,
   );
-  const [lastSeenRequest, setLastSeenRequest] = useState(0);
+  // WHY: inicjalizujemy lastSeenRequest aktualną wartością generatorRequest,
+  // nie 0. Bez tego useEffect poniżej widzi "nieznaną" wartość przy mount
+  // i otwiera dialog na starcie, nawet jeśli user tylko przełączył kartę
+  // (np. wrócił z PDF do Szyny DIN). Repro: wygeneruj szynę, przejdź do
+  // PDF, wróć — dialog się pojawia, bo canvas re-mountuje i lastSeenRequest
+  // startuje od 0, ale generatorRequest w parencie zachowuje inkrementowaną
+  // wartość z poprzedniego trigger.
+  const [lastSeenRequest, setLastSeenRequest] = useState(generatorRequest);
 
   const openGenerator = useCallback(() => {
     setDraftConfig(isRailVisible ? railConfig : DEFAULT_CONFIG);
