@@ -92,6 +92,18 @@ export function AppWorkspace({
     root.classList.remove("ui-theme-classic", "ui-theme-modern");
     root.classList.add(`ui-theme-${uiTheme}`);
   }, [uiTheme]);
+
+  // WHY: lazy initializer useState może zwrócić SSG value ("modern") podczas
+  // hydration bo React trzyma SSG state jeśli nie ma wyraźnego sygnału.
+  // Wtedy <main> ma ui-theme-modern mimo że localStorage mówi "classic".
+  // Bezpiecznik: po mount czytamy localStorage i poprawiamy state jeśli trzeba.
+  useEffect(() => {
+    const saved = loadUiTheme();
+    if (saved !== uiTheme) {
+      setUiTheme(saved);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [dinRailGeneratorRequest, setDinRailGeneratorRequest] = useState(0);
   const [dinRail, setDinRail] = useState<DinRailCanvasRail>({
     config: DEFAULT_DIN_RAIL_CONFIG, svg: "", width: 0, height: 0, isVisible: false,

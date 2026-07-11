@@ -203,7 +203,8 @@
   accent-color: var(--accent-primary);
 }
 
-.app-shell.ui-theme-classic {
+.app-shell.ui-theme-classic,
+html.ui-theme-classic {
   /* Shadows — subtelniejsze niż domyślne (zostawione jak było) */
   --shadow-sm: none;
   --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08), 0 6px 20px rgba(0, 0, 0, 0.06);
