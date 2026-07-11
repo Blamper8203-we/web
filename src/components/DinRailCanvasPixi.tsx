@@ -368,7 +368,12 @@ export function DinRailCanvas({
         bindMeasuredNode={bindMeasuredNode}
       />
 
-      {!rail.isVisible && <DinRailEmptyState onOpenGenerator={railGenerator.openGenerator} />}
+      {/* WHY: chowamy pusty state (CTA "Wygeneruj szynę DIN") gdy dialog
+         generatora jest otwarty — wtedy button jest zbędnym szumem za
+         backdropem i klikalnym confliktem z dialogiem. */}
+      {!rail.isVisible && !railGenerator.isGeneratorOpen && (
+        <DinRailEmptyState onOpenGenerator={railGenerator.openGenerator} />
+      )}
 
       {railGenerator.isGeneratorOpen && (
         <DinRailGeneratorDialog
