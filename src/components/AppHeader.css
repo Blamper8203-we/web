@@ -95,6 +95,27 @@
   color: var(--accent-primary-hover);
 }
 
+/* WHY: "Postaw kawę" w jasnym motywie wyglądał jak zwykły pomarańczowy tekst
+   na jasnym tle (brak "buttonowości"). W ciemnym motywie pomarańczowy tekst
+   na ciemnym tle sam w sobie wyglądał jak CTA. Dlatego dajemy mu pełne
+   tło gradientu (identyczne jak landing page) w obu motywach — pomarańcz
+   to brand color, nie theme color. */
+.toolbar-menu-btn--donate {
+  background: linear-gradient(135deg, #FFB020 0%, #F2994A 100%);
+  color: #111;
+  border: 0;
+  padding: 6px 12px;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(242, 153, 74, 0.25);
+}
+
+.toolbar-menu-btn--donate:hover {
+  background: linear-gradient(135deg, #FFBD4A 0%, #F2A65A 100%);
+  color: #000;
+  box-shadow: 0 4px 12px rgba(242, 153, 74, 0.4);
+  transform: translateY(-1px);
+}
+
 /* Icon toolbar buttons */
 .toolbar-icon-btn {
   min-width: 34px;

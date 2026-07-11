@@ -256,13 +256,11 @@ export function AppHeader({
             href="https://suppi.pl/dinboard"
             target="_blank"
             rel="noopener noreferrer"
-            className="toolbar-menu-btn toolbar-menu-btn--donate-tablet"
+            className="toolbar-menu-btn toolbar-menu-btn--donate toolbar-menu-btn--donate-tablet"
             style={{
               display: "inline-flex",
               alignItems: "center",
               gap: "6px",
-              color: "#FFB020",
-              textDecoration: "none",
             }}
           >
             <AppIcon name="coffee" size={14} />

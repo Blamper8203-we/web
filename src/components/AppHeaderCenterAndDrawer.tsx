@@ -252,8 +252,8 @@ export function AppHeaderMobileDrawer({
             href="https://suppi.pl/dinboard"
             target="_blank"
             rel="noreferrer"
-            className="drawer-item"
-            style={{ color: "#FFB020" }}
+            className="drawer-item toolbar-menu-btn--donate"
+            style={{ marginTop: 8 }}
           >
             <AppIcon className="drawer-icon" name="coffee" />
             <span>{t("app.mobileDrawer.buyCoffee", "Postaw kawę")}</span>
