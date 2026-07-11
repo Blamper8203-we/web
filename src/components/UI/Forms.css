@@ -50,6 +50,44 @@ option:checked {
   color: var(--accent-primary-hover);
 }
 
+/* WHY: z appearance: base-select (Chrome 121+) opcje wewnątrz pickera
+   są realnymi DOM elementami, więc :hover i :focus-visible zadziałają.
+   Bez tego przeglądarka pokazuje OS-owy szary focus indicator który
+   nie pasuje do industrial theme. */
+option:hover,
+option:focus-visible {
+  background: var(--hover-background);
+  color: var(--text-main);
+}
+
+/* WHY: domyślny focus/hover indicator przeglądarki na <option> to OS-owy
+   szary prostokąt, który nie pasuje do industrial theme. appearance:
+   base-select + ::picker(select) (Chrome 121+, Edge 121+, grudzień 2023)
+   daje pełną kontrolę nad pickerem — tło, border, focus ring wszystko
+   w tokenach motywu. W Firefox/Safari picker pozostaje natywny (zachowuje
+   dostępność i nawigację klawiaturą) — fallback jest akceptowalny
+   kosztem spójności wizualnej.
+
+   WHY: lightning CSS (używany przez Vite) nie pozwala na descendant
+   selectors po ::picker(select) — `::picker(select) option` rzuca
+   SyntaxError w minifier. Pickera stylujemy tylko jako container,
+   opcje dziedziczą z globalnego `option` rule powyżej. */
+select {
+  appearance: base-select;
+}
+
+::picker(select) {
+  background: var(--panel-background);
+  color: var(--text-main);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+}
+
+::picker-icon {
+  color: var(--text-secondary);
+}
+
 label {
   display: block;
   margin-bottom: 2px;
