@@ -80,6 +80,18 @@ export function AppWorkspace({
   const [selectedConnectionId, setSelectedConnectionId] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [uiTheme, setUiTheme] = useState<AppUiTheme>(() => loadUiTheme());
+
+  // WHY: inline script w index.html ustawia klasę motywu na <html> PRZED
+  // hydration (anti-flash). Ale po hydration React aktualizuje klasę tylko
+  // na <main>. Bez tego efektu klasa na <html> zostaje "zamrożona" z momentu
+  // ładowania strony — user przełącza motyw w UI, <main> się zmienia, ale
+  // <html> trzyma starą klasę, CSS variables z <html> kaskadują w dół i
+  // wygrywają z klasą na <main>. Synchronizujemy <html> z aktualnym stanem.
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove("ui-theme-classic", "ui-theme-modern");
+    root.classList.add(`ui-theme-${uiTheme}`);
+  }, [uiTheme]);
   const [dinRailGeneratorRequest, setDinRailGeneratorRequest] = useState(0);
   const [dinRail, setDinRail] = useState<DinRailCanvasRail>({
     config: DEFAULT_DIN_RAIL_CONFIG, svg: "", width: 0, height: 0, isVisible: false,
