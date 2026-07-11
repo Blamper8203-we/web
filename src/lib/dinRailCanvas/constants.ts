@@ -2,7 +2,11 @@ import type { DinRailConfig } from "../schematic/dinRailGenerator";
 
 export const DEFAULT_CONFIG: DinRailConfig = { rows: 1, modulesPerRow: 24 };
 export const MAX_INITIAL_SCALE = 0.25;
-export const MIN_SCALE = 0.1;
+// WHY: MIN_SCALE = 0.01 (1%) — nie 0% bo matematyka viewport łamie się przy
+// dzieleniu przez zero (worldX = (px - panX) / scale). 1% daje praktycznie
+// "nieskończony zoom out" bez ryzyka. Poprzednio 0.1 (10%) było zbyt
+// restrykcyjne — użytkownik nie mógł w pełni oddalić widoku.
+export const MIN_SCALE = 0.01;
 export const MAX_SCALE = 5;
 // WHY: PIXI_MAX_RESOLUTION and PIXI_LABEL_SYMBOL_LIMIT were removed 2026-06-28
 // along with the Pixi.js label renderer (hooks/canvas/useDinRailPixiApp.ts).
