@@ -39,19 +39,33 @@ html.ui-theme-classic .main-content {
 }
 
 .main-content.is-pdf-workspace {
+  /* WHY: 280px to miejsce na lewy panel (PdfDocumentationPage editor)
+     pokazywany na desktopie. Na mobile/tablecie lewy panel jest ukryty
+     (useSheetPanelState → is-left-panel-hidden) — wtedy ta kolumna
+     byłaby pustym placeholderem zabierającym 280px canvasowi.
+     Dlatego warunek :not(.is-left-panel-hidden) — kolumna istnieje
+     TYLKO gdy panel jest widoczny. */
+  grid-template-columns: 1fr;
+}
+
+.main-content.is-pdf-workspace:not(.is-left-panel-hidden) {
   grid-template-columns: 280px minmax(0, 1fr) var(--right-panel-width);
 }
 
-.main-content.is-pdf-workspace.is-right-panel-hidden {
+.main-content.is-pdf-workspace.is-right-panel-hidden:not(.is-left-panel-hidden) {
   grid-template-columns: 280px minmax(0, 1fr) 0;
 }
 
 @media (max-width: 1024px) {
   .main-content.is-pdf-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .main-content.is-pdf-workspace:not(.is-left-panel-hidden) {
     grid-template-columns: 280px minmax(0, 1fr) var(--right-panel-width);
   }
 
-  .main-content.is-pdf-workspace.is-right-panel-hidden {
+  .main-content.is-pdf-workspace.is-right-panel-hidden:not(.is-left-panel-hidden) {
     grid-template-columns: 280px minmax(0, 1fr) 0;
   }
 }
