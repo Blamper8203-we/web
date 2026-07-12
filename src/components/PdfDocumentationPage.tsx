@@ -90,7 +90,7 @@ function serializeChecklistItems(items: TitlePageChecklistItem[]) {
 }
 
 
-export function PdfDocumentationPage() {
+export function PdfDocumentationPage({ onClose }: { onClose?: () => void } = {}) {
   const { t } = useTranslation();
   const {
     metadata,
@@ -198,6 +198,17 @@ export function PdfDocumentationPage() {
           <h2>{heading.title}</h2>
           <p>{heading.description}</p>
         </div>
+        {onClose && (
+          <button
+            type="button"
+            className="pd-hero-close"
+            onClick={onClose}
+            aria-label={t("app.pdfDocumentationPage.closeAria", "Zamknij panel dokumentacji")}
+            title={t("app.pdfDocumentationPage.closeAria", "Zamknij panel dokumentacji")}
+          >
+            <AppIcon name="close" size={16} />
+          </button>
+        )}
       </header>
 
       <div className="pd-grid pd-grid--single">

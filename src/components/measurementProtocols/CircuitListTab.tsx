@@ -1,5 +1,6 @@
 import { EMPTY_FIELD_PLACEHOLDER } from "../../lib/export/pdfPages/pdfHelpers";
 import { PageFooter } from "./ProtocolShared";
+import A4ScaledPage from "../A4ScaledPage";
 import { useTranslation } from "react-i18next";
 
 interface CircuitListTabProps {
@@ -23,7 +24,8 @@ export function CircuitListTab({
   return (
     <>
       {circuitListPages.map((rowsPage, pageIndex) => (
-        <div className="a4-page a4-page--landscape" key={`circuit-list-page-${pageIndex}`}>
+        <A4ScaledPage orientation="landscape" key={`circuit-list-page-${pageIndex}`}>
+        <div className="a4-page a4-page--landscape">
           <div className="pd-page-top-bar" />
 
           {/* Header */}
@@ -100,6 +102,7 @@ export function CircuitListTab({
             <PageFooter pageNumber={circuitListStartPage + pageIndex} totalUiPages={totalUiPages} />
           </div>
         </div>
+        </A4ScaledPage>
       ))}
     </>
   );

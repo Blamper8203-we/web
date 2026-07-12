@@ -90,8 +90,19 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* flex-start: dokumenty ułożone od góry, normalny scroll.
+     WHY: justify-content: center centruje CAŁĄ GRUPĘ stron A4 — gdy
+     jest wyższa niż viewport (np. 2 strony TitlePage = 594mm w naturze,
+     ~1300px wizualnie), flexbox centruje względem "idealnego" środka
+     i ucina połowę z obu końców. Użytkownik musiałby scrollować W GÓRĘ
+     żeby zobaczyć pierwszą stronę, co jest sprzeczne z intuicją
+     (dokumenty czyta się od góry). */
   justify-content: flex-start;
   padding: 24px;
+  /* Gap gwarantuje odstęp 24px między stronami A4 niezależnie od tego
+     czy wrapper ma margin-bottom (np. gdy aspect-ratio nie zostanie
+     zastosowany w bardzo starym WebView). */
+  gap: 24px;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   scrollbar-width: thin;
 }
@@ -113,16 +124,90 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  /* justify-content: space-between rozstrzeliwało dzieci na całą wysokość
+     A4 — dla stron z małą zawartością (work scope, pusty state) elementy
+     lądowały na przeciwnych końcach strony z dużą pustą przestrzenią
+     w środku. Domyślne flex-start układa elementy jeden pod drugim;
+     stopka (.pd-page-footer) i tak trzyma się dołu dzięki position:absolute. */
+  justify-content: flex-start;
   margin-bottom: 24px;
   font-family: 'IBM Plex Sans', system-ui, -apple-system, Arial, sans-serif;
   line-height: 1.5;
   font-size: 10pt;
 }
 
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   A4 scale wrapper â€” opakowanie dla strony A4, które dopasowuje
+   wizualnie do szerokości okna zachowujÄ…c naturalne proporcje.
+   Hook `useA4Scale` ustawia `--a4-scale` na wrapperze.
+   Strona .a4-page wewnÄ…trz zachowuje 210Ã—297mm w naturze i jest
+   skalowana transformem, wiÄ™c fonty/paddingi w pt/mm sÄ… wierne.
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.a4-page-wrapper {
+  /* min(100%, 210mm) — na mobile wrapper wypełnia viewport (100%),
+     na PC jest ograniczony do naturalnej szerokości A4 (210mm).
+     Bez tego limitu wrapper na PC miał width=100% canvas-area (~1300px)
+     i aspect-ratio 210/297 dawał height=1838px, podczas gdy strona A4
+     w środku miała 1122.7px height — zostawało 715px pustej przestrzeni
+     WEWNĄTRZ wrappera, co wizualnie wyglądało jak "duży odstęp" między
+     stronami. Z limitem wrapper height = 1122.7px = naturalna wysokość
+     strony, brak pustej przestrzeni wewnątrz, odstęp = tylko gap 24px. */
+  width: min(100%, 210mm);
+  aspect-ratio: 210 / 297;
+  position: relative;
+  margin: 0 auto 24px;
+  overflow: visible;
+}
+
+.a4-page-wrapper > .a4-page {
+  /* Nadpisuje media queries (max-width: 900px / 600px) z .a4-page.
+     SpecyficznoÅ›Ä‡ (0,2,0) vs (0,1,0) â€” wystarczajÄ…ca. */
+  position: absolute;
+  top: 0;
+  /* left: 50% + translateX(-50%) centruje stronę horyzontalnie WEWNĄTRZ
+     wrappera. Wrapper ma width: 100% (czyli wypełnia canvas-area), a strona
+     A4 ma stałą szerokość 210mm — bez centrowania strona siedziałaby w
+     lewym górnym rogu wrappera i wyglądała przesunięta w lewo. */
+  left: 50%;
+  width: 210mm;
+  height: 297mm;
+  margin-bottom: 0;
+  aspect-ratio: auto;
+  max-width: none;
+  min-height: 0;
+  transform: translateX(-50%) scale(var(--a4-scale, 1));
+  transform-origin: top center;
+}
+
 .a4-page--landscape {
   width: 297mm;
   height: 210mm;
+}
+
+/* Landscape wrapper: odwrócone proporcje, strona w środku to A4 poziomo.
+   j.w. — width: min(100%, 297mm) zapobiega pustej przestrzeni wewnątrz
+   wrappera na szerokim canvas-area (PC). */
+.a4-page-wrapper--landscape {
+  width: min(100%, 297mm);
+  aspect-ratio: 297 / 210;
+  position: relative;
+  margin: 0 auto 24px;
+  overflow: visible;
+}
+
+.a4-page-wrapper--landscape > .a4-page--landscape {
+  position: absolute;
+  top: 0;
+  /* j.w. — centruj horyzontalnie wewnątrz wrappera */
+  left: 50%;
+  width: 297mm;
+  height: 210mm;
+  margin-bottom: 0;
+  aspect-ratio: auto;
+  max-width: none;
+  min-height: 0;
+  transform: translateX(-50%) scale(var(--a4-scale, 1));
+  transform-origin: top center;
 }
 
 .a4-page--portrait {
@@ -1085,48 +1170,31 @@ label:hover .mp-delete-btn {
 /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    Responsive: dostosowanie A4 preview do mobile
    â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* Mobile: A4 page dostosowuje się do szerokości ekranu zachowując
+   proporcje 210/297. Treść się przeformatowuje (fonty w pt zostaną
+   takie same wizualnie bo są absolute units, ale layout reflow),
+   ale cała strona jest widoczna bez scrollowania i bez transformacji.
+   To jest proste podejście — rezygnujemy z "statycznego" wyglądu
+   dokumentu (transform: scale) na rzecz działającego rozwiązania. */
 @media (max-width: 900px) {
   .a4-page {
-    width: min(210mm, calc(100vw - 32px));
+    width: 100%;
+    max-width: calc(100vw - 16px);
+    aspect-ratio: 210 / 297;
     height: auto;
-    padding: 8mm;
-  }
-  .a4-page--landscape {
-    width: min(297mm, calc(100vw - 32px));
-    height: auto;
-    padding: 6mm;
-  }
-  .a4-page--portrait {
-    width: min(210mm, calc(100vw - 32px));
-    height: auto;
-    padding: 6mm;
-  }
-  .mp-stage {
-    padding: 12px 8px;
+    min-height: 0;
   }
 }
 
 @media (max-width: 600px) {
   .a4-page {
-    width: calc(100vw - 16px);
+    width: calc(100vw - 8px);
+    aspect-ratio: 210 / 297;
     height: auto;
-    padding: 6mm 4mm;
+    min-height: 0;
+    font-size: 8pt;
   }
-  .a4-page--landscape {
-    width: calc(100vw - 16px);
-    height: auto;
-    padding: 4mm;
-  }
-  .a4-page--portrait {
-    width: calc(100vw - 16px);
-    height: auto;
-    padding: 4mm;
-  }
-  .mp-stage {
-    padding: 8px 4px;
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+}
   .mp-din-rail-preview-frame {
     min-height: 120mm;
     padding: 5mm;
@@ -1141,7 +1209,7 @@ label:hover .mp-delete-btn {
     min-height: 80mm;
     padding: 2mm;
   }
-}
+
 
 /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    Pinch-to-zoom preview (schematic + din-rail PNG w PDF workspace).

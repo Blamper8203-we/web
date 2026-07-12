@@ -90,6 +90,7 @@ export function MainWorkspace(props: MainWorkspaceProps) {
             handleResetDocumentation={pdfProps.handleResetDocumentation}
             showLeftPanel={showLeftPanel}
             showRightPanel={showRightPanel}
+            onCloseLeftPanel={onCloseLeftPanel}
           />
         </Suspense>
       ) : (

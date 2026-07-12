@@ -4,6 +4,7 @@ import { DEFAULT_WORK_SCOPE_ITEMS, mergeDefaultAttachmentItems, translateDefault
 import { TITLE_WORK_SCOPE_COLUMN_SIZE, TITLE_WORK_SCOPE_MAX_ITEMS } from "../../lib/export/pdfPages/pdfHelpers";
 import { chunkRows } from "../../lib/measurementProtocolHelpers";
 import { PageFooter } from "./ProtocolShared";
+import { useA4Scale } from "../../hooks/useA4Scale";
 import { useTranslation } from "react-i18next";
 
 interface TitlePageTabProps {
@@ -27,6 +28,8 @@ export function TitlePageTab({
 }: TitlePageTabProps) {
   const { t } = useTranslation();
   const logoInputRef = useRef<HTMLInputElement>(null);
+  const coverRef = useA4Scale<HTMLDivElement>();
+  const workScopeRef = useA4Scale<HTMLDivElement>();
 
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -79,7 +82,8 @@ export function TitlePageTab({
   return (
     <>
       {/* PAGE 1: COVER PAGE */}
-      <div className="a4-page">
+      <div ref={coverRef} className="a4-page-wrapper">
+        <div className="a4-page">
         <div className="pd-page-top-bar" />
 
         <div className="pd-page-header">
@@ -239,9 +243,11 @@ export function TitlePageTab({
 
         <PageFooter pageNumber={titlePageIndex} totalUiPages={totalUiPages} noBorder />
       </div>
+      </div>
 
       {/* PAGE 2: WORK SCOPE PAGE */}
-      <div className="a4-page">
+      <div ref={workScopeRef} className="a4-page-wrapper">
+        <div className="a4-page">
         <div className="pd-page-top-bar" />
 
         <div className="pd-page-header">
@@ -334,6 +340,7 @@ export function TitlePageTab({
               <button
                 type="button"
                 className="mt-2 text-[10px] text-brand font-semibold text-left opacity-70 hover:opacity-100 flex items-center gap-1"
+                style={{ background: "transparent", border: 0, padding: 0, cursor: "pointer" }}
                 onClick={() => {
                   onChange({ ...metadata, titlePageWorkScopeItems: [...workScopeItems, { text: "", isChecked: true }] });
                 }}
@@ -347,6 +354,7 @@ export function TitlePageTab({
 
 
         <PageFooter pageNumber={titlePageIndex + 1} totalUiPages={totalUiPages} />
+      </div>
       </div>
     </>
   );

@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Suspense, lazy, useMemo, useState, useTransition, createContext, useContext, type TransitionStartFunction } from "react";
 import { getPdfDocumentationTabs, getProtocolLabel, type PdfDocumentationPreviewTab } from "../lib/pdfDocumentation";
 import { buildEditableMeasurementProtocols } from "../lib/measurementProtocols";
+import { PdfNavigatorFab } from "./mobile/PdfNavigatorFab";
 import type { ProjectMetadata } from "../types/projectMetadata";
 import type { SymbolItem } from "../types/symbolItem";
 import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
@@ -51,6 +52,13 @@ export interface PdfWorkspaceShellProps {
   handleResetDocumentation: () => void;
   showLeftPanel: boolean;
   showRightPanel: boolean;
+  /**
+   * Handler zamykający lewy panel edytora. Przekazywany do
+   * `PdfDocumentationPage` żeby panel mógł renderować przycisk X —
+   * na mobile (gdy panel jest ukryty domyślnie i otwierany przyciskiem
+   * "Menu" w BottomNav) użytkownik musi mieć jak z niego wyjść.
+   */
+  onCloseLeftPanel?: () => void;
 }
 
 export function PdfWorkspaceShell({
@@ -63,6 +71,7 @@ export function PdfWorkspaceShell({
   handleResetDocumentation,
   showLeftPanel,
   showRightPanel,
+  onCloseLeftPanel,
 }: PdfWorkspaceShellProps) {
   const { t } = useTranslation();
   const [pdfPreviewTab, setPdfPreviewTab] = useState<PdfDocumentationPreviewTab>("title-page");
@@ -109,7 +118,7 @@ export function PdfWorkspaceShell({
         <aside className="left-panel">
           <div className="panel-content">
             <Suspense fallback={<div className="left-panel-empty"><strong>{t("auto.adowaniepanelup_749", "Ładowanie panelu PDF...")}</strong></div>}>
-              <PdfDocumentationPage />
+              <PdfDocumentationPage onClose={onCloseLeftPanel} />
             </Suspense>
           </div>
         </aside>
@@ -176,6 +185,21 @@ export function PdfWorkspaceShell({
             </div>
           </div>
         </aside>
+      )}
+
+      {/* FAB do nawigacji między protokołami PDF — tylko na mobile,
+          gdy lewy panel edytora jest ukryty (czyli nie ma innej nawigacji).
+          Na desktop/desktop-pane-aktywny użytkownik ma prawy panel z listą
+          zakładek, więc FAB by był duplikacją. */}
+      {!showLeftPanel && (
+        <PdfNavigatorFab
+          activeTab={pdfPreviewTab}
+          onSelect={(tab) => {
+            startPdfTabTransition(() => {
+              setPdfPreviewTab(tab);
+            });
+          }}
+        />
       )}
     </PdfWorkspaceContext.Provider>
   );

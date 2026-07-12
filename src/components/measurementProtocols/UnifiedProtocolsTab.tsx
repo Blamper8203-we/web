@@ -1,6 +1,7 @@
 import type { MeasurementProtocolsData, MeasurementUnifiedProtocolRow } from "../../types/projectMetadata";
 import { UNIFIED_ROWS_PER_PAGE, formatProtocolNumberLabel } from "../../lib/export/pdfPages/pdfHelpers";
 import { PageFooter } from "./ProtocolShared";
+import A4ScaledPage from "../A4ScaledPage";
 import { useTranslation } from "react-i18next";
 
 interface UnifiedProtocolsTabProps {
@@ -40,7 +41,8 @@ export function UnifiedProtocolsTab({
         const protocolNumberLabel = formatProtocolNumberLabel(originalTitle);
 
         return (
-          <div className="a4-page a4-page--landscape" key={`unified-page-${pageIndex}`}>
+          <A4ScaledPage orientation="landscape" key={`unified-page-${pageIndex}`}>
+          <div className="a4-page a4-page--landscape">
             <div className="pd-page-top-bar" />
 
             {/* Header */}
@@ -234,6 +236,7 @@ export function UnifiedProtocolsTab({
               <PageFooter pageNumber={unifiedStartPage + pageIndex} totalUiPages={totalUiPages} noBorder />
             </div>
           </div>
+          </A4ScaledPage>
         );
       })}
     </>

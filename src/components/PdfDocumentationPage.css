@@ -311,15 +311,29 @@
 @media (max-width: 768px) {
   .pd-page {
     min-height: 0;
+    /* WHY: bez min-width: 0 flex dzieci .pd-grid--single nie pozwalają
+       kontenerowi skurczyć się poniżej szerokości zawartości (np. długie
+       "PN-HD 60364-6" albo placeholder selecta). Efekt: editor wychodził
+       w lewo poza viewport i był ucięty. To ten sam bug co .din-rail-dialog
+       wczoraj, tylko w innym pliku. */
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+    word-break: break-word;
   }
 
-  .pd-hero {
-    grid-template-columns: 1fr;
-    padding: 12px 12px 10px;
+  .pd-editor {
+    min-width: 0;
+    max-width: 100%;
   }
 
   .pd-editor-body {
     padding: 10px;
+    min-width: 0;
+  }
+
+  .pd-card {
+    min-width: 0;
   }
 
   .pd-card__header,
@@ -389,7 +403,27 @@
 }
 
 .pd-hero--avalonia {
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.pd-hero-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary, #94a3b8);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  align-self: start;
+}
+.pd-hero-close:hover {
+  background: var(--hover-background, #f1f5f9);
+  color: var(--text-main, #1f2937);
 }
 
 .pd-grid--single {

@@ -1,4 +1,5 @@
 import { PinchZoomImage } from "./PinchZoomImage";
+import A4ScaledPage from "../A4ScaledPage";
 import { useTranslation } from "react-i18next";
 
 interface SchematicTabProps {
@@ -47,19 +48,19 @@ export function SchematicTab({
         // .a4-page container (with its 15mm padding) still provides the
         // visual margin and acts as the printable sheet boundary.
         schematicImages.map((src, index) => (
-          <div
-            key={`schematic-page-${index}`}
-            className="a4-page a4-page--landscape"
-          >
-            <PinchZoomImage
-              src={src}
-              alt={t("app.pdf.schematic.alt", "Schemat obwodów — arkusz {{page}}", { page: index + 1 })}
-              className="mp-zoom-preview"
-            />
-          </div>
+          <A4ScaledPage orientation="landscape" key={`schematic-page-${index}`}>
+            <div className="a4-page a4-page--landscape">
+              <PinchZoomImage
+                src={src}
+                alt={t("app.pdf.schematic.alt", "Schemat obwodów — arkusz {{page}}", { page: index + 1 })}
+                className="mp-zoom-preview"
+              />
+            </div>
+          </A4ScaledPage>
         ))
       ) : (
-        <div className="a4-page a4-page--landscape" key="schematic-empty">
+        <A4ScaledPage orientation="landscape" key="schematic-empty">
+        <div className="a4-page a4-page--landscape">
           <div className="mp-schematic-preview-empty">
             <strong>
               {schematicError
@@ -86,6 +87,7 @@ export function SchematicTab({
             ) : null}
           </div>
         </div>
+        </A4ScaledPage>
       )}
     </>
   );

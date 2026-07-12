@@ -1,6 +1,7 @@
 
 import { PageFooter } from "./ProtocolShared";
 import { PinchZoomImage } from "./PinchZoomImage";
+import A4ScaledPage from "../A4ScaledPage";
 import { useTranslation } from "react-i18next";
 
 interface DinRailProtocolTabProps {
@@ -31,7 +32,8 @@ export function DinRailProtocolTab({
     : t("app.pdf.dinRail.cleanAlt", "Widok rozdzielnicy elektrycznej");
 
 return (
-    <div className="a4-page a4-page--portrait" key="din-rail-page">
+    <A4ScaledPage key="din-rail-page">
+    <div className="a4-page a4-page--portrait">
       <div>
         {/* Compact header — keeps the badge + project info but drops the
             secondary title and the "1. Widok..." frame so the rail image gets
@@ -80,5 +82,6 @@ return (
         <PageFooter pageNumber={dinRailPageIndex} totalUiPages={totalUiPages} />
       </div>
     </div>
+    </A4ScaledPage>
   );
 }

@@ -1,6 +1,7 @@
 import type { MeasurementProtocolsData } from "../../types/projectMetadata";
 import { formatProtocolNumberLabel } from "../../lib/export/pdfPages/pdfHelpers";
 import { PageFooter } from "./ProtocolShared";
+import A4ScaledPage from "../A4ScaledPage";
 import { useTranslation } from "react-i18next";
 
 interface RcdProtocolsTabProps {
@@ -34,7 +35,8 @@ export function RcdProtocolsTab({
   const absoluteIndexBase = 0;
 
   return (
-    <div className="a4-page" key="rcd-ground-page-single">
+    <A4ScaledPage key="rcd-ground-page-single">
+    <div className="a4-page">
       <div className="pd-page-top-bar" />
 
       {/* Header */}
@@ -171,5 +173,6 @@ export function RcdProtocolsTab({
 
       <PageFooter pageNumber={rcdPageIndex} totalUiPages={totalUiPages} noBorder />
     </div>
+    </A4ScaledPage>
   );
 }
