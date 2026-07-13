@@ -112,15 +112,17 @@
   width: 100%;
   max-width: 80rem;
   margin: 0 auto;
-  padding: 0 1rem;
-  height: 4rem;
+  padding: 0.5rem 1rem;
+  min-height: 4rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  row-gap: 0.5rem;
 }
 
 @media (min-width: 640px) {
-  .landing-header-container { padding: 0 1.5rem; }
+  .landing-header-container { padding: 0 1.5rem; flex-wrap: nowrap; row-gap: 0; }
 }
 @media (min-width: 1024px) {
   .landing-header-container { padding: 0 2rem; }
@@ -178,14 +180,23 @@
 .landing-header-nav {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.75rem;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 500;
   color: #9ca3af;
+  order: 3;
+  width: 100%;
 }
 
 @media (min-width: 640px) {
-  .landing-header-nav { gap: 1.5rem; font-size: 0.8125rem; }
+  .landing-header-nav {
+    order: 0;
+    width: auto;
+    flex: 1;
+    gap: 1.5rem;
+    font-size: 0.8125rem;
+  }
 }
 
 @media (min-width: 768px) {
