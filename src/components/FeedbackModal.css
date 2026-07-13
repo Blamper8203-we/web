@@ -167,3 +167,33 @@
   line-height: 1.5;
   font-size: 15px;
 }
+
+/* Mobile: max-width 480px mieści się, ale padding 32px zjada 64px
+   poziomo + textarea z 12px padding → klawiatura ekranowa nachodzi
+   na submit. Zmniejszamy padding i ustawiamy wysokość modalu. */
+@media (max-width: 768px) {
+  .feedback-modal {
+    width: calc(100vw - 16px);
+    max-width: none;
+    max-height: calc(100vh - 80px);
+    overflow: auto;
+    padding: 20px 16px;
+    border-radius: 12px;
+  }
+
+  .feedback-modal-title {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+  }
+
+  .feedback-modal-form {
+    gap: 14px;
+  }
+
+  .feedback-modal-field select,
+  .feedback-modal-field input,
+  .feedback-modal-field textarea {
+    padding: 10px;
+    font-size: 16px; /* iOS: 16px+ zapobiega auto-zoom na focus */
+  }
+}

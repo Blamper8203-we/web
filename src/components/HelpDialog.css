@@ -41,3 +41,19 @@
   font-size: 12px;
   font-weight: 700;
 }
+
+/* Mobile: width z desktopu (min(760px, calc(100vw - 32px))) mieści się
+   w wąskim viewport, ale padding 18/20/16 + treści > 60vh robi się ciasno
+   gdy są długie listy skrótów. Zmniejszamy padding i dodajemy overflow. */
+@media (max-width: 768px) {
+  .help-dialog {
+    width: calc(100vw - 16px);
+    max-height: calc(100vh - 80px);
+    padding: 14px 14px 12px;
+    overflow: auto;
+  }
+
+  .help-dialog__content {
+    gap: 10px;
+  }
+}

@@ -541,4 +541,39 @@
   color: var(--text-secondary);
   font-size: var(--font-size-sm);
 }
+
+/* Mobile override dla SVG Import Dialog. Reguły były w Responsive.css
+   ale ten plik ładuje się później (import w CircuitEditPanel.tsx →
+   zależność bundlowana) → kaskada shadowowała mobile, identycznie
+   jak z .din-rail-dialog wczoraj. Trzymamy override w tym samym
+   pliku co desktop, żeby source order = poprawna kaskada. */
+@media (max-width: 768px) {
+  .svg-import-dialog {
+    width: calc(100vw - 16px);
+    max-width: none;
+    height: calc(100vh - 80px);
+    max-height: none;
+  }
+
+  .svg-import-dialog__topbar,
+  .svg-import-dialog__body,
+  .svg-import-dialog__dimensions {
+    grid-template-columns: 1fr;
+  }
+
+  .svg-import-dialog__body {
+    grid-template-rows: minmax(220px, 42vh) minmax(0, 1fr);
+  }
+
+  .svg-import-dialog__list {
+    border-right: 0;
+    border-bottom: 1px solid var(--panel-border);
+  }
+
+  .svg-import-dialog__footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+}
 

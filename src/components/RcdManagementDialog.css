@@ -84,3 +84,24 @@
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 2px var(--accent-primary-soft);
 }
+
+/* Mobile: tabelka RCD z 5+ kolumnami (Symbol, MCB, In, Typ, ...)
+   nie mieści się w 360px viewport. Pozwalamy na horizontal scroll
+   wewnątrz wrapera i zmniejszamy paddingi żeby dialog się zmieścił. */
+@media (max-width: 768px) {
+  .rcd-dialog {
+    width: calc(100vw - 16px);
+    max-height: calc(100vh - 80px);
+  }
+
+  .rcd-dialog__table th,
+  .rcd-dialog__table td {
+    padding: 6px 4px;
+    font-size: var(--font-size-xs);
+  }
+
+  .rcd-dialog__table td input {
+    min-height: 36px; /* iOS touch target */
+    font-size: 16px;
+  }
+}

@@ -381,4 +381,53 @@
 .din-rail-dialog-actions > button:not(.accent-btn):hover {
   background: var(--panel-background-alt);
 }
+
+/* Mobile override dla dialogu — MUSI być w tym samym pliku co
+   .din-rail-dialog (i PO nim), bo WorkspaceHUD.css ładuje się po
+   Responsive.css. Wcześniej override był w Responsive.css i był
+   cicho nadpisywany przez reguły desktopowe w tym samym specificity
+   (klasa + klasa) z wyższego source-order. Efekt: na telefonie
+   dialog nadal miał 520x330, 2-kolumnowy układ, pola "Liczba/
+   Moduł" obcięte do 130px, title ucięty nad viewport. */
+@media (max-width: 768px) {
+  .din-rail-dialog {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: 1fr;
+    width: calc(100% - 16px);
+    max-width: 520px;
+    max-height: calc(100vh - 80px);
+    height: auto;
+    padding: 14px;
+    overflow: auto;
+  }
+
+  .din-rail-dialog-preview {
+    margin: 0 0 10px;
+    padding: 8px;
+  }
+
+  .din-rail-dialog-preview-canvas {
+    height: 140px;
+  }
+
+  .din-rail-dialog-title {
+    margin-bottom: 8px;
+  }
+
+  .din-rail-dialog-field {
+    margin-bottom: 8px;
+  }
+
+  .din-rail-dialog-spacer {
+    min-height: 0;
+  }
+
+  .din-rail-dialog-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 4px;
+  }
+}
 

@@ -411,4 +411,33 @@ html.ui-theme-classic .din-rail-listwy-placeholder-line {
 html.ui-theme-classic .din-rail-listwy-placeholder-text {
   fill: var(--text-secondary);
 }
+
+/* Mobile: pustej szyny empty-state ma padding 40px i max-width 420px —
+   na 360px viewport wychodzi poza ekran. Ścieśniamy. Dodatkowo
+   grupowa etykieta (max-width 280px) może uciekać poza canvas gdy
+   scrolled to edge — korygujemy. */
+@media (max-width: 768px) {
+  .workspace-empty-state {
+    max-width: calc(100% - 24px);
+    padding: 24px 16px;
+    gap: 12px;
+  }
+
+  .workspace-empty-state-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .din-rail-group-label {
+    max-width: calc(100vw - 40px);
+    font-size: 11px;
+    height: 20px;
+    padding: 0 7px;
+  }
+
+  .din-rail-symbol-badge {
+    font-size: 9px;
+    bottom: -18px;
+  }
+}
 
