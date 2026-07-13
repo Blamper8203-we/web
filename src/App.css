@@ -136,6 +136,18 @@ html, body, #root {
   overscroll-behavior: none;
 }
 
+/* WHY: Strony bloga i legal pages potrzebują body-scroll (są dłuższe niż
+   viewport, footer ma być na dole strony). AppLayout ustawia klasę
+   .allow-scroll na <body> dla tych tras — bez tego zawartość byłaby
+   ucięta na 100vh i niedostępna. /app tego nie potrzebuje (ma własny
+   wewnętrzny scroll w workspace). */
+html.allow-scroll, body.allow-scroll, #root.allow-scroll {
+  height: auto;
+  min-height: 100%;
+  overflow: auto;
+  overscroll-behavior: auto;
+}
+
 body {
   font-family: var(--font-family);
   font-size: var(--font-size-base);
@@ -176,4 +188,4 @@ html.is-native-platform textarea {
   -webkit-user-select: auto;
   user-select: auto;
 }
-
+

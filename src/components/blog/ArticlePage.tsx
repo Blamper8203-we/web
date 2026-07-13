@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { useParams, Link, Navigate, useOutletContext } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { blogArticles } from "../../data/blogArticles";
@@ -44,6 +44,10 @@ export function ArticlePage() {
   const { slug } = useParams<{ slug: string }>();
   const { openFeedback } = useOutletContext<AppContextType>();
   useLandingAssets();
+  useEffect(() => {
+    document.body.classList.add("allow-scroll");
+    return () => document.body.classList.remove("allow-scroll");
+  }, []);
   const article = blogArticles.find(a => a.slug === slug);
 
   if (!article) {

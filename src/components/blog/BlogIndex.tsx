@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link, useOutletContext } from "react-router-dom";
 import { blogArticles } from "../../data/blogArticles";
@@ -10,6 +11,10 @@ import "./Blog.css";
 export function BlogIndex() {
   const { openFeedback } = useOutletContext<AppContextType>();
   useLandingAssets();
+  useEffect(() => {
+    document.body.classList.add("allow-scroll");
+    return () => document.body.classList.remove("allow-scroll");
+  }, []);
   return (
     <>
       <Helmet>
