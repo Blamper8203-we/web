@@ -99,6 +99,16 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,json,txt}"],
+        // WHY: Vercel edge CDN traktuje literalny `+` w path jako spację
+        // (konwencja application/x-www-form-urlencoded), więc pliki z `+`
+        // w nazwie (np. "Rozłącznik różnicowoprądowy 3P+N.svg") zwracają
+        // 404 przy precache. Runtime fetch używa encodeURIComponent →
+        // %2B i działa poprawnie. Workbox precache bierze ścieżki z buildu
+        // dosłownie, więc dla URLi z `+` install się wywala z
+        // `bad-precaching-response`. SVG modułów i tak są cache'owane
+        // runtime przez regułę `CacheFirst` poniżej — wykluczenie z
+        // precache usuwa tylko redundantny (i obecnie wadliwy) duplikat.
+        globIgnores: ["**/assets/modules/**/*.svg"],
         navigateFallbackDenylist: [/^\/sitemap\.xml$/, /^\/robots\.txt$/, /^\/ads\.txt$/],
         runtimeCaching: [
           {
