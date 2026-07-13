@@ -43,7 +43,11 @@
 
 .landing-fab {
   position: fixed;
-  bottom: 1rem;
+  /* Mobile: podniesiony ~80px nad dół, żeby FAB nie nachodził na stopkę
+     (na mobile stopka ma 2 wiersze linków w grid 3×2 + brand + copyright,
+     razem ~200-250px wysokości — bottom:1rem powodowało overlap z ostatnim
+     wierszem linków "Warunki korzystania / Zgłoś błąd"). */
+  bottom: 5rem;
   right: 1rem;
   z-index: 90;
   padding: 0.625rem 1rem;
