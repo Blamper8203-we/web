@@ -1,7 +1,14 @@
 import { Helmet } from "react-helmet-async";
+import { useOutletContext } from "react-router-dom";
+import { LandingHeader } from "../landing/LandingHeader";
+import { LandingFooter } from "../landing/LandingFooter";
+import { useLandingAssets } from "../landing/useLandingAssets";
+import type { AppContextType } from "../../App";
 import "./LegalPage.css";
 
 export function AboutUsPage() {
+  const { openFeedback } = useOutletContext<AppContextType>() ?? {};
+  useLandingAssets();
   return (
     <>
       <Helmet>
@@ -12,6 +19,8 @@ export function AboutUsPage() {
         />
         <link rel="canonical" href="https://dinboard.pl/o-nas" />
       </Helmet>
+
+      <LandingHeader />
 
       <div className="legal-page">
         <article className="legal-article">
@@ -75,6 +84,8 @@ export function AboutUsPage() {
           </section>
         </article>
       </div>
+
+      <LandingFooter onOpenFeedback={openFeedback} />
     </>
   );
 }

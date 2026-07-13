@@ -2,6 +2,7 @@
 import { describe, it, expect } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { HelmetProvider } from "react-helmet-async";
+import { MemoryRouter } from "react-router-dom";
 import { TermsOfService } from "./TermsOfService";
 
 // WHY: the Terms of Service is the only legal protection DINBoard has if an
@@ -11,8 +12,14 @@ import { TermsOfService } from "./TermsOfService";
 
 // react-helmet-async needs a HelmetProvider in tests — vite-react-ssg
 // injects one at runtime, but the unit-test harness does not.
+// MemoryRouter is needed because LandingHeader uses useLocation() to
+// highlight the active nav item.
 function renderWithHelmet(ui: React.ReactElement) {
-  return render(<HelmetProvider>{ui}</HelmetProvider>);
+  return render(
+    <MemoryRouter>
+      <HelmetProvider>{ui}</HelmetProvider>
+    </MemoryRouter>
+  );
 }
 
 // Helper: scope queries to the rendered <article> (excludes Helmet's

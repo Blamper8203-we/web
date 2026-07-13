@@ -42,7 +42,7 @@ function SimpleMarkdownRenderer({ content }: { content: string }) {
 
 export function ArticlePage() {
   const { slug } = useParams<{ slug: string }>();
-  const { openFeedback } = useOutletContext<AppContextType>();
+  const { openFeedback } = useOutletContext<AppContextType>() ?? {};
   useLandingAssets();
   const article = blogArticles.find(a => a.slug === slug);
 

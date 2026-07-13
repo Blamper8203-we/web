@@ -8,7 +8,7 @@ import type { AppContextType } from "../../App";
 import "./Blog.css";
 
 export function BlogIndex() {
-  const { openFeedback } = useOutletContext<AppContextType>();
+  const { openFeedback } = useOutletContext<AppContextType>() ?? {};
   useLandingAssets();
   return (
     <>

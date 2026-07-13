@@ -1,7 +1,14 @@
 import { Helmet } from "react-helmet-async";
+import { useOutletContext } from "react-router-dom";
+import { LandingHeader } from "../landing/LandingHeader";
+import { LandingFooter } from "../landing/LandingFooter";
+import { useLandingAssets } from "../landing/useLandingAssets";
+import type { AppContextType } from "../../App";
 import "./LegalPage.css";
 
 export function TermsOfService_pl() {
+  const { openFeedback } = useOutletContext<AppContextType>() ?? {};
+  useLandingAssets();
   return (
     <>
       <Helmet>
@@ -23,6 +30,8 @@ export function TermsOfService_pl() {
           content="Regulamin korzystania z aplikacji DINBoard Web – narzędzia dla elektryków."
         />
       </Helmet>
+
+      <LandingHeader />
 
       <div className="legal-page">
         <article className="legal-article">
@@ -295,6 +304,8 @@ export function TermsOfService_pl() {
           </section>
         </article>
       </div>
+
+      <LandingFooter onOpenFeedback={openFeedback} />
     </>
   );
 }
