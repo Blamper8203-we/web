@@ -129,23 +129,19 @@
 }
 
 html, body, #root {
-  height: 100%;
   /* iOS Safari fallback – fill-available prevents the address bar from clipping content */
+  min-height: 100%;
   min-height: -webkit-fill-available;
-  overflow: hidden;
-  overscroll-behavior: none;
 }
 
-/* WHY: Strony bloga i legal pages potrzebują body-scroll (są dłuższe niż
-   viewport, footer ma być na dole strony). AppLayout ustawia klasę
-   .allow-scroll na <body> dla tych tras — bez tego zawartość byłaby
-   ucięta na 100vh i niedostępna. /app tego nie potrzebuje (ma własny
-   wewnętrzny scroll w workspace). */
-html.allow-scroll, body.allow-scroll, #root.allow-scroll {
-  height: auto;
-  min-height: 100%;
-  overflow: auto;
-  overscroll-behavior: auto;
+/* WHY: body usunięte z globalnego `overflow: hidden` — inner scroll
+   containery (.landing-root z position:fixed, .app-shell z height:100dvh,
+   .legal-page z height:100vh) same blokują scroll na swoich trasach.
+   Blog pages nie mają inner scroll containera, więc body musi móc
+   scrollować naturalnie — inaczej footer ląduje pod viewportem. */
+body {
+  /* ensure body can grow with content and scroll when needed */
+  overflow-y: auto;
 }
 
 body {
