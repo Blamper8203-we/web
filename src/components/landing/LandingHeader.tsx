@@ -1,6 +1,9 @@
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 export function LandingHeader() {
   const { t } = useTranslation();
+  const location = useLocation();
+  const isOnPoradniki = location.pathname.startsWith("/poradniki");
 
   return (
     <header className="landing-header">
@@ -20,10 +23,15 @@ export function LandingHeader() {
         </div>
 
         <nav className="landing-header-nav">
-          <a href="#funkcje">{t("auto.moliwoci_696", "Możliwości")}</a>
-          <a href="#demo-sandbox">{t("auto.interfejs_389", "Interfejs")}</a>
-          <a href="/poradniki">{t("auto.bazawiedzy_212", "Baza wiedzy")}</a>
-          <a href="#faq">{t("auto.faq_502", "FAQ")}</a>
+          <a href="/#funkcje">{t("auto.moliwoci_696", "Możliwości")}</a>
+          <a href="/#demo-sandbox">{t("auto.interfejs_389", "Interfejs")}</a>
+          <a
+            href="/poradniki"
+            className={isOnPoradniki ? "is-active" : undefined}
+          >
+            {t("auto.bazawiedzy_212", "Baza wiedzy")}
+          </a>
+          <a href="/#faq">{t("auto.faq_502", "FAQ")}</a>
         </nav>
 
         <div className="landing-header-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>

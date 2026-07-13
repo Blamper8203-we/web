@@ -204,11 +204,17 @@
 }
 
 .landing-header-nav a {
+  text-decoration: none;
+  color: inherit;
   transition: color 0.2s;
 }
 
 .landing-header-nav a:hover {
   color: white;
+}
+
+.landing-header-nav a.is-active {
+  color: #f59e0b; /* amber-500 — matches brand */
 }
 
 .landing-header-actions {
