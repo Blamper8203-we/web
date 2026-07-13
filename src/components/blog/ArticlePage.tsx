@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { blogArticles } from "../../data/blogArticles";
 import { LandingHeader } from "../landing/LandingHeader";
 import { LandingFooter } from "../landing/LandingFooter";
+import { useLandingAssets } from "../landing/useLandingAssets";
 import type { AppContextType } from "../../App";
 import "./Blog.css";
 
@@ -42,6 +43,7 @@ function SimpleMarkdownRenderer({ content }: { content: string }) {
 export function ArticlePage() {
   const { slug } = useParams<{ slug: string }>();
   const { openFeedback } = useOutletContext<AppContextType>();
+  useLandingAssets();
   const article = blogArticles.find(a => a.slug === slug);
 
   if (!article) {
