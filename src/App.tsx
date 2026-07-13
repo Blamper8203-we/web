@@ -34,7 +34,7 @@ import "./components/UI/Forms.css";
 import "./components/UI/Buttons.css";
 import "./components/WorkspaceHUD.css";
 
-type AppContextType = {
+export type AppContextType = {
   initialAction: "new" | "last" | "load_data" | null;
   initialData: ProjectFileData | null;
   handleOpenNewProject: () => void;

@@ -1,7 +1,10 @@
 import { useMemo } from "react";
-import { useParams, Link, Navigate } from "react-router-dom";
+import { useParams, Link, Navigate, useOutletContext } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { blogArticles } from "../../data/blogArticles";
+import { LandingHeader } from "../landing/LandingHeader";
+import { LandingFooter } from "../landing/LandingFooter";
+import type { AppContextType } from "../../App";
 import "./Blog.css";
 
 function SimpleMarkdownRenderer({ content }: { content: string }) {
@@ -38,6 +41,7 @@ function SimpleMarkdownRenderer({ content }: { content: string }) {
 
 export function ArticlePage() {
   const { slug } = useParams<{ slug: string }>();
+  const { openFeedback } = useOutletContext<AppContextType>();
   const article = blogArticles.find(a => a.slug === slug);
 
   if (!article) {
@@ -51,6 +55,8 @@ export function ArticlePage() {
         <meta name="description" content={article.excerpt} />
         <link rel="canonical" href={`https://dinboard.pl/poradniki/${article.slug}`} />
       </Helmet>
+
+      <LandingHeader />
 
       <div className="blog-page">
         <div className="blog-article-container">
@@ -76,6 +82,8 @@ export function ArticlePage() {
           </article>
         </div>
       </div>
+
+      <LandingFooter onOpenFeedback={openFeedback} />
     </>
   );
 }

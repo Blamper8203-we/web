@@ -1,9 +1,13 @@
 import { Helmet } from "react-helmet-async";
-import { Link } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import { blogArticles } from "../../data/blogArticles";
+import { LandingHeader } from "../landing/LandingHeader";
+import { LandingFooter } from "../landing/LandingFooter";
+import type { AppContextType } from "../../App";
 import "./Blog.css";
 
 export function BlogIndex() {
+  const { openFeedback } = useOutletContext<AppContextType>();
   return (
     <>
       <Helmet>
@@ -14,6 +18,8 @@ export function BlogIndex() {
         />
         <link rel="canonical" href="https://dinboard.pl/poradniki" />
       </Helmet>
+
+      <LandingHeader />
 
       <div className="blog-page">
         <header className="blog-header">
@@ -51,6 +57,8 @@ export function BlogIndex() {
           ))}
         </div>
       </div>
+
+      <LandingFooter onOpenFeedback={openFeedback} />
     </>
   );
 }
