@@ -1138,8 +1138,18 @@
 }
 
 .landing-footer-links {
-  display: flex;
-  gap: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem 1rem;
+  text-align: center;
+}
+
+@media (min-width: 640px) {
+  .landing-footer-links {
+    display: flex;
+    gap: 1.5rem;
+    text-align: left;
+  }
 }
 
 .landing-footer-link {
