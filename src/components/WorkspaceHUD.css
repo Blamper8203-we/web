@@ -48,6 +48,37 @@
   background: var(--surface-elevated-strong);
 }
 
+/* Mobile override MUSI być w tym samym pliku co desktop rule (i PO
+   nim) — WorkspaceHUD.css ładuje się po Responsive.css, więc
+   wariant mobile tutaj wygrywa w źródle. Poprzednio override był w
+   Responsive.css i desktop go cicho nadpisywał (ta sama
+   specyficzność 0,1,0, późniejsze źródło wygrywa) — efekt: pasek
+   rozjeżdżał się w kolumnę, brak flex-direction: row. */
+@media (max-width: 768px) {
+  .workspace-hud--top-right {
+    /* Anchor do lewej krawędzi — FloatingAddButton (+) zajmuje
+       prawy dół, więc HUD po lewej żeby się nie nakładały. */
+    top: 8px;
+    left: 8px;
+    right: auto;
+    bottom: auto;
+    flex-direction: row;
+    padding: 4px 6px;
+    gap: 4px;
+  }
+
+  .workspace-hud--top-right .workspace-tool-btn {
+    width: 32px;
+    min-width: 32px;
+    min-height: 32px;
+  }
+
+  .workspace-hud--top-right .workspace-tool-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
 .workspace-hud--bottom-left {
   left: 12px;
   bottom: calc(var(--statusbar-height) + 12px);
@@ -60,6 +91,10 @@
   padding-left: 12px;
   border-left: 1px solid var(--hud-border-strong);
 }
+
+/* Mobile collapsed HUD — 1 okrągła ikona zamiast 4-5 przycisków.
+   Tap rozwija popover z kontrolkami. Wzorzec FAB (PdfNavigatorFab
+   używa tego samego schematu dla nawigacji PDF). */
 
 .workspace-tag {
   display: inline-flex;
@@ -430,4 +465,4 @@
     margin-top: 4px;
   }
 }
-
+

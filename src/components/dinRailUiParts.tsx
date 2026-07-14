@@ -59,7 +59,9 @@ export function DinRailZoomToolbar({
           >
             <AppIcon name="module" size={17} />
           </button>
-          <div style={{ width: '20px', height: '1px', background: 'rgba(255,255,255,0.15)', margin: '4px auto' }} />
+          {/* Pionowy separator — działa zarówno w kolumnie (desktop)
+              jak i w wierszu (mobile) */}
+          <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.15)', margin: 'auto 4px' }} />
         </>
       )}
       <button

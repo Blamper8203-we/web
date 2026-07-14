@@ -261,9 +261,24 @@ html.is-mobile-viewport .desktop-only {
   }
 
   .workspace-hud--top-right {
+    /* Na telefonie: anchor do lewej krawędzi — FloatingAddButton
+       (+) zajmuje prawy dół, więc HUD przeniesiony na lewo żeby
+       oba FAB-y się nie nakładały i miały wyraźną separację. */
     top: 8px;
-    right: 8px;
+    left: 8px;
+    right: auto;
     bottom: auto;
+  }
+
+  .workspace-hud--popover .workspace-tool-btn {
+    width: 32px;
+    min-width: 32px;
+    min-height: 32px;
+  }
+
+  .workspace-hud--popover .workspace-tool-btn svg {
+    width: 14px;
+    height: 14px;
   }
 
   .din-rail-empty-action {
