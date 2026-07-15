@@ -22,6 +22,7 @@ import { ContactPage } from "./components/legal/ContactPage";
 import { AboutUsPage } from "./components/legal/AboutUsPage";
 import { BlogIndex } from "./components/blog/BlogIndex";
 import { ArticlePage } from "./components/blog/ArticlePage";
+import { blogArticles } from "./data/blogArticles";
 import { CookieConsent } from "./components/CookieConsent";
 
 import "./App.css";
@@ -204,7 +205,17 @@ export const routes = [
       { path: "kontakt", element: <ContactPage /> },
       { path: "o-nas", element: <AboutUsPage /> },
       { path: "poradniki", element: <BlogIndex /> },
-      { path: "poradniki/:slug", element: <ArticlePage /> },
+      {
+        path: "poradniki/:slug",
+        element: <ArticlePage />,
+        // WHY: vite-react-ssg skips dynamic (":param") routes by default and
+        // never emits a static HTML file for them, which is why every
+        // /poradniki/<slug> page 404'd in production despite being linked
+        // from the /poradniki index. getStaticPaths tells it exactly which
+        // concrete article URLs exist so each one gets its own prerendered
+        // dist/poradniki/<slug>/index.html.
+        getStaticPaths: () => blogArticles.map((article) => `poradniki/${article.slug}`),
+      },
     ],
   },
 ];
