@@ -130,10 +130,6 @@ export function ArticlePage() {
                 ))}
               </div>
               <h1>{article.title}</h1>
-              <div className="blog-meta">
-                <span className="blog-date">{article.date}</span>
-                <span className="blog-author">{article.author}</span>
-              </div>
             </header>
 
             <SimpleMarkdownRenderer content={article.content} />

@@ -52,10 +52,6 @@ export function BlogIndex() {
                   <Link to={`/poradniki/${article.slug}`}>{article.title}</Link>
                 </h2>
                 <p className="blog-excerpt">{article.excerpt}</p>
-                <div className="blog-meta">
-                  <span className="blog-date">{article.date}</span>
-                  <span className="blog-author">{article.author}</span>
-                </div>
               </div>
               <div className="blog-card-footer">
                 <Link to={`/poradniki/${article.slug}`} className="blog-read-more">
