@@ -48,10 +48,6 @@ export function LandingTutorials() {
               </div>
               <h3 className="landing-tutorial-title">{article.title}</h3>
               <p className="landing-tutorial-excerpt">{article.excerpt}</p>
-              <div className="landing-tutorial-meta">
-                <span>{article.date}</span>
-                <span className="landing-tutorial-author">{article.author}</span>
-              </div>
               <span className="landing-tutorial-cta">
                 {t("landing.tutorials.readMore", "Czytaj dalej")}
                 <i data-lucide="arrow-right" className="landing-tutorial-cta-icon"></i>

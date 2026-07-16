@@ -1061,18 +1061,6 @@
   flex: 1;
 }
 
-.landing-tutorial-meta {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  color: #6b7280; /* gray-500 */
-  margin-bottom: 0.75rem;
-}
-
-.landing-tutorial-author {
-  color: #9ca3af; /* gray-400 */
-}
-
 .landing-tutorial-cta {
   display: inline-flex;
   align-items: center;
