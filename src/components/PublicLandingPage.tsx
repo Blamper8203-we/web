@@ -8,7 +8,7 @@ import { LandingHeader } from "./landing/LandingHeader";
 import { LandingHero } from "./landing/LandingHero";
 import { LandingSandboxPreview } from "./landing/LandingSandboxPreview";
 import { LandingFeatures } from "./landing/LandingFeatures";
-import { LandingKnowledgeBase } from "./landing/LandingKnowledgeBase";
+import { LandingTutorials } from "./landing/LandingTutorials";
 import { LandingFaq } from "./landing/LandingFaq";
 import { LandingFooter } from "./landing/LandingFooter";
 
@@ -44,7 +44,7 @@ export function PublicLandingPage({
       <LandingHero onOpenProjectFile={onOpenProjectFile} onOpenNewProject={onOpenNewProject} />
       <LandingSandboxPreview />
       <LandingFeatures />
-      <LandingKnowledgeBase />
+      <LandingTutorials />
       <LandingFaq />
       <LandingFooter onOpenFeedback={onOpenFeedback} />
 

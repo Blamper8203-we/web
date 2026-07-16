@@ -71,6 +71,13 @@
       "badge": "KOMPENDIUM WIEDZY",
       "header": "Baza wiedzy:"
     },
+    "tutorials": {
+      "badge": "BAZA WIEDZY",
+      "title": "Najnowsze poradniki dla elektryków",
+      "desc": "Praktyczna wiedza o projektowaniu rozdzielnic, doborze zabezpieczeń i czytaniu schematów — zgodnie z normą PN-HD 60364.",
+      "readMore": "Czytaj dalej",
+      "seeAll": "Zobacz całą bazę wiedzy"
+    },
     "faq": {
       "badge": "Baza Wiedzy",
       "title": "Najczęściej zadawane pytania (FAQ)",

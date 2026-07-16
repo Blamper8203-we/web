@@ -8,39 +8,11 @@ export const SLIDER_IMAGES = [
   "/assets/image4.png",
 ];
 
-export const getKnowledgeBase = (t: TFunction) => ({
-  1: {
-    title: t("landing.kb.1.title"),
-    desc: t("landing.kb.1.desc"),
-    content: (
-      <>
-        <p className="text-xs text-gray-400 leading-relaxed">
-          {t("landing.kb.1.p1")}
-        </p>
-        <p className="text-xs text-gray-400 leading-relaxed mt-4">
-          {t("landing.kb.1.p2")}
-        </p>
-        <div className="border-l-2 border-amber-500 pl-4 py-1 italic text-xs text-gray-300 mt-4">
-          {t("landing.kb.1.quote")}
-        </div>
-      </>
-    ),
-  },
-  2: {
-    title: t("landing.kb.2.title"),
-    desc: t("landing.kb.2.desc"),
-    content: (
-      <>
-        <p className="text-xs text-gray-400 leading-relaxed">
-          {t("landing.kb.2.p1")}
-        </p>
-        <p className="text-xs text-gray-400 leading-relaxed mt-4">
-          {t("landing.kb.2.p2")}
-        </p>
-      </>
-    ),
-  },
-});
+// WHY: getKnowledgeBase zostało usunięte razem z LandingKnowledgeBase.tsx —
+// fikcyjny teaser marketingowy zastąpiła realna sekcja LandingTutorials
+// linkująca do /poradniki/<slug>. Klucze landing.kb.* w translation.json
+// są teraz dead, ale ich usuwanie to osobny krok (mogą być referencjonowane
+// w raportach lub cache'ach i18n).
 
 export const getFaqData = (t: TFunction) => [
   {
