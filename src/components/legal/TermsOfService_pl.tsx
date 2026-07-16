@@ -4,6 +4,7 @@ import { LandingHeader } from "../landing/LandingHeader";
 import { LandingFooter } from "../landing/LandingFooter";
 import { useLandingAssets } from "../landing/useLandingAssets";
 import type { AppContextType } from "../../App";
+import { webPageJsonLd } from "../../seo/jsonLd";
 import "./LegalPage.css";
 
 export function TermsOfService_pl() {
@@ -29,6 +30,19 @@ export function TermsOfService_pl() {
           name="twitter:description"
           content="Regulamin korzystania z aplikacji DINBoard Web – narzędzia dla elektryków."
         />
+        {/* WHY: plain WebPage (not SoftwareApplication) — same rationale as
+            the privacy policy: keep the legal page out of the home-page
+            entity graph. URL differentiates it from the privacy policy. */}
+        <script type="application/ld+json">
+          {JSON.stringify(
+            webPageJsonLd({
+              title: "Regulamin – DINBoard",
+              description:
+                "Regulamin korzystania z DINBoard Web. Zasady, wymagania techniczne, odpowiedzialność Operatora i uwagi dotyczące projektowania rozdzielnic.",
+              urlPath: "/regulamin",
+            }),
+          )}
+        </script>
       </Helmet>
 
       <LandingHeader />

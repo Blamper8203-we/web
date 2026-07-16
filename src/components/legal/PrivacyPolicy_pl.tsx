@@ -4,6 +4,7 @@ import { LandingHeader } from "../landing/LandingHeader";
 import { LandingFooter } from "../landing/LandingFooter";
 import { useLandingAssets } from "../landing/useLandingAssets";
 import type { AppContextType } from "../../App";
+import { webPageJsonLd } from "../../seo/jsonLd";
 import "./LegalPage.css";
 
 export function PrivacyPolicy_pl() {
@@ -29,6 +30,19 @@ export function PrivacyPolicy_pl() {
           name="twitter:description"
           content="Jak DINBoard chroni Twoje dane: lokalne przechowywanie projektów, RODO."
         />
+        {/* WHY: plain WebPage (not SoftwareApplication) so the legal page
+            doesn't get folded into the home-page entity. The URL is the
+            differentiator, not the @type. */}
+        <script type="application/ld+json">
+          {JSON.stringify(
+            webPageJsonLd({
+              title: "Polityka prywatności – DINBoard",
+              description:
+                "Polityka prywatności aplikacji DINBoard. Informacje o danych zbieranych lokalnie, Vercel Analytics, planowanym Google AdSense i formularzu kontaktowym.",
+              urlPath: "/polityka-prywatnosci",
+            }),
+          )}
+        </script>
       </Helmet>
 
       <LandingHeader />

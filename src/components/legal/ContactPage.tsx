@@ -4,6 +4,7 @@ import { LandingHeader } from "../landing/LandingHeader";
 import { LandingFooter } from "../landing/LandingFooter";
 import { useLandingAssets } from "../landing/useLandingAssets";
 import type { AppContextType } from "../../App";
+import { contactPageJsonLd } from "../../seo/jsonLd";
 import "./LegalPage.css";
 
 export function ContactPage() {
@@ -18,6 +19,12 @@ export function ContactPage() {
           content="Skontaktuj się z autorem aplikacji DINBoard Web. Zgłoś błąd, zaproponuj funkcjonalność lub zapytaj o szczegóły techniczne."
         />
         <link rel="canonical" href="https://dinboard.pl/kontakt" />
+        {/* WHY: ContactPage @type (not the shared SoftwareApplication) so
+            Google can rank this page for "DINBoard kontakt" queries and
+            doesn't see it as a duplicate of the home page entity. */}
+        <script type="application/ld+json">
+          {JSON.stringify(contactPageJsonLd())}
+        </script>
       </Helmet>
 
       <LandingHeader />

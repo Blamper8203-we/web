@@ -7,6 +7,7 @@ import { Helmet } from "react-helmet-async";
 import { lazy, Suspense } from "react";
 
 import type { ProjectFileData } from "./lib/projectFile";
+import { softwareApplicationJsonLd } from "./seo/jsonLd";
 import { openProjectFile } from "./lib/projectFile";
 import { initStorageService } from "./lib/storageService";
 import { reportRuntimeError } from "./lib/runtimeDiagnostics";
@@ -123,10 +124,18 @@ function LandingRoute() {
         <meta name="description" content={t("auto.dinboardtoprofe_548", "DINBoard to profesjonalna aplikacja dla elektryków umożliwiająca projektowanie rozdzielnic, tworzenie obwodów, obliczanie bilansu mocy oraz generowanie dokumentacji zgodnej z polskimi standardami.")} />
         <link rel="canonical" href="https://dinboard.pl/" />
         <meta property="og:title" content={t("auto.dinboardwebproj_262", "DINBoard Web – Projektowanie Rozdzielnic Elektrycznych")} />
-        <meta property="og:description" content={t("auto.aplikacjadlaele_954", "Aplikacja dla elektryków umożliwiająca projektowanie rozdzielnic, tworzenie obwodów, obliczanie bilansu mocy oraz generowanie dokumentacji instalacji elektrycznych.")} />
+        <meta property="og:description" content={t("auto.aplikacjadlaele_954", "Aplikacja dla elektryków umożliwiająca projektowanie rozdzielnic, tworzenie obwodów, obliczanie bilansu mocy oraz generowania dokumentacji instalacji elektrycznych.")} />
         <meta property="og:url" content="https://dinboard.pl/" />
         <meta name="twitter:title" content={t("auto.dinboardwebproj_272", "DINBoard Web – Projektowanie Rozdzielnic Elektrycznych")} />
         <meta name="twitter:description" content={t("auto.aplikacjadlaele_726", "Aplikacja dla elektryków do projektowania rozdzielnic, obliczania bilansu mocy i generowania dokumentacji.")} />
+        {/* WHY: the SoftwareApplication schema is the only one that legitimately
+            describes the product itself. Every other route uses a different
+            @type so Google doesn't see duplicate-entity signals across
+            the site. The static block in index.html was removed for the
+            same reason — see src/seo/jsonLd.ts. */}
+        <script type="application/ld+json">
+          {JSON.stringify(softwareApplicationJsonLd())}
+        </script>
       </Helmet>
       <PublicLandingPage
         onOpenNewProject={handleOpenNewProject}

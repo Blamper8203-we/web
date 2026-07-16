@@ -36,30 +36,12 @@
     <meta property="og:image:alt" content="DINBoard - aplikacja do projektowania rozdzielnic elektrycznych" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://dinboard.pl/og-image.png" />
-    <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "DINBoard Web",
-  "alternateName": "DINBoard",
-  "url": "https://dinboard.pl",
-  "applicationCategory": "DesignApplication",
-  "applicationSubCategory": "Electrical Engineering Software",
-  "operatingSystem": "Web, Windows, macOS, Linux",
-  "description": "Profesjonalna aplikacja dla elektryków do projektowania rozdzielnic, tworzenia obwodów, obliczania bilansu mocy i generowania dokumentacji zgodnej z polskimi standardami.",
-  "inLanguage": "pl",
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "PLN"
-  },
-  "author": {
-    "@type": "Organization",
-    "name": "DINBoard",
-    "url": "https://dinboard.pl"
-  }
-}
-</script>
+    <!-- WHY: Schema.org JSON-LD used to live here as a single hard-coded
+         SoftwareApplication block, but vite-react-ssg shares this template
+         across every route, so every page shipped the same structured data
+         and Google treated it as duplicate-entity noise. Per-page JSON-LD
+         is now injected by the route components via react-helmet-async
+         (see src/seo/jsonLd.ts for the per-page helpers). -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" crossorigin="anonymous" />

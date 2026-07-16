@@ -4,6 +4,7 @@ import { LandingHeader } from "../landing/LandingHeader";
 import { LandingFooter } from "../landing/LandingFooter";
 import { useLandingAssets } from "../landing/useLandingAssets";
 import type { AppContextType } from "../../App";
+import { aboutPageJsonLd } from "../../seo/jsonLd";
 import "./LegalPage.css";
 
 export function AboutUsPage() {
@@ -18,6 +19,11 @@ export function AboutUsPage() {
           content="Dowiedz się więcej o historii powstania aplikacji DINBoard Web oraz o autorze – Arturze Tomaszewskim."
         />
         <link rel="canonical" href="https://dinboard.pl/o-nas" />
+        {/* WHY: AboutPage @type — separate entity from the home page so
+            Google doesn't dedupe the two on the schema-entity graph. */}
+        <script type="application/ld+json">
+          {JSON.stringify(aboutPageJsonLd())}
+        </script>
       </Helmet>
 
       <LandingHeader />

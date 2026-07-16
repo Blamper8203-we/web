@@ -5,6 +5,7 @@ import { LandingHeader } from "../landing/LandingHeader";
 import { LandingFooter } from "../landing/LandingFooter";
 import { useLandingAssets } from "../landing/useLandingAssets";
 import type { AppContextType } from "../../App";
+import { collectionPageJsonLd } from "../../seo/jsonLd";
 import "./Blog.css";
 
 export function BlogIndex() {
@@ -19,6 +20,12 @@ export function BlogIndex() {
           content="Baza wiedzy dla elektryków. Poradniki dotyczące projektowania rozdzielnic, schematów jednokreskowych i poprawnych instalacji elektrycznych."
         />
         <link rel="canonical" href="https://dinboard.pl/poradniki" />
+        {/* WHY: this page is a list of articles, not the product itself.
+            Using CollectionPage keeps Google from seeing it as a
+            duplicate-SoftwareApplication of the home page. */}
+        <script type="application/ld+json">
+          {JSON.stringify(collectionPageJsonLd())}
+        </script>
       </Helmet>
 
       <LandingHeader />
