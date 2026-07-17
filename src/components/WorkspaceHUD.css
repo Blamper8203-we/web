@@ -226,6 +226,12 @@
   border-top: 1px solid var(--panel-border);
 }
 
+@media (max-width: 768px) {
+  .workspace-statusbar {
+    display: none;
+  }
+}
+
 .workspace-statusbar span {
   display: inline-flex;
   align-items: center;
