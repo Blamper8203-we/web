@@ -8,7 +8,7 @@ import "./LeftPanel.css";
 import { getPaletteTemplateDimensions, type PaletteGroup, type PaletteTemplate } from "../lib/modules/moduleCatalog";
 import { getPaletteIconName, getPaletteDescription, startCustomDragLayer, type SheetType } from "../lib/appHelpers";
 import { CAD_SYMBOL_CATALOG } from "../lib/schematic/smartHomeCatalog";
-import { isTap, type TouchPoint } from "../lib/tapDetection";
+import { isDoubleTap, isTap, type TouchPoint } from "../lib/tapDetection";
 import type { ProjectMetadata } from "../types/projectMetadata";
 import { type DefaultWireSettings } from "../lib/connections/connectionsLogic";
 import type { ConnectionItem } from "../types/connectionItem";
@@ -64,6 +64,17 @@ export function AppLeftPanel({
   // isTap() z src/lib/tapDetection.ts. Jeden ref na komponent wystarcza: na palecie
   // trwa maks. jedna sekwencja tap/scroll naraz (multitouch nie ma sensu).
   const touchStartRef = useRef<TouchPoint | null>(null);
+
+  // WHY: timestamp poprzedniego tapa na tym samym elemencie. Moduł dodaje się
+  // dopiero na DOUBLE-TAP (2 tapnięcia w oknie TAP_DOUBLE_MS), nie na pojedynczy
+  // tap — świadoma decyzja developera. Zabezpiecza przed przypadkowym dodaniem
+  // modułu podczas np. scrolla/przypadkowego musnięcia. Ref per-element byłby
+  // nadmierny: w praktyce double-tap to szybka sekwencja na tym samym kafelku,
+  // więc wystarcza śledzić "ostatni tap" globalnie; jeśli użytkownik tapnie inny
+  // moduł między tymi dwoma tapami, to nie jest double-tap na jednym elemencie
+  // i bezpiecznie go zignorujemy (drugi tap zostanie nowym "pierwszym").
+  const lastTapAtRef = useRef<number | null>(null);
+  const lastTapTemplateIdRef = useRef<string | null>(null);
 
   const filteredPaletteGroups = paletteGroups.filter(g => g.title !== "Smart Home");
 
@@ -193,15 +204,41 @@ export function AppLeftPanel({
                     onTouchEnd={(event) => {
                       // WHY: dopiero tu (po podniesieniu palca) wiemy czy to był
                       // tap czy scroll. isTap() sprawdza czy palek przejechał
-                      // < TAP_THRESHOLD_PX (10). Jeśli tak → dodaj moduł; jeśli nie
-                      // → to był scroll i lista się przewinęła, moduł NIE dodajemy.
+                      // < TAP_THRESHOLD_PX (10). Jeśli tak → kandydat na tap;
+                      // jeśli nie → to był scroll i lista się przewinęła, moduł
+                      // NIE dodajemy.
+                      //
+                      // Moduł dodaje się dopiero na DOUBLE-TAP: drugi tap w oknie
+                      // TAP_DOUBLE_MS na tym samym elemencie. Pierwszy tap tylko
+                      // rejestruje timestamp+templateId — sam z siebie nic nie dodaje.
                       const start = touchStartRef.current;
                       touchStartRef.current = null;
                       const changedTouch = event.changedTouches[0];
                       if (!changedTouch) return;
                       const end = { x: changedTouch.clientX, y: changedTouch.clientY };
-                      if (isTap(start, end)) {
+                      if (!isTap(start, end)) {
+                        // To był scroll/swipe — resetujemy też pamięć tapa,
+                        // żeby przypadkowy "tap po scrollu" nie zliczał się
+                        // jako drugi tap.
+                        lastTapAtRef.current = null;
+                        lastTapTemplateIdRef.current = null;
+                        return;
+                      }
+                      const now = Date.now();
+                      const isSecondTapOfSameItem =
+                        lastTapTemplateIdRef.current === item.templateId
+                        && isDoubleTap(lastTapAtRef.current, now);
+                      if (isSecondTapOfSameItem) {
+                        // Double-tap potwierdzony — dodaj moduł i czyść pamięć,
+                        // żeby trzeci szybki tap nie zapadł się w kolejny "double".
+                        lastTapAtRef.current = null;
+                        lastTapTemplateIdRef.current = null;
                         onPaletteItemTap?.(item.templateId);
+                      } else {
+                        // Pierwszy tap (lub tap na innym elemencie) — zapamiętaj,
+                        // czekaj na ewentualny drugi tap w oknie TAP_DOUBLE_MS.
+                        lastTapAtRef.current = now;
+                        lastTapTemplateIdRef.current = item.templateId;
                       }
                     }}
                     onTouchCancel={() => {
@@ -209,6 +246,14 @@ export function AppLeftPanel({
                       // → resetujemy; nie chcemy dodawać modułu przy chaotycznym
                       // zakończeniu sekwencji.
                       touchStartRef.current = null;
+                    }}
+                    onDoubleClick={() => {
+                      // Desktop (mysz): dodawanie przez podwójne kliknięcie.
+                      // Single-click zostaje jako "zaznaczenie" (natywne) — nie
+                      // wołamy onPaletteItemTap w onClick, żeby nie kolidować
+                      // z double-tap. onDoubleClick to natywne zdarzenie DOM,
+                      // nie odpala się na pojedynczym kliknięciu.
+                      onPaletteItemTap?.(item.templateId);
                     }}
                     onDragStart={(event) => {
                       const moduleDimensions = getPaletteTemplateDimensions(item);
