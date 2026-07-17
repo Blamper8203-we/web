@@ -16,6 +16,8 @@
   height: 64px;
   /* --bg-panel = to samo tło co panele boczne (LeftPanel/RightPanel/AppHeader). */
   background-color: var(--bg-panel, #1e293b);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-top: 1px solid var(--border, rgba(41, 49, 59, 0.5));
   z-index: 1000;
   padding-bottom: env(safe-area-inset-bottom);
