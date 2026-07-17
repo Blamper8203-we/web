@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useRef } from "react";
 import { AppIcon } from "./AppIcon";
 import { ModuleAssetPreview } from "./ModuleAssetPreview";
 import { ProjectPropertiesPage } from "./ProjectPropertiesPage";
@@ -7,6 +8,7 @@ import "./LeftPanel.css";
 import { getPaletteTemplateDimensions, type PaletteGroup, type PaletteTemplate } from "../lib/modules/moduleCatalog";
 import { getPaletteIconName, getPaletteDescription, startCustomDragLayer, type SheetType } from "../lib/appHelpers";
 import { CAD_SYMBOL_CATALOG } from "../lib/schematic/smartHomeCatalog";
+import { isTap, type TouchPoint } from "../lib/tapDetection";
 import type { ProjectMetadata } from "../types/projectMetadata";
 import { type DefaultWireSettings } from "../lib/connections/connectionsLogic";
 import type { ConnectionItem } from "../types/connectionItem";
@@ -56,6 +58,12 @@ export function AppLeftPanel({
   onConnectionsChange,
 }: AppLeftPanelProps) {
   const { t } = useTranslation();
+
+  // WHY: pozycja startowa aktualnej sekwencji dotyku. Rejestrowana w touchstart
+  // (bez preventDefault — scroll listy musi działać), sprawdzana w touchend przez
+  // isTap() z src/lib/tapDetection.ts. Jeden ref na komponent wystarcza: na palecie
+  // trwa maks. jedna sekwencja tap/scroll naraz (multitouch nie ma sensu).
+  const touchStartRef = useRef<TouchPoint | null>(null);
 
   const filteredPaletteGroups = paletteGroups.filter(g => g.title !== "Smart Home");
 
@@ -160,15 +168,47 @@ export function AppLeftPanel({
                     key={`${displayActiveGroup.title}-${item.code}`}
                     draggable={true}
                     role="listitem"
+                    data-testid="palette-item"
+                    data-template-id={item.templateId}
                     onContextMenu={(event) => {
                       event.preventDefault();
                       setPaletteContextMenu({ templateId: item.templateId, label: item.label, x: event.clientX, y: event.clientY });
                     }}
                     onTouchStart={(event) => {
-                      // Na dotyk: tap-to-place zamiast DnD
-                      // preventDefault blokuje przewijanie strony i long-press menu
-                      event.preventDefault();
-                      onPaletteItemTap?.(item.templateId);
+                      // WHY: rejestrujemy pozycję startu palca, ale NIE wołamy
+                      // preventDefault. Stara implementacja wołała preventDefault
+                      // na touchstart, co anuluje rozpoznawanie gestu scrolla dla
+                      // całej sekwencji dotyku — przez co lista modułów (np. "Złącza")
+                      // nie dawała się przewinąć palcem zaczynając od modułu.
+                      // Teraz scroll zostaje natywny; tap rozstrzygamy w touchend.
+                      // Pierwszy touch = multitouch guard: jeśli >1 palek, ignorujemy
+                      // (gest np. pinch-zoom na palecie nie powinien dodawać modułu).
+                      if (event.touches.length === 1) {
+                        const touch = event.touches[0];
+                        touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+                      } else {
+                        touchStartRef.current = null;
+                      }
+                    }}
+                    onTouchEnd={(event) => {
+                      // WHY: dopiero tu (po podniesieniu palca) wiemy czy to był
+                      // tap czy scroll. isTap() sprawdza czy palek przejechał
+                      // < TAP_THRESHOLD_PX (10). Jeśli tak → dodaj moduł; jeśli nie
+                      // → to był scroll i lista się przewinęła, moduł NIE dodajemy.
+                      const start = touchStartRef.current;
+                      touchStartRef.current = null;
+                      const changedTouch = event.changedTouches[0];
+                      if (!changedTouch) return;
+                      const end = { x: changedTouch.clientX, y: changedTouch.clientY };
+                      if (isTap(start, end)) {
+                        onPaletteItemTap?.(item.templateId);
+                      }
+                    }}
+                    onTouchCancel={() => {
+                      // Anulowanie dotyku (np. systemowe powiadomienie, gest nav)
+                      // → resetujemy; nie chcemy dodawać modułu przy chaotycznym
+                      // zakończeniu sekwencji.
+                      touchStartRef.current = null;
                     }}
                     onDragStart={(event) => {
                       const moduleDimensions = getPaletteTemplateDimensions(item);
@@ -225,7 +265,7 @@ export function AppLeftPanel({
               </div>
             </section>
             {!dinRail.isVisible && activeSheet !== "sheet5_smarthome" && (
-              <button type="button" className="palette-blocker" onClick={handleOpenDinRailGenerator}>
+              <button type="button" className="palette-blocker" data-testid="palette-blocker" onClick={handleOpenDinRailGenerator}>
                 <AppIcon name="validation" size={24} />
                 <strong>{t("auto.najpierwwygener_746", "Najpierw wygeneruj szynę DIN")}</strong>
                 <span>{t("auto.moduybddostpnep_339", "Moduły będą dostępne po utworzeniu rozdzielnicy.")}</span>
