@@ -34,3 +34,24 @@ export function isTap(start: TouchPoint | null, end: TouchPoint): boolean {
   if (!start) return false;
   return touchDistance(start, end) < TAP_THRESHOLD_PX;
 }
+
+// WHY: okno czasowe na drugi tap w sekwencji "double-tap → dodaj moduł".
+// 350ms to kompromis: na tyle krótkie, że przypadkowe dwa tapy z rzędu (np.
+// użytkownik zmienia zdanie) nie dodadzą modułu; na tyle długie, że naturalne
+// podwójne stuknięcie palcem zdąży. iOS używa 300-500ms dla double-tap zoom,
+// my bierzemy dolną granicę żeby nie kolidować z systemowym gestem.
+export const TAP_DOUBLE_MS = 350;
+
+/**
+ * Zwraca true jeśli dwa tapy nastąpiły w oknie TAP_DOUBLE_MS.
+ * Czysta funkcja — `prevTapTime` to timestamp z Date.now() poprzedniego tapa,
+ * `now` to timestamp bieżącego. Brak poprzednika (null) → false (pierwszy
+ * tap w sekwencji nigdy nie jest "podwójny").
+ *
+ * Używane razem z isTap(): moduł dodaje się tylko gdy oba tapy są "tapami"
+ * (geometria < TAP_THRESHOLD_PX) i nastąpiły w oknie czasowym.
+ */
+export function isDoubleTap(prevTapTime: number | null, now: number): boolean {
+  if (prevTapTime === null) return false;
+  return now - prevTapTime <= TAP_DOUBLE_MS;
+}

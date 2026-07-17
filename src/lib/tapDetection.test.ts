@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { TAP_THRESHOLD_PX, touchDistance, isTap, type TouchPoint } from "./tapDetection";
+import { TAP_THRESHOLD_PX, TAP_DOUBLE_MS, touchDistance, isTap, isDoubleTap, type TouchPoint } from "./tapDetection";
 
 describe("touchDistance", () => {
   it("is 0 when start and end coincide", () => {
