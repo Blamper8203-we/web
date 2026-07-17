@@ -712,13 +712,13 @@
    Hero â€” left-aligned eyebrow + big regular-case title (Engineering
    Hierarchy pattern, mirrors pdfStyles.ts hero).
    â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-.pd-hero {
+.protocol-hero {
   text-align: left;
   margin: 2px 0 14px;
   background-color: transparent;
 }
 
-.pd-hero-eyebrow {
+.protocol-hero-eyebrow {
   font-size: 7.5pt;
   font-weight: 700;
   color: var(--pd-brand);
@@ -727,7 +727,7 @@
   margin-bottom: 6px;
 }
 
-.pd-hero-title {
+.protocol-hero-title {
   /* KEY CHANGE: regular case, tight tracking (was uppercase tracked). */
   font-size: 26pt;
   font-weight: 700;
@@ -736,7 +736,7 @@
   line-height: 1.1;
 }
 
-.pd-hero-subtitle {
+.protocol-hero-subtitle {
   font-size: 10pt;
   color: var(--pd-ink-secondary);
   margin-top: 6px;
