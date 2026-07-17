@@ -149,6 +149,18 @@ function LandingRoute() {
 function AppRoute() {
   const { t } = useTranslation();
   const { initialAction, initialData, openFeedback } = useOutletContext<AppContextType>();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const fallbackUi = (
+    <div className="app-workspace-loading" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#888' }}>
+      {t("auto.loading_editor", "Ładowanie edytora...")}
+    </div>
+  );
+
   return (
     <>
       {/* WHY: /app is the actual work surface (workspace editor). It requires
@@ -160,13 +172,15 @@ function AppRoute() {
         <meta name="description" content={t("auto.edytorrozdzieln_802", "Edytor rozdzielnicy DINBoard — narzędzie do projektowania, nie strona publiczna.")} />
         <link rel="canonical" href="https://dinboard.pl/app" />
       </Helmet>
-      <Suspense fallback={<div className="app-workspace-loading" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#888' }}>{t("auto.loading_editor", "Ładowanie edytora...")}</div>}>
-        <AppWorkspace
-          initialAction={initialAction}
-          initialData={initialData}
-          onOpenFeedback={openFeedback}
-        />
-      </Suspense>
+      {isMounted ? (
+        <Suspense fallback={fallbackUi}>
+          <AppWorkspace
+            initialAction={initialAction}
+            initialData={initialData}
+            onOpenFeedback={openFeedback}
+          />
+        </Suspense>
+      ) : fallbackUi}
     </>
   );
 }
