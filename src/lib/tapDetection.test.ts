@@ -55,3 +55,27 @@ describe("isTap", () => {
     expect(isTap(null, { x: 0, y: 0 })).toBe(false);
   });
 });
+
+describe("isDoubleTap", () => {
+  it("returns false when prevTapTime is null (first tap in sequence)", () => {
+    expect(isDoubleTap(null, 1000)).toBe(false);
+  });
+
+  it("returns true when second tap is within TAP_DOUBLE_MS window", () => {
+    const first = 1000;
+    const second = first + TAP_DOUBLE_MS - 50; // 300ms < 350ms
+    expect(isDoubleTap(first, second)).toBe(true);
+  });
+
+  it("returns true at exactly the TAP_DOUBLE_MS boundary (<=)", () => {
+    const first = 1000;
+    const second = first + TAP_DOUBLE_MS; // exactly 350ms
+    expect(isDoubleTap(first, second)).toBe(true);
+  });
+
+  it("returns false when second tap is after TAP_DOUBLE_MS window", () => {
+    const first = 1000;
+    const second = first + TAP_DOUBLE_MS + 1; // 351ms > 350ms
+    expect(isDoubleTap(first, second)).toBe(false);
+  });
+});
