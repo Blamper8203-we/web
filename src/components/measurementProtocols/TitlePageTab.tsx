@@ -131,12 +131,12 @@ export function TitlePageTab({
           </div>
         </div>
 
-        <div className="pd-hero">
-          <div className="pd-hero-eyebrow">{t("pdf.titlePage.statementEyebrow", "DOKUMENT")}</div>
-          <div className="pd-hero-title" style={{ fontSize: "26pt", marginTop: "6px", lineHeight: 1.1 }}>
+        <div className="protocol-hero">
+          <div className="protocol-hero-eyebrow">{t("pdf.titlePage.statementEyebrow", "DOKUMENT")}</div>
+          <div className="protocol-hero-title" style={{ fontSize: "26pt", marginTop: "6px", lineHeight: 1.1 }}>
             {t("pdf.titlePage.statement", "Oświadczenie Wykonawcy")}
           </div>
-          <div className="pd-hero-subtitle" style={{ marginTop: 6 }}>{subtitle}</div>
+          <div className="protocol-hero-subtitle" style={{ marginTop: 6 }}>{subtitle}</div>
         </div>
 
         <div className="pd-section-heading">
