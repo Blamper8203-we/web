@@ -84,8 +84,9 @@ If you change any of these, the diff must include: current behaviour, why it's r
 
 **Canvas / interactions (delegate to `canvas-expert`):**
 - `src/components/DinRailCanvasPixi.tsx`
+- `src/components/SmartHomeCanvas.tsx` — interactive CAD canvas, currently the largest component (37 KB), see §9 below
 - `src/lib/dinRailSelection.ts`, `src/lib/dinRailSnap.ts`
-- `src/lib/schematic/**`
+- `src/lib/schematic/**` (includes `smartHomeCatalog.ts` and `cadSymbolParser.ts`)
 - `src/lib/connections/**` (geometric aspects)
 - `src/lib/dinRailCanvas/**`
 - `src/lib/export/dinRailSnapshotService.ts`
@@ -144,19 +145,28 @@ The same string-dispatch pattern exists for `Listwy zaciskowe` and `Złącza` in
 
 These are working code, not junk drawers, but they mix concerns enough that an AI agent will lose context if it reads them sequentially. If you are touching one of them, read it in pieces (specific functions), not the whole file:
 
+> **NOTE (2026-07):** Tabela odzwierciedla realne rozmiary po refaktorach z czerwca
+> 2026. Wcześniejsza wersja AGENTS.md wymieniała m.in. `DinRailConnectionsCanvas.tsx`
+> (94 KB), `MeasurementProtocolsWorkspacePage.tsx` (53 KB), `schematicLayoutEngine.ts`
+> (34 KB), `moduleTerminals.ts` (33 KB), `App.tsx` (29 KB) — te pliki zostały rozbite
+> (odpowiednio do ~18/12/1.2/3.4/10 KB). Jeśli rozmiar tu nie zgadza się z Twoim
+> `wc -l`, uruchom `node -e "console.log(require('fs').readFileSync('PATH','utf8').split('\\n').length)"`.
+
 | File | Size | Concerns mixed |
 |---|---|---|
-| `src/components/DinRailConnectionsCanvas.tsx` | 94 KB | canvas + connections + UI + state |
-| `src/components/MeasurementProtocolsWorkspacePage.tsx` | 53 KB | UI + form state + table composition |
-| `src/lib/schematic/schematicLayoutEngine.ts` | 34 KB | layout + geometry + per-element rules |
-| `src/lib/modules/moduleTerminals.ts` | 33 KB | terminal detection + pin layout + "Blok rozdzielczy" special cases |
-| `src/components/PublicLandingPage.tsx` | 31 KB | marketing copy + animations + image carousel |
-| `src/components/DinRailCanvasPixi.tsx` | 30 KB | Pixi scene + pointer events + selection + snapping |
-| `src/App.tsx` | 29 KB | top-level shell + sheet routing + dialogs |
-| `src/lib/measurementProtocols.ts` | 28 KB | protocol data shape + table generation |
-| `src/lib/modules/importedModuleCatalog.ts` | 28 KB | import flow + category inference + parameter parsing |
-| `src/lib/validation/electricalValidationService.ts` | 26 KB | rule engine + result formatting |
-| `src/lib/modules/moduleCatalog.ts` | 22 KB | built-in catalogue + `currentModuleEntries` + `groupOrder` + dimension helpers |
+| `src/components/SmartHomeCanvas.tsx` | 37 KB | interactive CAD canvas + viewport/pan-zoom + snapping engine + catalog dispatch + connection geometry — see §9 below |
+| `src/lib/export/dinRailSvgRenderer.ts` | 29 KB | DIN-rail → SVG snapshot rendering + layout + label wrapping |
+| `src/lib/export/dinRailSnapshotService.ts` | 29 KB | snapshot composition for PDF/PNG export |
+| `src/components/PdfDocumentationPage.tsx` | 25 KB | PDF workspace UI + export orchestration |
+| `src/lib/export/pdfPages/pdfStyles.ts` | 23 KB | @react-pdf style objects + layout constants |
+| `src/lib/circuitEdit/circuitEditFieldDefinitions.ts` | 21 KB | circuit-edit form field schema + validation |
+| `src/components/AppWorkspace.tsx` | 20 KB | workspace shell + state wiring + sheet composition |
+| `src/lib/schematic/schematicGraphBuilder.ts` | 20 KB | schematic topology graph + node/edge resolution |
+| `src/lib/phaseDistribution/phaseDistributionCalculator.ts` | 19 KB | phase balance + L1/L2/L3 assignment (HIGH-RISK electrical domain) |
+| `src/lib/schematic/cadSymbolParser.ts` | 19 KB | CAD SVG → blocks parser + terminal extraction + theme color rewrite (shared with SmartHome) |
+| `src/hooks/connections/useConnectionsMutations.ts` | 19 KB | connection CRUD + undo/redo commands |
+| `src/components/ValidationPanel.tsx` | 18 KB | validation results UI + quick-fix actions |
+| `src/components/SvgImportDialog.tsx` | 18 KB | SVG import flow + preview + sanitization |
 
 Splitting these is a real refactor project, not a side effect. Each one needs a `// WHY:` review of every section before moving it.
 
@@ -193,6 +203,39 @@ Path separators, BOM, CP936 vs UTF-8, and the Windows-only `mavis-trash` deletio
 - Regenerating the lockfile is a real change; it needs a real cause in the change history. "I deleted it to debug" is not a cause.
 
 Lesson from 2026-06-21: bumping `.nvmrc` from `22.12.0` to `24.12.0` resolved 3 separate "broken" lockfile states that all had the same root cause.
+
+### 9. SmartHome feature is hidden, partly-built, and undocumented until 2026-07
+
+SmartHome (an interactive CAD-style canvas for designing smart-home installations, distinct from the DIN-rail editor) is **fully wired into the codebase but not reachable from the UI**. It is the single largest production file (`SmartHomeCanvas.tsx`, 37 KB) and has several traps that are not obvious from the code alone.
+
+**The sheet tab is intentionally filtered out.** `AppSheetTabs.tsx:36-38` registers the `sheet5_smarthome` tab, then `visibleTabs` filters it out unconditionally ("na życzenie użytkownika"). The only way to reach the sheet is programmatically (`sheetPanel.setActiveSheet("sheet5_smarthome")`). **Do not assume SmartHome is reachable from the tab bar** — and do not "fix" the filter without asking the developer; it is deliberate.
+
+**MVVM layer violation: domain logic lives in the component.** `SmartHomeCanvas.tsx` holds computation that AGENTS.md §"Layer discipline" places in `src/lib/**`:
+- `getSnappedPos` (line 282) — the snapping engine (object-snap to nearest terminal within 30 px, ortho-mode axis lock, grid snap to `GRID_STEP`). This is the same kind of snapping the generic codebase keeps in `src/lib/schematic/schematicSnapService.ts` and `src/lib/dinRailSnap.ts`.
+- `screenToWorld` / `worldToScreen` (line 195) and `zoomAtPoint` (line 214) — viewport coordinate transforms.
+- `handleDrop` (line 542) — catalog lookup (`CAD_SYMBOL_CATALOG.find(...)`) + `fetchAndParseCadSymbol(...)` + bounding-box layout + grid snap + mapping blocks to `SmartHomeSymbol[]`, all inside an event handler.
+- Group-drag geometry in `handlePointerMove` — snaps the primary symbol's first terminal to grid, then derives the group delta.
+
+This is a known candidate for extraction to a new `src/lib/smartHome/` folder (snap engine → `smartHomeSnap.ts`, viewport math → `smartHomeViewport.ts`, drop/layout → `smartHomeLayout.ts`). **That is a real refactor PR, not a "while-I'm-here" change** — talk to the developer first. Until then, if you must touch snapping/geometry in SmartHomeCanvas, keep the computation local and add a `// WHY:` comment.
+
+**Coupling constant split between lib and component.** `cadSymbolParser.ts:7` hardcodes `WORLD_GRID_STEP = 20` with a comment that it must match `SmartHomeCanvas.GRID_STEP` (`SmartHomeCanvas.tsx:60`). These are two definitions of the same magic number in two different layers. Changing one without the other silently breaks grid alignment. If you touch either, update both and grep the other.
+
+**No persistence.** Unlike DIN-rail symbols (persisted via `useAppPersistence`), `smartHomeSymbols` / `smartHomeConnections` live in `AppWorkspace.tsx:118-119` as local `useState` — **in-memory only, reset on reload.** Do not assume SmartHome state survives a refresh, and do not wire it into `useAppPersistence` without a schema migration (see §4 / Project I/O contracts).
+
+**No tests for the SmartHome-specific code.** There are zero `*SmartHome*.test.*` or `*smart-home*.test.*` files. `cadSymbolParser.ts` (the shared parser) has a co-located test, but the canvas, the catalog, the snap engine, and the connection geometry are untested. If you change behavior in `SmartHomeCanvas.tsx`, **add the first test** — do not rely on existing coverage.
+
+**String-dispatch `"Smart Home"` — same pattern as "Blok rozdzielczy" (§2).** The category string `"Smart Home"` is dispatched on as a raw string across 4 files; the sheet id `"sheet5_smarthome"` across 5. Mirror the existing pattern (string compare + comment), do not introduce a typed enum "while you're here":
+- `referenceDesignations.ts:13` — `template.category === "Smart Home"` → prefix `"HOME"`
+- `paletteFormatting.ts:179` — palette formatting branch
+- `builtinModules.ts:391-392, 396, 428` — `ModuleEntry` type/category + `moduleRef` + `groupOrder`
+- `AppLeftPanel.tsx:60, 65, 71, 140, 142` — palette filtering + sparkles/"Nowe" badge
+- Sheet id `"sheet5_smarthome"`: `AppWorkspaceCanvas.tsx:233`, `AppSheetTabs.tsx:25,36`, `AppLeftPanel.tsx:62, 85, 114, 135, 227`, `MainWorkspace.tsx:127`, `appHelpers.ts` (`SheetType` union)
+
+**Two parallel catalog definitions for the AMPIO module.** There are **two separate, unreconciled** definitions of the AMPIO MSERV-4S:
+- `builtinModules.ts:391-399` — a DIN-rail `ModuleEntry` with `moduleRef: "Smart Home/AMPIO MSERV-4S.svg"` (used by the DIN-rail palette).
+- `smartHomeCatalog.ts:13-18` — a CAD `SmartHomeCatalogEntry` with `sourceSvgPath: "/assets/symbols/Smart Home/Symbol AMPIO MSERV-4S_v4.svg"` (used by the SmartHome canvas).
+
+These point at **different SVG paths** and are not cross-referenced. If you "fix" one, the other silently diverges. Treat them as two distinct assets until the developer decides to unify.
 
 ---
 
@@ -253,7 +296,7 @@ If a step above sends you to a rein (e.g. "this is a `canvas-expert` task"), sto
 | Add or refactor tests, analyse coverage | `tester` |
 | Review a diff, audit code, before-merge checklist | `code-reviewer` |
 | Phase balance, validation, RCD/MCB, project metadata, electrical types | `electrical-expert` |
-| DIN rail canvas, schematic, SVG modules, snap/selection, wires, geometry | `canvas-expert` |
+| DIN rail canvas, schematic, SVG modules, snap/selection, wires, geometry, SmartHome CAD canvas + catalog + CAD parser | `canvas-expert` |
 | PDF generator, preview, measurement protocols, PDF templates | `pdf-expert` |
 | Project file format, save/load, migrations, undo/redo, Tauri | `project-io-expert` |
 

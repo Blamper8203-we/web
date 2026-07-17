@@ -1,14 +1,26 @@
+/* WHY: BottomNav był jedynym elementem mobile UI używającym zmiennych --theme-*
+   (--theme-brand-blue, --theme-panel-bg, --theme-text-muted), które NIE są
+   nigdzie zdefiniowane w App.css — przez co zawsze działały fallbacki do
+   Tailwind-defaults (#3b82f6 jasny blue, #1e293b slate). Reszta mobile UI
+   (FloatingAddButton, AppHeader) używa --accent-primary (#1e3a5f granat) oraz
+   systemu --bg-panel / --text-* / --border zdefiniowanego w App.css.
+   Efekt: dolny nav świecił innym odcieniem niebieskiego niż cała reszta.
+   Teraz korzystamy z tych samych zmiennych co AppHeader / panele boczne. */
+
 .mobile-bottom-nav {
   display: none;
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 60px;
-  background-color: var(--theme-panel-bg, #1e293b);
-  border-top: 1px solid var(--theme-border, #334155);
+  height: 64px;
+  /* --bg-panel = to samo tło co panele boczne (LeftPanel/RightPanel/AppHeader). */
+  background-color: var(--bg-panel, #1e293b);
+  border-top: 1px solid var(--border, rgba(41, 49, 59, 0.5));
   z-index: 1000;
   padding-bottom: env(safe-area-inset-bottom);
+  /* Lekki cień oddzielający nav od canvasu — poprawia czytelność nad Pixi. */
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.18);
 }
 
 .bottom-nav-item {
@@ -17,32 +29,60 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 3px;
+  /* Aktywna zakładka dostanie pill wewnętrzny — dlatego tu padding góra/dół
+     i border-radius, żeby pill wyglądał jak kontener. */
+  margin: 6px 4px;
+  border-radius: 10px;
   background: transparent;
   border: none;
-  color: var(--theme-text-muted, #94a3b8);
+  /* --text-secondary = ten sam co muted text w panelach. */
+  color: var(--text-secondary, #a1a6b4);
   font-size: 10px;
-  gap: 4px;
+  line-height: 1.2;
+  font-weight: 500;
   cursor: pointer;
-  transition: color 0.2s;
-  padding: 8px 0;
+  transition: color 0.15s ease, background-color 0.15s ease;
+  padding: 6px 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .bottom-nav-item:hover {
-  color: var(--theme-text-primary, #f8fafc);
+  color: var(--text-inverse, #ffffff);
 }
 
 .bottom-nav-item.is-active {
-  color: var(--theme-brand-blue, #3b82f6);
+  /* Spójny granat z FloatingAddButton / AppHeader — NIE jaskrawy Tailwind blue.
+     --accent-primary-hover (#345580) daje lepszy kontrast na ciemnym tle nav
+     niż bazowy --accent-primary (#1e3a5f), który byłby zbyt ciemny. */
+  color: var(--accent-primary-hover, #345580);
+  /* Miękki pill pod aktywną zakładką: --accent-primary-soft (rgba 12%).
+     Wizualne wyróżnienie bez krzykliwego koloru — pasuje do profesjonalnego
+     narzędzia inżynierskiego. */
+  background-color: var(--accent-primary-soft, rgba(30, 58, 95, 0.12));
 }
 
 .bottom-nav-icon {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
+  /* Ikony dziedziczą kolor po .bottom-nav-item (currentcolor). */
 }
 
 /* Show only on small screens */
 @media (max-width: 768px) {
   .mobile-bottom-nav {
     display: flex;
+  }
+}
+
+/* Very small phones: kompaktuj typografię żeby etykiety nie uciekały. */
+@media (max-width: 360px) {
+  .bottom-nav-item {
+    font-size: 9px;
+    margin: 6px 2px;
+  }
+  .bottom-nav-icon {
+    width: 20px;
+    height: 20px;
   }
 }
