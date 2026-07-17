@@ -570,13 +570,14 @@ export function PdfDocumentationPage({ onClose }: { onClose?: () => void } = {})
             void handleExportPdf();
           }}
           disabled={isExportingPdf}
+          data-testid="pdf-export-btn"
         >
           <AppIcon name="pdf" size={18} />
           <span>{isExportingPdf ? t("app.pdfDocumentationPage.footer.exportBtnLoading") : t("app.pdfDocumentationPage.footer.exportBtn")}</span>
         </button>
       </footer>
       {exportError ? (
-        <p className="pd-export-error" role="alert">
+        <p className="pd-export-error" role="alert" data-testid="pdf-export-error">
           {exportError}{" "}
           <button
             type="button"

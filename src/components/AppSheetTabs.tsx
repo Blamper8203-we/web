@@ -47,6 +47,9 @@ export function AppSheetTabs({ activeSheet, onChangeSheet, showLeftPanel, onOpen
           key={tab.sheet}
           type="button"
           onClick={() => onChangeSheet(tab.sheet)}
+          data-testid="sheet-tab"
+          data-sheet={tab.sheet}
+          aria-pressed={activeSheet === tab.sheet}
         >
           <AppIcon className="sheet-tab-icon" name={tab.icon} />
           <span>{tab.label}</span>

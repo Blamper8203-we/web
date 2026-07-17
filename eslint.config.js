@@ -4,8 +4,9 @@
 // - Reguły TS-u dostosowane do "recommended"
 // - React/JSX-a11y świadomie pominięte (to osobny temat, łatwo nadpalić)
 //
-// Iteracja: zacznij ostrzeżenia, stopniowo zaostrzaj. `lint` skrypt z flagą
-// --max-warnings 0 to "fail on any warning" — używaj ostrożnie.
+// Stan: bramka zero-warning w CI od 2026-07 (`.github/workflows/ci.yml`
+// wywołuje `npm run lint -- --max-warnings 0`). Każdy nowy warning = fail.
+// `no-console`/`react-hooks/exhaustive-deps` są na "warn", więc trzymaj 0.
 
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";

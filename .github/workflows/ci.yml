@@ -32,20 +32,11 @@ jobs:
         run: npm ci
 
       - name: Lint
-        # Lint jest teraz warnings-only (eslint --max-warnings 0 by failowało
-        # na istniejących 35 warningach). Gdy liczba spadnie, zmień na
-        # `npm run lint -- --max-warnings 0` żeby failować na nowych.
-        run: npm run lint
-
-      - name: Lint warning budget (nieblokujący)
-        # Krok diagnostyczny: raportuje liczbę warningów, ale NIE failuje builda.
-        # Cel: widoczność dryfu jakości w czasie. Gdy budżet osiągnie 0, usuń ten
-        # krok i dodaj `--max-warnings 0` do kroku "Lint" powyżej.
-        # BUDŻET (do obniżania, nigdy do podnoszenia): 35
-        continue-on-error: true
-        run: |
-          echo "Aktualny budżet ostrzeżeń: 35 (cel: 0)"
-          npm run lint -- --max-warnings 0 || echo "::warning::Lint przekracza docelowy budżet 0 ostrzeżeń. Obniżaj, nie podnoś."
+        # Zero-warning gate: lint zwraca 0 ostrzeżeń (od 2026-07), więc
+        # blokujemy nowy dług. Kiedyś było ~35 warningów, obniżone do 0.
+        # Każdy nowy warning = fail builda. To zamknięcie Kroku 1 planu
+        # z docs/code-review-and-improvement-plan.md.
+        run: npm run lint -- --max-warnings 0
 
       - name: Build
         run: npm run build
@@ -83,3 +74,47 @@ jobs:
         run: npm run smoke:online
         env:
           DINBOARD_SMOKE_PORT: "4173"
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    needs: test
+    # E2E testuje zbudowany artefakt przez realnego Chromium. Wolniejsze niż
+    # unit testy, wymaga pobrania przeglądarki. Do pominięcia na PR dodaj label
+    # `skip-e2e` (analogicznie do `skip-smoke`): gh pr edit --add-label skip-e2e.
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-e2e') }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers (chromium only)
+        # chromium-only — patrz komentarz w playwright.config.ts. Najmniejszy
+        # footprint, wystarcza do PWA smoke.
+        run: npx playwright install --with-deps chromium
+
+      - name: Build
+        # preview (webServer w playwright.config.ts) wymaga zbudowanego dist/.
+        run: npm run build
+
+      - name: Run E2E
+        run: npm run test:e2e
+        env:
+          CI: "true"
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14

@@ -181,6 +181,17 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
+    // Wykluczamy e2e/ (Playwright) — pliki *.spec.ts tam living są testami
+    // przeglądarkowymi, nie jsdom. Bez tego vitest próbuje importować
+    // @playwright/test w jsdom i crashuje 3 pliki jako "failed test files".
+    // Playwright ma własny runner (npm run test:e2e) z playwright.config.ts.
+    exclude: [
+      "**/node_modules/**",
+      "**/dist/**",
+      "e2e/**",
+      "playwright.config.*",
+      "scripts/**",
+    ],
   },
   build: {
     sourcemap: true,
