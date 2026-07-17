@@ -52,5 +52,20 @@ if (typeof window !== "undefined") {
 }
 
 export const createRoot = ViteReactSSG(
-  { routes, basename: "/" }
+  {
+    routes,
+    basename: "/",
+    // WHY: opt-in do flag v7 wyłącza deprecation warnings w v6.30 i wczesniej
+    // włącza zachowanie, które i tak stanie się domyślne w v7. v7_startTransition
+    // owija aktualizacje stanu w React.startTransition; v7_relativeSplatPath
+    // zmienia rozwiązywanie relatywnych ścieżek w splat-routes. Oba są no-op
+    // dla obecnego zestawu tras (brak splat routes, brak zależności od starej
+    // semantyki), ale wyciszają warning storm w testach i przygotowują grunt
+    // pod upgrade. vite-react-ssg przekazuje ten obiekt do createBrowserRouter
+    // oraz (dla v7_startTransition) do <RouterProvider>.
+    future: {
+      v7_startTransition: true,
+      v7_relativeSplatPath: true,
+    },
+  },
 );

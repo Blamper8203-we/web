@@ -14,9 +14,11 @@ import { TermsOfService } from "./TermsOfService";
 // injects one at runtime, but the unit-test harness does not.
 // MemoryRouter is needed because LandingHeader uses useLocation() to
 // highlight the active nav item.
+// future: opt-in do flag v7 wycisza warningi deprecation z react-router v6.30
+// (zgodne z future flagami ustawionymi w main.tsx).
 function renderWithHelmet(ui: React.ReactElement) {
   return render(
-    <MemoryRouter>
+    <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <HelmetProvider>{ui}</HelmetProvider>
     </MemoryRouter>
   );

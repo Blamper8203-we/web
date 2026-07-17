@@ -11,6 +11,11 @@ import { CookieConsent } from "./CookieConsent";
 // get the AdSense account flagged. These tests pin the three critical
 // behaviours: banner visibility, persistence, and gtag wiring.
 
+// WHY: opt-in do flag v7 dla <MemoryRouter> — wycisza warningi deprecation
+// z react-router v6.30 (zgodne z future flagami ustawionymi w main.tsx).
+// Stała, żeby uniknąć powtarzania 7× tego samego obiektu w każdym teście.
+const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
+
 // jsdom does not implement scrollTo / matchMedia fully but CookieConsent
 // doesn't touch either. We do need to stub gtag and a no-op localStorage
 // is provided by jsdom natively.
@@ -22,7 +27,7 @@ beforeEach(() => {
 describe("<CookieConsent />", () => {
   it("shows the banner when no prior consent is stored", () => {
     render(
-      <MemoryRouter>
+      <MemoryRouter future={routerFuture}>
         <CookieConsent />
       </MemoryRouter>,
     );
@@ -38,7 +43,7 @@ describe("<CookieConsent />", () => {
     window.localStorage.setItem("cookie_consent_v1", "all");
 
     render(
-      <MemoryRouter>
+      <MemoryRouter future={routerFuture}>
         <CookieConsent />
       </MemoryRouter>,
     );
@@ -50,7 +55,7 @@ describe("<CookieConsent />", () => {
 
   it("clicking 'Akceptuję wszystkie' persists 'all' and grants ad_storage", () => {
     render(
-      <MemoryRouter>
+      <MemoryRouter future={routerFuture}>
         <CookieConsent />
       </MemoryRouter>,
     );
@@ -75,7 +80,7 @@ describe("<CookieConsent />", () => {
 
   it("clicking 'Tylko niezbędne' persists 'essential' and denies ad_storage", () => {
     render(
-      <MemoryRouter>
+      <MemoryRouter future={routerFuture}>
         <CookieConsent />
       </MemoryRouter>,
     );
@@ -96,7 +101,7 @@ describe("<CookieConsent />", () => {
 
   it("contains a link to /polityka-prywatnosci", () => {
     render(
-      <MemoryRouter>
+      <MemoryRouter future={routerFuture}>
         <CookieConsent />
       </MemoryRouter>,
     );
@@ -114,7 +119,7 @@ describe("<CookieConsent />", () => {
 
     expect(() =>
       render(
-        <MemoryRouter>
+        <MemoryRouter future={routerFuture}>
           <CookieConsent />
         </MemoryRouter>,
       ),
@@ -124,7 +129,7 @@ describe("<CookieConsent />", () => {
     // even when gtag() is absent.
     window.localStorage.clear();
     render(
-      <MemoryRouter>
+      <MemoryRouter future={routerFuture}>
         <CookieConsent />
       </MemoryRouter>,
     );
