@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
-import { PwaInstallAssets } from "../pwa/PwaInstallAssets";
 export function LandingHeader() {
   const { t } = useTranslation();
   const location = useLocation();
@@ -37,10 +36,6 @@ export function LandingHeader() {
         </nav>
 
         <div className="landing-header-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          {/* WHY: PwaInstallAssets renderuje null gdy instalacja nie jest dostępna
-               (np. już standalone lub niewspierana przeglądarka) — więc nie psuje
-               układu headera w tych przypadkach. */}
-          <PwaInstallAssets variant="header" />
           <a
             href="https://suppi.pl/dinboard"
             target="_blank"
