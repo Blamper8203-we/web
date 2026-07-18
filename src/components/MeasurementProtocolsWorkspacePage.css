@@ -1273,8 +1273,8 @@ label:hover .mp-delete-btn {
    Pinch-to-zoom dla zakładek HTML (title-page, circuit-list, unified, rcd-ground).
    PinchZoomStage renderuje `<div class="mp-stage pinch-zoom-stage">` —
    dziedziczy cały layout `.mp-stage` (overflow: auto, flex column, padding),
-   a dodatkowo przyjmuje `touch-action: pan-y` (inline) by:
-     - pozwolić natywny vertical scroll (pan),
+   a dodatkowo przyjmuje `touch-action: pan-x pan-y` (inline) by:
+     - pozwolić na natywny scroll (pan) w pionie i poziomie,
      - zablokować przeglądarce native pinch-zoom strony (chcemy własny).
    Wewnętrzny `.pinch-zoom-stage__content` jest skalowany transformem;
    przy scale > 1 rośnie ponad viewport i scroll działa.

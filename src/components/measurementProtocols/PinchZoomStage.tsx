@@ -108,7 +108,7 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      style={{ touchAction: "pan-y" }}
+      style={{ touchAction: "pan-x pan-y" }}
     >
       <div
         className="pinch-zoom-stage__content"

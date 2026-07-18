@@ -26,11 +26,11 @@ describe("PinchZoomStage", () => {
     expect(screen.queryByLabelText(/reset zoom/i)).not.toBeInTheDocument();
   });
 
-  it("aplikuje touch-action: pan-y (pozwala vertical scroll, blokuje native pinch)", () => {
+  it("aplikuje touch-action: pan-x pan-y (pozwala na scroll poziomy/pionowy, blokuje native pinch)", () => {
     const { container } = render(<PinchZoomStage><div>x</div></PinchZoomStage>);
     const stage = container.querySelector(".pinch-zoom-stage");
     expect(stage).toBeInTheDocument();
-    expect(stage).toHaveStyle({ touchAction: "pan-y" });
+    expect(stage).toHaveStyle({ touchAction: "pan-x pan-y" });
   });
 
   it("ignores touchstart z < 2 palcami (nie wejdzie w pinch)", () => {
