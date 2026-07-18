@@ -38,3 +38,10 @@ scratch/
 /test-results/
 /blob-report/
 /playwright/.cache/
+
+# Android signing secrets — NIGDY commitować
+*.keystore
+*.jks
+android/app/release/
+android/app/*.keystore
+android/app/keystore.properties

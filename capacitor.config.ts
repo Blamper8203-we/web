@@ -13,7 +13,7 @@ const config: CapacitorConfig = {
   // splash i tak zniknie po launchShowDuration.
   plugins: {
     SplashScreen: {
-      launchShowDuration: 3000,
+      launchShowDuration: 6000,
       launchAutoHide: true,
       launchFadeOutDuration: 300,
       backgroundColor: '#0e0f11',
