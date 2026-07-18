@@ -67,12 +67,15 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
     const el = contentRef.current;
     if (!el || typeof ResizeObserver === "undefined") return;
     const ro = new ResizeObserver((entries) => {
+      if (scaleRef.current !== 1) return;
       for (const entry of entries) {
         const h = (entry.target as HTMLElement).offsetHeight;
         const w = (entry.target as HTMLElement).offsetWidth;
-        setUnscaledHeight(h);
-        setUnscaledWidth(w);
-        unscaledSizeRef.current = { width: w, height: h };
+        if (w > 0 && h > 0) {
+          setUnscaledHeight(h);
+          setUnscaledWidth(w);
+          unscaledSizeRef.current = { width: w, height: h };
+        }
       }
     });
     ro.observe(el);
@@ -302,6 +305,8 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
           ref={contentRef}
           className="pinch-zoom-stage__content"
           style={{
+            width: unscaledWidth > 0 ? unscaledWidth : "100%",
+            minWidth: "unset",
             transform: `scale(${scale})`,
             transformOrigin: "top left",
           }}
