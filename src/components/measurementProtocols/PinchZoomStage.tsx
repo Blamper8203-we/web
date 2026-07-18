@@ -40,6 +40,10 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
   const pinchStateRef = useRef<{
     initialDistance: number;
     initialScale: number;
+    initialPointerX: number;
+    initialPointerY: number;
+    initialScrollLeft: number;
+    initialScrollTop: number;
   } | null>(null);
 
   const [unscaledHeight, setUnscaledHeight] = useState(0);
@@ -82,9 +86,30 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
     // preventDefault robi się zwykle na onTouchMove w pinch.
     const dx = t1.clientX - t2.clientX;
     const dy = t1.clientY - t2.clientY;
+    const centerX = (t1.clientX + t2.clientX) / 2;
+    const centerY = (t1.clientY + t2.clientY) / 2;
+    
+    let pointerX = 0;
+    let pointerY = 0;
+    let scrollLeft = 0;
+    let scrollTop = 0;
+
+    const stage = stageRef.current;
+    if (stage) {
+      const rect = stage.getBoundingClientRect();
+      pointerX = centerX - rect.left;
+      pointerY = centerY - rect.top;
+      scrollLeft = stage.scrollLeft;
+      scrollTop = stage.scrollTop;
+    }
+
     pinchStateRef.current = {
       initialDistance: Math.hypot(dx, dy),
       initialScale: scale,
+      initialPointerX: pointerX,
+      initialPointerY: pointerY,
+      initialScrollLeft: scrollLeft,
+      initialScrollTop: scrollTop,
     };
   }, [scale]);
 
@@ -102,27 +127,46 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
     const dx = t1.clientX - t2.clientX;
     const dy = t1.clientY - t2.clientY;
     const distance = Math.hypot(dx, dy);
-    const ratio = distance / pinchStateRef.current.initialDistance;
-    const nextScale = Math.max(1, Math.min(MAX_SCALE, pinchStateRef.current.initialScale * ratio));
     
-    if (nextScale !== scale) {
-      const stage = stageRef.current;
-      if (stage) {
-        const rect = stage.getBoundingClientRect();
-        const centerX = (t1.clientX + t2.clientX) / 2;
-        const centerY = (t1.clientY + t2.clientY) / 2;
-        const pointerX = centerX - rect.left;
-        const pointerY = centerY - rect.top;
+    const {
+      initialDistance,
+      initialScale,
+      initialPointerX,
+      initialPointerY,
+      initialScrollLeft,
+      initialScrollTop,
+    } = pinchStateRef.current;
 
-        const contentX = (stage.scrollLeft + pointerX) / scale;
-        const contentY = (stage.scrollTop + pointerY) / scale;
+    const ratio = distance / initialDistance;
+    const nextScale = Math.max(1, Math.min(MAX_SCALE, initialScale * ratio));
+    
+    const stage = stageRef.current;
+    if (stage) {
+      const rect = stage.getBoundingClientRect();
+      const currentCenterX = (t1.clientX + t2.clientX) / 2;
+      const currentCenterY = (t1.clientY + t2.clientY) / 2;
+      const currentPointerX = currentCenterX - rect.left;
+      const currentPointerY = currentCenterY - rect.top;
 
+      // Punkt dokumentu, który na początku gestu znajdował się pod palcami
+      const contentX = (initialScrollLeft + initialPointerX) / initialScale;
+      const contentY = (initialScrollTop + initialPointerY) / initialScale;
+
+      // Nowy scroll, który ustawi ten sam punkt pod obecnym położeniem palców
+      const targetScrollLeft = contentX * nextScale - currentPointerX;
+      const targetScrollTop = contentY * nextScale - currentPointerY;
+
+      if (nextScale !== scale) {
         targetScrollRef.current = {
-          left: contentX * nextScale - pointerX,
-          top: contentY * nextScale - pointerY,
+          left: targetScrollLeft,
+          top: targetScrollTop,
         };
+        setScale(nextScale);
+      } else {
+        // Skala się nie zmieniła, render nie zostanie wykonany, ręcznie panujemy!
+        stage.scrollLeft = targetScrollLeft;
+        stage.scrollTop = targetScrollTop;
       }
-      setScale(nextScale);
     }
   }, [scale]);
 
