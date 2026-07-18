@@ -25,6 +25,7 @@ import { UnifiedProtocolsTab } from "./measurementProtocols/UnifiedProtocolsTab"
 import { RcdProtocolsTab } from "./measurementProtocols/RcdProtocolsTab";
 import { DinRailProtocolTab } from "./measurementProtocols/DinRailProtocolTab";
 import { SchematicTab } from "./measurementProtocols/SchematicTab";
+import { PinchZoomStage } from "./measurementProtocols/PinchZoomStage";
 
 type ProtocolTableRowsMap = Pick<
   MeasurementProtocolsData,
@@ -229,90 +230,105 @@ export function MeasurementProtocolsWorkspacePage() {
   // lands, both this index and `totalUiPages` update in the same render.
   const dinRailPageIndex = schematicStartPage + schematicImages.length;
 
+  // WHY: zakładki HTML (title-page, circuit-list, unified, rcd-ground) mają
+  // edytowalne pola (input.mp-editable, contenteditable) i dostają PinchZoomStage
+  // — 2-palcowy pinch + natywny vertical scroll. Zakładki obrazkowe (din-rail,
+  // schematic) mają własny PinchZoomImage wewnątrz taba, więc zostają w zwykłym
+  // .mp-stage bez dodatkowego opakowania.
+  const isHtmlPinchTab =
+    activeTab === "title-page" ||
+    activeTab === "circuit-list" ||
+    activeTab === "unified" ||
+    activeTab === "rcd-ground";
+
   return (
     <div className="mp-page">
-      <div className="mp-stage">
-        {activeTab === "title-page" && (
-          <TitlePageTab 
-            metadata={metadata}
-            onChange={onChange}
-            displayDate={displayDate}
-            protocolNumber={protocolNumber}
-            stampText={stampText}
-            titlePageIndex={titlePageIndex}
-            totalUiPages={totalUiPages}
-          />
-        )}
+      {isHtmlPinchTab ? (
+        <PinchZoomStage>
+          {activeTab === "title-page" && (
+            <TitlePageTab
+              metadata={metadata}
+              onChange={onChange}
+              displayDate={displayDate}
+              protocolNumber={protocolNumber}
+              stampText={stampText}
+              titlePageIndex={titlePageIndex}
+              totalUiPages={totalUiPages}
+            />
+          )}
 
-        {activeTab === "circuit-list" && (
-          <CircuitListTab 
-            circuitListPages={circuitListPages}
-            circuitListRowsCount={circuitListRows.length}
-            displayDate={displayDate}
-            objectType={objectType}
-            circuitListStartPage={circuitListStartPage}
-            totalUiPages={totalUiPages}
-          />
-        )}
+          {activeTab === "circuit-list" && (
+            <CircuitListTab
+              circuitListPages={circuitListPages}
+              circuitListRowsCount={circuitListRows.length}
+              displayDate={displayDate}
+              objectType={objectType}
+              circuitListStartPage={circuitListStartPage}
+              totalUiPages={totalUiPages}
+            />
+          )}
 
-        {(activeTab === "din-rail" || activeTab === "din-rail-connections") && (
-          <DinRailProtocolTab
-            dinRailPreviewUrl={dinRailPreviewUrl}
-            dinRailPreviewError={dinRailPreviewError}
-            onRetry={() => setDinRailRetryCounter((counter) => counter + 1)}
-            displayDate={displayDate}
-            objectType={objectType}
-            dinRailPageIndex={activeTab === "din-rail-connections" ? dinRailPageIndex + 1 : dinRailPageIndex}
-            totalUiPages={totalUiPages}
-            mode={activeTab === "din-rail-connections" ? "connections" : "clean"}
-          />
-        )}
+          {activeTab === "unified" && (
+            <UnifiedProtocolsTab
+              protocols={protocols}
+              updateProtocols={updateProtocols}
+              updateTableRow={updateTableRow}
+              unifiedPages={unifiedPages}
+              displayDate={displayDate}
+              objectType={objectType}
+              unifiedStartPage={unifiedStartPage}
+              totalUiPages={totalUiPages}
+            />
+          )}
 
-        {activeTab === "schematic" && (
-          <SchematicTab
-            schematicImages={schematicImages}
-            schematicError={schematicError}
-            onRetry={() => setSchematicRetryCounter((counter) => counter + 1)}
-            displayDate={displayDate}
-            objectType={objectType}
-            schematicStartPage={schematicStartPage}
-            totalUiPages={totalUiPages}
-            isLoading={schematicIsLoading}
-          />
-        )}
+          {activeTab === "rcd-ground" && (
+            <RcdProtocolsTab
+              protocols={protocols}
+              updateProtocols={updateProtocols}
+              updateTableRow={updateTableRow}
+              displayDate={displayDate}
+              objectType={objectType}
+              rcdPageIndex={rcdPageIndex}
+              totalUiPages={totalUiPages}
+            />
+          )}
+        </PinchZoomStage>
+      ) : (
+        <div className="mp-stage">
+          {(activeTab === "din-rail" || activeTab === "din-rail-connections") && (
+            <DinRailProtocolTab
+              dinRailPreviewUrl={dinRailPreviewUrl}
+              dinRailPreviewError={dinRailPreviewError}
+              onRetry={() => setDinRailRetryCounter((counter) => counter + 1)}
+              displayDate={displayDate}
+              objectType={objectType}
+              dinRailPageIndex={activeTab === "din-rail-connections" ? dinRailPageIndex + 1 : dinRailPageIndex}
+              totalUiPages={totalUiPages}
+              mode={activeTab === "din-rail-connections" ? "connections" : "clean"}
+            />
+          )}
 
-        {activeTab === "unified" && (
-          <UnifiedProtocolsTab 
-            protocols={protocols}
-            updateProtocols={updateProtocols}
-            updateTableRow={updateTableRow}
-            unifiedPages={unifiedPages}
-            displayDate={displayDate}
-            objectType={objectType}
-            unifiedStartPage={unifiedStartPage}
-            totalUiPages={totalUiPages}
-          />
-        )}
+          {activeTab === "schematic" && (
+            <SchematicTab
+              schematicImages={schematicImages}
+              schematicError={schematicError}
+              onRetry={() => setSchematicRetryCounter((counter) => counter + 1)}
+              displayDate={displayDate}
+              objectType={objectType}
+              schematicStartPage={schematicStartPage}
+              totalUiPages={totalUiPages}
+              isLoading={schematicIsLoading}
+            />
+          )}
 
-        {activeTab === "rcd-ground" && (
-          <RcdProtocolsTab 
-            protocols={protocols}
-            updateProtocols={updateProtocols}
-            updateTableRow={updateTableRow}
-            displayDate={displayDate}
-            objectType={objectType}
-            rcdPageIndex={rcdPageIndex}
-            totalUiPages={totalUiPages}
-          />
-        )}
-
-        {/* Support for legacy pages (continuity, loop, insulation) to render similarly if not unified */}
-        {["continuity", "loop", "insulation"].includes(activeTab) && (
-          <div className="a4-page a4-page--landscape flex items-center justify-center text-gray-400">
-            Protokoły klasyczne: układ nie otrzymał pełnej modernizacji Tailwindowej, zalecany styl zunifikowany. W PDF wyglądają poprawnie.
-          </div>
-        )}
-      </div>
+          {/* Support for legacy pages (continuity, loop, insulation) to render similarly if not unified */}
+          {["continuity", "loop", "insulation"].includes(activeTab) && (
+            <div className="a4-page a4-page--landscape flex items-center justify-center text-gray-400">
+              Protokoły klasyczne: układ nie otrzymał pełnej modernizacji Tailwindowej, zalecany styl zunifikowany. W PDF wyglądają poprawnie.
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

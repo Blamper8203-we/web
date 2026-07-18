@@ -28,11 +28,14 @@ interface UseProps {
   setPanSafe: (pan: WorldPoint) => void;
   panRef: MutableRefObject<WorldPoint>;
   screenToWorld: (clientX: number, clientY: number) => WorldPoint;
+  pinchActiveRef: MutableRefObject<boolean>;
   onSymbolMoveStart?: (symbolId: string) => void;
   onSymbolMove?: (symbolId: string, x: number, y: number) => void;
   onSymbolMoveEnd?: (symbolId: string) => void;
   onSymbolSelect?: (symbolId: string | null, options?: { toggle?: boolean }) => void;
   onSymbolSelectionChange?: (symbolIds: string[], activeId?: string | null) => void;
+  panModeEnabled: boolean;
+  isMobile: boolean;
 }
 
 function buildRail(overrides: Partial<DinRailCanvasRail> = {}): DinRailCanvasRail {
@@ -103,6 +106,7 @@ function setup(overrides: Partial<UseProps> = {}) {
   const flushViewportState = vi.fn();
   const setPanSafe = vi.fn();
   const panRef: MutableRefObject<WorldPoint> = { current: { x: 0, y: 0 } };
+  const pinchActiveRef: MutableRefObject<boolean> = { current: false };
   const screenToWorld = vi.fn((x: number, y: number): WorldPoint => ({ x, y }));
   const onSymbolMoveStart = vi.fn();
   const onSymbolMove = vi.fn();
@@ -121,12 +125,15 @@ function setup(overrides: Partial<UseProps> = {}) {
     setPanSafe,
     panRef,
     screenToWorld,
+    pinchActiveRef,
     onSymbolMoveStart,
     onSymbolMove,
     onSymbolMoveEnd,
     onSymbolSelect,
     onSymbolSelectionChange,
     getPaletteTemplate,
+    panModeEnabled: false,
+    isMobile: false,
     ...overrides,
   };
 
@@ -141,6 +148,7 @@ function setup(overrides: Partial<UseProps> = {}) {
     flushViewportState,
     setPanSafe,
     panRef,
+    pinchActiveRef,
     screenToWorld,
     onSymbolMoveStart,
     onSymbolMove,
@@ -201,6 +209,48 @@ describe("useDinRailInteraction hook", () => {
       expect(setPanSafe).not.toHaveBeenCalled();
       expect(screenToWorld).not.toHaveBeenCalled();
       expect(result.current.selectionRect).toBeNull();
+    });
+
+    it("enters pan mode on mobile when panMode is enabled and button=0", () => {
+      const { result, setPanSafe, screenToWorld } = setup({ isMobile: true, panModeEnabled: true });
+      const event = buildPointerEvent({ clientX: 100, clientY: 200, button: 0 });
+
+      act(() => {
+        result.current.handleSurfacePointerDown(event);
+      });
+
+      expect(setPanSafe).not.toHaveBeenCalled();
+      expect(screenToWorld).not.toHaveBeenCalled();
+      expect(result.current.selectionRect).toBeNull();
+      
+      act(() => {
+        result.current.handlePointerMove(buildPointerEvent({ clientX: 120, clientY: 210 }));
+      });
+      expect(setPanSafe).toHaveBeenCalledWith({ x: 20, y: 10 });
+    });
+
+    it("enters select mode on mobile when panMode is disabled and button=0", () => {
+      const { result, screenToWorld } = setup({ isMobile: true, panModeEnabled: false });
+      const event = buildPointerEvent({ clientX: 100, clientY: 200, button: 0 });
+
+      act(() => {
+        result.current.handleSurfacePointerDown(event);
+      });
+
+      expect(screenToWorld).toHaveBeenCalledWith(100, 200);
+      expect(result.current.selectionRect).toEqual({ x: 100, y: 200, width: 0, height: 0 });
+    });
+
+    it("enters select mode on desktop even when panMode is magically enabled and button=0", () => {
+      const { result, screenToWorld } = setup({ isMobile: false, panModeEnabled: true });
+      const event = buildPointerEvent({ clientX: 100, clientY: 200, button: 0 });
+
+      act(() => {
+        result.current.handleSurfacePointerDown(event);
+      });
+
+      expect(screenToWorld).toHaveBeenCalledWith(100, 200);
+      expect(result.current.selectionRect).toEqual({ x: 100, y: 200, width: 0, height: 0 });
     });
   });
 
@@ -650,6 +700,56 @@ describe("useDinRailInteraction hook", () => {
       const snapped = result.current.snapModulePlacement(73, 100, 18, 80);
 
       expect(snapped).toEqual(expect.objectContaining({ x: expect.any(Number), y: expect.any(Number) }));
+    });
+  });
+
+  describe("pinch guard", () => {
+    // WHY: pinch-to-zoom (2 palce) jest obsługiwany przez useDinRailPinch;
+    // pointer events odpalane po touchstart muszą zostać zignorowane, by nie
+    // wejść w tryb select/drag w konflikcie z pinch. Pin the behaviour.
+    it("pomija handleSurfacePointerDown gdy pinch jest aktywny", () => {
+      const { result, pinchActiveRef, panRef, setPanSafe } = setup();
+      pinchActiveRef.current = true;
+      panRef.current = { x: 5, y: 7 };
+
+      const event = buildPointerEvent({
+        button: 1, // middle-mouse pan by default — ale pinch active → ma być pominięte
+        clientX: 100,
+        clientY: 100,
+      });
+
+      expect(() => result.current.handleSurfacePointerDown(event)).not.toThrow();
+      // Pan nie powinien się zmienić (pan mode nie wszedł).
+      expect(setPanSafe).not.toHaveBeenCalled();
+    });
+
+    it("pomija handlePointerMove gdy pinch jest aktywny", () => {
+      const { result, pinchActiveRef, setPanSafe } = setup();
+      pinchActiveRef.current = true;
+
+      const event = buildPointerEvent({ clientX: 50, clientY: 50 });
+      expect(() => result.current.handlePointerMove(event)).not.toThrow();
+      expect(setPanSafe).not.toHaveBeenCalled();
+    });
+
+    it("pomija beginDragForSymbol gdy pinch jest aktywny", () => {
+      const { result, pinchActiveRef, onSymbolMoveStart } = setup();
+      pinchActiveRef.current = true;
+
+      const event = buildPointerEvent({ clientX: 10, clientY: 10 });
+      expect(() => result.current.beginDragForSymbol(event, "any-id")).not.toThrow();
+      // Drag nie powinien się rozpocząć.
+      expect(onSymbolMoveStart).not.toHaveBeenCalled();
+    });
+
+    it("po wyłączeniu pinch (false) handlery wracają do normalnego działania", () => {
+      const { result, pinchActiveRef } = setup();
+      pinchActiveRef.current = false;
+
+      // Ten sam event co wyżej, ale pinch nieaktywny → nie throw, normalny flow.
+      // W idle mode (brak anchora) move jest no-op, ale nie powinien rzucać.
+      const event = buildPointerEvent({ clientX: 50, clientY: 50 });
+      expect(() => result.current.handlePointerMove(event)).not.toThrow();
     });
   });
 });

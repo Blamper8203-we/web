@@ -321,6 +321,18 @@ html.ui-theme-classic .workspace-tool-btn:hover {
   background: #f3f4f6;
   color: #1a1d22;
 }
+.app-shell.ui-theme-classic .workspace-tool-btn.is-active,
+html.ui-theme-classic .workspace-tool-btn.is-active {
+  background-color: var(--accent-primary, #3b82f6);
+  color: #ffffff;
+  border-color: var(--accent-primary, #3b82f6);
+}
+.app-shell.ui-theme-classic .workspace-tool-btn.is-active:hover,
+html.ui-theme-classic .workspace-tool-btn.is-active:hover {
+  background-color: var(--accent-primary-hover, #2563eb);
+  border-color: var(--accent-primary-hover, #2563eb);
+  color: #ffffff;
+}
 .app-shell.ui-theme-classic .toolbar-center,
 html.ui-theme-classic .toolbar-center {
   background: #ffffff;

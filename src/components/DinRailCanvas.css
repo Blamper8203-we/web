@@ -15,6 +15,11 @@
   inset: 0 0 var(--statusbar-height) 0;
   overflow: visible;
   z-index: 1;
+  /* WHY: touch-action: none na containerze (który przyjmuje onTouchStart/Move/End
+     dla pinch) — bez tego przeglądarka mobilna może przechwycić gest pinch jako
+     zoom strony i nie przekazać go do naszego handlera. j.w. jak .din-rail-surface
+     i .din-rail-hitbox. Patrz useDinRailPinch. */
+  touch-action: none;
 }
 
 .din-rail-svg-container.is-drop-target {

@@ -141,6 +141,18 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
+.workspace-tool-btn.is-active {
+  background-color: var(--accent-primary, #3b82f6);
+  color: #ffffff;
+  border-color: var(--accent-primary, #3b82f6);
+}
+
+.workspace-tool-btn.is-active:hover {
+  background-color: var(--accent-primary-hover, #2563eb);
+  border-color: var(--accent-primary-hover, #2563eb);
+  color: #ffffff;
+}
+
 .workspace-tool-btn:disabled {
   cursor: default;
   opacity: 0.42;

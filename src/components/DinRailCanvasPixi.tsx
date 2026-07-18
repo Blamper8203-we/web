@@ -32,11 +32,13 @@ import "./DinRailCanvas.css";
 import type { NormalizedRect, WorldRect } from "../lib/dinRailCanvas/types";
 
 import { useDinRailViewport } from "../hooks/canvas/useDinRailViewport";
+import { useIsMobileLayout } from "../hooks/useViewport";
 // WHY: useDinRailPixiApp was removed 2026-06-28 — see hooks/canvas/useDinRailPixiApp.ts.
 // The mounting flag shouldRenderPixiLabels has been `false` since creation,
 // so the Pixi path was permanently dead. Designation labels are now
 // rendered via the DOM-based DinRailDesignationLabelsOverlay.
 import { useDinRailInteraction } from "../hooks/canvas/useDinRailInteraction";
+import { useDinRailPinch } from "../hooks/canvas/useDinRailPinch";
 import { useDinRailDragDrop } from "../hooks/canvas/useDinRailDragDrop";
 
 export interface DinRailCanvasRail {
@@ -110,6 +112,16 @@ export function DinRailCanvas({
 }: DinRailCanvasProps) {
   const { t } = useTranslation();
   useSvgTerminalsPreloader(symbols);
+  const isMobile = useIsMobileLayout();
+  const [panMode, setPanMode] = useState(false);
+  const mobileInitRef = useRef(false);
+
+  useEffect(() => {
+    if (isMobile && rail.isVisible && !mobileInitRef.current) {
+      setPanMode(true);
+      mobileInitRef.current = true;
+    }
+  }, [isMobile, rail.isVisible]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
@@ -201,7 +213,9 @@ export function DinRailCanvas({
     scale,
     pan,
     panRef,
+    scaleRef,
     setPanSafe,
+    setScaleSafe,
     flushViewportState,
     fitToViewport,
     screenToWorld,
@@ -213,6 +227,21 @@ export function DinRailCanvas({
     containerRef,
     viewportRef,
     onZoomChange,
+  });
+
+  // 1b. Pinch-to-zoom (2 palce) na mobile. Musi być przed useDinRailInteraction,
+  // bo przekazujemy mu pinchActiveRef — interaction pomija select/drag gdy pinch.
+  const {
+    pinchActiveRef,
+    onTouchStart: onPinchTouchStart,
+    onTouchMove: onPinchTouchMove,
+    onTouchEnd: onPinchTouchEnd,
+  } = useDinRailPinch({
+    containerRef,
+    scaleRef,
+    panRef,
+    setScaleSafe,
+    setPanSafe,
   });
 
   // 2. Hook obsługujący renderowanie w PixiJS — usunięty 2026-06-28
@@ -238,11 +267,14 @@ export function DinRailCanvas({
     setPanSafe,
     panRef,
     screenToWorld,
+    pinchActiveRef,
     onSymbolMoveStart,
     onSymbolMove,
     onSymbolMoveEnd,
     onSymbolSelect,
     onSymbolSelectionChange,
+    panModeEnabled: panMode,
+    isMobile,
   });
 
   // 4. Hook obsługujący Drag & Drop z palety
@@ -317,6 +349,8 @@ export function DinRailCanvas({
         onZoomOut={zoomOut}
         onToggleGroups={onToggleGroups}
         showGroups={showGroups}
+        panMode={panMode}
+        onTogglePanMode={isMobile ? () => setPanMode((p) => !p) : undefined}
       />
 
       {rail.isVisible && selectedIds.size > 0 && onDeleteSelected && (
@@ -359,6 +393,9 @@ export function DinRailCanvas({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
+        onTouchStart={onPinchTouchStart}
+        onTouchMove={onPinchTouchMove}
+        onTouchEnd={onPinchTouchEnd}
         onSurfacePointerDown={handleSurfacePointerDown}
         onSurfaceDragOver={handleDragOver}
         onSurfaceDrop={handleDrop}

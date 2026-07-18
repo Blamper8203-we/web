@@ -8,7 +8,7 @@
 //
 // Próg 10px to standard UI: iOS używa ~10px do odróżnienia tap od pan, Android
 // 8-10px. Mniej niż 10px = ludzki palek przy podniesieniu nie drga bardziej.
-export const TAP_THRESHOLD_PX = 10;
+export const TAP_THRESHOLD_PX = 15;
 
 export type TouchPoint = { x: number; y: number };
 
@@ -36,11 +36,11 @@ export function isTap(start: TouchPoint | null, end: TouchPoint): boolean {
 }
 
 // WHY: okno czasowe na drugi tap w sekwencji "double-tap → dodaj moduł".
-// 350ms to kompromis: na tyle krótkie, że przypadkowe dwa tapy z rzędu (np.
-// użytkownik zmienia zdanie) nie dodadzą modułu; na tyle długie, że naturalne
-// podwójne stuknięcie palcem zdąży. iOS używa 300-500ms dla double-tap zoom,
-// my bierzemy dolną granicę żeby nie kolidować z systemowym gestem.
-export const TAP_DOUBLE_MS = 350;
+// 500ms to standardowy, najbardziej tolerancyjny kompromis: na tyle krótkie, 
+// że przypadkowe dwa tapy z rzędu (np. użytkownik zmienia zdanie) nie dodadzą modułu; 
+// na tyle długie, że naturalne podwójne stuknięcie palcem zdąży (szczególnie, gdy 
+// mierzymy czas od touchend do touchend, a nie touchstart do touchstart).
+export const TAP_DOUBLE_MS = 500;
 
 /**
  * Zwraca true jeśli dwa tapy nastąpiły w oknie TAP_DOUBLE_MS.

@@ -8,6 +8,7 @@ import {
 } from "../../lib/dinRailSelection";
 import type { SymbolItem } from "../../types/symbolItem";
 import type { InteractionState, WorldPoint, WorldRect } from "../../lib/dinRailCanvas/types";
+import { resolveInteractionMode } from "../../lib/dinRailCanvas/interactionMode";
 import type { DinRailCanvasRail } from "../../components/DinRailCanvasPixi";
 
 export function useDinRailInteraction({
@@ -21,11 +22,14 @@ export function useDinRailInteraction({
   setPanSafe,
   panRef,
   screenToWorld,
+  pinchActiveRef,
   onSymbolMoveStart,
   onSymbolMove,
   onSymbolMoveEnd,
   onSymbolSelect,
   onSymbolSelectionChange,
+  panModeEnabled,
+  isMobile,
 }: {
   rail: DinRailCanvasRail;
   snappedSymbols: SymbolItem[];
@@ -37,11 +41,19 @@ export function useDinRailInteraction({
   setPanSafe: (pan: WorldPoint) => void;
   panRef: React.MutableRefObject<WorldPoint>;
   screenToWorld: (clientX: number, clientY: number) => WorldPoint;
+  /**
+   * WHY: gdy pinch (2 palce) jest aktywny, pointer events odpalane po
+   * touchstart muszą zostać zignorowane — inaczej select/drag wchodzi
+   * w konflikt z pinch. Ref bo aktualizowany w touch handlerach bez re-renderu.
+   */
+  pinchActiveRef: React.RefObject<boolean>;
   onSymbolMoveStart?: (symbolId: string) => void;
   onSymbolMove?: (symbolId: string, x: number, y: number) => void;
   onSymbolMoveEnd?: (symbolId: string) => void;
   onSymbolSelect?: (symbolId: string | null, options?: { toggle?: boolean }) => void;
   onSymbolSelectionChange?: (symbolIds: string[], activeId?: string | null) => void;
+  panModeEnabled: boolean;
+  isMobile: boolean;
 }) {
   const interactionRef = useRef<InteractionState>({ mode: "idle" });
   const [selectionRect, setSelectionRect] = useState<WorldRect | null>(null);
@@ -108,9 +120,17 @@ export function useDinRailInteraction({
       return;
     }
 
+    // WHY: podczas pinch (2 palce) pointerdown fired przez touch musimy
+    // pominąć — obsługiwany jest przez useDinRailPinch, a nie select/drag.
+    if (pinchActiveRef.current) {
+      return;
+    }
+
     event.currentTarget.setPointerCapture(event.pointerId);
 
-    if (event.button === 1) {
+    const mode = resolveInteractionMode(panModeEnabled, isMobile, event.button);
+
+    if (mode === "pan") {
       interactionRef.current = {
         mode: "pan",
         lastX: event.clientX,
@@ -132,10 +152,14 @@ export function useDinRailInteraction({
       width: 0,
       height: 0,
     });
-  }, [rail.isVisible, screenToWorld]);
+  }, [rail.isVisible, screenToWorld, panModeEnabled, isMobile]);
 
   const handlePointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     const interaction = interactionRef.current;
+
+    if (pinchActiveRef.current) {
+      return;
+    }
 
     if (interaction.mode === "pan") {
       const dx = event.clientX - interaction.lastX;
@@ -203,6 +227,9 @@ export function useDinRailInteraction({
   }, [onSymbolMove, screenToWorld, setPanSafe, snapModulePlacement, snappedSymbols, panRef]);
 
   const handlePointerUp = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    if (pinchActiveRef.current) {
+      return;
+    }
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
@@ -231,6 +258,10 @@ export function useDinRailInteraction({
     symbolId: string,
   ) => {
     if (!rail.isVisible) {
+      return;
+    }
+
+    if (pinchActiveRef.current) {
       return;
     }
 

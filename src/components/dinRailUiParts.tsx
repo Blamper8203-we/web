@@ -34,6 +34,8 @@ interface DinRailZoomToolbarProps {
   onZoomOut: () => void;
   onToggleGroups?: () => void;
   showGroups?: boolean;
+  panMode?: boolean;
+  onTogglePanMode?: () => void;
 }
 
 export function DinRailZoomToolbar({
@@ -43,10 +45,24 @@ export function DinRailZoomToolbar({
   onZoomOut,
   onToggleGroups,
   showGroups = true,
+  panMode = false,
+  onTogglePanMode,
 }: DinRailZoomToolbarProps) {
   const { t } = useTranslation();
   return (
     <div className="workspace-hud workspace-hud--top-right">
+      {onTogglePanMode && (
+        <button
+          type="button"
+          className={`workspace-tool-btn ${panMode ? "is-active" : ""}`}
+          title={panMode ? "Zaznaczanie" : "Przesuwanie widoku"}
+          aria-label={panMode ? "Zaznaczanie" : "Przesuwanie widoku"}
+          onClick={onTogglePanMode}
+          disabled={!canInteract}
+        >
+          <AppIcon name="move" size={17} />
+        </button>
+      )}
       {onToggleGroups && (
         <>
           <button

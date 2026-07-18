@@ -10,6 +10,7 @@ import { screenToWorld } from "../lib/schematic/schematicViewportController";
 
 import { useSchematicViewport } from "../hooks/useSchematicViewport";
 import { useSchematicInteraction } from "../hooks/useSchematicInteraction";
+import { useSchematicPinch } from "../hooks/useSchematicPinch";
 import { useSchematicCellEdit } from "../hooks/useSchematicCellEdit";
 
 import { SchematicZoomDock } from "./SchematicZoomDock";
@@ -65,6 +66,20 @@ export function SchematicCanvas({
     stopAnimation,
   } = useSchematicViewport(layout, canvasRef, resetRequest, scrollToPageRequest, onZoomChange);
 
+  // Pinch-to-zoom (2 palce) na mobile. Przed interaction hook — przekazujemy
+  // mu pinchActiveRef, by single-pointer panning/drag nie konkurował z pinch.
+  const {
+    pinchActiveRef: schematicPinchActiveRef,
+    onTouchStart: onSchematicPinchStart,
+    onTouchMove: onSchematicPinchMove,
+    onTouchEnd: onSchematicPinchEnd,
+  } = useSchematicPinch({
+    canvasRef,
+    layout,
+    viewport,
+    setViewport,
+  });
+
   const {
     editingCell,
     setEditingCell,
@@ -95,6 +110,7 @@ export function SchematicCanvas({
     onSymbolMoveEnd,
     onSymbolSelect,
     snapEnabled,
+    schematicPinchActiveRef,
   );
 
   const [isDropTarget, setIsDropTarget] = useState(false);
@@ -204,6 +220,9 @@ export function SchematicCanvas({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
+        onTouchStart={onSchematicPinchStart}
+        onTouchMove={onSchematicPinchMove}
+        onTouchEnd={onSchematicPinchEnd}
       />
 
       <SchematicScrollbars

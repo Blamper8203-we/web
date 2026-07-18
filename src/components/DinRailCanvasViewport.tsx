@@ -1,4 +1,4 @@
-import type { CSSProperties, RefObject, UIEventHandler } from "react";
+import type { CSSProperties, RefObject, TouchEventHandler, UIEventHandler } from "react";
 import {
   buildDinRailGroupFrames,
 } from "../lib/dinRailSelection";
@@ -43,6 +43,11 @@ export interface DinRailCanvasViewportProps {
   onPointerMove: UIEventHandler<HTMLDivElement>;
   onPointerUp: UIEventHandler<HTMLDivElement>;
   onPointerCancel: UIEventHandler<HTMLDivElement>;
+  // WHY: pinch-to-zoom (2 palce) na mobile. Touch events na containerze
+  // (obok pointerów). Patrz useDinRailPinch + AGENTS.md (mobile-fixes).
+  onTouchStart?: TouchEventHandler<HTMLDivElement>;
+  onTouchMove?: TouchEventHandler<HTMLDivElement>;
+  onTouchEnd?: TouchEventHandler<HTMLDivElement>;
   onSurfacePointerDown: UIEventHandler<HTMLDivElement>;
   onSurfaceDragOver: UIEventHandler<HTMLDivElement>;
   onSurfaceDrop: UIEventHandler<HTMLDivElement>;
@@ -81,6 +86,9 @@ export function DinRailCanvasViewport({
   onPointerMove,
   onPointerUp,
   onPointerCancel,
+  onTouchStart,
+  onTouchMove,
+  onTouchEnd,
   onSurfacePointerDown,
   onSurfaceDragOver,
   onSurfaceDrop,
@@ -131,6 +139,9 @@ export function DinRailCanvasViewport({
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerCancel}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
     >
       {rail.isVisible && rail.svg && (
         <div

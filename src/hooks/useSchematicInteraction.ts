@@ -21,6 +21,9 @@ export function useSchematicInteraction(
   onSymbolMoveEnd?: (symbolId: string) => void,
   onSymbolSelect?: (symbolId: string | null, options?: { toggle?: boolean }) => void,
   snapEnabled = true,
+  // WHY: gdy pinch (2 palce) jest aktywny, pointer events odpalane po
+  // touchstart muszą być pominięte — obsługuje je useSchematicPinch.
+  pinchActiveRef?: React.RefObject<boolean>,
 ) {
   const [isPanning, setIsPanning] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -34,6 +37,9 @@ export function useSchematicInteraction(
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
+      if (pinchActiveRef?.current) {
+        return;
+      }
       if (e.pointerType === "mouse" && (e.button === 1 || (e.button === 0 && e.altKey))) {
         commitCellEdit();
         if (!e.currentTarget.hasPointerCapture(e.pointerId)) {
@@ -109,6 +115,9 @@ export function useSchematicInteraction(
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
+      if (pinchActiveRef?.current) {
+        return;
+      }
       if (isPanning) {
         stopAnimation();
         const dx = e.clientX - lastPointer.current.x;
@@ -160,6 +169,9 @@ export function useSchematicInteraction(
   );
 
   const handlePointerUp = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (pinchActiveRef?.current) {
+      return;
+    }
     if (e.currentTarget.hasPointerCapture(e.pointerId)) {
       e.currentTarget.releasePointerCapture(e.pointerId);
     }
