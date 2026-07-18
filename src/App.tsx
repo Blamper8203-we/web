@@ -76,7 +76,23 @@ export function AppLayout() {
     return () => window.clearTimeout(timer);
   }, []);
 
+  const triggerSplash = () => {
+    const splash = document.getElementById("app-splash");
+    if (splash) {
+      splash.style.display = "flex";
+      // WHY: force reflow żeby przeglądarka zaaplikowała display:flex
+      // zanim usuniemy klasę app-ready, co umożliwi płynne animacje.
+      void splash.offsetWidth;
+      document.documentElement.classList.remove("app-ready");
+      
+      setTimeout(() => {
+        document.documentElement.classList.add("app-ready");
+      }, 3000);
+    }
+  };
+
   const handleOpenNewProject = useCallback(() => {
+    triggerSplash();
     setInitialAction("new");
     navigate("/app");
   }, [navigate]);
@@ -85,6 +101,7 @@ export function AppLayout() {
     try {
       const data = await openProjectFile();
       if (data) {
+        triggerSplash();
         setInitialData(data);
         setInitialAction("load_data");
         navigate("/app");
