@@ -109,16 +109,11 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
       const centerX = (t1.clientX + t2.clientX) / 2;
       const centerY = (t1.clientY + t2.clientY) / 2;
 
-      let pointerX = 0;
-      let pointerY = 0;
-      let scrollLeft = 0;
-      let scrollTop = 0;
-
       const rect = el!.getBoundingClientRect();
-      pointerX = centerX - rect.left;
-      pointerY = centerY - rect.top;
-      scrollLeft = el!.scrollLeft;
-      scrollTop = el!.scrollTop;
+      const pointerX = centerX - rect.left;
+      const pointerY = centerY - rect.top;
+      const scrollLeft = el!.scrollLeft;
+      const scrollTop = el!.scrollTop;
 
       pinchStateRef.current = {
         initialDistance: Math.hypot(dx, dy),
