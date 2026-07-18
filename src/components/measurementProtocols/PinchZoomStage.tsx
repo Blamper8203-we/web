@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { SchematicZoomDock } from "../SchematicZoomDock";
 
 /**
  * Pinch-to-zoom (2 palce) dla zakładek HTML w PDF workspace
@@ -221,6 +222,28 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
     }
   }, []);
 
+  const zoomAtCenter = useCallback((factor: number) => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    
+    const rect = stage.getBoundingClientRect();
+    const pointerX = rect.width / 2;
+    const pointerY = rect.height / 2;
+
+    const contentX = (stage.scrollLeft + pointerX) / scale;
+    const contentY = (stage.scrollTop + pointerY) / scale;
+
+    const nextScale = Math.max(1, Math.min(MAX_SCALE, scale * factor));
+    
+    if (nextScale !== scale) {
+      targetScrollRef.current = {
+        left: contentX * nextScale - pointerX,
+        top: contentY * nextScale - pointerY,
+      };
+      setScale(nextScale);
+    }
+  }, [scale]);
+
   return (
     <div
       ref={stageRef}
@@ -229,7 +252,7 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onWheel={handleWheel}
-      style={{ touchAction: "pan-x pan-y" }}
+      style={{ touchAction: "pan-x pan-y", position: "relative" }}
     >
       <div
         className="pinch-zoom-stage__wrapper"
@@ -243,27 +266,19 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
           ref={contentRef}
           className="pinch-zoom-stage__content"
           style={{
-            width: `${100 / scale}%`,
             transform: `scale(${scale})`,
             transformOrigin: "top left",
-            transition: pinchStateRef.current ? "none" : "transform 0.15s ease-out, width 0.15s ease-out",
           }}
         >
           {children}
         </div>
       </div>
-      {scale > 1 && (
-        <button
-          type="button"
-          className="pinch-zoom-reset"
-          onClick={handleReset}
-          aria-label={`Reset zoom (${Math.round(scale * 100)}%)`}
-          title={`Reset zoom (${Math.round(scale * 100)}%)`}
-        >
-          <span className="pinch-zoom-reset__icon" aria-hidden="true">×</span>
-          <span className="pinch-zoom-reset__label">{Math.round(scale * 100)}%</span>
-        </button>
-      )}
+      <SchematicZoomDock
+        zoomPercent={Math.round(scale * 100)}
+        onZoomIn={() => zoomAtCenter(1.2)}
+        onZoomOut={() => zoomAtCenter(1 / 1.2)}
+        onZoomFit={handleReset}
+      />
     </div>
   );
 }

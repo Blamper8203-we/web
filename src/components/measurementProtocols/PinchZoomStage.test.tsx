@@ -21,9 +21,9 @@ describe("PinchZoomStage", () => {
     expect(screen.getByText("Test content")).toBeInTheDocument();
   });
 
-  it("domyślnie scale=1 — brak przycisku resetu", () => {
+  it("domyślnie scale=1", () => {
     render(<PinchZoomStage><div>x</div></PinchZoomStage>);
-    expect(screen.queryByLabelText(/reset zoom/i)).not.toBeInTheDocument();
+    expect(screen.getByText("100%")).toBeInTheDocument();
   });
 
   it("aplikuje touch-action: pan-x pan-y (pozwala na scroll poziomy/pionowy, blokuje native pinch)", () => {
@@ -39,11 +39,10 @@ describe("PinchZoomStage", () => {
     if (!stage) throw new Error("stage not found");
 
     fireEvent(stage, makeTouchEvent("touchstart", [{ clientX: 100, clientY: 100 }]));
-    // Brak throw i brak reset buttona = scale nadal 1.
-    expect(screen.queryByLabelText(/reset zoom/i)).not.toBeInTheDocument();
+    expect(screen.getByText("100%")).toBeInTheDocument();
   });
 
-  it("2-palcowy pinch-in zwiększa scale i pokazuje reset button", () => {
+  it("2-palcowy pinch-in zwiększa scale", () => {
     const { container } = render(<PinchZoomStage><div>x</div></PinchZoomStage>);
     const stage = container.querySelector(".pinch-zoom-stage");
     if (!stage) throw new Error("stage not found");
@@ -59,11 +58,7 @@ describe("PinchZoomStage", () => {
       { clientX: 300, clientY: 100 },
     ]));
 
-    expect(screen.getByLabelText(/reset zoom/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/reset zoom/i)).toHaveAttribute(
-      "title",
-      expect.stringContaining("300%"),
-    );
+    expect(screen.getByText("300%")).toBeInTheDocument();
   });
 
   it("clamp przy max scale 4", () => {
@@ -81,11 +76,10 @@ describe("PinchZoomStage", () => {
       { clientX: 1000, clientY: 100 },
     ]));
 
-    const resetBtn = screen.getByLabelText(/reset zoom/i);
-    expect(resetBtn).toHaveAttribute("title", expect.stringContaining("400%"));
+    expect(screen.getByText("400%")).toBeInTheDocument();
   });
 
-  it("reset button przywraca scale do 1", () => {
+  it("przycisk 'Dopasuj do widoku' przywraca scale do 1", () => {
     const { container } = render(<PinchZoomStage><div>x</div></PinchZoomStage>);
     const stage = container.querySelector(".pinch-zoom-stage");
     if (!stage) throw new Error("stage not found");
@@ -99,10 +93,11 @@ describe("PinchZoomStage", () => {
       { clientX: 50, clientY: 100 },
       { clientX: 250, clientY: 100 },
     ]));
-    expect(screen.getByLabelText(/reset zoom/i)).toBeInTheDocument();
+    expect(screen.getByText("200%")).toBeInTheDocument();
 
     // Reset.
-    fireEvent.click(screen.getByLabelText(/reset zoom/i));
-    expect(screen.queryByLabelText(/reset zoom/i)).not.toBeInTheDocument();
+    const resetBtn = screen.getByLabelText(/Dopasuj do widoku/i);
+    fireEvent.click(resetBtn);
+    expect(screen.getByText("100%")).toBeInTheDocument();
   });
 });
