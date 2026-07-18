@@ -152,7 +152,7 @@ export function useDinRailInteraction({
       width: 0,
       height: 0,
     });
-  }, [rail.isVisible, screenToWorld, panModeEnabled, isMobile]);
+  }, [rail.isVisible, screenToWorld, panModeEnabled, isMobile, pinchActiveRef]);
 
   const handlePointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     const interaction = interactionRef.current;
@@ -224,7 +224,7 @@ export function useDinRailInteraction({
 
       onSymbolMove?.(id, startPosition.x + deltaX, startPosition.y + deltaY);
     }
-  }, [onSymbolMove, screenToWorld, setPanSafe, snapModulePlacement, snappedSymbols, panRef]);
+  }, [onSymbolMove, screenToWorld, setPanSafe, snapModulePlacement, snappedSymbols, panRef, pinchActiveRef]);
 
   const handlePointerUp = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     if (pinchActiveRef.current) {
@@ -251,7 +251,7 @@ export function useDinRailInteraction({
 
     interactionRef.current = { mode: "idle" };
     setSelectionRect(null);
-  }, [commitSelectionRect, flushViewportState, onSymbolMoveEnd, onSymbolSelect, selectionRect]);
+  }, [commitSelectionRect, flushViewportState, onSymbolMoveEnd, onSymbolSelect, selectionRect, pinchActiveRef]);
 
   const beginDragForSymbol = useCallback((
     event: React.PointerEvent<HTMLElement>,
@@ -310,7 +310,7 @@ export function useDinRailInteraction({
     };
     onSymbolMoveStart?.(draggedSymbol.id);
     onSymbolSelect?.(draggedSymbol.id, { toggle: event.ctrlKey || event.metaKey });
-  }, [onSymbolMoveStart, onSymbolSelect, rail.isVisible, screenToWorld, selectedIds, snappedSymbols]);
+  }, [onSymbolMoveStart, onSymbolSelect, rail.isVisible, screenToWorld, selectedIds, snappedSymbols, pinchActiveRef]);
 
   return {
     selectionRect,

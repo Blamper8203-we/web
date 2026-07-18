@@ -110,6 +110,7 @@ export function useSchematicInteraction(
       onSymbolMoveStart,
       onSymbolSelect,
       canvasRef,
+      pinchActiveRef,
     ],
   );
 
@@ -165,7 +166,7 @@ export function useSchematicInteraction(
         onSymbolMove?.(draggingSymbolId, newX, newY);
       }
     },
-    [isPanning, isDragging, draggingSymbolId, viewport, layout, snapEnabled, onSymbolMove, symbols, canvasRef, stopAnimation, setViewport],
+    [isPanning, isDragging, draggingSymbolId, viewport, layout, snapEnabled, onSymbolMove, symbols, canvasRef, stopAnimation, setViewport, pinchActiveRef],
   );
 
   const handlePointerUp = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -183,7 +184,7 @@ export function useSchematicInteraction(
     setIsPanning(false);
     setIsDragging(false);
     setDraggingSymbolId(null);
-  }, [isDragging, draggingSymbolId, onSymbolMoveEnd]);
+  }, [isDragging, draggingSymbolId, onSymbolMoveEnd, pinchActiveRef]);
 
   return {
     isPanning,
