@@ -86,14 +86,38 @@ export default defineConfig({
         display: "standalone",
         display_override: ["window-controls-override", "standalone"],
         background_color: "#0e0f11",
-        theme_color: "#111214",
+        // WHY: theme_color zsynchronizowane z public/manifest.webmanifest
+        // i <meta name="theme-color"> w index.html (#0e0f11). Wcześniej był
+        // rozjazd #111214 (vite) vs #0e0f11 (public file) — powodowało
+        // migotanie koloru paska statusu przy starcie PWA.
+        theme_color: "#0e0f11",
         lang: "pl",
         icons: [
           {
             src: "/favicon-192.png",
             sizes: "192x192",
             type: "image/png",
-            purpose: "any maskable",
+            purpose: "any",
+          },
+          // WHY: Chrome wymaga w manifeście ikony 192 + 512, żeby w ogóle
+          // odpalić beforeinstallprompt (kryterium "installability"). Nie mamy
+          // PNG 512, ale dinboard.svg to czysty wektor — wpis z sizes: "any"
+          // i type image/svg+xml spełnia kryterium (przeglądarka rasteryzuje
+          // SVG do 512 natywnie). Standard W3C od 2020, wsparcie Chrome/Edge/
+          // Firefox/Safari. Działa lepiej niż upscaling PNG z 192 do 512.
+          {
+            src: "/dinboard.svg",
+            sizes: "any",
+            type: "image/svg+xml",
+            purpose: "any",
+          },
+          // WHY: osobny wpis maskable z 192px — Android adaptacyjna ikona.
+          // Używamy tej samej grafiki (logo na granatowym tle z paddingiem ~20%).
+          {
+            src: "/favicon-192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "maskable",
           },
         ],
       },
