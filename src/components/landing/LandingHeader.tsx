@@ -8,7 +8,7 @@ export function LandingHeader() {
   return (
     <header className="landing-header">
       <div className="landing-header-container">
-        <div className="landing-header-logo-group">
+        <a href="/" className="landing-header-logo-group" style={{ textDecoration: "none", color: "inherit" }}>
           <div className="landing-header-logo-icon">
             <img src="/favicon-192.png" alt="DinBoard Logo" />
           </div>
@@ -17,10 +17,10 @@ export function LandingHeader() {
               Din<span className="landing-header-title-accent">{t("auto.board_264", "Board")}</span>
             </span>
             <span className="landing-header-subtitle">
-              Web Application
+              {t("landing.header.subtitle", "Kreator rozdzielnic")}
             </span>
           </div>
-        </div>
+        </a>
 
         <nav className="landing-header-nav">
           <a href="/#funkcje">{t("auto.moliwoci_696", "Możliwości")}</a>
