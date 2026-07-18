@@ -201,7 +201,7 @@ export function PdfDocumentationPage({ onClose }: { onClose?: () => void } = {})
         {onClose && (
           <button
             type="button"
-            className="pd-hero-close"
+            className="pd-hero-close win-close-btn"
             onClick={onClose}
             aria-label={t("app.pdfDocumentationPage.closeAria", "Zamknij panel dokumentacji")}
             title={t("app.pdfDocumentationPage.closeAria", "Zamknij panel dokumentacji")}

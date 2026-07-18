@@ -106,7 +106,7 @@ export function CircuitEditPanel({ symbol, symbols, highlightedFieldKey, hideRem
           <strong>{header.title}</strong>
           <span>{header.subtitle}</span>
         </div>
-        <button type="button" className="circuit-edit-close" aria-label={t("app.circuitEdit.close")} title={t("app.circuitEdit.close")} onClick={onClearSelection}>
+        <button type="button" className="circuit-edit-close win-close-btn" aria-label={t("app.circuitEdit.close")} title={t("app.circuitEdit.close")} onClick={onClearSelection}>
           <AppIcon name="exit" size={14} />
         </button>
       </div>

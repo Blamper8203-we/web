@@ -16,7 +16,32 @@
   padding-top: env(safe-area-inset-top);
 }
 
+/* Universal windows-style close button for panels */
+.win-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border: 0;
+  border-radius: var(--radius-sm, 6px);
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #ef4444 !important;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+  flex-shrink: 0;
+}
 
+.win-close-btn:hover {
+  background: #e81123 !important; /* Windows 10/11 close red */
+  color: #ffffff !important;
+}
+
+.win-close-btn:active {
+  background: #f1707a !important;
+}
 
 /* Flyout menus */
 .flyout-overlay {

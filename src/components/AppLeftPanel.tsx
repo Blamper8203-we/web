@@ -136,7 +136,7 @@ export function AppLeftPanel({
                 <strong>{t("auto.moduy_511", "MODUŁY")}</strong>
               </div>
               {onClose && (
-                <button type="button" className="toolbar-icon-btn mobile-only-tab" onClick={onClose} style={{ border: 0, background: "transparent", cursor: "pointer", color: "var(--text-main)" }}>
+                <button type="button" className="win-close-btn mobile-only-tab" onClick={onClose} aria-label={t("app.appLeftPanel.close", "Zamknij")}>
                   <AppIcon name="close" size={16} />
                 </button>
               )}

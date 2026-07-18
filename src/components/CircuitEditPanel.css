@@ -67,15 +67,8 @@
   height: 28px;
   min-height: 28px;
   padding: 0;
-  color: var(--text-secondary);
-  background: transparent;
   border: 0;
   border-radius: var(--radius-sm);
-}
-
-.circuit-edit-close:hover {
-  color: var(--text-main);
-  background: var(--hover-background);
 }
 
 .circuit-edit-fields {
