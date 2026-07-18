@@ -12,6 +12,7 @@ import { openProjectFile } from "./lib/projectFile";
 import { initStorageService } from "./lib/storageService";
 import { reportRuntimeError } from "./lib/runtimeDiagnostics";
 import { useIsNativePlatform } from "./hooks/useViewport";
+import { hideNativeSplash } from "./lib/native/splash";
 const AppWorkspace = lazy(() =>
   import("./components/AppWorkspace").then((m) => ({ default: m.AppWorkspace }))
 );
@@ -58,6 +59,22 @@ export function AppLayout() {
       document.documentElement.classList.remove("is-native-platform");
     }
   }, [isNative]);
+
+  // WHY: Oznacza że React się zahydratował i pierwsza strona jest gotowa.
+  // CSS w index.html (inline <style> w head) używa html.app-ready żeby
+  // wyblaknąć splash screen przez transition opacity 1->0. Delay 100ms daje
+  // przeglądarce czas na paint pierwszej prawdziwej strony pod splashem,
+  // żeby uniknąć "błysku" pustego tła między ukryciem splash a renderem.
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      document.documentElement.classList.add("app-ready");
+      // WHY: ukryj też natywny splash Capacitora (iOS/Android app). Na web
+      // hideNativeSplash jest no-op (isNativePlatform false). Wywołane w tym
+      // samym ticku co app-ready — web splash i native splash znikają razem.
+      void hideNativeSplash();
+    }, 100);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const handleOpenNewProject = useCallback(() => {
     setInitialAction("new");

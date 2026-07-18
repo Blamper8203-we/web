@@ -24,10 +24,28 @@
     <link rel="icon" href="/favicon.ico?v=2" sizes="48x48" />
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png?v=2" />
     <link rel="apple-touch-icon" href="/favicon-192.png?v=2" />
+    <!--
+      WHY: iOS Safari PWA startup images (Add to Home Screen). Apple nie wspiera
+      SVG ani CSS dla startup images — wymaga PNG w dokładnych rozmiarach per
+      klasa urządzenia, dopasowanych przez media query. Bez tego po dodaniu do
+      ekranu głównego i uruchomieniu widać białe migające tło przed hydratacją.
+      PNG generowane przez scripts/generate-splashes.py. Regeneruj po każdej
+      zmianie branda (kolor, logo, layout).
+    -->
+    <link rel="apple-touch-startup-image" href="/assets/splash/ios-startup-iphone-se.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" />
+    <link rel="apple-touch-startup-image" href="/assets/splash/ios-startup-iphone-678.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" />
+    <link rel="apple-touch-startup-image" href="/assets/splash/ios-startup-iphone-678-plus.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)" />
+    <link rel="apple-touch-startup-image" href="/assets/splash/ios-startup-iphone-x-xs.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" />
+    <link rel="apple-touch-startup-image" href="/assets/splash/ios-startup-iphone-xr-xsmax.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)" />
+    <link rel="apple-touch-startup-image" href="/assets/splash/ios-startup-iphone-11-pro.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)" />
+    <link rel="apple-touch-startup-image" href="/assets/splash/ios-startup-iphone-12-13-mini.png" media="(device-width: 360px) and (device-height: 780px) and (-webkit-device-pixel-ratio: 3)" />
+    <link rel="apple-touch-startup-image" href="/assets/splash/ios-startup-ipad-pro-12.9.png" media="(min-width: 1024px) and (min-height: 1366px)" />
     <link rel="manifest" href="/manifest.webmanifest?v=2" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
     <meta name="theme-color" content="#0e0f11" />
     <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="DINBoard" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://dinboard.pl/og-image.png" />
@@ -59,9 +77,50 @@
         crossorigin="anonymous"
       />
     </noscript>
+    <!--
+      WHY: Splash screen renderuje się w pierwszej klatce (przed pobraniem JS),
+      więc musi mieć CSS inline w head — zewnętrzny CSS z chunka React by się
+      załadował za późno. Splash znika po hydratacji (klasa app-ready na <html>
+      dodawana w AppLayout.useEffect). Spójny ze Splash.css ( dokumentacja),
+      ale ten inline jest źródłem prawdy dla first-paint.
+    -->
+    <style>
+      #app-splash{position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0e0f11;color:#f8fafc;font-family:"Outfit","Segoe UI",system-ui,-apple-system,sans-serif;opacity:1;transition:opacity .4s ease-out;padding:2rem;text-align:center;-webkit-text-size-adjust:100%}
+      html.app-ready #app-splash{opacity:0;pointer-events:none;visibility:hidden}
+      .app-splash-logo-wrapper{width:7rem;height:7rem;border-radius:1.5rem;background:linear-gradient(135deg,#15171c 0%,#0e0f11 100%);border:1px solid rgba(245,158,11,.2);display:inline-flex;align-items:center;justify-content:center;box-shadow:0 12px 32px -8px rgba(0,0,0,.6),0 0 0 1px rgba(245,158,11,.05) inset;margin-bottom:1.75rem}
+      .app-splash-logo-wrapper img{width:4.5rem;height:4.5rem;display:block}
+      .app-splash-title{font-size:clamp(1.75rem,6vw,2.25rem);font-weight:700;letter-spacing:-.02em;margin:0 0 .5rem 0;line-height:1.1;color:#f8fafc}
+      .app-splash-title-accent{color:#f59e0b}
+      .app-splash-subtitle{font-size:clamp(.625rem,2.5vw,.75rem);font-weight:500;letter-spacing:.18em;color:#6c7280;text-transform:uppercase;margin:0 0 3rem 0}
+      .app-splash-progress{position:absolute;bottom:4rem;left:50%;transform:translateX(-50%);width:min(14rem,60vw);height:.25rem;background:rgba(245,158,11,.12);border-radius:999px;overflow:hidden}
+      .app-splash-progress-bar{position:absolute;top:0;left:0;height:100%;width:35%;background:linear-gradient(90deg,transparent 0%,#f59e0b 50%,transparent 100%);border-radius:999px;animation:app-splash-progress-scan 1.4s ease-in-out infinite}
+      @keyframes app-splash-progress-scan{0%{transform:translateX(-100%)}100%{transform:translateX(380%)}}
+      @media (prefers-reduced-motion:reduce){.app-splash-progress-bar{animation:none;background:#f59e0b;width:100%;opacity:.4}}
+      @media (max-width:480px){.app-splash-logo-wrapper{width:5.5rem;height:5.5rem;border-radius:1.25rem;margin-bottom:1.5rem}.app-splash-logo-wrapper img{width:3.5rem;height:3.5rem}.app-splash-subtitle{margin-bottom:2.5rem}.app-splash-progress{bottom:3rem}}
+      @media (min-width:768px) and (max-width:1024px){.app-splash-logo-wrapper{width:8rem;height:8rem}.app-splash-logo-wrapper img{width:5rem;height:5rem}}
+    </style>
   </head>
 
   <body>
+    <!--
+      WHY: Splash screen pokazywany w pierwszej klatce, przed hydratacją React.
+      CSS inline w <head> gwarantuje poprawny wygląd natychmiast. Klasa app-ready
+      na <html> (dodawana w src/App.tsx -> AppLayout.useEffect) uruchamia
+      transition opacity -> 0 i ukrywa splash. Używamy <img src="/dinboard.svg">
+      bo to czysty wektor (świetna jakość na każdym ekranie, mniejszy niż PNG).
+    -->
+    <div id="app-splash" role="status" aria-label="DINBoard — ładowanie aplikacji">
+      <div class="app-splash-logo-wrapper">
+        <img src="/dinboard.svg" alt="" />
+      </div>
+      <h1 class="app-splash-title">
+        DIN<span class="app-splash-title-accent">Board</span>
+      </h1>
+      <p class="app-splash-subtitle">Aplikacja dla elektryków</p>
+      <div class="app-splash-progress" aria-hidden="true">
+        <div class="app-splash-progress-bar"></div>
+      </div>
+    </div>
     <script>
       // WHY: Eliminacja FOUC (Flash Of Unstyled Content) na mobile.
       // AppHeader renderuje warunkowo hamburger vs menu tekstowe na podstawie
