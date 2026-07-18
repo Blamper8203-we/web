@@ -202,12 +202,7 @@ export function AppLeftPanel({
                         lastTapTemplateIdRef.current = item.templateId;
                       }
                     }}
-                    onDoubleClick={() => {
-                      // Fallback: jeśli przeglądarka złączy szybkie kliknięcia/tapy w dblclick
-                      lastTapAtRef.current = null;
-                      lastTapTemplateIdRef.current = null;
-                      onPaletteItemTap?.(item.templateId);
-                    }}
+
                     onDragStart={(event) => {
                       const moduleDimensions = getPaletteTemplateDimensions(item);
                       const zoomScale = activeSheet === "sheet1" ? 0.2 : 1;
