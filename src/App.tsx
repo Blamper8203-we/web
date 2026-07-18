@@ -62,8 +62,8 @@ export function AppLayout() {
 
   // WHY: Oznacza że React się zahydratował i pierwsza strona jest gotowa.
   // CSS w index.html (inline <style> w head) używa html.app-ready żeby
-  // wyblaknąć splash screen przez transition opacity 1->0. Delay 5000ms
-  // daje użytkownikowi 5 sekund na zobaczenie splash screena z branding
+  // wyblaknąć splash screen przez transition opacity 1->0. Delay 3000ms
+  // daje użytkownikowi 3 sekundy na zobaczenie splash screena z branding
   // (DINboard + KREATOR ROZDZIELNIC + pasek ładowania + wersja).
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -72,7 +72,7 @@ export function AppLayout() {
       // hideNativeSplash jest no-op (isNativePlatform false). Wywołane w tym
       // samym ticku co app-ready — web splash i native splash znikają razem.
       void hideNativeSplash();
-    }, 5000);
+    }, 3000);
     return () => window.clearTimeout(timer);
   }, []);
 

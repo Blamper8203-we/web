@@ -18,10 +18,6 @@ export function LandingHero({ onOpenProjectFile, onOpenNewProject }: LandingHero
         <div className="landing-hero-grid">
           {/* Lewa Kolumna */}
           <div className="landing-hero-left">
-            <div className="landing-hero-badge">
-              <span className="landing-hero-badge-dot"></span>
-              DINBOARD WEB v1.2
-            </div>
 
             <h1 className="landing-hero-title">
               {t("landing.title", "Projektowanie schematu")} <br />

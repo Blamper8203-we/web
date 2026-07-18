@@ -342,27 +342,7 @@
   .landing-hero-left { grid-column: span 7 / span 7; }
 }
 
-.landing-hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  background-color: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  color: #60a5fa; /* blue-400 */
-  font-family: monospace;
-  font-size: 0.75rem;
-  width: fit-content;
-}
 
-.landing-hero-badge-dot {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 9999px;
-  background-color: #60a5fa;
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
