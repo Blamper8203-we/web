@@ -126,6 +126,22 @@
       </div>
     </div>
     <script>
+      // WHY: Splash powinien pokazywać się tylko przy uruchamianiu właściwej aplikacji (/app),
+      // w zainstalowanej PWA lub w natywnej apce Android (Capacitor). Zwykłe wejście
+      // na stronę główną (landing page) powinno pominąć ekran ładowania.
+      (function() {
+        var isAppRoute = window.location.pathname.startsWith('/app');
+        var isPwa = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        var isNative = typeof window !== 'undefined' && window.Capacitor !== undefined;
+        
+        if (!isAppRoute && !isPwa && !isNative) {
+          document.documentElement.classList.add('app-ready');
+          var splash = document.getElementById('app-splash');
+          if (splash) splash.style.display = 'none';
+        }
+      })();
+    </script>
+    <script>
       // WHY: Eliminacja FOUC (Flash Of Unstyled Content) na mobile.
       // AppHeader renderuje warunkowo hamburger vs menu tekstowe na podstawie
       // hooka `useIsMobileLayout`, którego initial state to `false` (SSR-safe).
