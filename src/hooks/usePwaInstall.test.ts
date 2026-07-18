@@ -249,19 +249,19 @@ describe("usePwaInstall — czyszczenie listenerów", () => {
     const { unmount } = renderHook(() => usePwaInstall());
 
     const beforeCount = addSpy.mock.calls.filter(
-      (c) => c[0] === "beforeinstallprompt"
+      (c) => c[0] === "pwa-prompt-ready"
     ).length;
     const installedCount = addSpy.mock.calls.filter(
-      (c) => c[0] === "appinstalled"
+      (c) => c[0] === "pwa-installed"
     ).length;
 
     unmount();
 
     const removedBefore = removeSpy.mock.calls.filter(
-      (c) => c[0] === "beforeinstallprompt"
+      (c) => c[0] === "pwa-prompt-ready"
     ).length;
     const removedInstalled = removeSpy.mock.calls.filter(
-      (c) => c[0] === "appinstalled"
+      (c) => c[0] === "pwa-installed"
     ).length;
 
     expect(beforeCount).toBe(1);
