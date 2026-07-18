@@ -32,6 +32,7 @@ export function LandingHeader() {
             {t("auto.bazawiedzy_212", "Baza wiedzy")}
           </a>
           <a href="/#faq">{t("auto.faq_502", "FAQ")}</a>
+          <a href="/kontakt">{t("landing.nav.contact", "Kontakt")}</a>
         </nav>
 
         <div className="landing-header-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
