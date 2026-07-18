@@ -9,6 +9,8 @@
   "scripts": {
     "dev": "vite",
     "dev:host": "vite --host 0.0.0.0",
+    "sitemap": "node scripts/generate-sitemap.mjs",
+    "prebuild": "npm run sitemap",
     "build": "tsc && vite-react-ssg build",
     "preview": "vite preview",
     "test": "vitest run",

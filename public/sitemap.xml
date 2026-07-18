@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- WHY: changefreq zostały usunięte — Google oficjalnie je ignoruje od 2019.
-     <lastmod> dla artykułów = prawdziwa data publikacji z src/data/blogArticles.ts
-     (zgodność "data w treści = data w sitemapie"). Dla stron statycznych
-     pozostaje data ostatniej modyfikacji treści. Google czyta lastmod i
-     priority; reszta jest dekoracyjna. -->
+<!-- WHY: wygenerowane automatycznie (scripts/generate-sitemap.mjs). -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://dinboard.pl/</loc>
