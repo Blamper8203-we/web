@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 /**
  * Pinch-to-zoom (2 palce) dla zakładek HTML w PDF workspace
@@ -42,6 +42,21 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
     initialScale: number;
   } | null>(null);
 
+  const [unscaledHeight, setUnscaledHeight] = useState(0);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = contentRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setUnscaledHeight((entry.target as HTMLElement).offsetHeight);
+      }
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   const handleTouchStart = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
     if (event.touches.length !== 2) {
       return;
@@ -51,7 +66,8 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
     if (!t1 || !t2) {
       return;
     }
-    event.preventDefault();
+    // Nie preventDefault(), bo zablokujemy scroll/click na inputach na starcie!
+    // preventDefault robi się zwykle na onTouchMove w pinch.
     const dx = t1.clientX - t2.clientX;
     const dy = t1.clientY - t2.clientY;
     pinchStateRef.current = {
@@ -69,6 +85,7 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
     if (!t1 || !t2) {
       return;
     }
+    // Block native scroll ONLY during 2-finger pinch
     event.preventDefault();
     const dx = t1.clientX - t2.clientX;
     const dy = t1.clientY - t2.clientY;
@@ -84,20 +101,28 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
     }
   }, []);
 
+  const handleWheel = useCallback((event: React.WheelEvent<HTMLDivElement>) => {
+    if (!event.ctrlKey && !event.metaKey) {
+      return;
+    }
+    // Block native browser zoom (entire page zoom)
+    event.preventDefault();
+    const delta = -event.deltaY * 0.005;
+    setScale((prev) => Math.max(1, Math.min(MAX_SCALE, prev + delta)));
+  }, []);
+
   const handleReset = useCallback(() => {
     setScale(1);
     // WHY: reset scrolla do góry — po powrocie do scale=1 user widzi początek
-    // dokumentu, a nie przypadkowy offset z poprzedniego zoom.
-    // Defensive: niektóre środowiska (jsdom, stare WebView) nie implementują
-    // scrollTo na HTMLElement — fallback do scrollTop assignment.
     const stage = stageRef.current;
     if (!stage) {
       return;
     }
     if (typeof stage.scrollTo === "function") {
-      stage.scrollTo({ top: 0 });
+      stage.scrollTo({ top: 0, left: 0 });
     } else {
       stage.scrollTop = 0;
+      stage.scrollLeft = 0;
     }
   }, []);
 
@@ -108,17 +133,29 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      onWheel={handleWheel}
       style={{ touchAction: "pan-x pan-y" }}
     >
       <div
-        className="pinch-zoom-stage__content"
+        className="pinch-zoom-stage__wrapper"
         style={{
-          transform: `scale(${scale})`,
-          transformOrigin: "top center",
-          transition: pinchStateRef.current ? "none" : "transform 0.15s ease-out",
+          width: `${scale * 100}%`,
+          height: unscaledHeight > 0 ? unscaledHeight * scale : "auto",
+          transformOrigin: "top left",
         }}
       >
-        {children}
+        <div
+          ref={contentRef}
+          className="pinch-zoom-stage__content"
+          style={{
+            width: `${100 / scale}%`,
+            transform: `scale(${scale})`,
+            transformOrigin: "top left",
+            transition: pinchStateRef.current ? "none" : "transform 0.15s ease-out, width 0.15s ease-out",
+          }}
+        >
+          {children}
+        </div>
       </div>
       {scale > 1 && (
         <button
