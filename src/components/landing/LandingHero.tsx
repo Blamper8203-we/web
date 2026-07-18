@@ -1,5 +1,4 @@
 import { useTranslation } from "react-i18next";
-import { PwaInstallAssets } from "../pwa/PwaInstallAssets";
 
 interface LandingHeroProps {
   onOpenProjectFile: () => void;
@@ -54,10 +53,6 @@ export function LandingHero({ onOpenProjectFile, onOpenNewProject }: LandingHero
                 <i data-lucide="folder-open" className="icon"></i>
                 {t("landing.buttonOpen", "Otwórz projekt z dysku")}
               </button>
-              {/* WHY: instalator PWA w hero — największa widoczność dla nowych
-                   odwiedzających. PwaInstallAssets renderuje null gdy instalacja
-                   niedostępna, więc układ hero się nie rozjeżdża. */}
-              <PwaInstallAssets variant="hero" />
             </div>
           </div>
 
