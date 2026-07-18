@@ -47,6 +47,7 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
   } | null>(null);
 
   const [unscaledHeight, setUnscaledHeight] = useState(0);
+  const [unscaledWidth, setUnscaledWidth] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -55,6 +56,7 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
     const ro = new ResizeObserver((entries) => {
       for (const entry of entries) {
         setUnscaledHeight((entry.target as HTMLElement).offsetHeight);
+        setUnscaledWidth((entry.target as HTMLElement).offsetWidth);
       }
     });
     ro.observe(el);
@@ -232,7 +234,7 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
       <div
         className="pinch-zoom-stage__wrapper"
         style={{
-          width: `${scale * 100}%`,
+          width: unscaledWidth > 0 ? unscaledWidth * scale : `${scale * 100}%`,
           height: unscaledHeight > 0 ? unscaledHeight * scale : "auto",
           transformOrigin: "top left",
         }}

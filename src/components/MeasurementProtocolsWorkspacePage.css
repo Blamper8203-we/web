@@ -1281,8 +1281,10 @@ label:hover .mp-delete-btn {
    ────────────────────────────────────────────────────────────────────────── */
 .pinch-zoom-stage__content {
   /* Szerokość contentu = szerokość kontenera, by centrowanie A4 page
-     (margin: 0 auto) nadal działało po skalowaniu. */
-  width: 100%;
+     (margin: 0 auto) nadal działało po skalowaniu na szerokich ekranach.
+     Na wąskich (mobile) width: max-content zapobiega ucinaniu krawędzi. */
+  min-width: 100%;
+  width: max-content;
   display: flex;
   flex-direction: column;
   align-items: center;
