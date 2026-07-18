@@ -48,15 +48,14 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
   const pinchStateRef = useRef<{
     initialDistance: number;
     initialScale: number;
-    initialPointerX: number;
-    initialPointerY: number;
-    initialScrollLeft: number;
-    initialScrollTop: number;
+    logicalX: number;
+    logicalY: number;
   } | null>(null);
 
   const [unscaledHeight, setUnscaledHeight] = useState(0);
   const [unscaledWidth, setUnscaledWidth] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
+  const unscaledSizeRef = useRef({ width: 0, height: 0 });
 
   // WHY: Ref trzymający aktualny scale — natywne event listenery
   // (addEventListener) łapią closure z momentu rejestracji i nie "widzą"
@@ -69,8 +68,11 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
     if (!el || typeof ResizeObserver === "undefined") return;
     const ro = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        setUnscaledHeight((entry.target as HTMLElement).offsetHeight);
-        setUnscaledWidth((entry.target as HTMLElement).offsetWidth);
+        const h = (entry.target as HTMLElement).offsetHeight;
+        const w = (entry.target as HTMLElement).offsetWidth;
+        setUnscaledHeight(h);
+        setUnscaledWidth(w);
+        unscaledSizeRef.current = { width: w, height: h };
       }
     });
     ro.observe(el);
@@ -110,18 +112,21 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
       const centerY = (t1.clientY + t2.clientY) / 2;
 
       const rect = el!.getBoundingClientRect();
-      const pointerX = centerX - rect.left;
-      const pointerY = centerY - rect.top;
-      const scrollLeft = el!.scrollLeft;
-      const scrollTop = el!.scrollTop;
+      const stageX = rect.left + el!.clientLeft;
+      const stageY = rect.top + el!.clientTop;
+
+      const currentScale = scaleRef.current;
+      const w = unscaledSizeRef.current.width * currentScale;
+      const offsetX = Math.max(0, (el!.clientWidth - w) / 2);
+
+      const pointerX_wrapper = (centerX - stageX) + el!.scrollLeft - offsetX;
+      const pointerY_wrapper = (centerY - stageY) + el!.scrollTop;
 
       pinchStateRef.current = {
         initialDistance: Math.hypot(dx, dy),
-        initialScale: scaleRef.current,
-        initialPointerX: pointerX,
-        initialPointerY: pointerY,
-        initialScrollLeft: scrollLeft,
-        initialScrollTop: scrollTop,
+        initialScale: currentScale,
+        logicalX: pointerX_wrapper / currentScale,
+        logicalY: pointerY_wrapper / currentScale,
       };
     }
 
@@ -139,28 +144,25 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
       const {
         initialDistance,
         initialScale,
-        initialPointerX,
-        initialPointerY,
-        initialScrollLeft,
-        initialScrollTop,
+        logicalX,
+        logicalY,
       } = pinchStateRef.current;
 
       const ratio = distance / initialDistance;
       const nextScale = Math.max(1, Math.min(MAX_SCALE, initialScale * ratio));
 
       const rect = el!.getBoundingClientRect();
+      const stageX = rect.left + el!.clientLeft;
+      const stageY = rect.top + el!.clientTop;
+      
+      const wNext = unscaledSizeRef.current.width * nextScale;
+      const nextOffsetX = Math.max(0, (el!.clientWidth - wNext) / 2);
+
       const currentCenterX = (t1.clientX + t2.clientX) / 2;
       const currentCenterY = (t1.clientY + t2.clientY) / 2;
-      const currentPointerX = currentCenterX - rect.left;
-      const currentPointerY = currentCenterY - rect.top;
 
-      // Punkt dokumentu, który na początku gestu znajdował się pod palcami
-      const contentX = (initialScrollLeft + initialPointerX) / initialScale;
-      const contentY = (initialScrollTop + initialPointerY) / initialScale;
-
-      // Nowy scroll, który ustawi ten sam punkt pod obecnym położeniem palców
-      const targetScrollLeft = contentX * nextScale - currentPointerX;
-      const targetScrollTop = contentY * nextScale - currentPointerY;
+      const targetScrollLeft = stageX + nextOffsetX + logicalX * nextScale - currentCenterX;
+      const targetScrollTop = stageY + logicalY * nextScale - currentCenterY;
 
       if (nextScale !== scaleRef.current) {
         targetScrollRef.current = {
@@ -191,15 +193,24 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
 
       if (nextScale !== currentScale) {
         const rect = el!.getBoundingClientRect();
-        const pointerX = event.clientX - rect.left;
-        const pointerY = event.clientY - rect.top;
+        const stageX = rect.left + el!.clientLeft;
+        const stageY = rect.top + el!.clientTop;
 
-        const contentX = (el!.scrollLeft + pointerX) / currentScale;
-        const contentY = (el!.scrollTop + pointerY) / currentScale;
+        const w = unscaledSizeRef.current.width * currentScale;
+        const offsetX = Math.max(0, (el!.clientWidth - w) / 2);
+
+        const pointerX_wrapper = (event.clientX - stageX) + el!.scrollLeft - offsetX;
+        const pointerY_wrapper = (event.clientY - stageY) + el!.scrollTop;
+
+        const logicalX = pointerX_wrapper / currentScale;
+        const logicalY = pointerY_wrapper / currentScale;
+
+        const wNext = unscaledSizeRef.current.width * nextScale;
+        const nextOffsetX = Math.max(0, (el!.clientWidth - wNext) / 2);
 
         targetScrollRef.current = {
-          left: contentX * nextScale - pointerX,
-          top: contentY * nextScale - pointerY,
+          left: stageX + nextOffsetX + logicalX * nextScale - event.clientX,
+          top: stageY + logicalY * nextScale - event.clientY,
         };
         setScale(nextScale);
       }
@@ -239,19 +250,28 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
     if (!stage) return;
 
     const rect = stage.getBoundingClientRect();
-    const pointerX = rect.width / 2;
-    const pointerY = rect.height / 2;
+    const stageX = rect.left + stage.clientLeft;
+    const stageY = rect.top + stage.clientTop;
+
+    const pointerX = stageX + stage.clientWidth / 2;
+    const pointerY = stageY + stage.clientHeight / 2;
 
     const currentScale = scaleRef.current;
-    const contentX = (stage.scrollLeft + pointerX) / currentScale;
-    const contentY = (stage.scrollTop + pointerY) / currentScale;
+    const w = unscaledSizeRef.current.width * currentScale;
+    const offsetX = Math.max(0, (stage.clientWidth - w) / 2);
+
+    const logicalX = ((pointerX - stageX) + stage.scrollLeft - offsetX) / currentScale;
+    const logicalY = ((pointerY - stageY) + stage.scrollTop) / currentScale;
 
     const nextScale = Math.max(1, Math.min(MAX_SCALE, currentScale * factor));
 
     if (nextScale !== currentScale) {
+      const wNext = unscaledSizeRef.current.width * nextScale;
+      const nextOffsetX = Math.max(0, (stage.clientWidth - wNext) / 2);
+
       targetScrollRef.current = {
-        left: contentX * nextScale - pointerX,
-        top: contentY * nextScale - pointerY,
+        left: stageX + nextOffsetX + logicalX * nextScale - pointerX,
+        top: stageY + logicalY * nextScale - pointerY,
       };
       setScale(nextScale);
     }
@@ -261,14 +281,21 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
     <div
       ref={stageRef}
       className={`mp-stage pinch-zoom-stage ${className ?? ""}`}
-      style={{ touchAction: "pan-x pan-y", position: "relative" }}
+      style={{ 
+        touchAction: "pan-x pan-y", 
+        position: "relative",
+        display: "block",
+        textAlign: "center"
+      }}
     >
       <div
         className="pinch-zoom-stage__wrapper"
         style={{
           width: unscaledWidth > 0 ? unscaledWidth * scale : `${scale * 100}%`,
           height: unscaledHeight > 0 ? unscaledHeight * scale : "auto",
+          margin: "0 auto",
           transformOrigin: "top left",
+          textAlign: "left"
         }}
       >
         <div
