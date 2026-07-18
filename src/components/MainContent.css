@@ -147,6 +147,7 @@ html.ui-theme-classic .main-content {
   }
 
   .main-content.is-pdf-workspace:not(.is-left-panel-hidden) {
+    grid-template-columns: 1fr;
     grid-template-rows: 44px minmax(0, 1fr) minmax(200px, 40vh);
   }
 }
