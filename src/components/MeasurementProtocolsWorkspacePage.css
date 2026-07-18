@@ -1289,3 +1289,12 @@ label:hover .mp-delete-btn {
   flex-direction: column;
   align-items: center;
 }
+
+/* WHY: `.pinch-zoom-stage` jest kontenerem z `overflow: auto`.
+   Domyślnie `.workspace-hud` ma `position: absolute`, przez co przy przewijaniu
+   dokumentu w dół HUD przesuwał się w górę i uciekał z widoku (scrolled away).
+   Używamy `position: fixed`, aby HUD kontroli zoomu pozostał przypięty do ekranu. */
+.pinch-zoom-stage > .workspace-hud {
+  position: fixed;
+  z-index: 100;
+}
