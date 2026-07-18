@@ -20,6 +20,20 @@
     "subtitle": "DINBoard wspiera elektryka przy wykonaniu rozdzielnicy, tworzeniu czytelnego schematu instalacji, sprawdzeniu obwodów oraz przygotowaniu profesjonalnej dokumentacji odbiorczej PDF. Wszystko w Twojej przeglądarce.",
     "buttonNew": "Utwórz nowy projekt",
     "buttonOpen": "Otwórz projekt z dysku",
+    "install": {
+      "button": "Zainstaluj aplikację",
+      "buttonShort": "Zainstaluj",
+      "installing": "Instalowanie…",
+      "installingShort": "Instalowanie…",
+      "close": "Zamknij",
+      "iosTitle": "Zainstaluj DINBoard na iPhonie",
+      "iosSubtitle": "Dwie tapnięcia — aplikacja ląduje na ekranie głównym",
+      "iosStep1Title": "Otwórz menu udostępniania",
+      "iosStep1Desc": "Dotknij ikony udostępniania na dole paska Safari",
+      "iosStep2Title": "Wybierz „Dodaj do ekranu początkowego”",
+      "iosStep2Desc": "Przewiń listę w dół i dotknij opcji „Dodaj do ekranu początkowego”. Potwierdź — ikona DINBoard pojawi się obok innych aplikacji.",
+      "iosDone": "Rozumiem"
+    },
     "preview": {
       "badge": "PODGLĄD APLIKACJI",
       "title": "Przejrzysty i intuicyjny interfejs roboczy",
