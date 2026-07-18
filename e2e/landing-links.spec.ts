@@ -38,9 +38,9 @@ test("landing footer link 'Kompendium' navigates to /poradniki", async ({ page }
 });
 
 test("landing footer link 'Kontakt' navigates to /kontakt", async ({ page }) => {
-  // Header NIE ma linku kontakt — testujemy wyłącznie footer.
+  // Testujemy poprawność linku kontakt w stopce.
   await page.goto("/");
-  const link = page.getByRole("link", { name: "Kontakt" });
+  const link = page.getByRole("contentinfo").getByRole("link", { name: "Kontakt" });
   await expect(link).toBeVisible();
   await expect(link).toHaveAttribute("href", "/kontakt");
 
