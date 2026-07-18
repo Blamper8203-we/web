@@ -9,6 +9,7 @@ import { getPaletteTemplateDimensions, type PaletteGroup, type PaletteTemplate }
 import { getPaletteIconName, getPaletteDescription, startCustomDragLayer, type SheetType } from "../lib/appHelpers";
 import { CAD_SYMBOL_CATALOG } from "../lib/schematic/smartHomeCatalog";
 import { isDoubleTap } from "../lib/tapDetection";
+import { useIsMobileLayout } from "../hooks/useViewport";
 import type { ProjectMetadata } from "../types/projectMetadata";
 import { type DefaultWireSettings } from "../lib/connections/connectionsLogic";
 import type { ConnectionItem } from "../types/connectionItem";
@@ -58,6 +59,7 @@ export function AppLeftPanel({
   onConnectionsChange,
 }: AppLeftPanelProps) {
   const { t } = useTranslation();
+  const isMobileLayout = useIsMobileLayout();
 
 
 
@@ -173,7 +175,7 @@ export function AppLeftPanel({
                   <div
                     className="palette-item"
                     key={`${displayActiveGroup.title}-${item.code}`}
-                    draggable={true}
+                    draggable={!isMobileLayout}
                     role="listitem"
                     data-testid="palette-item"
                     data-template-id={item.templateId}
