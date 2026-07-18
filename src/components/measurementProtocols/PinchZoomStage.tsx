@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 /**
  * Pinch-to-zoom (2 palce) dla zakładek HTML w PDF workspace
@@ -57,6 +57,18 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
     return () => ro.disconnect();
   }, []);
 
+  const targetScrollRef = useRef<{ left: number; top: number } | null>(null);
+
+  // useLayoutEffect runs immediately after the DOM is updated (wrapper size changed)
+  // but before the browser paints, making the scroll adjustment seamless.
+  useLayoutEffect(() => {
+    if (targetScrollRef.current && stageRef.current) {
+      stageRef.current.scrollLeft = targetScrollRef.current.left;
+      stageRef.current.scrollTop = targetScrollRef.current.top;
+      targetScrollRef.current = null;
+    }
+  }, [scale]);
+
   const handleTouchStart = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
     if (event.touches.length !== 2) {
       return;
@@ -92,8 +104,27 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
     const distance = Math.hypot(dx, dy);
     const ratio = distance / pinchStateRef.current.initialDistance;
     const nextScale = Math.max(1, Math.min(MAX_SCALE, pinchStateRef.current.initialScale * ratio));
-    setScale(nextScale);
-  }, []);
+    
+    if (nextScale !== scale) {
+      const stage = stageRef.current;
+      if (stage) {
+        const rect = stage.getBoundingClientRect();
+        const centerX = (t1.clientX + t2.clientX) / 2;
+        const centerY = (t1.clientY + t2.clientY) / 2;
+        const pointerX = centerX - rect.left;
+        const pointerY = centerY - rect.top;
+
+        const contentX = (stage.scrollLeft + pointerX) / scale;
+        const contentY = (stage.scrollTop + pointerY) / scale;
+
+        targetScrollRef.current = {
+          left: contentX * nextScale - pointerX,
+          top: contentY * nextScale - pointerY,
+        };
+      }
+      setScale(nextScale);
+    }
+  }, [scale]);
 
   const handleTouchEnd = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
     if (event.touches.length === 0) {
@@ -108,8 +139,26 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
     // Block native browser zoom (entire page zoom)
     event.preventDefault();
     const delta = -event.deltaY * 0.005;
-    setScale((prev) => Math.max(1, Math.min(MAX_SCALE, prev + delta)));
-  }, []);
+    const nextScale = Math.max(1, Math.min(MAX_SCALE, scale + delta));
+    
+    if (nextScale !== scale) {
+      const stage = stageRef.current;
+      if (stage) {
+        const rect = stage.getBoundingClientRect();
+        const pointerX = event.clientX - rect.left;
+        const pointerY = event.clientY - rect.top;
+
+        const contentX = (stage.scrollLeft + pointerX) / scale;
+        const contentY = (stage.scrollTop + pointerY) / scale;
+
+        targetScrollRef.current = {
+          left: contentX * nextScale - pointerX,
+          top: contentY * nextScale - pointerY,
+        };
+      }
+      setScale(nextScale);
+    }
+  }, [scale]);
 
   const handleReset = useCallback(() => {
     setScale(1);
