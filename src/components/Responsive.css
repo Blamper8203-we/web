@@ -374,9 +374,6 @@ html.is-mobile-viewport .desktop-only {
 
 .drawer-close {
   margin-left: auto;
-  background: transparent;
-  border: 0;
-  color: var(--text-secondary);
 }
 
 .mobile-side-drawer-content {

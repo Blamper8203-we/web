@@ -42,11 +42,11 @@ export function PdfNavigatorFab({ activeTab, onSelect }: PdfNavigatorFabProps) {
               <strong>{t("app.pdf.nav.title", "Protokoły PDF")}</strong>
               <button
                 type="button"
-                className="pdf-nav-sheet-close"
+                className="win-close-btn"
                 aria-label={t("app.pdf.nav.close", "Zamknij")}
                 onClick={() => setIsOpen(false)}
               >
-                ×
+                <AppIcon name="close" size={16} />
               </button>
             </div>
             <ul className="pdf-nav-sheet-list">

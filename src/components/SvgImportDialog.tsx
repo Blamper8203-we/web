@@ -165,8 +165,8 @@ export function SvgImportDialog({
               {t("app.svgImport.subtitle", "Podgląd, kategoria, wymiary i zapis w jednym miejscu.")}
             </span>
           </div>
-          <button aria-label={t("app.svgImport.closeAria", "Zamknij")} className="toolbar-icon-btn" type="button" onClick={onClose}>
-            <AppIcon name="delete" size={14} />
+          <button aria-label={t("app.svgImport.closeAria", "Zamknij")} className="win-close-btn" type="button" onClick={onClose}>
+            <AppIcon name="close" size={16} />
           </button>
         </div>
 

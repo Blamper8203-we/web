@@ -182,7 +182,7 @@ export function AppHeaderMobileDrawer({
         <div className="mobile-side-drawer-header">
           <img src="/favicon-192.png" alt="Logo" width="32" height="32" />
           <strong>{t("auto.dinboard_809", "DinBoard")}</strong>
-          <button className="drawer-close" onClick={onClose}>
+          <button className="drawer-close win-close-btn" onClick={onClose}>
             <AppIcon name="close" size={20} />
           </button>
         </div>

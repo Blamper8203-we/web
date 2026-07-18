@@ -46,26 +46,7 @@
   letter-spacing: 0.02em;
 }
 
-.pdf-nav-sheet-close {
-  background: var(--panel-background, #1f2937);
-  border: 1px solid var(--panel-border, #374151);
-  color: var(--text-secondary, #94a3b8);
-  font-size: 24px;
-  line-height: 1;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-.pdf-nav-sheet-close:hover {
-  background: var(--panel-background-alt, #374151);
-  color: var(--text-main, #f8fafc);
-  transform: scale(1.05);
-}
+
 
 .pdf-nav-sheet-list {
   list-style: none;
