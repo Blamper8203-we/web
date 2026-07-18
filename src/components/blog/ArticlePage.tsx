@@ -7,6 +7,7 @@ import { LandingFooter } from "../landing/LandingFooter";
 import { useLandingAssets } from "../landing/useLandingAssets";
 import type { AppContextType } from "../../App";
 import { articleJsonLdBlocks } from "../../seo/jsonLd";
+import { GoogleAdSense } from "../../seo/GoogleAdSense";
 import "./Blog.css";
 
 function SimpleMarkdownRenderer({ content }: { content: string }) {
@@ -100,6 +101,7 @@ export function ArticlePage() {
           </script>
         ))}
       </Helmet>
+      <GoogleAdSense />
 
       <LandingHeader />
 

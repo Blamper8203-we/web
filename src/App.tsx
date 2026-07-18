@@ -13,6 +13,7 @@ import { initStorageService } from "./lib/storageService";
 import { reportRuntimeError } from "./lib/runtimeDiagnostics";
 import { useIsNativePlatform } from "./hooks/useViewport";
 import { hideNativeSplash } from "./lib/native/splash";
+import { GoogleAdSense } from "./seo/GoogleAdSense";
 const AppWorkspace = lazy(() =>
   import("./components/AppWorkspace").then((m) => ({ default: m.AppWorkspace }))
 );
@@ -178,6 +179,7 @@ function LandingRoute() {
           {JSON.stringify(softwareApplicationJsonLd())}
         </script>
       </Helmet>
+      <GoogleAdSense />
       <PublicLandingPage
         onOpenNewProject={handleOpenNewProject}
         onOpenProjectFile={handleOpenProjectFile}

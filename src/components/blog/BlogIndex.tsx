@@ -6,6 +6,7 @@ import { LandingFooter } from "../landing/LandingFooter";
 import { useLandingAssets } from "../landing/useLandingAssets";
 import type { AppContextType } from "../../App";
 import { collectionPageJsonLd } from "../../seo/jsonLd";
+import { GoogleAdSense } from "../../seo/GoogleAdSense";
 import "./Blog.css";
 
 export function BlogIndex() {
@@ -27,6 +28,7 @@ export function BlogIndex() {
           {JSON.stringify(collectionPageJsonLd())}
         </script>
       </Helmet>
+      <GoogleAdSense />
 
       <LandingHeader />
 
