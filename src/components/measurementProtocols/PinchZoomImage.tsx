@@ -33,6 +33,13 @@ interface PinchZoomImageProps {
  * Granice:
  * - scale: 1..maxScale
  * - pan: nie pozwalam wyjść poza obraz (clamp)
+ *
+ * WHY: Touch handlery są rejestrowane natywnie (addEventListener) z
+ * { passive: false }, bo React od v17+ rejestruje onTouchStart/onTouchMove
+ * jako passive event listenery. Passive listener ignoruje preventDefault()
+ * — przeglądarka po cichu go pomija i równocześnie wykonuje native
+ * pinch-zoom/scroll. Na smartfonach powodowało to "walkę" między naszym
+ * custom pinch a natywnym zoomem strony → erratyczny zoom/pan.
  */
 export function PinchZoomImage({ src, alt, maxScale = 4, className }: PinchZoomImageProps) {
   const [scale, setScale] = useState(1);
@@ -62,6 +69,19 @@ export function PinchZoomImage({ src, alt, maxScale = 4, className }: PinchZoomI
 
   const lastTapRef = useRef<number>(0);
 
+  // WHY: Refs trzymające aktualny stan (scale, panX, panY, maxScale) —
+  // natywne event listenery (addEventListener) łapią closure z momentu
+  // rejestracji i nie "widzą" nowych wartości state. Bez tych refów
+  // handler touchstart/touchmove operowałby na stale=1, panX=0, panY=0.
+  const scaleRef = useRef(scale);
+  const panXRef = useRef(panX);
+  const panYRef = useRef(panY);
+  const maxScaleRef = useRef(maxScale);
+  scaleRef.current = scale;
+  panXRef.current = panX;
+  panYRef.current = panY;
+  maxScaleRef.current = maxScale;
+
   // WHY: clamp pozycji obrazu w granicach widoku po zmianie skali/panelu.
   // Bez tego użytkownik mógłby "zgubić" obraz przesuwając za daleko.
   const clampPan = useCallback((nextPanX: number, nextPanY: number, nextScale: number) => {
@@ -81,109 +101,121 @@ export function PinchZoomImage({ src, alt, maxScale = 4, className }: PinchZoomI
     };
   }, []);
 
-  const handleTouchStart = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
-    const touches = event.touches;
-    if (touches.length === 2) {
-      // pinch start
-      event.preventDefault();
-      const t1 = touches[0];
-      const t2 = touches[1];
-      if (!t1 || !t2) {
-        return;
-      }
-      const dx = t1.clientX - t2.clientX;
-      const dy = t1.clientY - t2.clientY;
-      const distance = Math.hypot(dx, dy);
-      const wrapperRect = wrapperRef.current?.getBoundingClientRect();
-      pinchStateRef.current = {
-        initialDistance: distance,
-        initialScale: scale,
-        initialPanX: panX,
-        initialPanY: panY,
-        centerX: wrapperRect ? (t1.clientX + t2.clientX) / 2 - wrapperRect.left : 0,
-        centerY: wrapperRect ? (t1.clientY + t2.clientY) / 2 - wrapperRect.top : 0,
-      };
-      panStateRef.current = null;
-    } else if (touches.length === 1 && scale > 1) {
-      // pan start (tylko gdy zoomed in)
-      const touch = touches[0];
-      if (!touch) {
-        return;
-      }
-      event.preventDefault();
-      panStateRef.current = {
-        initialX: touch.clientX,
-        initialY: touch.clientY,
-        initialPanX: panX,
-        initialPanY: panY,
-      };
-    } else if (touches.length === 1) {
-      // detect double tap
-      const now = Date.now();
-      if (now - lastTapRef.current < 300) {
-        // toggle zoom
+  // WHY: natywne event listenery z { passive: false } — jedyny sposób żeby
+  // preventDefault() faktycznie blokował native zoom/scroll na smartfonach.
+  // React synthetic events (onTouchStart, onTouchMove) od v17+ są passive,
+  // więc preventDefault() w nich jest no-op.
+  useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el) return;
+
+    function handleTouchStart(event: TouchEvent) {
+      const touches = event.touches;
+      if (touches.length === 2) {
+        // pinch start
         event.preventDefault();
-        if (scale > 1) {
-          setScale(1);
-          setPanX(0);
-          setPanY(0);
+        const t1 = touches[0];
+        const t2 = touches[1];
+        if (!t1 || !t2) return;
+        const dx = t1.clientX - t2.clientX;
+        const dy = t1.clientY - t2.clientY;
+        const distance = Math.hypot(dx, dy);
+        const wrapperRect = el!.getBoundingClientRect();
+        pinchStateRef.current = {
+          initialDistance: distance,
+          initialScale: scaleRef.current,
+          initialPanX: panXRef.current,
+          initialPanY: panYRef.current,
+          centerX: (t1.clientX + t2.clientX) / 2 - wrapperRect.left,
+          centerY: (t1.clientY + t2.clientY) / 2 - wrapperRect.top,
+        };
+        panStateRef.current = null;
+      } else if (touches.length === 1 && scaleRef.current > 1) {
+        // pan start (tylko gdy zoomed in)
+        const touch = touches[0];
+        if (!touch) return;
+        event.preventDefault();
+        panStateRef.current = {
+          initialX: touch.clientX,
+          initialY: touch.clientY,
+          initialPanX: panXRef.current,
+          initialPanY: panYRef.current,
+        };
+      } else if (touches.length === 1) {
+        // detect double tap
+        const now = Date.now();
+        if (now - lastTapRef.current < 300) {
+          // toggle zoom
+          event.preventDefault();
+          if (scaleRef.current > 1) {
+            setScale(1);
+            setPanX(0);
+            setPanY(0);
+          } else {
+            setScale(2.5);
+          }
+          lastTapRef.current = 0;
         } else {
-          setScale(2.5);
+          lastTapRef.current = now;
         }
-        lastTapRef.current = 0;
-      } else {
-        lastTapRef.current = now;
       }
     }
-  }, [panX, panY, scale]);
 
-  const handleTouchMove = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
-    const touches = event.touches;
-    if (touches.length === 2 && pinchStateRef.current) {
-      event.preventDefault();
-      const t1 = touches[0];
-      const t2 = touches[1];
-      if (!t1 || !t2) {
-        return;
+    function handleTouchMove(event: TouchEvent) {
+      const touches = event.touches;
+      if (touches.length === 2 && pinchStateRef.current) {
+        event.preventDefault();
+        const t1 = touches[0];
+        const t2 = touches[1];
+        if (!t1 || !t2) return;
+        const dx = t1.clientX - t2.clientX;
+        const dy = t1.clientY - t2.clientY;
+        const distance = Math.hypot(dx, dy);
+        const ratio = distance / pinchStateRef.current.initialDistance;
+        const newScale = Math.max(
+          1,
+          Math.min(maxScaleRef.current, pinchStateRef.current.initialScale * ratio),
+        );
+        setScale(newScale);
+
+        // Pan podczas pinch: przesuwaj obraz tak, żeby punkt środkowy pinch
+        // pozostał w tym samym miejscu wizualnie.
+        const scaleDelta = newScale / pinchStateRef.current.initialScale;
+        const newPanX = pinchStateRef.current.centerX * (1 - scaleDelta) + pinchStateRef.current.initialPanX * scaleDelta;
+        const newPanY = pinchStateRef.current.centerY * (1 - scaleDelta) + pinchStateRef.current.initialPanY * scaleDelta;
+        const clamped = clampPan(newPanX, newPanY, newScale);
+        setPanX(clamped.panX);
+        setPanY(clamped.panY);
+      } else if (touches.length === 1 && panStateRef.current && scaleRef.current > 1) {
+        event.preventDefault();
+        const touch = touches[0];
+        if (!touch) return;
+        const newPanX = panStateRef.current.initialPanX + (touch.clientX - panStateRef.current.initialX);
+        const newPanY = panStateRef.current.initialPanY + (touch.clientY - panStateRef.current.initialY);
+        const clamped = clampPan(newPanX, newPanY, scaleRef.current);
+        setPanX(clamped.panX);
+        setPanY(clamped.panY);
       }
-      const dx = t1.clientX - t2.clientX;
-      const dy = t1.clientY - t2.clientY;
-      const distance = Math.hypot(dx, dy);
-      const ratio = distance / pinchStateRef.current.initialDistance;
-      const newScale = Math.max(
-        1,
-        Math.min(maxScale, pinchStateRef.current.initialScale * ratio),
-      );
-      setScale(newScale);
+    }
 
-      // Pan podczas pinch: przesuwaj obraz tak, żeby punkt środkowy pinch
-      // pozostał w tym samym miejscu wizualnie. Skomplikowane ale lepsze UX.
-      const scaleDelta = newScale / pinchStateRef.current.initialScale;
-      const newPanX = pinchStateRef.current.centerX * (1 - scaleDelta) + pinchStateRef.current.initialPanX * scaleDelta;
-      const newPanY = pinchStateRef.current.centerY * (1 - scaleDelta) + pinchStateRef.current.initialPanY * scaleDelta;
-      const clamped = clampPan(newPanX, newPanY, newScale);
-      setPanX(clamped.panX);
-      setPanY(clamped.panY);
-    } else if (touches.length === 1 && panStateRef.current && scale > 1) {
-      event.preventDefault();
-      const touch = touches[0];
-      if (!touch) {
-        return;
+    function handleTouchEnd(event: TouchEvent) {
+      if (event.touches.length === 0) {
+        pinchStateRef.current = null;
+        panStateRef.current = null;
       }
-      const newPanX = panStateRef.current.initialPanX + (touch.clientX - panStateRef.current.initialX);
-      const newPanY = panStateRef.current.initialPanY + (touch.clientY - panStateRef.current.initialY);
-      const clamped = clampPan(newPanX, newPanY, scale);
-      setPanX(clamped.panX);
-      setPanY(clamped.panY);
     }
-  }, [clampPan, maxScale, scale]);
 
-  const handleTouchEnd = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
-    if (event.touches.length === 0) {
-      pinchStateRef.current = null;
-      panStateRef.current = null;
-    }
-  }, []);
+    // WHY: { passive: false } — kluczowe! Bez tego preventDefault() jest no-op.
+    el.addEventListener("touchstart", handleTouchStart, { passive: false });
+    el.addEventListener("touchmove", handleTouchMove, { passive: false });
+    el.addEventListener("touchend", handleTouchEnd);
+
+    return () => {
+      el.removeEventListener("touchstart", handleTouchStart);
+      el.removeEventListener("touchmove", handleTouchMove);
+      el.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [clampPan]);
 
   const handleReset = useCallback(() => {
     setScale(1);
@@ -192,14 +224,21 @@ export function PinchZoomImage({ src, alt, maxScale = 4, className }: PinchZoomI
   }, []);
 
   // Mouse wheel zoom dla desktop (laptop z trackpadem)
-  const handleWheel = useCallback((event: React.WheelEvent<HTMLDivElement>) => {
-    if (!event.ctrlKey && !event.metaKey) {
-      return;
+  // WHY: onWheel w React jest passive na Chrome, więc też rejestrujemy natywnie.
+  useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el) return;
+
+    function handleWheel(event: WheelEvent) {
+      if (!event.ctrlKey && !event.metaKey) return;
+      event.preventDefault();
+      const delta = -event.deltaY * 0.005;
+      setScale((prev) => Math.max(1, Math.min(maxScaleRef.current, prev + delta)));
     }
-    event.preventDefault();
-    const delta = -event.deltaY * 0.005;
-    setScale((prev) => Math.max(1, Math.min(maxScale, prev + delta)));
-  }, [maxScale]);
+
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, []);
 
   // Gdy obraz się przeładuje (np. nowy schematic), resetuj zoom
   useEffect(() => {
@@ -212,10 +251,6 @@ export function PinchZoomImage({ src, alt, maxScale = 4, className }: PinchZoomI
     <div
       ref={wrapperRef}
       className={`pinch-zoom-image ${className ?? ""}`}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onWheel={handleWheel}
       style={{
         position: "relative",
         width: "100%",

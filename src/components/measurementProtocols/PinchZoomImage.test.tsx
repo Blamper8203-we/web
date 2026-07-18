@@ -1,22 +1,21 @@
-import { describe, it, expect, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
+import { render, screen, act } from "@testing-library/react";
 import { PinchZoomImage } from "./PinchZoomImage";
 
-// Mock touch eventów w jsdom. React oczekuje TouchEvent z `touches` listą,
-// ale konstruktor TouchEvent nie jest dostępny w jsdom. Tworzymy Event
-// z dodatkowymi polami i rzutujemy — fireEvent z testing-library wymaga
-// Event, nie TouchEvent, więc helper zwraca "Event & TouchEvent-like".
-type MockTouchEvent = Event & {
-  touches: Array<{ identifier: number; clientX: number; clientY: number }>;
-  preventDefault: () => void;
-};
+// WHY: Po przejściu na natywne event listenery (addEventListener z
+// { passive: false }) zamiast React synthetic events, musimy dispatchować
+// natywne TouchEvent na element DOM, a nie przez fireEvent z React.
+// fireEvent uruchamia React synthetic event, ale nasze handlery są
+// zarejestrowane natywnie — fireEvent ich nie triggeruje.
 
-function makeTouchEvent(type: string, touches: Array<{ clientX: number; clientY: number }>): MockTouchEvent {
+function makeTouchEvent(type: string, touches: Array<{ clientX: number; clientY: number }>): TouchEvent {
+  // jsdom nie ma pełnego TouchEvent, ale możemy stworzyć Event z polem touches.
   const baseEvent = new Event(type, { bubbles: true, cancelable: true });
-  return Object.assign(baseEvent, {
-    touches: touches.map((t, i) => ({ identifier: i, ...t })),
-    preventDefault: vi.fn(),
+  Object.defineProperty(baseEvent, "touches", {
+    value: touches.map((t, i) => ({ identifier: i, ...t })),
+    writable: false,
   });
+  return baseEvent as unknown as TouchEvent;
 }
 
 describe("PinchZoomImage", () => {
@@ -42,8 +41,9 @@ describe("PinchZoomImage", () => {
     const { container } = render(<PinchZoomImage src="test.png" alt="Test" />);
     const wrapper = container.querySelector(".pinch-zoom-image");
     if (!wrapper) throw new Error("wrapper not found");
-    const event = makeTouchEvent("touchstart", [{ clientX: 100, clientY: 100 }]);
-    fireEvent(wrapper, event);
+    act(() => {
+      wrapper.dispatchEvent(makeTouchEvent("touchstart", [{ clientX: 100, clientY: 100 }]));
+    });
     // Brak throw = OK
   });
 
@@ -51,11 +51,12 @@ describe("PinchZoomImage", () => {
     const { container } = render(<PinchZoomImage src="test.png" alt="Test" />);
     const wrapper = container.querySelector(".pinch-zoom-image");
     if (!wrapper) throw new Error("wrapper not found");
-    const event = makeTouchEvent("touchstart", [
-      { clientX: 100, clientY: 100 },
-      { clientX: 200, clientY: 200 },
-    ]);
-    fireEvent(wrapper, event);
+    act(() => {
+      wrapper.dispatchEvent(makeTouchEvent("touchstart", [
+        { clientX: 100, clientY: 100 },
+        { clientX: 200, clientY: 200 },
+      ]));
+    });
     // Brak throw = OK
   });
 
@@ -65,12 +66,16 @@ describe("PinchZoomImage", () => {
     if (!wrapper) throw new Error("wrapper not found");
 
     // pierwszy tap
-    fireEvent(wrapper, makeTouchEvent("touchstart", [{ clientX: 100, clientY: 100 }]));
+    act(() => {
+      wrapper.dispatchEvent(makeTouchEvent("touchstart", [{ clientX: 100, clientY: 100 }]));
+    });
     // czekamy 50ms
     return new Promise<void>((resolve) => {
       setTimeout(() => {
         // drugi tap (double tap)
-        fireEvent(wrapper, makeTouchEvent("touchstart", [{ clientX: 100, clientY: 100 }]));
+        act(() => {
+          wrapper.dispatchEvent(makeTouchEvent("touchstart", [{ clientX: 100, clientY: 100 }]));
+        });
         const img = screen.getByAltText("Test");
         const transform = (img as HTMLElement).style.transform;
         // Po double tap z scale=1 → powinno być scale 2.5
@@ -88,10 +93,14 @@ describe("PinchZoomImage", () => {
     if (!wrapper) throw new Error("wrapper not found");
 
     // double tap → scale 2.5
-    fireEvent(wrapper, makeTouchEvent("touchstart", [{ clientX: 100, clientY: 100 }]));
+    act(() => {
+      wrapper.dispatchEvent(makeTouchEvent("touchstart", [{ clientX: 100, clientY: 100 }]));
+    });
     return new Promise<void>((resolve) => {
       setTimeout(() => {
-        fireEvent(wrapper, makeTouchEvent("touchstart", [{ clientX: 100, clientY: 100 }]));
+        act(() => {
+          wrapper.dispatchEvent(makeTouchEvent("touchstart", [{ clientX: 100, clientY: 100 }]));
+        });
         const img = screen.getByAltText("Test");
         expect((img as HTMLElement).style.transform).toContain("scale(2.5)");
 

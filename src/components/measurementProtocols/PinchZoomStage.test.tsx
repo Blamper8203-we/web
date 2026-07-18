@@ -1,18 +1,18 @@
-import { describe, it, expect, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import { PinchZoomStage } from "./PinchZoomStage";
 
-type MockTouchEvent = Event & {
-  touches: Array<{ identifier: number; clientX: number; clientY: number }>;
-  preventDefault: () => void;
-};
+// WHY: Po przejściu na natywne event listenery (addEventListener z
+// { passive: false }) zamiast React synthetic events, musimy dispatchować
+// natywne TouchEvent na element DOM, a nie przez fireEvent z React.
 
-function makeTouchEvent(type: string, touches: Array<{ clientX: number; clientY: number }>): MockTouchEvent {
+function makeTouchEvent(type: string, touches: Array<{ clientX: number; clientY: number }>): TouchEvent {
   const baseEvent = new Event(type, { bubbles: true, cancelable: true });
-  return Object.assign(baseEvent, {
-    touches: touches.map((t, i) => ({ identifier: i, ...t })),
-    preventDefault: vi.fn(),
+  Object.defineProperty(baseEvent, "touches", {
+    value: touches.map((t, i) => ({ identifier: i, ...t })),
+    writable: false,
   });
+  return baseEvent as unknown as TouchEvent;
 }
 
 describe("PinchZoomStage", () => {
@@ -38,7 +38,9 @@ describe("PinchZoomStage", () => {
     const stage = container.querySelector(".pinch-zoom-stage");
     if (!stage) throw new Error("stage not found");
 
-    fireEvent(stage, makeTouchEvent("touchstart", [{ clientX: 100, clientY: 100 }]));
+    act(() => {
+      stage.dispatchEvent(makeTouchEvent("touchstart", [{ clientX: 100, clientY: 100 }]));
+    });
     expect(screen.getByText("100%")).toBeInTheDocument();
   });
 
@@ -48,15 +50,19 @@ describe("PinchZoomStage", () => {
     if (!stage) throw new Error("stage not found");
 
     // Start: 2 palce, distance 100.
-    fireEvent(stage, makeTouchEvent("touchstart", [
-      { clientX: 100, clientY: 100 },
-      { clientX: 200, clientY: 100 },
-    ]));
+    act(() => {
+      stage.dispatchEvent(makeTouchEvent("touchstart", [
+        { clientX: 100, clientY: 100 },
+        { clientX: 200, clientY: 100 },
+      ]));
+    });
     // Move: rozsunięte do distance 300 → ratio 3 → scale 3.
-    fireEvent(stage, makeTouchEvent("touchmove", [
-      { clientX: 0, clientY: 100 },
-      { clientX: 300, clientY: 100 },
-    ]));
+    act(() => {
+      stage.dispatchEvent(makeTouchEvent("touchmove", [
+        { clientX: 0, clientY: 100 },
+        { clientX: 300, clientY: 100 },
+      ]));
+    });
 
     expect(screen.getByText("300%")).toBeInTheDocument();
   });
@@ -66,15 +72,19 @@ describe("PinchZoomStage", () => {
     const stage = container.querySelector(".pinch-zoom-stage");
     if (!stage) throw new Error("stage not found");
 
-    fireEvent(stage, makeTouchEvent("touchstart", [
-      { clientX: 100, clientY: 100 },
-      { clientX: 110, clientY: 100 }, // distance 10
-    ]));
+    act(() => {
+      stage.dispatchEvent(makeTouchEvent("touchstart", [
+        { clientX: 100, clientY: 100 },
+        { clientX: 110, clientY: 100 }, // distance 10
+      ]));
+    });
     // Rozsunięcie do distance 1000 → ratio 100 → clamp do 4.
-    fireEvent(stage, makeTouchEvent("touchmove", [
-      { clientX: 0, clientY: 100 },
-      { clientX: 1000, clientY: 100 },
-    ]));
+    act(() => {
+      stage.dispatchEvent(makeTouchEvent("touchmove", [
+        { clientX: 0, clientY: 100 },
+        { clientX: 1000, clientY: 100 },
+      ]));
+    });
 
     expect(screen.getByText("400%")).toBeInTheDocument();
   });
@@ -85,14 +95,18 @@ describe("PinchZoomStage", () => {
     if (!stage) throw new Error("stage not found");
 
     // Zoom in.
-    fireEvent(stage, makeTouchEvent("touchstart", [
-      { clientX: 100, clientY: 100 },
-      { clientX: 200, clientY: 100 },
-    ]));
-    fireEvent(stage, makeTouchEvent("touchmove", [
-      { clientX: 50, clientY: 100 },
-      { clientX: 250, clientY: 100 },
-    ]));
+    act(() => {
+      stage.dispatchEvent(makeTouchEvent("touchstart", [
+        { clientX: 100, clientY: 100 },
+        { clientX: 200, clientY: 100 },
+      ]));
+    });
+    act(() => {
+      stage.dispatchEvent(makeTouchEvent("touchmove", [
+        { clientX: 50, clientY: 100 },
+        { clientX: 250, clientY: 100 },
+      ]));
+    });
     expect(screen.getByText("200%")).toBeInTheDocument();
 
     // Reset.

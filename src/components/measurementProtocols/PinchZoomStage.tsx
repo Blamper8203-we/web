@@ -24,6 +24,13 @@ import { SchematicZoomDock } from "../SchematicZoomDock";
  * Wzorzec matematyczny pinch zaczerpnięty z PinchZoomImage.tsx (prosty
  * ratio-distance + clamp). Te zakładki nie wymagają anchor-preserving
  * zoomu — wystarczy zoom around top-center (transform-origin: top center).
+ *
+ * WHY: Touch i wheel handlery są rejestrowane natywnie (addEventListener)
+ * z { passive: false }, bo React od v17+ rejestruje onTouchStart/onTouchMove
+ * jako passive event listenery. Passive listener ignoruje preventDefault()
+ * — przeglądarka po cichu go pomija i równocześnie wykonuje native
+ * pinch-zoom/scroll. Na smartfonach powodowało to "walkę" między naszym
+ * custom pinch a natywnym zoomem strony → erratyczny zoom/pan.
  */
 const MAX_SCALE = 4;
 
@@ -51,6 +58,12 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
   const [unscaledWidth, setUnscaledWidth] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
 
+  // WHY: Ref trzymający aktualny scale — natywne event listenery
+  // (addEventListener) łapią closure z momentu rejestracji i nie "widzą"
+  // nowych wartości state. Bez tego ref handler operowałby na stale=1.
+  const scaleRef = useRef(scale);
+  scaleRef.current = scale;
+
   useEffect(() => {
     const el = contentRef.current;
     if (!el || typeof ResizeObserver === "undefined") return;
@@ -76,76 +89,71 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
     }
   }, [scale]);
 
-  const handleTouchStart = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
-    if (event.touches.length !== 2) {
-      return;
-    }
-    const t1 = event.touches[0];
-    const t2 = event.touches[1];
-    if (!t1 || !t2) {
-      return;
-    }
-    // Nie preventDefault(), bo zablokujemy scroll/click na inputach na starcie!
-    // preventDefault robi się zwykle na onTouchMove w pinch.
-    const dx = t1.clientX - t2.clientX;
-    const dy = t1.clientY - t2.clientY;
-    const centerX = (t1.clientX + t2.clientX) / 2;
-    const centerY = (t1.clientY + t2.clientY) / 2;
-    
-    let pointerX = 0;
-    let pointerY = 0;
-    let scrollLeft = 0;
-    let scrollTop = 0;
+  // WHY: natywne event listenery z { passive: false } — jedyny sposób żeby
+  // preventDefault() faktycznie blokował native zoom/scroll na smartfonach.
+  // React synthetic events (onTouchStart, onTouchMove) od v17+ są passive,
+  // więc preventDefault() w nich jest no-op.
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el) return;
 
-    const stage = stageRef.current;
-    if (stage) {
-      const rect = stage.getBoundingClientRect();
+    function handleTouchStart(event: TouchEvent) {
+      if (event.touches.length !== 2) return;
+      const t1 = event.touches[0];
+      const t2 = event.touches[1];
+      if (!t1 || !t2) return;
+      // Nie preventDefault(), bo zablokujemy scroll/click na inputach na starcie!
+      // preventDefault robi się zwykle na onTouchMove w pinch.
+      const dx = t1.clientX - t2.clientX;
+      const dy = t1.clientY - t2.clientY;
+      const centerX = (t1.clientX + t2.clientX) / 2;
+      const centerY = (t1.clientY + t2.clientY) / 2;
+
+      let pointerX = 0;
+      let pointerY = 0;
+      let scrollLeft = 0;
+      let scrollTop = 0;
+
+      const rect = el!.getBoundingClientRect();
       pointerX = centerX - rect.left;
       pointerY = centerY - rect.top;
-      scrollLeft = stage.scrollLeft;
-      scrollTop = stage.scrollTop;
+      scrollLeft = el!.scrollLeft;
+      scrollTop = el!.scrollTop;
+
+      pinchStateRef.current = {
+        initialDistance: Math.hypot(dx, dy),
+        initialScale: scaleRef.current,
+        initialPointerX: pointerX,
+        initialPointerY: pointerY,
+        initialScrollLeft: scrollLeft,
+        initialScrollTop: scrollTop,
+      };
     }
 
-    pinchStateRef.current = {
-      initialDistance: Math.hypot(dx, dy),
-      initialScale: scale,
-      initialPointerX: pointerX,
-      initialPointerY: pointerY,
-      initialScrollLeft: scrollLeft,
-      initialScrollTop: scrollTop,
-    };
-  }, [scale]);
+    function handleTouchMove(event: TouchEvent) {
+      if (event.touches.length !== 2 || !pinchStateRef.current) return;
+      const t1 = event.touches[0];
+      const t2 = event.touches[1];
+      if (!t1 || !t2) return;
+      // Block native scroll ONLY during 2-finger pinch
+      event.preventDefault();
+      const dx = t1.clientX - t2.clientX;
+      const dy = t1.clientY - t2.clientY;
+      const distance = Math.hypot(dx, dy);
 
-  const handleTouchMove = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
-    if (event.touches.length !== 2 || !pinchStateRef.current) {
-      return;
-    }
-    const t1 = event.touches[0];
-    const t2 = event.touches[1];
-    if (!t1 || !t2) {
-      return;
-    }
-    // Block native scroll ONLY during 2-finger pinch
-    event.preventDefault();
-    const dx = t1.clientX - t2.clientX;
-    const dy = t1.clientY - t2.clientY;
-    const distance = Math.hypot(dx, dy);
-    
-    const {
-      initialDistance,
-      initialScale,
-      initialPointerX,
-      initialPointerY,
-      initialScrollLeft,
-      initialScrollTop,
-    } = pinchStateRef.current;
+      const {
+        initialDistance,
+        initialScale,
+        initialPointerX,
+        initialPointerY,
+        initialScrollLeft,
+        initialScrollTop,
+      } = pinchStateRef.current;
 
-    const ratio = distance / initialDistance;
-    const nextScale = Math.max(1, Math.min(MAX_SCALE, initialScale * ratio));
-    
-    const stage = stageRef.current;
-    if (stage) {
-      const rect = stage.getBoundingClientRect();
+      const ratio = distance / initialDistance;
+      const nextScale = Math.max(1, Math.min(MAX_SCALE, initialScale * ratio));
+
+      const rect = el!.getBoundingClientRect();
       const currentCenterX = (t1.clientX + t2.clientX) / 2;
       const currentCenterY = (t1.clientY + t2.clientY) / 2;
       const currentPointerX = currentCenterX - rect.left;
@@ -159,7 +167,7 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
       const targetScrollLeft = contentX * nextScale - currentPointerX;
       const targetScrollTop = contentY * nextScale - currentPointerY;
 
-      if (nextScale !== scale) {
+      if (nextScale !== scaleRef.current) {
         targetScrollRef.current = {
           left: targetScrollLeft,
           top: targetScrollTop,
@@ -167,45 +175,54 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
         setScale(nextScale);
       } else {
         // Skala się nie zmieniła, render nie zostanie wykonany, ręcznie panujemy!
-        stage.scrollLeft = targetScrollLeft;
-        stage.scrollTop = targetScrollTop;
+        el!.scrollLeft = targetScrollLeft;
+        el!.scrollTop = targetScrollTop;
       }
     }
-  }, [scale]);
 
-  const handleTouchEnd = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
-    if (event.touches.length === 0) {
-      pinchStateRef.current = null;
+    function handleTouchEnd(event: TouchEvent) {
+      if (event.touches.length === 0) {
+        pinchStateRef.current = null;
+      }
     }
-  }, []);
 
-  const handleWheel = useCallback((event: React.WheelEvent<HTMLDivElement>) => {
-    if (!event.ctrlKey && !event.metaKey) {
-      return;
-    }
-    // Block native browser zoom (entire page zoom)
-    event.preventDefault();
-    const delta = -event.deltaY * 0.005;
-    const nextScale = Math.max(1, Math.min(MAX_SCALE, scale + delta));
-    
-    if (nextScale !== scale) {
-      const stage = stageRef.current;
-      if (stage) {
-        const rect = stage.getBoundingClientRect();
+    function handleWheel(event: WheelEvent) {
+      if (!event.ctrlKey && !event.metaKey) return;
+      // Block native browser zoom (entire page zoom)
+      event.preventDefault();
+      const delta = -event.deltaY * 0.005;
+      const currentScale = scaleRef.current;
+      const nextScale = Math.max(1, Math.min(MAX_SCALE, currentScale + delta));
+
+      if (nextScale !== currentScale) {
+        const rect = el!.getBoundingClientRect();
         const pointerX = event.clientX - rect.left;
         const pointerY = event.clientY - rect.top;
 
-        const contentX = (stage.scrollLeft + pointerX) / scale;
-        const contentY = (stage.scrollTop + pointerY) / scale;
+        const contentX = (el!.scrollLeft + pointerX) / currentScale;
+        const contentY = (el!.scrollTop + pointerY) / currentScale;
 
         targetScrollRef.current = {
           left: contentX * nextScale - pointerX,
           top: contentY * nextScale - pointerY,
         };
+        setScale(nextScale);
       }
-      setScale(nextScale);
     }
-  }, [scale]);
+
+    // WHY: { passive: false } — kluczowe! Bez tego preventDefault() jest no-op.
+    el.addEventListener("touchstart", handleTouchStart, { passive: false });
+    el.addEventListener("touchmove", handleTouchMove, { passive: false });
+    el.addEventListener("touchend", handleTouchEnd);
+    el.addEventListener("wheel", handleWheel, { passive: false });
+
+    return () => {
+      el.removeEventListener("touchstart", handleTouchStart);
+      el.removeEventListener("touchmove", handleTouchMove);
+      el.removeEventListener("touchend", handleTouchEnd);
+      el.removeEventListener("wheel", handleWheel);
+    };
+  }, []);
 
   const handleReset = useCallback(() => {
     setScale(1);
@@ -225,33 +242,30 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
   const zoomAtCenter = useCallback((factor: number) => {
     const stage = stageRef.current;
     if (!stage) return;
-    
+
     const rect = stage.getBoundingClientRect();
     const pointerX = rect.width / 2;
     const pointerY = rect.height / 2;
 
-    const contentX = (stage.scrollLeft + pointerX) / scale;
-    const contentY = (stage.scrollTop + pointerY) / scale;
+    const currentScale = scaleRef.current;
+    const contentX = (stage.scrollLeft + pointerX) / currentScale;
+    const contentY = (stage.scrollTop + pointerY) / currentScale;
 
-    const nextScale = Math.max(1, Math.min(MAX_SCALE, scale * factor));
-    
-    if (nextScale !== scale) {
+    const nextScale = Math.max(1, Math.min(MAX_SCALE, currentScale * factor));
+
+    if (nextScale !== currentScale) {
       targetScrollRef.current = {
         left: contentX * nextScale - pointerX,
         top: contentY * nextScale - pointerY,
       };
       setScale(nextScale);
     }
-  }, [scale]);
+  }, []);
 
   return (
     <div
       ref={stageRef}
       className={`mp-stage pinch-zoom-stage ${className ?? ""}`}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onWheel={handleWheel}
       style={{ touchAction: "pan-x pan-y", position: "relative" }}
     >
       <div
@@ -282,3 +296,4 @@ export function PinchZoomStage({ children, className }: PinchZoomStageProps) {
     </div>
   );
 }
+
