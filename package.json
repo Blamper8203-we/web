@@ -1,7 +1,7 @@
 {
   "name": "dinboard-web",
   "private": true,
-  "version": "0.2.0",
+  "version": "1.0.0",
   "type": "module",
   "engines": {
     "node": "24.12.0"
@@ -20,7 +20,11 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "check": "npm run build && npm run test",
-    "check:online": "npm run check && npm run smoke:online"
+    "check:online": "npm run check && npm run smoke:online",
+    "cap:sync": "node scripts/sync-android-version.mjs && cap sync android",
+    "cap:build:android": "npm run build && node scripts/sync-android-version.mjs && cap sync android && cd android && gradlew bundleRelease",
+    "cap:open:android": "node scripts/sync-android-version.mjs && cap open android",
+    "android:release": "npm run cap:build:android"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",

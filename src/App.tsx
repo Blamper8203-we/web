@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useEffect, useState, useCallback } from "react";
-import { Outlet, useNavigate, useOutletContext, useRouteError } from "react-router-dom";
+import { Outlet, useNavigate, useOutletContext, useRouteError, Navigate } from "react-router-dom";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { Analytics } from "@vercel/analytics/react";
 import { Helmet } from "react-helmet-async";
@@ -62,9 +62,9 @@ export function AppLayout() {
 
   // WHY: Oznacza że React się zahydratował i pierwsza strona jest gotowa.
   // CSS w index.html (inline <style> w head) używa html.app-ready żeby
-  // wyblaknąć splash screen przez transition opacity 1->0. Delay 100ms daje
-  // przeglądarce czas na paint pierwszej prawdziwej strony pod splashem,
-  // żeby uniknąć "błysku" pustego tła między ukryciem splash a renderem.
+  // wyblaknąć splash screen przez transition opacity 1->0. Delay 5000ms
+  // daje użytkownikowi 5 sekund na zobaczenie splash screena z branding
+  // (DINboard + KREATOR ROZDZIELNIC + pasek ładowania + wersja).
   useEffect(() => {
     const timer = window.setTimeout(() => {
       document.documentElement.classList.add("app-ready");
@@ -72,7 +72,7 @@ export function AppLayout() {
       // hideNativeSplash jest no-op (isNativePlatform false). Wywołane w tym
       // samym ticku co app-ready — web splash i native splash znikają razem.
       void hideNativeSplash();
-    }, 100);
+    }, 5000);
     return () => window.clearTimeout(timer);
   }, []);
 
@@ -119,8 +119,9 @@ export function AppLayout() {
           (landing + workspace) without per-route wiring. Sits inside
           AppErrorBoundary so a render-time crash in the tracked tree still
           gets reported via Vercel (the script is in <head>, not under the
-          boundary, so it survives render-tree failures). */}
-      <Analytics />
+          boundary, so it survives render-tree failures).
+          Native platform: Disabled to simplify Google Play Data Safety form. */}
+      {!isNative && <Analytics />}
     </AppErrorBoundary>
   );
 }
@@ -128,6 +129,12 @@ export function AppLayout() {
 function LandingRoute() {
   const { t } = useTranslation();
   const { handleOpenNewProject, handleOpenProjectFile, openFeedback } = useOutletContext<AppContextType>();
+  const isNative = useIsNativePlatform();
+
+  if (isNative) {
+    return <Navigate to="/app" replace />;
+  }
+
   return (
     <>
       {/* WHY: per-route head meta. vite-react-ssg renders this template into

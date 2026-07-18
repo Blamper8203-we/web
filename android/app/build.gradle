@@ -3,12 +3,38 @@ apply plugin: 'com.android.application'
 android {
     namespace = "com.dinboard.app"
     compileSdk = rootProject.ext.compileSdkVersion
+
+    // WHY: release signing via keystore.properties — hasło NIE trafia do git.
+    // Plik keystore.properties jest w .gitignore (krok 1.1), tworzy go developer.
+    def keystoreProperties = new Properties()
+    def keystorePropsFile = rootProject.file("keystore.properties")
+    if (keystorePropsFile.exists()) {
+        keystoreProperties.load(new FileInputStream(keystorePropsFile))
+    }
+
+    signingConfigs {
+        release {
+            if (keystorePropsFile.exists()) {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+            }
+        }
+    }
+
     defaultConfig {
         applicationId "com.dinboard.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        // versionCode: integer monotonic, ZWIĘKSZAJ przy KAŻDYM uploadzie na Play.
+        //   Play odrzuca AAB z versionCode <= poprzedniego. Nie pomijaj liczb.
+        // versionName: dowolny string pokazywany użytkownikowi ("1.0.0", "1.1.0-beta").
+        //
+        // Konwencja DINBoard: versionName = package.json version (npm version patch/minor/major).
+        //   versionCode = jednomiejscowy counter, bumpuj ręcznie przy release.
+        versionCode rootProject.ext.versionCode
+        versionName rootProject.ext.versionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -20,6 +46,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
 }
