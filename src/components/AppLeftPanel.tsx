@@ -13,6 +13,7 @@ import { useIsMobileLayout } from "../hooks/useViewport";
 import type { ProjectMetadata } from "../types/projectMetadata";
 import { type DefaultWireSettings } from "../lib/connections/connectionsLogic";
 import type { ConnectionItem } from "../types/connectionItem";
+import type { SymbolItem } from "../types/symbolItem";
 
 import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
 
@@ -36,6 +37,16 @@ export interface AppLeftPanelProps {
   selectedConnectionId?: string | null;
   connections?: ConnectionItem[];
   onConnectionsChange?: (newConnections: ConnectionItem[], label: string, statusMsg: string) => void;
+  /**
+   * Zaznacz połączenie z listy w ConnectionsLeftPanel (mobile-friendly select).
+   * Patrz mobile-connections-review §3.2.3 / §4.2 Opcja A.
+   */
+  onConnectionSelect?: (id: string | null) => void;
+  /**
+   * Symbole rozdzielnicy — do rozwiązywania fromSymbolId/toSymbolId na label
+   * w liście połączeń. Bez tej listy pokazujemy surowe id.
+   */
+  symbols?: SymbolItem[];
 }
 
 export function AppLeftPanel({
@@ -57,6 +68,8 @@ export function AppLeftPanel({
   selectedConnectionId = null,
   connections = [],
   onConnectionsChange,
+  onConnectionSelect,
+  symbols,
 }: AppLeftPanelProps) {
   const { t } = useTranslation();
   const isMobileLayout = useIsMobileLayout();
@@ -113,6 +126,8 @@ export function AppLeftPanel({
             selectedConnectionId={selectedConnectionId}
             connections={connections}
             onConnectionsChange={onConnectionsChange}
+            onConnectionSelect={onConnectionSelect}
+            symbols={symbols}
           />
         )}
         {activeSheet === "sheet2" && (

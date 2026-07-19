@@ -20,6 +20,7 @@ src/
   components/          # React UI (35+ files: App*, DinRail*, Schematic*, Pdf*, dialogs)
   fixtures/            # test data and dev fixtures
   hooks/               # 25+ hooks (useProjectActions, useSymbolHistory, useDinRail*, useSchematic*, etc.)
+  seo/                 # SEO components, JSON-LD schemas, Google AdSense integration
   lib/                 # 12 subdirs + top-level files: domain logic
     circuitEdit/
     connections/

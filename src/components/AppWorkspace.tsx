@@ -407,6 +407,11 @@ export function AppWorkspace({
           selectedConnectionId,
           connections,
           onConnectionsChange: handleConnectionsChange,
+          // WHY: lista połączeń w ConnectionsLeftPanel potrzebuje obu —
+          // onConnectionSelect, żeby tap w wierszu zaznaczał przewód na SVG,
+          // i symbols, żeby label wiersza pokazywał "B16 1P" zamiast "uuid".
+          onConnectionSelect: setSelectedConnectionId,
+          symbols,
         }}
         workspaceCanvasProps={{
           paletteTemplateMap,

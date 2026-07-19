@@ -1,5 +1,4 @@
 import "./AppSheetTabs.css";
-import { Capacitor } from "@capacitor/core";
 import type { SheetType } from "../lib/appHelpers";
 import { AppIcon, type AppIconName } from "./AppIcon";
 
@@ -28,11 +27,18 @@ export function AppSheetTabs({ activeSheet, onChangeSheet, showLeftPanel, onOpen
   ];
 
   const visibleTabs = sheetTabs.filter((tab) => {
-    // Ukrywamy zakładkę "Połączenia", jeśli aplikacja jest odpalona natywnie (np. na Androidzie)
-    if (tab.sheet === "sheet1_connections" && Capacitor.isNativePlatform()) {
-      return false;
-    }
-    // Wyłączamy zakładkę "Schemat Smart Home" na życzenie użytkownika
+    // WHY: zakładka "Połączenia" jest dostępna na mobile od 2026-07-19.
+    // Wcześniej była wyłączona na platformach natywnych (Capacitor), bo cały
+    // pipeline interakcji (pan/zoom/draw/delete) był projektowany pod mysz +
+    // klawiaturę. Wymagania mobile obsłużone odtąd przez:
+    //  - `useConnectionsPinch` (2-palce pinch-zoom + pan, reuse computePinchTransform)
+    //  - gate `pinchActiveRef` w `useConnectionsMutations` (1 vs 2 palce)
+    //  - HUD `DinRailDrawingActions` (Anuluj / Cofnij punkt — zamiast Esc/prawoklik)
+    //  - lista połączeń w `ConnectionsLeftPanel` (select + delete bez precyzyjnego tap)
+    //  - snap-threshold `36 / zoom` w handlePointerMove (trafialność terminala)
+    // Patrz docs/distribution-roadmap-notes/mobile-connections-review.md.
+    // NIE przywracaj tego filtru bez konsultacji — regresja UX dla elektryków
+    // na telefonie.
     if (tab.sheet === "sheet5_smarthome") {
       return false;
     }

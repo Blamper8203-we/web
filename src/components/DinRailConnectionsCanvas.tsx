@@ -50,6 +50,7 @@ import { useConnectionsDrawing } from "../hooks/connections/useConnectionsDrawin
 import { useConnectionsHotkeys } from "../hooks/connections/useConnectionsHotkeys";
 import { useConnectionsGeometry } from "../hooks/connections/useConnectionsGeometry";
 import { useConnectionsMutations, type DraggingHandle, type DraggingSegment } from "../hooks/connections/useConnectionsMutations";
+import { useConnectionsPinch } from "../hooks/connections/useConnectionsPinch";
 import { useDinRailForegroundSvgs } from "../hooks/useDinRailForegroundSvgs";
 import { DinRailConnectionsForegroundLayer } from "./canvasLayers/DinRailConnectionsForegroundLayer";
 import { DinRailPlaceholders } from "./canvasLayers/DinRailPlaceholders";
@@ -59,6 +60,7 @@ import { DinRailHitTargets } from "./canvasLayers/DinRailHitTargets";
 import { DinRailConnectionWires } from "./canvasLayers/DinRailConnectionWires";
 import { DinRailFerrulesGroup } from "./canvasLayers/DinRailFerrulesGroup";
 import { DinRailDrawingPreview } from "./canvasLayers/DinRailDrawingPreview";
+import { DinRailDrawingActions } from "./canvasLayers/DinRailDrawingActions";
 import { SchematicZoomDock } from "./SchematicZoomDock";
 import {
   checkConnectionWarning,
@@ -247,6 +249,25 @@ export function DinRailConnectionsCanvas({
 
 
 
+  // WHY: 2-palce pinch-zoom dla mobile (Capacitor / touch). Hook reużywa
+  // matematyki z `lib/pinchMath` (computePinchTransform) — identycznej
+  // z `useDinRailPinch` dla szyny DIN i `useSchematicPinch` dla schematu.
+  // pinchActiveRef jest przekazywany do `useConnectionsMutations`, który
+  // pomija pointer-handlery (pan / draw / drag) w trakcie aktywnego pinch
+  // — inaczej pointerdown z pojedynczego palca wszedłby w draw w środku
+  // trwającego gestu dwóch palców.
+  const {
+    pinchActiveRef: connectionsPinchActiveRef,
+    onTouchStart: onConnectionsTouchStart,
+    onTouchMove: onConnectionsTouchMove,
+    onTouchEnd: onConnectionsTouchEnd,
+  } = useConnectionsPinch({
+    svgRef,
+    viewport: { zoom, pan },
+    setViewport,
+    resetZoom,
+  });
+
   const {
     handlePointerDown,
     handlePointerMove,
@@ -266,6 +287,7 @@ export function DinRailConnectionsCanvas({
     panStartRef,
     setViewport,
     pan,
+    zoom,
     onConnectionSelect,
     draggingHandle,
     setDraggingHandle,
@@ -279,6 +301,7 @@ export function DinRailConnectionsCanvas({
     onConnectionsChange,
     defaultWireSettings,
     getLogicalPoint,
+    pinchActiveRef: connectionsPinchActiveRef,
   });
 
   return (
@@ -329,6 +352,18 @@ export function DinRailConnectionsCanvas({
         </div>
       )}
 
+      {/* WHY: HUD Anuluj/Cofnij punkt — pokazywany tylko w trakcie aktywnego
+          rysowania przewodu. Na desktopie odpowiednikiem jest Escape (anuluj)
+          i prawoklik (cofnij punkt); na mobile jedyną drogą jest ten HUD.
+          Patrz docs/distribution-roadmap-notes/mobile-connections-review.md §4. */}
+      {drawingState && (
+        <DinRailDrawingActions
+          explicitPointsCount={explicitPoints.length}
+          onUndoPoint={() => setExplicitPoints((prev) => prev.slice(0, -1))}
+          onCancelDrawing={cancelDrawing}
+        />
+      )}
+
 
       <svg
         ref={svgRef}
@@ -342,6 +377,9 @@ export function DinRailConnectionsCanvas({
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
+        onTouchStart={onConnectionsTouchStart}
+        onTouchMove={onConnectionsTouchMove}
+        onTouchEnd={onConnectionsTouchEnd}
         onContextMenu={(e) => e.preventDefault()}
       >
         <defs>
