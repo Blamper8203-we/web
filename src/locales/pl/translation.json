@@ -124,7 +124,7 @@
       "help": "Pomoc",
       "about": "O aplikacji",
       "feedback": "Zgłoś pomysł",
-      "donate": "Postaw kawę"
+      "donate": "Donate/Wesprzyj"
     },
     "fileMenu": {
       "section": "Zlecenie",
@@ -559,7 +559,7 @@
   "auto.interfejs_389": "Interfejs",
   "auto.bazawiedzy_212": "Baza wiedzy",
   "auto.faq_502": "FAQ",
-  "auto.wesprzyjprojekt_653": "Wesprzyj projekt",
+  "auto.wesprzyjprojekt_653": "Donate/Wesprzyj",
   "auto.bezpieczestwopr_573": "Bezpieczeństwo przede wszystkim:",
   "auto.wersjatestowabe_809": "Wersja testowa (BETA):",
   "auto.rozpocznijproje_716": "Rozpocznij projektowanie czystej szyny DIN, konfiguruj fazy i wygeneruj schemat montażowy.",
