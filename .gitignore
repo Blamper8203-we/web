@@ -45,3 +45,37 @@ scratch/
 android/app/release/
 android/app/*.keystore
 android/app/keystore.properties
+
+# --- Higiena repo (P0, 2026-07-22) ---
+
+# Jednorazowe diffy / dumpy / archiwa trzymane lokalnie, nigdy w repo
+/diff.txt
+/diff2.txt
+/git_log_logoBox.txt
+*.rar
+
+# Zalegające assety w roocie (leftover, nieużywane w kodzie)
+/empty-box.png
+/pdf30.pdf
+/pdf30_p3.png
+/pdf30_print.pdf
+
+# Logi dev-host i crash dumpy JVM (Gradle/Android)
+/dev-host.err.log
+/dev-host.log
+hs_err_pid*.log
+
+# Jednorazowe raporty AI / audytów
+/out/
+
+# Wyjścia jednorazowych skryptów i18n (app jest pl-only by design —
+# patrz PLAN-ULEPSZEN.md P1-2; skrypty w scripts/i18n-*.mjs regenerują je na żądanie)
+/missing-keys.json
+/missing-keys-de.json
+/missing-translations-report.json
+/scripts/missing-translations-report.json
+
+# Generowane artefakty smoke-testów (raporty regenerują je same;
+# ręcznie pisane *.md w test-artifacts/ zostają w repo)
+test-artifacts/**/*.png
+test-artifacts/**/route-smoke.json
