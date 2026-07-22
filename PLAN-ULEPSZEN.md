@@ -87,7 +87,7 @@ Cel: czyste `git status`, brak binariów w historii roboczej, repo które „wyg
 |---|---|---|---|
 | P1-1 | **Splash: min. floor zamiast sztywnych 3000 ms.** ✅ **DONE 2026-07-22** (commit `6e3bc03`) — stała `SPLASH_MIN_VISIBLE_MS=1200` użyta w mount effect i `triggerSplash`. Zweryfikowane w przeglądarce: `app-ready` OK, splash chowany, workspace renderuje się bez błędów. | `src/App.tsx` | **M** |
 | P1-2 | **Rozstrzygnij i18n.** ✅ **DECYZJA 2026-07-22: pl-only.** Artefakty niemieckiego odpięte od repo (P0-1). Zostaje: komentarz „app is pl-only by design" przy inicjalizacji i18n + rozważyć usunięcie martwych `scripts/i18n-*.mjs`, `find-polish-strings.mjs`, `audit-translations.mjs`. | root + `src/locales/` | **S** |
-| P1-3 | **Sprawdź, czy błędy runtime gdzieś trafiają.** `reportRuntimeError` istnieje — potwierdź, że produkcja wysyła je do czegoś actionable (Sentry/Vercel), a nie do `void`. | `src/lib/runtimeDiagnostics.ts` | **M** |
+| P1-3 | **Błędy runtime NIE docierają do dewelopera.** ⚠️ **USTALONE 2026-07-22:** `reportRuntimeError` w produkcji robi tylko `console.error` (komentarz: „Keep diagnostics local until a privacy-reviewed monitoring backend is configured"). Globalne handlery + ErrorBoundary są podpięte, ale dead-end w konsoli usera. Na 3 platformach = zero widoczności crashy na produkcji. **Rekomendacja:** podłączyć backend (np. Sentry) za zgodą z `CookieConsent`. Seam gotowy w `reportRuntimeError`. Wymaga decyzji o vendorze + privacy — osobne zadanie. | `src/lib/runtimeDiagnostics.ts` | **L** |
 | P1-4 | Przegląd `any`/`@ts-ignore` w kodzie nie-testowym (55+20) — każde albo uzasadnij `// WHY:`, albo zawęź typ. | `src/**` (grep) | **M** |
 
 ### P2 — Architektura i utrzymywalność (średni termin, osobne PR-y)
