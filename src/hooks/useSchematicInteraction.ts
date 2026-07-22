@@ -5,6 +5,7 @@ import { screenToWorld, constrainPan, type ViewportState } from "../lib/schemati
 import { snapToRail } from "../lib/schematic/schematicSnapService";
 import type { SymbolItem } from "../types/symbolItem";
 import { SCHEMATIC_BODY_Y_OFFSET } from "../lib/schematic/schematicRenderer";
+import { getRootNodes } from "../lib/schematic/schematicNodeIdentification";
 
 export function useSchematicInteraction(
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
@@ -234,9 +235,4 @@ function hitNode(
   }
 
   return null;
-}
-
-function getRootNodes(nodes: SchematicNode[]): SchematicNode[] {
-  const childIds = new Set(nodes.flatMap((node) => node.children.map((child) => child.id)));
-  return nodes.filter((node) => !childIds.has(node.id));
 }
