@@ -2,7 +2,7 @@ import type { PageInfo, SchematicLayout, SchematicNode } from "./schematicLayout
 import type { ProjectMetadata } from "../../types/projectMetadata";
 import { MODULE_HEIGHT, MODULE_WIDTH } from "./schematicLayout";
 
-import { COLORS, SCHEMATIC_BODY_Y_OFFSET, getRootNodes } from "./renderers/schematicRenderUtils";
+import { COLORS, SCHEMATIC_BODY_Y_OFFSET, getRenderRootNodes } from "./renderers/schematicRenderUtils";
 import { drawPageTemplate } from "./renderers/schematicPageTemplateRenderer";
 import { drawTitleBlock } from "./renderers/schematicTitleBlockRenderer";
 import { drawCircuitTable } from "./renderers/schematicTableRenderer";
@@ -62,7 +62,7 @@ export function renderSchematic(
   ctx.translate(panX, panY);
   ctx.scale(zoom, zoom);
 
-  const rootNodes = getRootNodes(layout.nodes);
+  const rootNodes = getRenderRootNodes(layout.nodes);
 
   for (const page of layout.pages) {
     drawPageTemplate(ctx, page, layout.pages.length);

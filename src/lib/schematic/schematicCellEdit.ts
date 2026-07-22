@@ -10,6 +10,7 @@ import {
   TITLEBLOCK_VISUAL_WIDTH,
   Y_ROW_DESIGNATION,
 } from "./schematicLayout";
+import { getRootNodes } from "./schematicNodeIdentification";
 
 export type SchematicEditableField =
   | "Designation"
@@ -230,11 +231,6 @@ function getHeadCellWidth(node: SchematicNode): number {
   const childWidth = node.children.reduce((sum, child) => sum + child.cellWidth, 0);
   const headWidth = node.cellWidth - childWidth;
   return headWidth > 0 ? headWidth : estimateTableWidth(node);
-}
-
-function getRootNodes(nodes: SchematicNode[]): SchematicNode[] {
-  const childIds = new Set(nodes.flatMap((node) => node.children.map((child) => child.id)));
-  return nodes.filter((node) => !childIds.has(node.id));
 }
 
 function syncSymbolParameters(symbol: SymbolItem): void {

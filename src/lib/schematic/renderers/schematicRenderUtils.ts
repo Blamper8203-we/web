@@ -298,10 +298,12 @@ export function phaseMarks(
   }
 }
 
-// WHY: typ wyrównany do kanonicznego SchematicNode (identyczne lokalne kopie
-// getRootNodes w useSchematicInteraction.ts i schematicCellEdit.ts już go używają).
-// Duplikacja 3 kopii tej funkcji — kandydat do dedup (patrz PLAN-ULEPSZEN.md).
-export function getRootNodes(nodes: SchematicNode[]): SchematicNode[] {
+// WHY: wariant "root nodes" DLA RENDEROWANIA — oprócz dzieci wyklucza też węzły
+// topDevice (rysowane jako część grupy nadrzędnej, nie jako niezależne korzenie).
+// To celowo INNE zachowanie niż wspólny getRootNodes w schematicNodeIdentification
+// (tamten wyklucza tylko dzieci). NIE scalać — różnica jest semantyczna.
+// TODO(autor): potwierdź, że wykluczenie topDevice jest zamierzone, nie latentny bug.
+export function getRenderRootNodes(nodes: SchematicNode[]): SchematicNode[] {
   const childIds = new Set(nodes.flatMap((node) => node.children ? node.children.map((child) => child.id) : []));
   const topDeviceIds = new Set(nodes.map(node => node.topDevice?.id).filter(Boolean));
   return nodes.filter((node) => !childIds.has(node.id) && !topDeviceIds.has(node.id));

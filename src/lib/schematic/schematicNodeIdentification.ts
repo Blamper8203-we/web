@@ -24,6 +24,16 @@ export const INDUCTION_OVEN_PATTERN_KEY = "GroupScenario.InductionWithOven.Patte
 
 export type ModulePoleCount = 0 | 1 | 2 | 3 | 4;
 
+// WHY: "root nodes" = węzły, które nie są dzieckiem żadnego innego węzła
+// (korzenie drzewa schematu). Jedno wspólne źródło dla useSchematicInteraction
+// i schematicCellEdit — wcześniej były dwie identyczne kopie lokalne.
+// UWAGA: to NIE to samo co `getRenderRootNodes` w schematicRenderUtils.ts —
+// tamta wersja dodatkowo wyklucza węzły topDevice (patrz komentarz tam).
+export function getRootNodes(nodes: SchematicNode[]): SchematicNode[] {
+  const childIds = new Set(nodes.flatMap((node) => node.children.map((child) => child.id)));
+  return nodes.filter((node) => !childIds.has(node.id));
+}
+
 export function getModuleType(symbol: SymbolItem): SchematicNode["nodeType"] {
   if (symbol.deviceKind === "rcd" || isRcdDevice(symbol)) return "RCD";
   if (symbol.deviceKind === "mcb" || symbol.deviceKind === "rcbo" || isRcboDevice(symbol)) return "MCB";
