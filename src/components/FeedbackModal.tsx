@@ -13,6 +13,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [serverError, setServerError] = useState<string | null>(null);
   // WHY: modal jest renderowany w App.tsx obok <Outlet>, czyli POZA
   // <main className="app-shell ui-theme-classic">. Bez portalu CSS variables
   // motywu (zdefiniowane na .app-shell) nie kaskadują do modala i w jasnym
@@ -50,9 +51,11 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
       if (result.success) {
         setStatus("success");
       } else {
+        setServerError(result.message || "Brak szczegółów błędu od Web3Forms");
         setStatus("error");
       }
-    } catch (_error) {
+    } catch (_error: any) {
+      setServerError(_error?.message || "Błąd sieci (CORS/Adblock?)");
       setStatus("error");
     }
   };
@@ -108,7 +111,10 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
             </div>
 
             {status === "error" && (
-              <div className="feedback-modal-error">{t("app.feedbackModal.errorMsg", "Wystąpił błąd podczas wysyłania. Sprawdź połączenie z internetem. / Error sending message. Please check your internet connection.")}</div>
+              <div className="feedback-modal-error">
+                {t("app.feedbackModal.errorMsg", "Wystąpił błąd podczas wysyłania. Sprawdź połączenie z internetem. / Error sending message. Please check your internet connection.")}
+                {serverError && <div style={{marginTop: 8, fontSize: '0.85em', opacity: 0.8}}>Szczegóły logu błędu: {serverError}</div>}
+              </div>
             )}
 
             <button
