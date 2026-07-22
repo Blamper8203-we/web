@@ -12,7 +12,7 @@ import { describe, it, expect } from "vitest";
 // intentional rather than silent.
 
 import useDinRailPixiAppSource from "./useDinRailPixiApp.ts?raw";
-import dinRailCanvasPixiSource from "../../components/DinRailCanvasPixi.tsx?raw";
+import dinRailCanvasSource from "../../components/DinRailCanvas.tsx?raw";
 import dinRailCanvasViewportSource from "../../components/DinRailCanvasViewport.tsx?raw";
 import constantsSource from "../../lib/dinRailCanvas/constants.ts?raw";
 
@@ -25,12 +25,12 @@ describe("Pixi.js removal regression guard", () => {
     expect(useDinRailPixiAppSource).not.toMatch(/export\s+function\s+useDinRailPixiApp\b/);
   });
 
-  it("DinRailCanvasPixi does not invoke the Pixi hook or import pixi.js", () => {
-    expect(dinRailCanvasPixiSource).not.toMatch(/useDinRailPixiApp\s*\(/);
-    expect(dinRailCanvasPixiSource).not.toMatch(/from\s+["']pixi\.js["']/);
-    expect(dinRailCanvasPixiSource).not.toMatch(/from\s+["']@pixi\//);
+  it("DinRailCanvas does not invoke the Pixi hook or import pixi.js", () => {
+    expect(dinRailCanvasSource).not.toMatch(/useDinRailPixiApp\s*\(/);
+    expect(dinRailCanvasSource).not.toMatch(/from\s+["']pixi\.js["']/);
+    expect(dinRailCanvasSource).not.toMatch(/from\s+["']@pixi\//);
     // The feature flag must not exist (it was permanently false; we removed it).
-    expect(dinRailCanvasPixiSource).not.toMatch(/shouldRenderPixiLabels\s*=/);
+    expect(dinRailCanvasSource).not.toMatch(/shouldRenderPixiLabels\s*=/);
   });
 
   it("DinRailCanvasViewport no longer accepts pixiHostRef or shouldRenderPixiLabels", () => {

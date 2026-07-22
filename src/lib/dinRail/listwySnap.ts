@@ -80,7 +80,7 @@ export function computeListwyZoneLayout(
 
 /**
  * Snaps a terminal-block placement to the nearest of the four listwy zones.
- * Behaviour matches the original inline implementation in DinRailCanvasPixi:
+ * Behaviour matches the original inline implementation in DinRailCanvas:
  *   - horizontal snap chooses the closer of the two slots in a row when
  *     the cursor is within LISTWY_HORIZONTAL_SNAP_DISTANCE of its center;
  *   - vertical snap picks the top or bottom zone by closest center, unless

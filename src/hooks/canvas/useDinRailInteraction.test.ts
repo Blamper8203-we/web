@@ -1,7 +1,7 @@
 // WHY: This test file was deleted in commit 4077fd9 ("remove dead code from
 // abandoned layer-extraction refactor") alongside the source file. The source
 // file was later re-introduced at a new path (`src/hooks/canvas/`) and is now
-// actively imported by `src/components/DinRailCanvasPixi.tsx:35,231` — but
+// actively imported by `src/components/DinRailCanvas.tsx:35,231` — but
 // without test coverage. This file restores behavioural coverage for the
 // current public API surface so a future regression in pointer handling,
 // drag, or selection cannot ship silently. The original tests targeted the
@@ -15,7 +15,7 @@ import type { MutableRefObject } from "react";
 import { useDinRailInteraction } from "./useDinRailInteraction";
 import type { SymbolItem } from "../../types/symbolItem";
 import type { WorldPoint, WorldRect } from "../../lib/dinRailCanvas/types";
-import type { DinRailCanvasRail } from "../../components/DinRailCanvasPixi";
+import type { DinRailCanvasRail } from "../../components/DinRailCanvas";
 
 interface UseProps {
   rail: DinRailCanvasRail;

@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import type { SymbolItem } from "../../types/symbolItem";
-import type { DinRailCanvasRail } from "../DinRailCanvasPixi";
+import type { DinRailCanvasRail } from "../DinRailCanvas";
 import type { WorldRect } from "../../lib/dinRailCanvas/types";
 import { buildWorldRectStyle, getSymbolDesignationLabel } from "../../lib/dinRailCanvas/geometry";
 

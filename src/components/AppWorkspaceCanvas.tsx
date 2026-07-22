@@ -6,7 +6,7 @@ import { SchematicCanvas } from "./SchematicCanvas";
 import type { SmartHomeSymbol, SmartHomeConnection } from "./SmartHomeCanvas";
 
 import type { SheetType, PaletteTemplate } from "../lib/appHelpers";
-import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
+import type { DinRailCanvasRail } from "./DinRailCanvas";
 import type { SymbolItem } from "../types/symbolItem";
 import { type DefaultWireSettings } from "../lib/connections/connectionsLogic";
 import type { ConnectionItem } from "../types/connectionItem";
@@ -19,7 +19,7 @@ import type { DinRailConfig } from "../lib/schematic/dinRailGenerator";
 import type { SchematicEditableField } from "../lib/schematic/schematicCellEdit";
 
 const DinRailCanvas = lazy(async () => {
-  const module = await import("./DinRailCanvasPixi");
+  const module = await import("./DinRailCanvas");
   return { default: module.DinRailCanvas };
 });
 

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
+import type { DinRailCanvasRail } from "./DinRailCanvas";
 import { AppHeader } from "./AppHeader";
 import { OnboardingOverlay } from "./OnboardingOverlay";
 import { AppStatusBar } from "./AppStatusBar";

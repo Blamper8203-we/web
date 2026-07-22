@@ -1,6 +1,6 @@
 
 import type { SymbolItem } from "../../types/symbolItem";
-import type { DinRailCanvasRail } from "../DinRailCanvasPixi";
+import type { DinRailCanvasRail } from "../DinRailCanvas";
 import { LISTWY_ROW_SPACING } from "../../lib/schematic/dinRailGenerator";
 
 export interface DinRailPlaceholdersProps {

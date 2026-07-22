@@ -42,7 +42,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ConnectionItem } from "../types/connectionItem";
 import { getSymbolTerminals, findTerminalByName } from "../lib/modules/moduleTerminals";
 import { type SymbolItem, isDistributionBlockSymbol } from "../types/symbolItem";
-import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
+import type { DinRailCanvasRail } from "./DinRailCanvas";
 import { AppIcon } from "./AppIcon";
 import { useElementSize } from "../hooks/useElementSize";
 import { useConnectionsViewport } from "../hooks/connections/useConnectionsViewport";

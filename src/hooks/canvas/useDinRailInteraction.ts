@@ -9,7 +9,7 @@ import {
 import type { SymbolItem } from "../../types/symbolItem";
 import type { InteractionState, WorldPoint, WorldRect } from "../../lib/dinRailCanvas/types";
 import { resolveInteractionMode } from "../../lib/dinRailCanvas/interactionMode";
-import type { DinRailCanvasRail } from "../../components/DinRailCanvasPixi";
+import type { DinRailCanvasRail } from "../../components/DinRailCanvas";
 
 export function useDinRailInteraction({
   rail,

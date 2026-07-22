@@ -191,7 +191,7 @@ Pięć problemów z `docs/MOBILE_RESPONSIVENESS_ANALYSIS.md`:
 - `src/App.css` (media queries dla 768px i mniejszych)
 - `src/components/Responsive.css`
 - `src/components/AppSheetTabs.css`
-- `src/components/DinRailCanvasPixi.tsx` (Pixi performance)
+- `src/components/DinRailCanvas.tsx` (Pixi performance)
 - `src/components/AppHeader.css` (flyout menu)
 
 **Definition of Done:**

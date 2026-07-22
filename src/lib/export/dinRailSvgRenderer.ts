@@ -1,5 +1,5 @@
 import type { ConnectionItem, FerruleColor } from "../../types/connectionItem";
-import type { DinRailCanvasRail } from "../../components/DinRailCanvasPixi";
+import type { DinRailCanvasRail } from "../../components/DinRailCanvas";
 import type { SymbolItem } from "../../types/symbolItem";
 import {
   isAuxiliaryNonCircuitSymbol,

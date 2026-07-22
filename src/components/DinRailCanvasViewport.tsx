@@ -4,7 +4,7 @@ import {
 } from "../lib/dinRailSelection";
 import type { SymbolItem } from "../types/symbolItem";
 import type { WorldPoint, WorldRect } from "../lib/dinRailCanvas/types";
-import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
+import type { DinRailCanvasRail } from "./DinRailCanvas";
 import type { PreparedSymbolAsset } from "../hooks/useDinRailPreparedAssets";
 import { isTerminalZlaczka } from "../lib/connections/connectionsLogic";
 

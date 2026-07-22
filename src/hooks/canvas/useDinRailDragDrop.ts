@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { getPaletteTemplateDimensions, supportsDinRailPlacement } from "../../lib/modules/moduleCatalog";
 import type { WorldPoint } from "../../lib/dinRailCanvas/types";
-import type { DinRailCanvasRail } from "../../components/DinRailCanvasPixi";
+import type { DinRailCanvasRail } from "../../components/DinRailCanvas";
 
 export function useDinRailDragDrop({
   rail,

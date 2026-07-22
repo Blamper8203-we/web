@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { SymbolItem } from '../../types/symbolItem';
 import type { ProjectMetadata } from '../../types/projectMetadata';
-import type { DinRailCanvasRail } from '../../components/DinRailCanvasPixi';
+import type { DinRailCanvasRail } from '../../components/DinRailCanvas';
 import { buildCircuitRowsFromSymbols } from '../../lib/circuitRows';
 import { validateProject, type ValidationResult } from '../../lib/validation/electricalValidationService';
 import { getProjectFileName } from '../../lib/appHelpers';

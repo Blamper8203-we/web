@@ -25,7 +25,7 @@ import {
 } from '../lib/modules/moduleCatalog';
 import { snapModulePlacementToDinRail } from '../lib/dinRailSnap';
 import { createDefaultSymbolItem, type SymbolItem, MANUAL_REFERENCE_DESIGNATION_KEY } from "../types/symbolItem";
-import type { DinRailCanvasRail } from '../components/DinRailCanvasPixi';
+import type { DinRailCanvasRail } from '../components/DinRailCanvas';
 
 
 

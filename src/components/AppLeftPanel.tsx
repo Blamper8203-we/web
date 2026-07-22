@@ -15,7 +15,7 @@ import { type DefaultWireSettings } from "../lib/connections/connectionsLogic";
 import type { ConnectionItem } from "../types/connectionItem";
 import type { SymbolItem } from "../types/symbolItem";
 
-import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
+import type { DinRailCanvasRail } from "./DinRailCanvas";
 
 export interface AppLeftPanelProps {
   activeSheet: SheetType;
