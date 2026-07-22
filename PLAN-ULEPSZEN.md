@@ -88,7 +88,7 @@ Cel: czyste `git status`, brak binariów w historii roboczej, repo które „wyg
 | P1-1 | **Splash: min. floor zamiast sztywnych 3000 ms.** ✅ **DONE 2026-07-22** (commit `6e3bc03`) — stała `SPLASH_MIN_VISIBLE_MS=1200` użyta w mount effect i `triggerSplash`. Zweryfikowane w przeglądarce: `app-ready` OK, splash chowany, workspace renderuje się bez błędów. | `src/App.tsx` | **M** |
 | P1-2 | **Rozstrzygnij i18n.** ✅ **DECYZJA 2026-07-22: pl-only.** Artefakty niemieckiego odpięte od repo (P0-1). Zostaje: komentarz „app is pl-only by design" przy inicjalizacji i18n + rozważyć usunięcie martwych `scripts/i18n-*.mjs`, `find-polish-strings.mjs`, `audit-translations.mjs`. | root + `src/locales/` | **S** |
 | P1-3 | **Błędy runtime NIE docierają do dewelopera.** ⚠️ **USTALONE 2026-07-22:** `reportRuntimeError` w produkcji robi tylko `console.error` (komentarz: „Keep diagnostics local until a privacy-reviewed monitoring backend is configured"). Globalne handlery + ErrorBoundary są podpięte, ale dead-end w konsoli usera. Na 3 platformach = zero widoczności crashy na produkcji. **Rekomendacja:** podłączyć backend (np. Sentry) za zgodą z `CookieConsent`. Seam gotowy w `reportRuntimeError`. Wymaga decyzji o vendorze + privacy — osobne zadanie. | `src/lib/runtimeDiagnostics.ts` | **L** |
-| P1-4 | Przegląd `any`/`@ts-ignore` w kodzie nie-testowym (55+20) — każde albo uzasadnij `// WHY:`, albo zawęź typ. | `src/**` (grep) | **M** |
+| P1-4 | Przegląd `any`/`@ts-ignore`. ✅ **DONE 2026-07-22** (commit `7132931`, częściowo). Ustalenia: **wszystkie 20 `@ts-expect-error` są w testach i udokumentowane** (zdrowe, nie dług). Z 55 `any` większość to uzasadniony interop (`@react-pdf`, parsowanie SVG, API przeglądarki). Poprawiono 3 realne w kodzie logiki (`projectMigrations`, `getRootNodes`, `window.lucide`) — tsc przy okazji odkrył latentny bug maskowany przez `any`. Reszta `any` = interop, zostawiona świadomie. | `src/**` | **M** |
 
 ### P2 — Architektura i utrzymywalność (średni termin, osobne PR-y)
 
@@ -97,7 +97,8 @@ Cel: czyste `git status`, brak binariów w historii roboczej, repo które „wyg
 | P2-1 | **Zabij nazwę „Pixi".** ✅ **DONE 2026-07-22** (commit `f1456d7`) — `git mv DinRailCanvasPixi.tsx → DinRailCanvas.tsx` + aktualizacja 33 ścieżek importu (w tym `?raw` w testach) + docs. Komponent był już `export function DinRailCanvas`; „Pixi" żyło tylko w nazwie pliku. Typ `DinRailCanvasRail` bez zmian. Zweryfikowane: tsc czysto, 1172 testy bez zmian. WIP `connections` rozdzielony chirurgicznie (staged tylko linia importu). **Uwaga:** hook `useDinRailPixiApp.ts` celowo zostaje — nazwa jest szczera (to wyłączony guard Pixi). | `src/components/DinRailCanvas.tsx` + 32 konsumentów | **L** |
 | P2-2 | **Rozbij największe pliki logiki (nie renderery).** Priorytet wg zmienności, nie samego rozmiaru. | `SmartHomeCanvas.tsx` (966), `circuitEditFieldDefinitions.ts` (610), `phaseDistributionCalculator.ts` (584) | **L** |
 | P2-3 | Renderery (stabilne, duże) zostaw — refaktor tylko w parze z testem. | `dinRailSnapshotService.ts` (824), `pdfStyles.ts` (784), `dinRailSvgRenderer.ts` (724) | — |
-| P2-4 | **Dokumentacja domeny (`docs/domain/`).** ADR-y na 5 pytań, które „rozumie tylko autor": 11 wariantów `PhaseAssignment`, brak skalowania „Blok rozdzielczy", semantyka RCD-inheritance, `WIRE_THICKNESS_MAP[16]=60`, format `.dinboard`. To największy realny dług wg samego README. | nowe `docs/domain/*.md` | **L** |
+| P2-4 | **Dokumentacja domeny (`docs/domain/`).** ADR-y na 5 pytań, które „rozumie tylko autor": 11 wariantów `PhaseAssignment`, brak skalowania „Blok rozdzielczy", semantyka RCD-inheritance, `WIRE_THICKNESS_MAP[16]=60`, format `.dinboard`. To największy realny dług wg samego README. **Wymaga wiedzy autora o „dlaczego" — nie da się zrobić na oślep.** | nowe `docs/domain/*.md` | **L** |
+| P2-5 | **Dedup `getRootNodes` (3 identyczne kopie).** ⚠️ **ODKRYTE 2026-07-22:** funkcja istnieje w `schematicRenderUtils.ts:300` (teraz typowana), `useSchematicInteraction.ts:239`, `schematicCellEdit.ts:235`. Skonsolidować do jednego źródła + import. | 3 pliki `src/lib/schematic` + `src/hooks` | **M** |
 
 ### P3 — Produkt / wzrost / infra (dłuższy horyzont)
 
@@ -108,6 +109,7 @@ Cel: czyste `git status`, brak binariów w historii roboczej, repo które „wyg
 | P3-3 | **Potwierdź, że CI blokuje merge.** README wspomina `check:online` — upewnij się, że `tsc`+`eslint`+`vitest` są required checks na PR do `main`. | **S** |
 | P3-4 | **Wielojęzyczność „na serio" (jeśli cel biznesowy).** Klucze `auto.xxx_NNN` są nieutrzymywalne — przejście na semantyczne klucze + realny pipeline tłumaczeń (de/en). Duży, osobny projekt. | **XL** |
 | P3-5 | **Onboarding nowego developera/agenta.** `AGENTS.md` (24 KB) jest bogate, ale rozproszone. Jeden `docs/START-HERE.md`: „zbuduj, odpal, gdzie co jest, czego nie ruszać". | **M** |
+| P3-6 | **CDN w runtime na landingu.** ⚠️ **ODKRYTE 2026-07-22:** `useLandingAssets.ts` ładuje `unpkg.com/lucide@latest` + Google Fonts w runtime. `@latest` = niepinowana zależność zewnętrzna (ryzyko supply-chain + zmiana wyglądu bez commita) i dodatkowy round-trip. Rozważ zbundlowanie ikon (paczka npm) lub przynajmniej pin wersji + SRI. | **M** |
 
 ---
 
