@@ -37,7 +37,7 @@ export function LandingFooter({ onOpenFeedback }: LandingFooterProps) {
             {t("landing.footer.terms")}
           </a>
           <button onClick={onOpenFeedback} className="landing-footer-link" style={{ cursor: "pointer", background: "none", border: "none", padding: 0, font: "inherit" }}>
-            Zgłoś błąd
+            {t("landing.footer.reportBug", "Zgłoś błąd / Report bug")}
           </button>
         </div>
 
