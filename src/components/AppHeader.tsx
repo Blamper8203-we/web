@@ -253,7 +253,7 @@ export function AppHeader({
           </button>
 
           <a
-            href="https://suppi.pl/dinboard"
+            href="https://buycoffee.to/dinboard"
             target="_blank"
             rel="noopener noreferrer"
             className="toolbar-menu-btn toolbar-menu-btn--donate toolbar-menu-btn--donate-tablet"
@@ -264,7 +264,7 @@ export function AppHeader({
             }}
           >
             <AppIcon name="coffee" size={14} />
-            {t("app.header.donate")}
+            {t("app.header.donate", "Donate/Wesprzyj")}
           </a>
         </div>
       </div>

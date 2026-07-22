@@ -37,13 +37,13 @@ export function LandingHeader() {
 
         <div className="landing-header-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <a
-            href="https://suppi.pl/dinboard"
+            href="https://buycoffee.to/dinboard"
             target="_blank"
             rel="noreferrer"
             className="landing-header-btn-support"
           >
             <i data-lucide="coffee" className="icon"></i>
-            <span className="landing-header-btn-text">{t("auto.wesprzyjprojekt_653", "Wesprzyj projekt")}</span>
+            <span className="landing-header-btn-text">{t("auto.wesprzyjprojekt_653", "Donate/Wesprzyj")}</span>
           </a>
         </div>
       </div>

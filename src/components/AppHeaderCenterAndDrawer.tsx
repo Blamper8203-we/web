@@ -249,14 +249,14 @@ export function AppHeaderMobileDrawer({
             <span>{t("app.mobileDrawer.feedback", "Zgłoś pomysł / Błąd")}</span>
           </button>
           <a
-            href="https://suppi.pl/dinboard"
+            href="https://buycoffee.to/dinboard"
             target="_blank"
             rel="noreferrer"
             className="drawer-item toolbar-menu-btn--donate"
             style={{ marginTop: 8 }}
           >
             <AppIcon className="drawer-icon" name="coffee" />
-            <span>{t("app.mobileDrawer.buyCoffee", "Postaw kawę")}</span>
+            <span>{t("app.mobileDrawer.buyCoffee", "Donate/Wesprzyj")}</span>
           </a>
         </div>
       </div>
