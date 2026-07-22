@@ -13,7 +13,7 @@ Aplikacja ma już rozbudowane media queries dla `max-width: 768px` w głównym p
 - **Toolbar z hamburgerem** (dla Capacitor/natywnej aplikacji)
 - **Panel lewy i prawy** na zmianę pokazują się w dolnym obszarze (grid-row: 3)
 - **Ukrywanie warstw** (`is-right-panel-hidden`, `is-left-panel-hidden`)
-- **Pinch-to-zoom** w `DinRailCanvasPixi.tsx`
+- **Pinch-to-zoom** w `DinRailCanvas.tsx`
 - **`touch-action: pan-y`** na elementach palety
 - **Polyfill mobile-drag-drop** w `main.tsx`
 - **`env(safe-area-inset-top/bottom)`** dla notcha
@@ -97,7 +97,7 @@ To jest OK dla małych ekranów, ale **`.workspace-hud--bottom-left`** jest rów
 
 ### 3.1. DinRailGeneratorDialog – brak responsywności
 
-**Plik:** `DinRailCanvasPixi.tsx` (komponent `DinRailGeneratorDialog`)
+**Plik:** `DinRailCanvas.tsx` (komponent `DinRailGeneratorDialog`)
 
 Na desktopie:
 ```css
@@ -222,7 +222,7 @@ Na mobile ta wysokość pozostaje. Lepsze byłoby:
 
 ### 3.9. Canvas `touch-action` – brak pełnej kontroli
 
-**Plik:** `DinRailCanvasPixi.tsx`, canvas area:
+**Plik:** `DinRailCanvas.tsx`, canvas area:
 ```css
 .din-rail-surface {
   cursor: grab;
@@ -231,7 +231,7 @@ Na mobile ta wysokość pozostaje. Lepsze byłoby:
 }
 ```
 
-To jest poprawne dla samego canvasa, ale **DinRailCanvasPixi.tsx** używa React pointer events + Wheel event. Na Androidzie może to działać nieidealnie gdy przeglądarka próbuje interpretować gesty.
+To jest poprawne dla samego canvasa, ale **DinRailCanvas.tsx** używa React pointer events + Wheel event. Na Androidzie może to działać nieidealnie gdy przeglądarka próbuje interpretować gesty.
 
 W `SchematicCanvas.tsx` canvas ma `touchAction: "none"` inline – to jest poprawne.
 
@@ -285,7 +285,7 @@ Ten polyfill jest potrzebny dla drag & drop na dotykowych urządzeniach. Jednak:
 
 ### 4.4. DinRailCanvas – pinch zoom na touch urządzeniach
 
-**Plik:** `DinRailCanvasPixi.tsx`:
+**Plik:** `DinRailCanvas.tsx`:
 ```typescript
 viewport.addEventListener("touchstart", onTouchStartNative, { passive: false });
 viewport.addEventListener("touchmove", onTouchMoveNative, { passive: false });

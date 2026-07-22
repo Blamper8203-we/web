@@ -4,6 +4,7 @@ import {
   MODULE_WIDTH,
   ROW_HEIGHT,
   type PageInfo,
+  type SchematicNode,
 } from "../schematicLayout";
 
 export const COLORS = {
@@ -297,8 +298,11 @@ export function phaseMarks(
   }
 }
 
-export function getRootNodes(nodes: any[]): any[] {
-  const childIds = new Set(nodes.flatMap((node) => node.children ? node.children.map((child: any) => child.id) : []));
+// WHY: typ wyrównany do kanonicznego SchematicNode (identyczne lokalne kopie
+// getRootNodes w useSchematicInteraction.ts i schematicCellEdit.ts już go używają).
+// Duplikacja 3 kopii tej funkcji — kandydat do dedup (patrz PLAN-ULEPSZEN.md).
+export function getRootNodes(nodes: SchematicNode[]): SchematicNode[] {
+  const childIds = new Set(nodes.flatMap((node) => node.children ? node.children.map((child) => child.id) : []));
   const topDeviceIds = new Set(nodes.map(node => node.topDevice?.id).filter(Boolean));
   return nodes.filter((node) => !childIds.has(node.id) && !topDeviceIds.has(node.id));
 }

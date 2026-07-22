@@ -16,7 +16,7 @@ import {
 import { generateDinRailSvg, getDinRailDimensions, type DinRailConfig } from '../lib/schematic/dinRailGenerator';
 import type { ProjectMetadata } from '../types/projectMetadata';
 import type { SymbolItem } from '../types/symbolItem';
-import type { DinRailCanvasRail } from '../components/DinRailCanvasPixi';
+import type { DinRailCanvasRail } from '../components/DinRailCanvas';
 import type { PaletteTemplate, SheetType } from '../lib/appHelpers';
 import type { UndoRedoService } from '../lib/editing/undoRedoService';
 

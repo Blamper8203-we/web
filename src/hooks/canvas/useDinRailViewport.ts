@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { clamp } from "../../lib/dinRailCanvas/geometry";
 import { MAX_INITIAL_SCALE, MAX_SCALE, MIN_SCALE } from "../../lib/dinRailCanvas/constants";
 import type { WorldPoint } from "../../lib/dinRailCanvas/types";
-import type { DinRailCanvasRail } from "../../components/DinRailCanvasPixi";
+import type { DinRailCanvasRail } from "../../components/DinRailCanvas";
 
 export function useDinRailViewport({
   rail,

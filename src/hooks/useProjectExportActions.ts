@@ -5,7 +5,7 @@ import { exportDinRailToBlobWithOptions } from '../lib/export/dinRailSnapshotSer
 import type { ProjectMetadata } from '../types/projectMetadata';
 import type { SymbolItem } from '../types/symbolItem';
 import type { ConnectionItem } from '../types/connectionItem';
-import type { DinRailCanvasRail } from '../components/DinRailCanvasPixi';
+import type { DinRailCanvasRail } from '../components/DinRailCanvas';
 
 function escapeCsv(value: string | number): string {
   const normalized = String(value ?? "");

@@ -1,5 +1,5 @@
 import type { SymbolItem } from "../../types/symbolItem";
-import type { DinRailCanvasRail } from "../DinRailCanvasPixi";
+import type { DinRailCanvasRail } from "../DinRailCanvas";
 import type { PreparedSymbolAsset } from "../../hooks/useDinRailPreparedAssets";
 import type { WorldPoint } from "../../lib/dinRailCanvas/types";
 import { isTerminalZlaczka } from "../../lib/connections/connectionsLogic";

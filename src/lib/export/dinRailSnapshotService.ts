@@ -1,5 +1,5 @@
 import { devWarn } from "../runtimeDiagnostics";
-import type { DinRailCanvasRail } from "../../components/DinRailCanvasPixi";
+import type { DinRailCanvasRail } from "../../components/DinRailCanvas";
 import { isAuxiliaryNonCircuitSymbol, type SymbolItem, MANUAL_REFERENCE_DESIGNATION_KEY, isDistributionBlockSymbol } from "../../types/symbolItem";
 import { buildSchematicLayout } from "../schematic/schematicLayoutEngine";
 import {

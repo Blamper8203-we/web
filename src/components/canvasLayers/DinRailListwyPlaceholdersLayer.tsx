@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import type { CSSProperties } from "react";
 import type { SymbolItem } from "../../types/symbolItem";
-import type { DinRailCanvasRail } from "../DinRailCanvasPixi";
+import type { DinRailCanvasRail } from "../DinRailCanvas";
 import { computeListwyZoneLayout } from "../../lib/dinRail/listwySnap";
 
 export interface DinRailListwyPlaceholdersLayerProps {

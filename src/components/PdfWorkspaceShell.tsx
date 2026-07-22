@@ -5,7 +5,7 @@ import { buildEditableMeasurementProtocols } from "../lib/measurementProtocols";
 import { PdfNavigatorFab } from "./mobile/PdfNavigatorFab";
 import type { ProjectMetadata } from "../types/projectMetadata";
 import type { SymbolItem } from "../types/symbolItem";
-import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
+import type { DinRailCanvasRail } from "./DinRailCanvas";
 import type { CircuitRow } from "../types/circuitRow";
 import type { ConnectionItem } from "../types/connectionItem";
 

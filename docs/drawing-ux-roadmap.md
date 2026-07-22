@@ -48,7 +48,7 @@ Hierarchia udokumentowana w `docs/TULEJKI_LOGIKA.md`.
 ### Znalezione słabości (w tej sesji)
 
 1. **Edge case: tulejka w nieodpowiednim miejscu** — potwierdzone przez usera
-2. **Brak performance budget** — `DinRailCanvasPixi.tsx` nie ma żadnych
+2. **Brak performance budget** — `DinRailCanvas.tsx` nie ma żadnych
    mechanizmów culling/FPS measurement/cache strategy
 3. **Brak view-export consistency checks** — `dinRailSnapshotService.ts` 21 KB
    sugeruje dużo logiki snapshotu, ale brak automatycznych testów
@@ -95,7 +95,7 @@ modułach (realny projekt dla 6-obwodowego domu z pełnym RCD/MCB/PE) Pixi
 może lagować. Wydajność to UX — spowolnienie = frustracja.
 
 **Pliki:**
-- `src/components/DinRailCanvasPixi.tsx` (11 KB)
+- `src/components/DinRailCanvas.tsx` (11 KB)
 - `src/lib/dinRailCanvas/` (5 plików)
 - nowy: `src/lib/dinRailCanvas/performanceMonitor.ts`
 

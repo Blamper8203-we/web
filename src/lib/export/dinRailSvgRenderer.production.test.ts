@@ -6,7 +6,7 @@ import { dirname, join } from "path";
 // @ts-expect-error - see above
 import { fileURLToPath } from "url";
 import { exportDinRailToSvg } from "./dinRailSvgRenderer";
-import type { DinRailCanvasRail } from "../../components/DinRailCanvasPixi";
+import type { DinRailCanvasRail } from "../../components/DinRailCanvas";
 import type { ConnectionItem } from "../../types/connectionItem";
 import type { SymbolItem } from "../../types/symbolItem";
 

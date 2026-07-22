@@ -1,6 +1,6 @@
 import { pdf, type DocumentProps } from "@react-pdf/renderer";
 import { createElement, type ReactElement } from "react";
-import type { DinRailCanvasRail } from "../../components/DinRailCanvasPixi";
+import type { DinRailCanvasRail } from "../../components/DinRailCanvas";
 import type { ProjectMetadata } from "../../types/projectMetadata";
 import type { SymbolItem } from "../../types/symbolItem";
 import type { ConnectionItem } from "../../types/connectionItem";

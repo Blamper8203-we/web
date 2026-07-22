@@ -46,6 +46,14 @@ export type AppContextType = {
   openFeedback: () => void;
 };
 
+// WHY: minimalny czas widoczności splash screena (ms). Wcześniej był sztywny
+// hold 3000 ms „na branding" — realnie 3 s wymuszonego czekania przy KAŻDYM
+// starcie edytora (/app, zainstalowana PWA, natywna apka). Obniżone do 1200 ms:
+// splash pełni rolę brandingu i pokrycia hydratacji + lazy-chunku AppWorkspace,
+// a nie sztucznej zwłoki. Landing page i tak pomija splash (inline skrypt
+// w index.html chowa go, gdy to nie /app / PWA / native).
+const SPLASH_MIN_VISIBLE_MS = 1200;
+
 export function AppLayout() {
   const [initialAction, setInitialAction] = useState<"new" | "last" | "load_data" | null>(null);
   const [initialData, setInitialData] = useState<ProjectFileData | null>(null);
@@ -63,9 +71,9 @@ export function AppLayout() {
 
   // WHY: Oznacza że React się zahydratował i pierwsza strona jest gotowa.
   // CSS w index.html (inline <style> w head) używa html.app-ready żeby
-  // wyblaknąć splash screen przez transition opacity 1->0. Delay 3000ms
-  // daje użytkownikowi 3 sekundy na zobaczenie splash screena z branding
-  // (DINboard + KREATOR ROZDZIELNIC + pasek ładowania + wersja).
+  // wyblaknąć splash screen przez transition opacity 1->0. Splash jest
+  // widoczny przez SPLASH_MIN_VISIBLE_MS (branding + pokrycie hydratacji),
+  // a nie sztywne 3 s zwłoki — patrz stała wyżej.
   useEffect(() => {
     const timer = window.setTimeout(() => {
       document.documentElement.classList.add("app-ready");
@@ -73,7 +81,7 @@ export function AppLayout() {
       // hideNativeSplash jest no-op (isNativePlatform false). Wywołane w tym
       // samym ticku co app-ready — web splash i native splash znikają razem.
       void hideNativeSplash();
-    }, 3000);
+    }, SPLASH_MIN_VISIBLE_MS);
     return () => window.clearTimeout(timer);
   }, []);
 
@@ -85,10 +93,10 @@ export function AppLayout() {
       // zanim usuniemy klasę app-ready, co umożliwi płynne animacje.
       void splash.offsetWidth;
       document.documentElement.classList.remove("app-ready");
-      
+
       setTimeout(() => {
         document.documentElement.classList.add("app-ready");
-      }, 3000);
+      }, SPLASH_MIN_VISIBLE_MS);
     }
   };
 

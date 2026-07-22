@@ -5,7 +5,7 @@ import { createDefaultSymbolItem, type SymbolItem } from "../types/symbolItem";
 import type { ConnectionItem } from "../types/connectionItem";
 import type { ProjectMetadata } from "../types/projectMetadata";
 import { UndoRedoService } from "../lib/editing/undoRedoService";
-import type { DinRailCanvasRail } from "../components/DinRailCanvasPixi";
+import type { DinRailCanvasRail } from "../components/DinRailCanvas";
 import type { SymbolHistorySnapshot } from "../lib/appHelpers";
 
 vi.mock("../lib/projectFileSemantics", () => ({

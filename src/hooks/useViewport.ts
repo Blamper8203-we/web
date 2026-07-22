@@ -37,8 +37,8 @@ function isNativePlatformNow(): boolean {
  * - `AppHeader.tsx`: `useState(false) + useEffect(window.innerWidth <= 768)`
  * - `AppWorkspace.tsx`: inline `window.innerWidth <= 768` w callbackach (3×
  *   nie reagowało na resize — czytało tylko w momencie kliknięcia)
- * - `DinRailCanvasPixi.tsx`: inline guard, usunięty po regresji
- *   (patrz `DinRailCanvasPixi.mobileDragDrop.test.ts`)
+ * - `DinRailCanvas.tsx`: inline guard, usunięty po regresji
+ *   (patrz `DinRailCanvas.mobileDragDrop.test.ts`)
  */
 export function useIsMobileViewport(): boolean {
   const [isMobile, setIsMobile] = useState<boolean>(false);

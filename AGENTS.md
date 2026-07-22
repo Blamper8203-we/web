@@ -83,7 +83,7 @@ If you change any of these, the diff must include: current behaviour, why it's r
 - `src/types/circuitRow.ts` — circuit-row data shape
 
 **Canvas / interactions (delegate to `canvas-expert`):**
-- `src/components/DinRailCanvasPixi.tsx`
+- `src/components/DinRailCanvas.tsx`
 - `src/components/SmartHomeCanvas.tsx` — interactive CAD canvas, currently the largest component (37 KB), see §9 below
 - `src/lib/dinRailSelection.ts`, `src/lib/dinRailSnap.ts`
 - `src/lib/schematic/**` (includes `smartHomeCatalog.ts` and `cadSymbolParser.ts`)

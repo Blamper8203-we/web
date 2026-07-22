@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import type { DinRailCanvasRail } from "./DinRailCanvasPixi";
+import type { DinRailCanvasRail } from "./DinRailCanvas";
 import { AppHeader } from "./AppHeader";
 import { OnboardingOverlay } from "./OnboardingOverlay";
 import { AppStatusBar } from "./AppStatusBar";
@@ -407,6 +407,11 @@ export function AppWorkspace({
           selectedConnectionId,
           connections,
           onConnectionsChange: handleConnectionsChange,
+          // WHY: lista połączeń w ConnectionsLeftPanel potrzebuje obu —
+          // onConnectionSelect, żeby tap w wierszu zaznaczał przewód na SVG,
+          // i symbols, żeby label wiersza pokazywał "B16 1P" zamiast "uuid".
+          onConnectionSelect: setSelectedConnectionId,
+          symbols,
         }}
         workspaceCanvasProps={{
           paletteTemplateMap,

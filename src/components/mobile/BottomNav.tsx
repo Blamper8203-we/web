@@ -22,6 +22,14 @@ export function BottomNav({ activeSheet, onChangeSheet, onOpenMenu }: BottomNavP
       </button>
 
       <button
+        className={`bottom-nav-item ${activeSheet === "sheet1_connections" ? "is-active" : ""}`}
+        onClick={() => onChangeSheet("sheet1_connections")}
+      >
+        <AppIcon name="busbar" className="bottom-nav-icon" />
+        <span>{t("app.viewMenu.sheet1_connections", "Połączenia")}</span>
+      </button>
+
+      <button
         className={`bottom-nav-item ${activeSheet === "sheet2" ? "is-active" : ""}`}
         onClick={() => onChangeSheet("sheet2")}
       >
