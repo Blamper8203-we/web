@@ -133,7 +133,7 @@ export function migrateProjectData<T extends object>(
     if (migration) {
       migratedData = { ...migratedData, ...migration(migratedData) } as T & ProjectFileShape;
     }
-    (migratedData as any).schemaVersion = fromVersion + 1;
+    (migratedData as { schemaVersion?: number }).schemaVersion = fromVersion + 1;
   }
 
   return migratedData;

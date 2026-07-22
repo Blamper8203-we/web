@@ -1,5 +1,15 @@
 import { useState, useEffect } from "react";
 
+// WHY: `lucide` to globalna zmienna wstrzykiwana przez skrypt z CDN (unpkg) —
+// brak paczki npm i typów. Deklaracja ambient zastępuje `as any` przy każdym
+// dostępie; jedyne używane pole to createIcons(). Uwaga (P3): runtime-CDN
+// `lucide@latest` + Google Fonts to niepinowana zależność zewnętrzna.
+declare global {
+  interface Window {
+    lucide?: { createIcons: () => void };
+  }
+}
+
 export function useLandingAssets() {
   const [isReady, setIsReady] = useState(false);
 
@@ -12,8 +22,8 @@ export function useLandingAssets() {
       lucideScript.id = "landing-lucide-icons";
       lucideScript.src = "https://unpkg.com/lucide@latest";
       lucideScript.onload = () => {
-        if ((window as any).lucide) {
-          (window as any).lucide.createIcons();
+        if (window.lucide) {
+          window.lucide.createIcons();
         }
       };
       document.head.appendChild(lucideScript);
@@ -27,8 +37,12 @@ export function useLandingAssets() {
       }
     } else {
       setIsReady(true);
-      if ((window as any).lucide) {
-        setTimeout(() => (window as any).lucide.createIcons(), 50);
+      // WHY: przechwyć referencję po guardzie — zawężenie z `if` nie przechodzi
+      // do domknięcia setTimeout (window.lucide mogłoby być undefined w chwili
+      // odpalenia timera). Stare `as any` cicho maskowało ten przypadek.
+      const lucide = window.lucide;
+      if (lucide) {
+        setTimeout(() => lucide.createIcons(), 50);
       }
     }
 
