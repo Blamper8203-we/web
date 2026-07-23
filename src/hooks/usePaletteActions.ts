@@ -376,7 +376,15 @@ export function usePaletteActions({
           return;
         }
 
-        if (!supportsDinRailPlacement(template)) {
+        // WHY: "Listwy do rozdzielnicy" / "GSU" formalnie nie przechodzą
+        // supportsDinRailPlacement(), ale są blokami zaciskowymi kładzionymi
+        // nad/pod szyną DIN (patrz handlePaletteDrop: isTerminalBlock →
+        // shouldPlaceOnDinRail, strefy top/bottom). Traktujemy je tu jak moduły
+        // szynowe, żeby dwuklik w palecie kładł je na rozdzielnicy — zgodnie z
+        // drag&drop (useDinRailDragDrop) — zamiast wysyłać na Schemat (sheet2).
+        const isTerminalBlock =
+          template.category === 'Listwy do rozdzielnicy' || template.category === 'GSU';
+        if (!supportsDinRailPlacement(template) && !isTerminalBlock) {
           showTemporaryStatus(`${template.code} dodajemy poza szyną DIN.`);
           handlePaletteDropOnSheet2(templateId);
           return;
