@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getFaqData } from "./landingData";
+import { AppIcon } from "../AppIcon";
 
 export function LandingFaq() {
   const [faqState, setFaqState] = useState<Record<number, boolean>>({});
@@ -9,9 +10,6 @@ export function LandingFaq() {
 
   const toggleFaq = (id: number) => {
     setFaqState((prev) => ({ ...prev, [id]: !prev[id] }));
-    setTimeout(() => {
-      if ((window as any).lucide) (window as any).lucide.createIcons();
-    }, 10);
   };
 
   return (
@@ -30,12 +28,12 @@ export function LandingFaq() {
                 className="landing-faq-btn"
               >
                 <span className="landing-faq-btn-title">{faq.title}</span>
-                <i
-                  data-lucide="chevron-down"
+                <AppIcon
+                  name="chevronDown"
                   className={`landing-faq-btn-icon ${
                     faqState[faq.id] ? "is-open" : ""
                   }`}
-                ></i>
+                />
               </button>
               {faqState[faq.id] && (
                 <div className="landing-faq-content">

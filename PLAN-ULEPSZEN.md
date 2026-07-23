@@ -109,7 +109,7 @@ Cel: czyste `git status`, brak binariów w historii roboczej, repo które „wyg
 | P3-3 | **Potwierdź, że CI blokuje merge.** README wspomina `check:online` — upewnij się, że `tsc`+`eslint`+`vitest` są required checks na PR do `main`. | **S** |
 | P3-4 | **Wielojęzyczność „na serio" (jeśli cel biznesowy).** Klucze `auto.xxx_NNN` są nieutrzymywalne — przejście na semantyczne klucze + realny pipeline tłumaczeń (de/en). Duży, osobny projekt. | **XL** |
 | P3-5 | **Onboarding nowego developera/agenta.** `AGENTS.md` (24 KB) jest bogate, ale rozproszone. Jeden `docs/START-HERE.md`: „zbuduj, odpal, gdzie co jest, czego nie ruszać". | **M** |
-| P3-6 | **CDN w runtime na landingu.** ⚠️ **ODKRYTE 2026-07-22:** `useLandingAssets.ts` ładuje `unpkg.com/lucide@latest` + Google Fonts w runtime. `@latest` = niepinowana zależność zewnętrzna (ryzyko supply-chain + zmiana wyglądu bez commita) i dodatkowy round-trip. Rozważ zbundlowanie ikon (paczka npm) lub przynajmniej pin wersji + SRI. | **M** |
+| P3-6 | **CDN `lucide@latest` na landingu.** ✅ **DONE 2026-07-22.** Zmigrowano wszystkie 20 użyć `<i data-lucide>` (15 ikon, 9 plików: landing/blog/PWA) na inline `AppIcon` (+14 ikon do `AppIcon`). Usunięto ładowanie skryptu CDN i `createIcons()` z `useLandingAssets` (Google Fonts zostaje). **Bonus:** naprawiono realny runtime bug — stare `<i data-lucide>` + lucide `createIcons` powodowało crashe reconciliacji React (`removeChild` → error boundary → `reportRuntimeError`). Zweryfikowane wizualnie (wszystkie ikony OK) + zero błędów konsoli + 1178 testów. Google Fonts to osobny, mniejszy zapach CDN (do rozważenia self-host). | **M** |
 
 ---
 

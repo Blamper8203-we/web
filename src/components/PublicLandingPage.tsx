@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { AppIcon } from "./AppIcon";
 import "./PublicLandingPage.css";
 import "./landing/Landing.css";
 
@@ -54,7 +55,7 @@ export function PublicLandingPage({
         className={`landing-fab ${showFab ? "is-visible" : ""}`}
       >
         <div className="landing-fab-icon-wrapper">
-          <i data-lucide="plus" className="landing-fab-icon"></i>
+          <AppIcon name="plus" className="landing-fab-icon" />
         </div>
         <span className="landing-fab-text">{t("landing.buttonNew")}</span>
       </button>

@@ -54,6 +54,19 @@
   flex-shrink: 0;
 }
 
+/* WHY: ikona to teraz inline AppIcon (P3-6) — loader lucide nie animował się sam.
+   Kręcimy go podczas stanu instalacji, żeby spinner faktycznie wyglądał na spinner. */
+.pwa-install-btn[data-installing="true"] .icon {
+  transform-origin: center;
+  animation: pwa-install-spin 0.8s linear infinite;
+}
+
+@keyframes pwa-install-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .pwa-install-btn[data-variant="header"] .pwa-install-btn-text {
   display: none;
 }
