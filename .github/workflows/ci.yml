@@ -41,6 +41,11 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Bundle size budget
+        # Faili, jeśli JS (gzip) przekroczy budżet w scripts/check-bundle-size.mjs.
+        # Cel: apka nie rośnie niepostrzeżenie (istotne na telefonie).
+        run: npm run size
+
       - name: Unit tests
         run: npm run test
 

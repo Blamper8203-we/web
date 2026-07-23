@@ -12,6 +12,7 @@
     "sitemap": "node scripts/generate-sitemap.mjs",
     "prebuild": "npm run sitemap",
     "build": "tsc && vite-react-ssg build",
+    "size": "node scripts/check-bundle-size.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "test:din-rail-regression": "vitest run src/lib/dinRailSnap.test.ts src/lib/dinRailSelection.test.ts src/hooks/useSymbolActions.test.ts",
