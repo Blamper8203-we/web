@@ -72,7 +72,7 @@ Cel: czyste `git status`, brak binariów w historii roboczej, repo które „wyg
 |---|---|---|---|---|
 | P0-1 | `git rm --cached` śmieci + rozszerz `.gitignore` | `public.rar`, `empty-box.png`, `pdf30*`, `index.rar`, `out/`, `diff.txt`/`diff2.txt`, `git_log_logoBox.txt`, `missing-keys*.json`, `missing-translations-report.json`, `dev-host.*.log`, `test-artifacts/**/*.png` + `route-smoke.json` | **S** | ✅ **DONE 2026-07-22** — 22 pliki odpięte, `.gitignore` rozszerzony, pliki zostają na dysku. Staged, czeka na commit. |
 | P0-2 | Usuń crash log JVM z roota | `hs_err_pid4004.log` (68 KB, nietrackowany) | **S** | ✅ **DONE 2026-07-22** — usunięty z dysku, `hs_err_pid*.log` w `.gitignore`. |
-| P0-3 | Zdecyduj los jednorazowych skryptów | `fix_all.cjs`, `fix_builtin.cjs`, `fix_svg.cjs` — do `scripts/debug/` (już w `.gitignore`) albo usuń. Uwaga: `scripts/i18n-*.mjs` + `find-polish-strings.mjs` też są martwe przy pl-only. | **S** | ⏳ otwarte |
+| P0-3 | Zdecyduj los jednorazowych skryptów | ✅ **DONE 2026-07-23** — usunięto 26 martwych skryptów (root `fix_*.cjs` + `scripts/` i18n/pdf one-offy, wszystkie referencje potwierdzone jako self/plan). Zostawiono żywe (`generate-sitemap`, `online-smoke`, `sync-android-version`) + generatory assetów (`generate-android-splash`, `generate-splashes.py`, `clean-svg-assets.ps1`). | **S** |
 | P0-4 | Commit/stash bieżącego WIP (7 zmodyfikowanych plików `connections`) | żeby wejść w plan z czystego baseline | **S** | ⏳ otwarte (WIP nietknięty, celowo poza commitem higieny) |
 | P0-5 | (Opcjonalnie) odchudzenie historii `.git` (27 MB) | `git filter-repo` na dużych blobach — **ryzykowne, przepisuje historię**, robić świadomie i z backupem, nie w tym samym PR | **M** |
 
@@ -104,7 +104,7 @@ Cel: czyste `git status`, brak binariów w historii roboczej, repo które „wyg
 
 | # | Zadanie | Dlaczego | Wysiłek |
 |---|---|---|---|
-| P3-1 | **Budżet rozmiaru bundla + Lighthouse w CI.** To PWA — regresja wagi wejściowej bije w mobile i SEO. Dodaj próg (np. `size-limit`) i Lighthouse CI na `/`. | **M** |
+| P3-1 | **Budżet rozmiaru bundla + Lighthouse w CI.** ✅ **Budżet DONE 2026-07-23** — `scripts/check-bundle-size.mjs` (bez zależności, gzip JS vs budżet 950 KB; aktualnie 809 KB), komenda `npm run size`, krok w `ci.yml` po Build. Lighthouse CI (perf/SEO/a11y na `/`) pozostaje jako opcjonalne rozszerzenie. | **M** |
 | P3-2 | **Audyt dostępności (a11y).** Elektryk na tablecie/telefonie w terenie: focus, kontrast, cele dotykowe, aria na canvasie/panelach. | **L** |
 | P3-3 | **Potwierdź, że CI blokuje merge.** ✅ **ZWERYFIKOWANE 2026-07-22 (workflow OK):** `ci.yml` na każdym PR + push do `main` uruchamia **Lint (`--max-warnings 0`) → Build (tsc+vite) → Unit tests** (job „Build & test"), plus smoke + e2e (skippowalne labelami). ⚠️ **AKCJA UŻYTKOWNIKA:** czy to *required check* zależy od branch-protection na GitHubie (nie da się odczytać z repo). Sprawdź: GitHub → Settings → Branches → reguła dla `main` → „Require status checks to pass before merging" ON + zaznacz check **„Build & test"**. | **S** |
 | P3-4 | **Wielojęzyczność „na serio" (jeśli cel biznesowy).** Klucze `auto.xxx_NNN` są nieutrzymywalne — przejście na semantyczne klucze + realny pipeline tłumaczeń (de/en). Duży, osobny projekt. | **XL** |
