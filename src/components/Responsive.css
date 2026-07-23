@@ -509,3 +509,29 @@ html.is-mobile-viewport .desktop-only {
      MainContent.css (consolidated to avoid Vite bundler bug). */
 }
 
+/* ================================================================
+   Cele dotykowe (a11y — P3-2)
+   Na urządzeniach dotykowych (pointer: coarse — tablet/telefon)
+   powiększamy najczęściej dotykane przyciski do min. 44×44 px
+   (zalecenie WCAG 2.5.5 „Target Size"). Te reguły są PO regułach
+   mobilnych wyżej (które ustawiały 32–34 px), więc wygrywają
+   kolejnością źródła. Desktop (mysz, pointer: fine) się nie łapie —
+   kompaktowy pasek zostaje bez zmian. Toolbar-shell ma min-height
+   56px, więc 44px przyciski mieszczą się bez klipowania.
+   ================================================================ */
+@media (pointer: coarse) {
+  .toolbar-icon-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .palette-tab {
+    min-height: 44px;
+  }
+
+  .win-close-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
