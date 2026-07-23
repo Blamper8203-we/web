@@ -187,13 +187,52 @@ describe("useDinRailInteraction hook", () => {
 
     it("captures pointer and enters select mode for a left click", () => {
       const { result, screenToWorld } = setup();
+      // WHY: capture celuje w hosta (.din-rail-svg-container), nie w samą
+      // warstwę .din-rail-surface — żeby pointerup po kliknięciu w puste pole
+      // trafiał na element z onPointerUp i odpalał deselect. jsdom daje
+      // prawdziwy HTMLElement, więc instanceof HTMLElement przechodzi.
+      const svgContainer = document.createElement("div");
+      svgContainer.className = "din-rail-svg-container";
+      const hostSetPointerCapture = vi.fn();
+      svgContainer.setPointerCapture = hostSetPointerCapture;
+      const currentTarget = {
+        closest: vi.fn((selector: string) =>
+          selector === ".din-rail-svg-container" ? svgContainer : null,
+        ),
+        setPointerCapture: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      } as unknown as HTMLDivElement;
+      const event = buildPointerEvent({
+        clientX: 100,
+        clientY: 200,
+        button: 0,
+        currentTarget,
+      });
+
+      act(() => {
+        result.current.handleSurfacePointerDown(event);
+      });
+
+      // Capture idzie na hosta, nie na warstwę surface.
+      expect(hostSetPointerCapture).toHaveBeenCalledWith(1);
+      expect(event.currentTarget.setPointerCapture).not.toHaveBeenCalled();
+      expect(screenToWorld).toHaveBeenCalledWith(100, 200);
+      expect(result.current.selectionRect).toEqual({ x: 100, y: 200, width: 0, height: 0 });
+    });
+
+    it("still enters select mode (no capture) when the svg-container host is absent", () => {
+      // WHY: gdyby host zniknął (np. warstwa zamontowana poza viewportem),
+      // nie crashujemy — po prostu nie robimy capture. Logika select dalej działa.
+      const { result, screenToWorld } = setup();
       const event = buildPointerEvent({ clientX: 100, clientY: 200, button: 0 });
 
       act(() => {
         result.current.handleSurfacePointerDown(event);
       });
 
-      expect(event.currentTarget.setPointerCapture).toHaveBeenCalledWith(1);
+      expect(event.currentTarget.setPointerCapture).not.toHaveBeenCalled();
       expect(screenToWorld).toHaveBeenCalledWith(100, 200);
       expect(result.current.selectionRect).toEqual({ x: 100, y: 200, width: 0, height: 0 });
     });
@@ -415,6 +454,42 @@ describe("useDinRailInteraction hook", () => {
 
       expect(onSymbolSelect).toHaveBeenCalledWith(null);
       expect(result.current.selectionRect).toBeNull();
+    });
+
+    it("deselects active symbol when clicking in empty space without pointer move", () => {
+      const { result, onSymbolSelect, onSymbolSelectionChange } = setup();
+
+      act(() => {
+        result.current.handleSurfacePointerDown(
+          buildPointerEvent({ clientX: 150, clientY: 150 }),
+        );
+      });
+      act(() => {
+        result.current.handlePointerUp(buildPointerEvent({ pointerId: 1, clientX: 150, clientY: 150 }));
+      });
+
+      expect(onSymbolSelect).toHaveBeenCalledWith(null);
+      expect(onSymbolSelectionChange).toHaveBeenCalledWith([], null);
+      expect(result.current.selectionRect).toBeNull();
+    });
+
+    it("deselects active symbol when tapping empty space in mobile panMode", () => {
+      const { result, onSymbolSelect, onSymbolSelectionChange } = setup({
+        isMobile: true,
+        panModeEnabled: true,
+      });
+
+      act(() => {
+        result.current.handleSurfacePointerDown(
+          buildPointerEvent({ clientX: 150, clientY: 150 }),
+        );
+      });
+      act(() => {
+        result.current.handlePointerUp(buildPointerEvent({ pointerId: 1, clientX: 150, clientY: 150 }));
+      });
+
+      expect(onSymbolSelect).toHaveBeenCalledWith(null);
+      expect(onSymbolSelectionChange).toHaveBeenCalledWith([], null);
     });
 
     it("commits the selection rect when its area is large enough", () => {

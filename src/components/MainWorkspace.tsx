@@ -124,7 +124,7 @@ export function MainWorkspace(props: MainWorkspaceProps) {
       />
 
       <FloatingAddButton 
-        isVisible={(activeSheet === "sheet1" || activeSheet === "sheet5_smarthome") && !showLeftPanel} 
+        isVisible={(activeSheet === "sheet1" || activeSheet === "sheet1_connections" || activeSheet === "sheet5_smarthome") && !showLeftPanel} 
         onClick={onOpenLeftPanel} 
       />
 

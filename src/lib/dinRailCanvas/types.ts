@@ -19,7 +19,7 @@ export interface NormalizedRect {
 
 export type InteractionState =
   | { mode: "idle" }
-  | { lastX: number; lastY: number; mode: "pan" }
+  | { lastX: number; lastY: number; mode: "pan"; startX: number; startY: number }
   | {
       anchorWorld: WorldPoint;
       mode: "select";

@@ -119,6 +119,9 @@ describe("usePaletteActions — handlePaletteInsert", () => {
       const added = commands[0].after.symbols;
       expect(added).toHaveLength(1);
       expect(added[0].isSnappedToRail).toBe(true);
+      // Dodany moduł NIE jest automatycznie zaznaczany — decyzja użytkownika.
+      expect(commands[0].after.selectedSymbolId).toBeNull();
+      expect(commands[0].after.selectedSymbolIds).toEqual([]);
     });
   });
 
@@ -166,6 +169,34 @@ describe("usePaletteActions — handlePaletteInsert", () => {
       expect(sheetChanges).not.toContain("sheet2");
       expect(commands).toHaveLength(1);
       expect(commands[0].after.symbols[0].isSnappedToRail).toBe(true);
+      // Zwykły moduł również nie jest automatycznie zaznaczany.
+      expect(commands[0].after.selectedSymbolId).toBeNull();
+      expect(commands[0].after.selectedSymbolIds).toEqual([]);
+    });
+  });
+
+  describe("nie zaznacza automatycznie dodanego modułu", () => {
+    // WHY: decyzja o zaznaczeniu należy do użytkownika. Kliknie moduł, by
+    // zaznaczyć; kliknie w puste pole, by odznaczyć (useDinRailInteraction).
+    it("snapshot 'after' ma pustą selekcję (selectedSymbolId null, ids [])", () => {
+      const mcb = makeTemplate({
+        templateId: "mcb-auto",
+        code: "MCB16",
+        category: "Aparatura",
+        deviceKind: "mcb",
+      });
+
+      const { result, commands } = setup({ templates: [mcb] });
+
+      act(() => {
+        result.current.handlePaletteInsert("mcb-auto");
+      });
+
+      expect(commands).toHaveLength(1);
+      const after = commands[0].after;
+      expect(after.symbols).toHaveLength(1);
+      expect(after.selectedSymbolId).toBeNull();
+      expect(after.selectedSymbolIds).toEqual([]);
     });
   });
 

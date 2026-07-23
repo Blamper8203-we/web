@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { AppIcon } from "./AppIcon";
 import type { WireColor, WireType, RoutingMode, FerruleColor, ConnectionItem } from "../types/connectionItem";
 import type { SymbolItem } from "../types/symbolItem";
 import { DEFAULT_CUSTOM_RADIUS } from "../lib/connections/connectionsLogic";
@@ -34,6 +35,7 @@ interface ConnectionsLeftPanelProps {
    * tej listy pokazujemy surowe id terminala.
    */
   symbols?: SymbolItem[];
+  onClose?: () => void;
 }
 
 const WIRE_COLORS: Array<{ value: WireColor; label: string; hex: string }> = [
@@ -69,8 +71,7 @@ export function ConnectionsLeftPanel({
   selectedConnectionId,
   connections,
   onConnectionsChange,
-  onConnectionSelect,
-  symbols,
+  onClose,
 }: ConnectionsLeftPanelProps) {
   const { t } = useTranslation();
   const updateSetting = <K extends keyof ConnectionsLeftPanelProps["defaultWireSettings"]>(
@@ -85,36 +86,7 @@ export function ConnectionsLeftPanel({
 
   const selectedConnection = connections?.find((c) => c.id === selectedConnectionId);
 
-  // WHY: rozwiązuje symbolId → czytelny label. Preferujemy referenceDesignation
-  // (np. "Q1", "F1") razem z label/type ("B16 1P") — dla elektryka to
-  // naturalne oznaczenie z dokumentacji projektowej. Spadek:
-  //   1. "Q1 (B16 1P)" gdy referenceDesignation + label
-  //   2. "B16 1P" gdy sam label
-  //   3. surowy symbolId, gdy symbols nieprzekazane (panel bez kontekstu)
-  const symbolLabel = (symbolId: string): string => {
-    const sym = symbols?.find((s) => s.id === symbolId);
-    if (!sym) return symbolId;
-    if (sym.referenceDesignation && sym.label) {
-      return `${sym.referenceDesignation} (${sym.label})`;
-    }
-    return sym.label || sym.referenceDesignation || symbolId;
-  };
 
-  // Kolor hex dla dot'u w wierszu listy. Reuse mapy WIRE_COLORS żeby nie
-  // duplikować definicji kolorów izolacji.
-  const wireColorHex = (color: WireColor): string => {
-    const found = WIRE_COLORS.find((c) => c.value === color);
-    return found?.hex ?? "#111827";
-  };
-
-  const handleDeleteFromList = (connId: string) => {
-    if (!connections || !onConnectionsChange) return;
-    const next = connections.filter((c) => c.id !== connId);
-    onConnectionsChange(next, "Usunięcie przewodu", "Usunięto połączenie z listy");
-    if (selectedConnectionId === connId && onConnectionSelect) {
-      onConnectionSelect(null);
-    }
-  };
 
   const handleUpdateSelected = <K extends keyof import("../types/connectionItem").ConnectionItem>(
     key: K,
@@ -140,131 +112,23 @@ export function ConnectionsLeftPanel({
     <div className="palette-sidebar" style={{ display: "flex", flexDirection: "column", flex: 1, gap: "20px", padding: "16px", overflowY: "auto" }}>
       
       {/* NAGŁÓWEK PANELU (TRYB PRZEWODNIKA) */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "4px", paddingBottom: "16px", borderBottom: "1px solid var(--panel-border)" }}>
-        <h2 style={{ fontSize: "16px", fontWeight: 700, color: "var(--text-main)", margin: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-          {"Tryb przewodnika"}
-        </h2>
-        <p style={{ fontSize: "11px", color: "var(--text-secondary)", margin: 0 }}>
-          {"Konfiguracja okablowania i połączeń szyny DIN"}
-        </p>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: "16px", borderBottom: "1px solid var(--panel-border)" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+          <h2 style={{ fontSize: "16px", fontWeight: 700, color: "var(--text-main)", margin: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            {"Tryb przewodnika"}
+          </h2>
+          <p style={{ fontSize: "11px", color: "var(--text-secondary)", margin: 0 }}>
+            {"Konfiguracja okablowania i połączeń szyny DIN"}
+          </p>
+        </div>
+        {onClose && (
+          <button type="button" className="win-close-btn mobile-only-tab" onClick={onClose} aria-label={t("app.appLeftPanel.close", "Zamknij")}>
+            <AppIcon name="close" size={16} />
+          </button>
+        )}
       </div>
 
-      {/* SEKCJA LISTY POŁĄCZEŃ (MOBILE-FRIENDLY SELECT + DELETE)
-          WHY: Na mobile trafienie palcem w cienką linię przewodu na SVG jest
-          loterią (patrz mobile-connections-review §3.2.3). Lista daje stabilny
-          hit-target wiersza (~44 px wysokości) — tap = select, przycisk
-          "Usuń" = delete. Lista renderuje się tylko, gdy są jakieś połączenia;
-          przy 0 pokazujemy empty state, żeby pusty panel nie wyglądał jak crash
-          (zgodnie z AGENTS.md "Empty state test"). */}
-      {connections !== undefined && (
-        <div className="sidebar-section">
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
-            <h3 style={{ fontSize: "14px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--accent-primary)", margin: 0 }}>
-              {"Połączenia"}
-            </h3>
-            {connections.length > 0 && (
-              <span style={{
-                fontSize: "11px",
-                fontWeight: 600,
-                color: "var(--text-secondary)",
-                background: "var(--bg-card)",
-                padding: "2px 8px",
-                borderRadius: "10px",
-                border: "1px solid var(--panel-border)",
-              }}>
-                {connections.length}
-              </span>
-            )}
-          </div>
-          {connections.length === 0 ? (
-            <p style={{ fontSize: "12px", color: "var(--text-secondary)", margin: 0, padding: "12px 0", textAlign: "center" }}>
-              {"Brak połączeń. Dotknij terminala na szynie DIN, aby narysować przewód."}
-            </p>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "4px", maxHeight: "260px", overflowY: "auto", paddingRight: "4px" }}>
-              {connections.map((conn) => {
-                const isSelected = selectedConnectionId === conn.id;
-                return (
-                  <div
-                    key={conn.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => onConnectionSelect?.(conn.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        onConnectionSelect?.(conn.id);
-                      }
-                    }}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      padding: "8px 10px",
-                      minHeight: "44px",
-                      // WHY 44px: Apple HIG / Material touch target minimum.
-                      background: isSelected ? "var(--accent-primary-soft)" : "var(--bg-card)",
-                      border: isSelected ? "1px solid var(--accent-primary)" : "1px solid var(--panel-border)",
-                      borderRadius: "6px",
-                      cursor: onConnectionSelect ? "pointer" : "default",
-                      transition: "all 0.15s ease",
-                    }}
-                  >
-                    <div
-                      aria-hidden
-                      style={{
-                        width: "10px",
-                        height: "10px",
-                        borderRadius: "50%",
-                        background: wireColorHex(conn.wireColor),
-                        border: "1px solid rgba(255, 255, 255, 0.15)",
-                        flexShrink: 0,
-                      }}
-                    />
-                    <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "2px" }}>
-                      <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-main)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {symbolLabel(conn.fromSymbolId)}:{conn.fromTerminal} → {symbolLabel(conn.toSymbolId)}:{conn.toTerminal}
-                      </span>
-                      <span style={{ fontSize: "10px", color: "var(--text-secondary)" }}>
-                        {conn.wireCrossSection} mm² · {conn.wireType}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteFromList(conn.id);
-                      }}
-                      aria-label={`Usuń połączenie ${symbolLabel(conn.fromSymbolId)}:${conn.fromTerminal} → ${symbolLabel(conn.toSymbolId)}:${conn.toTerminal}`}
-                      title="Usuń połączenie"
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: "28px",
-                        height: "28px",
-                        padding: 0,
-                        background: "rgba(239, 68, 68, 0.1)",
-                        color: "#ef4444",
-                        border: "1px solid rgba(239, 68, 68, 0.3)",
-                        borderRadius: "5px",
-                        cursor: "pointer",
-                        flexShrink: 0,
-                      }}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                        <path d="M3 6h18" />
-                        <path d="M8 6V4h8v2" />
-                        <path d="M6 6l1 15h10l1-15" />
-                      </svg>
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
+
 
       {/* SEKCJA ZAZNACZONEGO PRZEWODU (EDYCJA LOKALNA) */}
       {selectedConnection && (
