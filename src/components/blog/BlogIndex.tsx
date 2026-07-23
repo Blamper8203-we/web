@@ -1,5 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import { Link, useOutletContext } from "react-router-dom";
+import { AppIcon } from "../AppIcon";
 import { blogArticles } from "../../data/blogArticles";
 import { LandingHeader } from "../landing/LandingHeader";
 import { LandingFooter } from "../landing/LandingFooter";
@@ -57,7 +58,7 @@ export function BlogIndex() {
               </div>
               <div className="blog-card-footer">
                 <Link to={`/poradniki/${article.slug}`} className="blog-read-more">
-                  Czytaj dalej <i data-lucide="arrow-right"></i>
+                  Czytaj dalej <AppIcon name="arrowRight" />
                 </Link>
               </div>
             </article>

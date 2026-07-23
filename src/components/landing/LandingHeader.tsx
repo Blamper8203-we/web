@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
+import { AppIcon } from "../AppIcon";
 export function LandingHeader() {
   const { t } = useTranslation();
   const location = useLocation();
@@ -42,7 +43,7 @@ export function LandingHeader() {
             rel="noreferrer"
             className="landing-header-btn-support"
           >
-            <i data-lucide="coffee" className="icon"></i>
+            <AppIcon name="coffee" className="icon" />
             <span className="landing-header-btn-text">{t("auto.wesprzyjprojekt_653", "Donate/Wesprzyj")}</span>
           </a>
         </div>

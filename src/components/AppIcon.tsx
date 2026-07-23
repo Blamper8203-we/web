@@ -40,7 +40,21 @@ export type AppIconName =
   | "coffee"
   | "sparkles"
   | "smarthome"
-  | "move";
+  | "move"
+  | "arrowRight"
+  | "arrowLeft"
+  | "chevronRight"
+  | "chevronDown"
+  | "shieldCheck"
+  | "layers"
+  | "info"
+  | "gitMerge"
+  | "fileText"
+  | "database"
+  | "cpu"
+  | "alertTriangle"
+  | "download"
+  | "loader";
 
 type AppIconProps = SVGProps<SVGSVGElement> & {
   name: AppIconName;
@@ -104,6 +118,25 @@ const paths: Record<AppIconName, string[]> = {
     "M2 12h20",
     "M12 2v20"
   ],
+  arrowRight: ["M5 12h14", "m12 5 7 7-7 7"],
+  arrowLeft: ["m12 19-7-7 7-7", "M19 12H5"],
+  chevronRight: ["m9 18 6-6-6-6"],
+  chevronDown: ["m6 9 6 6 6-6"],
+  shieldCheck: ["M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z", "m9 12 2 2 4-4"],
+  layers: ["M12 2 2 7l10 5 10-5-10-5z", "m2 17 10 5 10-5", "m2 12 10 5 10-5"],
+  info: ["M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z", "M12 16v-4", "M12 8h.01"],
+  gitMerge: ["M3 6a3 3 0 1 0 6 0 3 3 0 1 0-6 0", "M15 18a3 3 0 1 0 6 0 3 3 0 1 0-6 0", "M6 21V9a9 9 0 0 0 9 9"],
+  fileText: ["M6 3h8l4 4v14H6z", "M14 3v5h5", "M9 13h6", "M9 17h6", "M9 9h1"],
+  database: ["M3 5a9 3 0 1 0 18 0 9 3 0 1 0-18 0", "M3 5v14a9 3 0 0 0 18 0V5", "M3 12a9 3 0 0 0 18 0"],
+  cpu: [
+    "M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z",
+    "M9 9h6v6H9z",
+    "M9 2v2", "M15 2v2", "M9 20v2", "M15 20v2",
+    "M20 9h2", "M20 15h2", "M2 9h2", "M2 15h2",
+  ],
+  alertTriangle: ["M12 3 22 20H2L12 3Z", "M12 9v5", "M12 17h.01"],
+  download: ["M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4", "M7 10l5 5 5-5", "M12 15V3"],
+  loader: ["M21 12a9 9 0 1 1-6.219-8.56"],
 };
 
 export function AppIcon({ name, size = 16, className, ...props }: AppIconProps) {

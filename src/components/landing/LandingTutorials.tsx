@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { AppIcon } from "../AppIcon";
 import { blogArticles } from "../../data/blogArticles";
 
 // WHY: ta sekcja zastąpiła fikcyjny teaser LandingKnowledgeBase, który pokazywał
@@ -50,7 +51,7 @@ export function LandingTutorials() {
               <p className="landing-tutorial-excerpt">{article.excerpt}</p>
               <span className="landing-tutorial-cta">
                 {t("landing.tutorials.readMore", "Czytaj dalej")}
-                <i data-lucide="arrow-right" className="landing-tutorial-cta-icon"></i>
+                <AppIcon name="arrowRight" className="landing-tutorial-cta-icon" />
               </span>
             </Link>
           ))}
@@ -59,7 +60,7 @@ export function LandingTutorials() {
         <div className="landing-tutorials-footer">
           <Link to="/poradniki" className="landing-tutorials-all">
             {t("landing.tutorials.seeAll", "Zobacz całą bazę wiedzy")}
-            <i data-lucide="arrow-right" className="landing-tutorials-all-icon"></i>
+            <AppIcon name="arrowRight" className="landing-tutorials-all-icon" />
           </Link>
         </div>
       </div>

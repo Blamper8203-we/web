@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import "./InstallButton.css";
+import { AppIcon } from "../AppIcon";
 
 export type InstallButtonVariant = "header" | "hero";
 
@@ -15,10 +16,9 @@ interface InstallButtonProps {
 /**
  * Przycisk instalacji PWA. Dwa warianty wizualne dopasowane do landing page.
  *
- * Używa ikony `download` z lucide przez `<i data-lucide>` — landing wczytuje
- * lucide z CDN i wywołuje `createIcons()` po mountcie (patrz useLandingAssets).
- * Po każdym re-renderze z tekstem instalowania, lucide musi prze-renderować
- * ikonę — zajmuje się tym hook `useLandingAssets` (re-create na mutation observer).
+ * Ikona (`download` / `loader` podczas instalacji) renderowana inline przez
+ * komponent `AppIcon` — bez zależności od CDN lucide. Reaguje na `installing`
+ * bez żadnego re-createIcons (React re-render wymienia SVG).
  *
  * Niezależny od mechanizmu instalacji: ten sam przycisk służy do wywołania
  * `beforeinstallprompt.prompt()` (Android/desktop) lub otwarcia overlay iOS.
@@ -49,10 +49,9 @@ export function InstallButton({
       disabled={installing}
       aria-label={ariaLabel ?? label}
     >
-      <i
-        data-lucide={installing ? "loader" : "download"}
+      <AppIcon
+        name={installing ? "loader" : "download"}
         className="icon"
-        aria-hidden="true"
       />
       <span className="pwa-install-btn-text">
         {variant === "header" ? shortLabel : label}

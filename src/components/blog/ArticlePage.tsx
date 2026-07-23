@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useParams, Link, Navigate, useOutletContext } from "react-router-dom";
+import { AppIcon } from "../AppIcon";
 import { Helmet } from "react-helmet-async";
 import { blogArticles, type BlogArticle } from "../../data/blogArticles";
 import { LandingHeader } from "../landing/LandingHeader";
@@ -121,7 +122,7 @@ export function ArticlePage() {
           </nav>
 
           <Link to="/poradniki" className="blog-back-link">
-            <i data-lucide="arrow-left"></i> Wróć do listy poradników
+            <AppIcon name="arrowLeft" /> Wróć do listy poradników
           </Link>
 
           <article className="blog-article">
@@ -155,7 +156,7 @@ export function ArticlePage() {
                     <h3 className="blog-related-card-title">{item.title}</h3>
                     <p className="blog-related-card-excerpt">{item.excerpt}</p>
                     <span className="blog-related-card-cta">
-                      Czytaj dalej <i data-lucide="arrow-right"></i>
+                      Czytaj dalej <AppIcon name="arrowRight" />
                     </span>
                   </Link>
                 ))}

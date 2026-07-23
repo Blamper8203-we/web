@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { AppIcon } from "../AppIcon";
 
 interface LandingHeroProps {
   onOpenProjectFile: () => void;
@@ -32,13 +33,13 @@ export function LandingHero({ onOpenProjectFile, onOpenNewProject }: LandingHero
             {/* Profesjonalne info o bezpieczeństwie i wersji testowej */}
             <div className="landing-hero-alerts">
               <div className="landing-hero-alert">
-                <i data-lucide="alert-triangle" className="landing-hero-alert-icon warning"></i>
+                <AppIcon name="alertTriangle" className="landing-hero-alert-icon warning" />
                 <div className="landing-hero-alert-text">
                   <strong className="warning">{t("auto.bezpieczestwopr_573", "Bezpieczeństwo przede wszystkim:")}</strong> {t("landing.warning", "Jeżeli nie posiadasz uprawnień elektrycznych (SEP), każdy schemat zaprojektowany w tej aplikacji musi zostać bezwzględnie sprawdzony i zatwierdzony przez wykwalifikowanego elektryka. Prąd elektryczny stanowi bezpośrednie zagrożenie zdrowia i życia — nie wykonuj montażu instalacji na własną rękę bez odpowiedniej wiedzy.")}
                 </div>
               </div>
               <div className="landing-hero-alert">
-                <i data-lucide="info" className="landing-hero-alert-icon info"></i>
+                <AppIcon name="info" className="landing-hero-alert-icon info" />
                 <div className="landing-hero-alert-text">
                   <strong className="info">{t("auto.wersjatestowabe_809", "Wersja testowa (BETA):")}</strong> {t("landing.info", "Aplikacja rozwija się dynamicznie. Wygenerowane schematy i obliczenia bilansu mocy mają charakter pomocniczy.")}
                 </div>
@@ -50,7 +51,7 @@ export function LandingHero({ onOpenProjectFile, onOpenNewProject }: LandingHero
                 onClick={onOpenProjectFile}
                 className="landing-btn-secondary"
               >
-                <i data-lucide="folder-open" className="icon"></i>
+                <AppIcon name="folderOpen" className="icon" />
                 {t("landing.buttonOpen", "Otwórz projekt z dysku")}
               </button>
             </div>
@@ -66,7 +67,7 @@ export function LandingHero({ onOpenProjectFile, onOpenNewProject }: LandingHero
                 <div className="landing-new-project-card-bg"></div>
 
                 <div className="landing-new-project-icon-wrapper">
-                  <i data-lucide="plus" className="landing-new-project-icon"></i>
+                  <AppIcon name="plus" className="landing-new-project-icon" />
                 </div>
 
                 <h2 className="landing-new-project-title">{t("landing.buttonNew", "Utwórz nowy projekt")}</h2>
@@ -74,7 +75,7 @@ export function LandingHero({ onOpenProjectFile, onOpenNewProject }: LandingHero
 
                 <div className="landing-new-project-cta">
                   {t("landing.startEditor", "Uruchom darmowy edytor")}
-                  <i data-lucide="chevron-right" className="landing-new-project-cta-icon"></i>
+                  <AppIcon name="chevronRight" className="landing-new-project-cta-icon" />
                 </div>
               </button>
             </div>
