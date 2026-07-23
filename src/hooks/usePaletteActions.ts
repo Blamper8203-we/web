@@ -324,10 +324,16 @@ export function usePaletteActions({
       }
 
       setActiveRightTab('circuitEdit');
+      // WHY: celowo NIE zaznaczamy dodanego modułu. Decyzja o zaznaczeniu
+      // należy do użytkownika — kliknie moduł, gdy będzie chciał go zaznaczyć,
+      // a kliknie w puste pole, żeby odznaczyć (handlePointerUp w
+      // useDinRailInteraction przy małym rect-ie woła onSymbolSelect(null)).
+      // Panel "Edytuj obwód" i tak się otwiera (setActiveRightTab wyżej), więc
+      // użytkownik może od razu wpisać nazwę/parametry bez wymuszonej ramki.
       executeSymbolsCommand(
         `Dodanie ${template.code}`,
         { symbols, selectedSymbolId, selectedSymbolIds },
-        { symbols: nextSymbols, selectedSymbolId: nextSymbol.id, selectedSymbolIds: [nextSymbol.id] },
+        { symbols: nextSymbols, selectedSymbolId: null, selectedSymbolIds: [] },
         statusMessage,
       );
 

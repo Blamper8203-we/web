@@ -68,22 +68,14 @@ export function AppLeftPanel({
   selectedConnectionId = null,
   connections = [],
   onConnectionsChange,
-  onConnectionSelect,
-  symbols,
 }: AppLeftPanelProps) {
   const { t } = useTranslation();
   const isMobileLayout = useIsMobileLayout();
 
-
-
   // WHY: timestamp poprzedniego tapa na tym samym elemencie. Moduł dodaje się
   // dopiero na DOUBLE-TAP (2 tapnięcia w oknie TAP_DOUBLE_MS), nie na pojedynczy
   // tap — świadoma decyzja developera. Zabezpiecza przed przypadkowym dodaniem
-  // modułu podczas np. scrolla/przypadkowego musnięcia. Ref per-element byłby
-  // nadmierny: w praktyce double-tap to szybka sekwencja na tym samym kafelku,
-  // więc wystarcza śledzić "ostatni tap" globalnie; jeśli użytkownik tapnie inny
-  // moduł między tymi dwoma tapami, to nie jest double-tap na jednym elemencie
-  // i bezpiecznie go zignorujemy (drugi tap zostanie nowym "pierwszym").
+  // modułu podczas np. scrolla/przypadkowego musnięcia.
   const lastTapAtRef = useRef<number | null>(null);
   const lastTapTemplateIdRef = useRef<string | null>(null);
 
@@ -116,18 +108,20 @@ export function AppLeftPanel({
     ? displayPaletteGroups[0]
     : (filteredPaletteGroups.find((g) => g.title === activePaletteGroupTitle) ?? filteredPaletteGroups[0] ?? { title: "", subtitle: "", items: [] });
 
+  const showPaletteBrowser = activeSheet === "sheet1" || activeSheet === "sheet5_smarthome";
+  const showConnectionsPanel = activeSheet === "sheet1_connections" && currentWireSettings && onChangeDefaultWireSettings;
+
   return (
     <aside className="left-panel">
       <div className="panel-content">
-        {activeSheet === "sheet1_connections" && currentWireSettings && onChangeDefaultWireSettings && (
+        {showConnectionsPanel && (
           <ConnectionsLeftPanel
             defaultWireSettings={currentWireSettings}
             onChangeDefaultWireSettings={onChangeDefaultWireSettings}
             selectedConnectionId={selectedConnectionId}
             connections={connections}
             onConnectionsChange={onConnectionsChange}
-            onConnectionSelect={onConnectionSelect}
-            symbols={symbols}
+            onClose={onClose}
           />
         )}
         {activeSheet === "sheet2" && (
@@ -135,15 +129,23 @@ export function AppLeftPanel({
             metadata={metadata}
             onChange={handleMetadataChange}
             onExportPdf={handleExportPdf}
+            onClose={onClose}
           />
         )}
         {activeSheet === "sheet3" && (
           <div className="left-panel-empty">
-            <span className="workspace-tag">{t("auto.lista_233", "Lista")}</span>
+            <div style={{ display: "flex", width: "100%", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <span className="workspace-tag">{t("auto.lista_233", "Lista")}</span>
+              {onClose && (
+                <button type="button" className="win-close-btn mobile-only-tab" onClick={onClose} aria-label={t("app.appLeftPanel.close", "Zamknij")}>
+                  <AppIcon name="close" size={16} />
+                </button>
+              )}
+            </div>
             <strong>{t("auto.listaobwodw_752", "Lista obwodów")}</strong>
           </div>
         )}
-        {(activeSheet === "sheet1" || activeSheet === "sheet5_smarthome") && (
+        {showPaletteBrowser && (
           <div className="palette-browser">
             <div className="panel-title-strip" style={{ justifyContent: "space-between" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>

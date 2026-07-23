@@ -9,6 +9,7 @@ type ProjectPropertiesPageProps = {
   metadata: ProjectMetadata;
   onChange: (next: ProjectMetadata) => void;
   onExportPdf: () => void;
+  onClose?: () => void;
 };
 
 type FieldProps = {
@@ -48,6 +49,7 @@ export function ProjectPropertiesPage({
   metadata,
   onChange,
   onExportPdf,
+  onClose,
 }: ProjectPropertiesPageProps) {
   const { t } = useTranslation();
 
@@ -73,15 +75,22 @@ export function ProjectPropertiesPage({
 
   return (
     <section className="pp-page">
-      <header className="pp-hero">
-        <AppIcon className="pp-hero-icon" name="fileEdit" size={18} />
-        <div>
-          <span className="pp-eyebrow">{t("app.projectProps.heroEyebrow", "Powykonawcza")}</span>
-          <h2>{t("app.projectProps.heroTitle", "Dokumentacja wykonania instalacji")}</h2>
-          <p>
-            {t("app.projectProps.heroDesc", "Dane obiektu, wykonawcy, elektryka i dokumentacji odbiorczej dla mieszkania lub domu.")}
-          </p>
+      <header className="pp-hero" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+          <AppIcon className="pp-hero-icon" name="fileEdit" size={18} />
+          <div>
+            <span className="pp-eyebrow">{t("app.projectProps.heroEyebrow", "Powykonawcza")}</span>
+            <h2>{t("app.projectProps.heroTitle", "Dokumentacja wykonania instalacji")}</h2>
+            <p>
+              {t("app.projectProps.heroDesc", "Dane obiektu, wykonawcy, elektryka i dokumentacji odbiorczej dla mieszkania lub domu.")}
+            </p>
+          </div>
         </div>
+        {onClose && (
+          <button type="button" className="win-close-btn mobile-only-tab" onClick={onClose} aria-label={t("app.appLeftPanel.close", "Zamknij")}>
+            <AppIcon name="close" size={16} />
+          </button>
+        )}
       </header>
 
       <div className="pp-grid">

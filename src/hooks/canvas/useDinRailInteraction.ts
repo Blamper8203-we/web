@@ -126,7 +126,17 @@ export function useDinRailInteraction({
       return;
     }
 
-    event.currentTarget.setPointerCapture(event.pointerId);
+    // WHY: capture celujemy na hosta (.din-rail-svg-container), nie na samą
+    // warstwę .din-rail-surface. Host jest tym samym elementem, który nosi
+    // onPointerMove/onPointerUp (DinRailCanvasViewport). Gdyby capture został
+    // na surface (który ma TYLKO onPointerDown), pointerup po kliknięciu w
+    // puste pole trafiałby na surface i select-click→deselect się nie odpalał
+    // — klik w tło przestawałby odznaczać moduł. Wzorzec zgodny z
+    // beginDragForSymbol poniżej (ten sam closest(".din-rail-svg-container")).
+    const svgContainer = event.currentTarget.closest(".din-rail-svg-container");
+    if (svgContainer instanceof HTMLElement) {
+      svgContainer.setPointerCapture(event.pointerId);
+    }
 
     const mode = resolveInteractionMode(panModeEnabled, isMobile, event.button);
 
@@ -135,6 +145,8 @@ export function useDinRailInteraction({
         mode: "pan",
         lastX: event.clientX,
         lastY: event.clientY,
+        startX: event.clientX,
+        startY: event.clientY,
       };
       return;
     }
@@ -168,6 +180,8 @@ export function useDinRailInteraction({
         mode: "pan",
         lastX: event.clientX,
         lastY: event.clientY,
+        startX: interaction.startX,
+        startY: interaction.startY,
       };
       setPanSafe({
         x: panRef.current.x + dx,
@@ -240,18 +254,42 @@ export function useDinRailInteraction({
       onSymbolMoveEnd?.(interaction.anchorId);
     }
 
-    if (interaction.mode === "select" && selectionRect) {
-      const area = selectionRect.width * selectionRect.height;
+    if (interaction.mode === "pan") {
+      const dist = Math.hypot(
+        event.clientX - interaction.startX,
+        event.clientY - interaction.startY,
+      );
+      if (dist < 5) {
+        onSymbolSelect?.(null);
+        onSymbolSelectionChange?.([], null);
+      }
+    }
+
+    if (interaction.mode === "select") {
+      const worldPoint = screenToWorld(event.clientX, event.clientY);
+      const width = Math.abs(worldPoint.x - interaction.anchorWorld.x);
+      const height = Math.abs(worldPoint.y - interaction.anchorWorld.y);
+      const area = selectionRect ? selectionRect.width * selectionRect.height : width * height;
+
       if (area < 16) {
         onSymbolSelect?.(null);
-      } else {
+        onSymbolSelectionChange?.([], null);
+      } else if (selectionRect) {
         commitSelectionRect(selectionRect);
+      } else {
+        const rect: WorldRect = {
+          x: Math.min(interaction.anchorWorld.x, worldPoint.x),
+          y: Math.min(interaction.anchorWorld.y, worldPoint.y),
+          width,
+          height,
+        };
+        commitSelectionRect(rect);
       }
     }
 
     interactionRef.current = { mode: "idle" };
     setSelectionRect(null);
-  }, [commitSelectionRect, flushViewportState, onSymbolMoveEnd, onSymbolSelect, selectionRect, pinchActiveRef]);
+  }, [commitSelectionRect, flushViewportState, onSymbolMoveEnd, onSymbolSelect, onSymbolSelectionChange, screenToWorld, selectionRect, pinchActiveRef]);
 
   const beginDragForSymbol = useCallback((
     event: React.PointerEvent<HTMLElement>,
@@ -276,6 +314,8 @@ export function useDinRailInteraction({
         mode: "pan",
         lastX: event.clientX,
         lastY: event.clientY,
+        startX: event.clientX,
+        startY: event.clientY,
       };
       return;
     }
